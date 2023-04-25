@@ -879,17 +879,37 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private boolean checkInput(final JTextComponent input, final int options) {
 		String	fileName = input.getText().trim();
 		
-		if ((options & OPTIONS_APPEND_EXTENSION) != 0 
+		if ((options & OPTIONS_APPEND_EXTENSION) != 0
 				&& !Utils.checkEmptyOrNullString(((FilterCallback)filter.getSelectedItem()).getPreferredFileExtension())
 				&& !fileName.endsWith('.'+((FilterCallback)filter.getSelectedItem()).getPreferredFileExtension())) {
 			fileName += '.'+((FilterCallback)filter.getSelectedItem()).getPreferredFileExtension();
 		}
 		
 		if (!fileName.isEmpty()) {
-			try{final String[]	selection = currentNode.list(Utils.fileMask2Regex(fileName));
-			
+			if ((options & OPTIONS_NOCHECK_FILTER) != 0) {
+				return true;
+			}
+			else {
+				try{if (!((FilterCallback)filter.getSelectedItem()).accept(new File(fileName))) {
+						new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_ACCEPTED_BY_FILTER_MESSAGE,fileName), NOT_ACCEPTED_BY_FILTER_CAPTION, JOptionPane.ERROR_MESSAGE);
+						
+						return false;
+					}
+					else {
+						return true;
+					}
+				} catch (IOException e) {
+					getLogger().message(Severity.error,e,"Error processing file name ["+fileName+"]: "+e.getLocalizedMessage());
+					return false;
+				}
+			}
+		}
+		else {
+			try {
+				final String[]	selection = currentNode.list(Utils.fileMask2Regex(fileName));
+				
 				if (selection == null || selection.length == 0) {
-					new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_EXISTS_MESSAGE,fileName), NOT_EXISTS_CAPTION, JOptionPane.ERROR_MESSAGE);
+					getLogger().message(Severity.error, FILE_NAME_NOT_FILLED);
 					
 					return false;
 				}
@@ -897,27 +917,23 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 					return true;
 				}
 				else {
-					try{if (!((FilterCallback)filter.getSelectedItem()).accept(new File(fileName))) {
-							new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_ACCEPTED_BY_FILTER_MESSAGE,fileName), NOT_ACCEPTED_BY_FILTER_CAPTION, JOptionPane.ERROR_MESSAGE);
-							
+					for (String name : selection) {
+						try{if (!((FilterCallback)filter.getSelectedItem()).accept(new File(name))) {
+								new JLocalizedOptionPane(localizer).message(JFileSelectionDialog.this, new LocalizedFormatter(NOT_ACCEPTED_BY_FILTER_MESSAGE,name), NOT_ACCEPTED_BY_FILTER_CAPTION, JOptionPane.ERROR_MESSAGE);
+								
+								return false;
+							}
+						} catch (IOException e) {
+							getLogger().message(Severity.error,e,"Error processing file name ["+name+"]: "+e.getLocalizedMessage());
 							return false;
 						}
-						else {
-							return true;
-						}
-					} catch (IOException e) {
-						getLogger().message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
-						return false;
 					}
+					return true;
 				}
-			} catch (IOException | HeadlessException | LocalizationException  e) {
-				getLogger().message(Severity.error,e,"Error processing file name content ["+content+"]: "+e.getLocalizedMessage());
+			} catch (IOException e) {
+				getLogger().message(Severity.error,e,"Error processing file list : "+e.getLocalizedMessage());
 				return false;
 			}
-		}
-		else {
-			getLogger().message(Severity.error, FILE_NAME_NOT_FILLED);
-			return false;
 		}
 	}
 	

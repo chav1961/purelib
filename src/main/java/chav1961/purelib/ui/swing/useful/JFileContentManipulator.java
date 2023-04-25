@@ -903,6 +903,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		if (filesIndex == -1) {
 			throw new IllegalStateException("No file support id was selected eariler"); 
 		}
+		else if (files.isEmpty()) {
+			throw new IllegalStateException("No file support was created earlier. Use JFileContentManipulator.appendNewFileSupport() to create at least one file support"); 
+		}
 		else {
 			return files.get(filesIndex);
 		}
