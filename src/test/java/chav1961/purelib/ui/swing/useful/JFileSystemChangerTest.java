@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import javax.swing.JOptionPane;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.PureLibSettings;
@@ -14,7 +13,7 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 public class JFileSystemChangerTest {
 	@Test
 	public void test() throws LocalizationException, ContentException, IOException {
-		final JFileSystemChanger	jfc = new JFileSystemChanger(PureLibSettings.PURELIB_LOCALIZER, (owner,accept)->{});
+		final JFileSystemChanger	jfc = new JFileSystemChanger(PureLibSettings.PURELIB_LOCALIZER, (owner,accept)->true);
 		
 		JOptionPane.showMessageDialog(null, jfc);
 	}

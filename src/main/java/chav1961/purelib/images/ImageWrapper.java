@@ -3,6 +3,8 @@ package chav1961.purelib.images;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.BufferedImageOp;
 import java.awt.image.RenderedImage;
@@ -23,9 +25,15 @@ public class ImageWrapper implements Cloneable {
 		SCALE_ALL,
 		NONE
 	}
+
+	public static enum TransformPostprocessAction {
+		FILL,
+		FILL_PROPORTIONAL,
+		NONE
+	}
 	
-	private final BufferedImage	image;
-	private final Rectangle		imageRect;
+	private volatile BufferedImage	image;
+	private final Rectangle			imageRect;
 	
 	
 	@FunctionalInterface
@@ -107,6 +115,31 @@ public class ImageWrapper implements Cloneable {
 		}
 	}
 
+	/**
+	 * <p>Crop image content with rectangle and return the same instance of the image wrapper</p>
+	 * @param rect rectangle to crop. Can't be null
+	 * @return self
+	 * @throws NullPointerException when rectangle is null
+	 * @throws IllegalArgumentException when rectangle in not inside the source image
+	 */
+	public ImageWrapper crop(final Rectangle rect) throws NullPointerException, IllegalArgumentException {
+		if (rect == null) {
+			throw new NullPointerException("Rectangle can't be null"); 
+		}
+		else if (!imageRect.contains(rect)) {
+			throw new IllegalArgumentException("Rectangle ["+rect+"] is not inside source image rectangle ["+imageRect+"]"); 
+		}
+		else {
+			final BufferedImage	result = new BufferedImage(rect.width, rect.height, getImage().getType());
+			final Graphics2D	g2d = (Graphics2D) result.getGraphics();
+			
+			g2d.drawImage((BufferedImage)getImage(), rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height, null);
+			g2d.dispose();
+			image = result;
+			return this;
+		}
+	}	
+	
 	/**
 	 * <p>Process content of the image wrapped and return the same instance of the image wrapper.</p>
 	 * @param f function to process every pixel of the image. Can't be null
@@ -252,9 +285,87 @@ public class ImageWrapper implements Cloneable {
 			return this;
 		}
 	}
+
+	/**
+	 * <p>Transform image content wrapped and return the same instance of the image wrapper.</p>
+	 * @param at transform to use. Can't be null
+	 * @return self
+	 * @throws NullPointerException when parameter is null
+	 */
+	public ImageWrapper transform(final AffineTransform at) throws NullPointerException {
+		return transform(at, TransformPostprocessAction.NONE);
+	}
 	
-	public ImageWrapper transform(final AffineTransform at) {
-		return null;
+	/**
+	 * <p>Transform image content wrapped and return the same instance of the image wrapper.</p>
+	 * @param at transform to use. Can't be null
+	 * @param action post-transform action. Can't be null
+	 * @return self
+	 * @throws NullPointerException when any parameter is null
+	 */
+	public ImageWrapper transform(final AffineTransform at, final TransformPostprocessAction action) throws NullPointerException {
+		if (at == null) {
+			throw new NullPointerException("Transform can't be null"); 
+		}
+		else if (action == null) {
+			throw new NullPointerException("Transform postprocess action can't be null"); 
+		}
+		else {
+			final GeneralPath	gp = new GeneralPath();
+			
+			gp.moveTo(imageRect.x, imageRect.y);
+			gp.lineTo(imageRect.x + imageRect.width, imageRect.y);
+			gp.lineTo(imageRect.x + imageRect.width, imageRect.y + imageRect.height);
+			gp.lineTo(imageRect.x, imageRect.y + imageRect.height);
+			gp.closePath();
+			gp.transform(at);
+			
+			final Rectangle2D		rect = gp.getBounds2D();
+			
+			switch (action) {
+				case FILL		:
+					final BufferedImage		fillResult = new BufferedImage(imageRect.width, imageRect.height, getImage().getType());
+					final Graphics2D		fillG2d = (Graphics2D) fillResult.getGraphics();
+					final AffineTransform	fillTemp = new AffineTransform(at);
+					
+					fillTemp.translate(imageRect.x - rect.getX(), imageRect.y - rect.getY());
+					fillTemp.scale(rect.getWidth()/imageRect.width, rect.getHeight()/imageRect.height);
+					fillG2d.drawImage(getImage(), at, null);
+					fillG2d.dispose();
+					image = fillResult;
+					break;
+				case FILL_PROPORTIONAL	:
+					final BufferedImage		fillPropResult = new BufferedImage(imageRect.width, imageRect.height, getImage().getType());
+					final Graphics2D		fillPropG2d = (Graphics2D) fillPropResult.getGraphics();
+					final AffineTransform	fillPropTemp = new AffineTransform(at);
+					
+					fillPropTemp.translate(imageRect.getCenterX() - rect.getCenterX(), imageRect.getCenterY() - rect.getCenterY());
+					final double			xScale = rect.getWidth()/imageRect.width; 
+					final double			yScale = rect.getHeight()/imageRect.height;
+					final double			minScale = Math.min(xScale, yScale);
+					
+					fillPropTemp.scale(minScale, minScale);
+					fillPropG2d.drawImage(getImage(), at, null);
+					fillPropG2d.dispose();
+					image = fillPropResult;
+					break;
+				case NONE		:
+					final BufferedImage		noneResult = new BufferedImage((int)rect.getWidth(), (int)rect.getHeight(), getImage().getType());
+					final Graphics2D		noneG2d = (Graphics2D) noneResult.getGraphics();
+					final AffineTransform	noneTemp = new AffineTransform(at);
+					
+					noneTemp.translate(imageRect.getCenterX() - rect.getCenterX(), imageRect.getCenterY() - rect.getCenterY());
+					
+					noneG2d.drawImage(getImage(), noneTemp, null);
+					noneG2d.dispose();
+					image = noneResult;
+					imageRect.setBounds(0, 0, image.getWidth(), image.getHeight());
+					break;
+				default:
+					throw new UnsupportedOperationException("Transform postprocess action ["+action+"] is not supported yet");
+			}
+			return this;
+		}
 	}
 
 	/**

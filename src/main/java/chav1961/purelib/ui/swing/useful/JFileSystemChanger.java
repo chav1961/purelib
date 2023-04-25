@@ -250,6 +250,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 													manager.getActionMap().get(SwingUtils.ACTION_ACCEPT).actionPerformed(null);
 												}
 												dlg.setVisible(false);
+												return true;
 											}); 
 		
 		SwingUtils.assignActionKey(mgr, JPanel.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_ACCEPT, (e) -> {

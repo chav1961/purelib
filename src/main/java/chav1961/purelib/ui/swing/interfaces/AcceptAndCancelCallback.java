@@ -12,6 +12,7 @@ public interface AcceptAndCancelCallback<T> {
 	 * <p>Process pressing button</p>
 	 * @param owner owner of the button
 	 * @param accept true if the 'accept' button was pressed, false otherwise
+	 * @return true if processing is successful
 	 */
-	void process(T owner, boolean accept);
+	boolean process(T owner, boolean accept);
 }

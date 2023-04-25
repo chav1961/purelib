@@ -19,12 +19,13 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @since 0.0.7
  */
 public class JEnableMaskManipulator {
-	private final String[]			names;
-	private final List<JComponent>	entities = new ArrayList<>();
-	private final List<Long>		enableStack = new ArrayList<>();
-	private final List<Long>		checkStack = new ArrayList<>();
-	private long					currentEnableMask = 0;
-	private long					currentCheckMask = 0;
+	private final JEnableMaskManipulator	parent;
+	private final String[]					names;
+	private final List<JComponent>			entities = new ArrayList<>();
+	private final List<Long>				enableStack = new ArrayList<>();
+	private final List<Long>				checkStack = new ArrayList<>();
+	private long							currentEnableMask = 0L;
+	private long							currentCheckMask = 0L;
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -67,12 +68,32 @@ loop:		for (String itemName : itemNames) {
 					throw new IllegalArgumentException("Item name ["+itemName+"] not found anywhere in the component list");
 				}
 			}
+			this.parent = null;
 			this.names = itemNames;
 			this.entities.addAll(Arrays.asList(components));
 			refreshState();
 		}
 	}
 
+	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final JComponent... components) throws IllegalArgumentException {
+		this(parent, false, components);
+	}	
+	
+	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
+		if (parent == null) {
+			throw new NullPointerException("Parent manipulator can't be null");
+		}
+		else if (components == null || components.length == 0 || Utils.checkArrayContent4Nulls(components) >= 0) {
+			throw new IllegalArgumentException("Components list is null, empty or contains nulls inside");
+		}
+		else {
+			this.parent = parent;
+			this.entities.addAll(Arrays.asList(components));
+			this.names = null;
+			refreshState();
+		}
+	}
+	
 	/**
 	 * <p>Add component to control enable state</p>
 	 * @param component component to add. Can't be null
@@ -106,7 +127,12 @@ loop:		for (String itemName : itemNames) {
 	 * @return current enable mask
 	 */
 	public long getEnableMask() {
-		return currentEnableMask;
+		if (parent != null) {
+			return parent.getEnableMask();
+		}
+		else {
+			return currentEnableMask;
+		}
 	}
 
 	/**
@@ -114,7 +140,12 @@ loop:		for (String itemName : itemNames) {
 	 * @return current check mask
 	 */
 	public long getCheckMask() {
-		return currentCheckMask;
+		if (parent != null) {
+			return parent.getCheckMask();
+		}
+		else {
+			return currentCheckMask;
+		}
 	}
 	
 	/**
@@ -122,7 +153,12 @@ loop:		for (String itemName : itemNames) {
 	 * @param enableMask enable mask to set
 	 */
 	public void setEnableMask(final long enableMask) {
-		currentEnableMask = enableMask;
+		if (parent != null) {
+			parent.setEnableMask(enableMask);
+		}
+		else {
+			currentEnableMask = enableMask;
+		}
 		refreshState();
 	}
 
@@ -131,7 +167,12 @@ loop:		for (String itemName : itemNames) {
 	 * @param checkMask check mask to set
 	 */
 	public void setCheckMask(final long checkMask) {
-		currentCheckMask = checkMask;
+		if (parent != null) {
+			parent.setCheckMask(checkMask);
+		}
+		else {
+			currentCheckMask = checkMask;
+		}
 		refreshState();
 	}
 	
@@ -254,30 +295,41 @@ loop:		for (String itemName : itemNames) {
 			return result;
 		}
 	}
+
+	/**
+	 * <p>Manually refresh state of the items</p>
+	 */
+	public void refresh() {
+		refreshState();
+	}
 	
-	private void refreshState() {
-		for(int index = 0; index < names.length; index++) {
-			final boolean	state = (getEnableMask() & (1L << index)) != 0;
-			
-			for (JComponent component : entities) {
-				final Container	c = SwingUtils.findComponentByName(component, names[index]);
-		
-				if (c instanceof JComponent) {
-					((JComponent)c).setEnabled(state);
-				}
-			}
+	private String[] getComponentNames() {
+		if (parent != null) {
+			return parent.getComponentNames();
 		}
-		for(int index = 0; index < names.length; index++) {
-			final boolean	state = (getCheckMask() & (1L << index)) != 0;
-			
-			for (JComponent component : entities) {
-				final Container	c = SwingUtils.findComponentByName(component, names[index]);
-		
-				if (c instanceof AbstractButton) {
-					((AbstractButton)c).setSelected(state);
-				}
-			}
+		else {
+			return names;
 		}
 	}
-
+	
+	private void refreshState() {
+		for(int index = 0; index < getComponentNames().length; index++) {
+			final boolean	enableState = (getEnableMask() & (1L << index)) != 0;
+			final boolean	checkState = (getCheckMask() & (1L << index)) != 0;
+			
+			for (JComponent component : entities) {
+				final Container	c = SwingUtils.findComponentByName(component, getComponentNames()[index]);
+		
+				if (c instanceof JComponent) {
+					((JComponent)c).setEnabled(enableState);
+				}
+				if (c instanceof AbstractButton) {
+					((AbstractButton)c).setSelected(checkState);
+				}
+			}
+		}
+		if (parent != null) {
+			parent.refreshState();
+		}
+	}
 }
