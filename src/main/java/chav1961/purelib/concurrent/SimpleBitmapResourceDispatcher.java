@@ -1,6 +1,7 @@
 package chav1961.purelib.concurrent;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -57,7 +58,7 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 	private final AtomicLong	bitmap;
 	private final AtomicLong	locks = new AtomicLong();
 	private final ArrayBlockingQueue<OperationRequest>	queue = new ArrayBlockingQueue<>(10);
-	private final List<OperationRequest>				awaited = new ArrayList<>();
+	private final List<OperationRequest>				awaited = new LinkedList<>();
 	private volatile boolean	isStarted = false;
 	private volatile boolean	isSuspended = false;
 	private volatile boolean	isAvailable = false;
@@ -229,32 +230,26 @@ public class SimpleBitmapResourceDispatcher implements AutoCloseable, ExecutionC
 							rq.cause = "Some of the resources is not registered yet";
 							rq.latch.countDown();
 						}
-						else if ((~locks.get() & mask) == mask) {
-							locks.updateAndGet((t)->t | mask);
-							rq.success = true;
-							rq.latch.countDown();
-						}
 						else {
-							awaited.add(0,rq);
+							awaited.add(0, rq);
 						}
 						break;
 					case FREE		:
 						locks.updateAndGet((t)->t & ~mask);
-						
-						for(int index = awaited.size() - 1; index >= 0; index--) {
-							final OperationRequest 	item = awaited.get(index); 
-							final long				itemMask = item.mask;
-							
-							if ((~locks.get() & itemMask) == itemMask) {
-								locks.updateAndGet((t)->t | itemMask);
-								item.success = true;
-								item.latch.countDown();
-								awaited.remove(index);
-							}
-						}
 						break;
 					default:
 						throw new UnsupportedOperationException("Action ["+rq.action+"] is not implemented yet"); 
+				}
+				for(int index = awaited.size() - 1; index >= 0; index--) {
+					final OperationRequest 	item = awaited.get(index); 
+					final long				itemMask = item.mask;
+					
+					if ((~locks.get() & itemMask) == itemMask) {
+						locks.updateAndGet((t)->t | itemMask);
+						item.success = true;
+						item.latch.countDown();
+						awaited.remove(index);
+					}
 				}
 			} catch (InterruptedException e) {
 				break;
