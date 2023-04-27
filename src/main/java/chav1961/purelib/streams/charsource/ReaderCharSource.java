@@ -100,7 +100,7 @@ public class ReaderCharSource implements CharacterSource {
 	}
 	
 	@Override public char last() {return last[0];}
-	@Override public int totalReaded() {return actual;}
+	@Override public int totalRead() {return actual;}
 	@Override public int atRow() {return actualRow;}
 	@Override public int atColumn() {return actualCol;}
 	

@@ -86,7 +86,7 @@ public class ArrayCharSource implements CharacterSource {
 	
 	
 	@Override public char last() {return last;}
-	@Override public int totalReaded() {return actual-from;}
+	@Override public int totalRead() {return actual-from;}
 	@Override public int atRow() {return actualRow;}
 	@Override public int atColumn() {return actualCol;}
 

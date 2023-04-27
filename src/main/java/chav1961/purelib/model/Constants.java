@@ -33,7 +33,6 @@ public class Constants {
 	
 	public static final String	MODEL_BUILTIN_LANGUAGE = "builtin.languages";
 	public static final String	MODEL_BUILTIN_LAF = "builtin.lookAndFeel";
-	public static final String	MODEL_BUILTIN_LRU = "builtin.lru";
 
 	/**
 	 * <p>This enumeration contains all built-in menu types supported</p>
@@ -41,8 +40,7 @@ public class Constants {
 	 */
 	public static enum Builtin {
 		BUILTIN_LANGUAGE(MODEL_BUILTIN_LANGUAGE),
-		BUILTIN_LAF(MODEL_BUILTIN_LAF),
-		BUILTIN_LRU(MODEL_BUILTIN_LRU);
+		BUILTIN_LAF(MODEL_BUILTIN_LAF);
 		
 		private final String	constantName; 
 		
@@ -84,6 +82,5 @@ public class Constants {
 	static {
 		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LANGUAGE);
 		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LAF);
-		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LRU);
 	}
 }

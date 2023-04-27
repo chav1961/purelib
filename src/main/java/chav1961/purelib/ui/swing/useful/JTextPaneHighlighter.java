@@ -1,12 +1,10 @@
 package chav1961.purelib.ui.swing.useful;
 
-
 import java.awt.Color;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimerTask;
 
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
@@ -19,43 +17,44 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.StyledDocument;
-import javax.swing.undo.UndoManager;
 
-import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.ui.HighlightItem;
+import chav1961.purelib.ui.swing.useful.interfaces.StyledAttributesKeeper;
 
 /**
- * <p>This is a simple syntax highlighter for the Swing applications. Use it instead of {@linkplain JTextPane} component where you wish.</p>
+ * <p>This is a simple syntax high-lighter for the Swing applications. Use it instead of {@linkplain JTextPane} component where you wish.</p>
  * <p>This class is not thread-safe</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @see CreoleWriter 
+ * @see StyledAttributesKeeper
  * @since 0.0.3
- * @param <LexemaType> any marker for the text pieces. It's strongly recommended to use enumerations for it
+ * @last.update 0.0.7
+ * @param <LexemaType> any marker for the text pieces. If this marker implements {@linkplain StyledAttributesKeeper} interface, it's methods will
+ * be used to set character/paragraph attributes for each parsed item instead of standard functionality. It's strongly recommended to use enumerations for it. 
  */
 public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private static final long 					serialVersionUID = -1205048630967887904L;
-	private static final SimpleAttributeSet		ORDINAL_CHARACTER_STYLE = new SimpleAttributeSet();
-	private static final SimpleAttributeSet		ORDINAL_PARAGRAPH_STYLE = new SimpleAttributeSet();
-	private static final long					REFRESH_DELAY_MILLISECONDS = 100;
+
+	public static final SimpleAttributeSet		ORDINAL_CHARACTER_STYLE = new SimpleAttributeSet();
+	public static final SimpleAttributeSet		ORDINAL_PARAGRAPH_STYLE = new SimpleAttributeSet();
 
 	static {
-		StyleConstants.setBold(ORDINAL_CHARACTER_STYLE,false);
-		StyleConstants.setItalic(ORDINAL_CHARACTER_STYLE,false);
-		StyleConstants.setUnderline(ORDINAL_CHARACTER_STYLE,false);
-		StyleConstants.setStrikeThrough(ORDINAL_CHARACTER_STYLE,false);
-		StyleConstants.setSubscript(ORDINAL_CHARACTER_STYLE,false);
-		StyleConstants.setSuperscript(ORDINAL_CHARACTER_STYLE,false);
-		StyleConstants.setForeground(ORDINAL_CHARACTER_STYLE,Color.BLACK);
-		StyleConstants.setBackground(ORDINAL_CHARACTER_STYLE,Color.WHITE);
-		StyleConstants.setFontSize(ORDINAL_CHARACTER_STYLE,12);
+		StyleConstants.setBold(ORDINAL_CHARACTER_STYLE, false);
+		StyleConstants.setItalic(ORDINAL_CHARACTER_STYLE, false);
+		StyleConstants.setUnderline(ORDINAL_CHARACTER_STYLE, false);
+		StyleConstants.setStrikeThrough(ORDINAL_CHARACTER_STYLE, false);
+		StyleConstants.setSubscript(ORDINAL_CHARACTER_STYLE, false);
+		StyleConstants.setSuperscript(ORDINAL_CHARACTER_STYLE, false);
+		StyleConstants.setForeground(ORDINAL_CHARACTER_STYLE, Color.BLACK);
+		StyleConstants.setBackground(ORDINAL_CHARACTER_STYLE, Color.WHITE);
+		StyleConstants.setFontSize(ORDINAL_CHARACTER_STYLE, 12);
 		
-		StyleConstants.setFirstLineIndent(ORDINAL_PARAGRAPH_STYLE,0.0f);
-		StyleConstants.setLeftIndent(ORDINAL_PARAGRAPH_STYLE,0.0f);
-		StyleConstants.setRightIndent(ORDINAL_PARAGRAPH_STYLE,0.0f);
-		StyleConstants.setSpaceAbove(ORDINAL_PARAGRAPH_STYLE,0.0f);
-		StyleConstants.setSpaceBelow(ORDINAL_PARAGRAPH_STYLE,0.0f);
+		StyleConstants.setFirstLineIndent(ORDINAL_PARAGRAPH_STYLE, 0.0f);
+		StyleConstants.setLeftIndent(ORDINAL_PARAGRAPH_STYLE, 0.0f);
+		StyleConstants.setRightIndent(ORDINAL_PARAGRAPH_STYLE, 0.0f);
+		StyleConstants.setSpaceAbove(ORDINAL_PARAGRAPH_STYLE, 0.0f);
+		StyleConstants.setSpaceBelow(ORDINAL_PARAGRAPH_STYLE, 0.0f);
 	}
 	
 	protected final Map<LexemaType,AttributeSet>	characterStyles = new HashMap<>();
@@ -64,9 +63,9 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private final StyleContext		content = new StyleContext();
 	private final StyledDocument	doc = new DefaultStyledDocument(content);
 	private final DocumentListener	listener = new DocumentListener() {
-										@Override public void removeUpdate(final DocumentEvent e) {highlight();}
-										@Override public void insertUpdate(final DocumentEvent e) {highlight();}
-										@Override public void changedUpdate(final DocumentEvent e) {highlight();}
+										@Override public void removeUpdate(final DocumentEvent e) {callHighlighter();}
+										@Override public void insertUpdate(final DocumentEvent e) {callHighlighter();}
+										@Override public void changedUpdate(final DocumentEvent e) {callHighlighter();}
 									}; 
 	private final Comparator<HighlightItem<LexemaType>>	sorter = new Comparator<HighlightItem<LexemaType>>() {	// Order to exclude attributes overlapping 
 										@Override
@@ -82,8 +81,6 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private final boolean			useNestedLexemas;
 	private boolean					highlightLocked = false;
 	
-//	private volatile TimerTask		tt = null;	// Timer is used to reduce parser calls because JTextPane always fills it's content line-by-line!
-
 	/**
 	 * <p>Constructor of the class</p>
 	 */
@@ -128,9 +125,10 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	}
 	
 	/**
-	 * <p>Preprocess current lexema. Yoy can make advanced processing in this method. 
-	 * @param source souce lexema
-	 * @return preprocessed lexema
+	 * <p>Pre-process current lexema. You can make additional lexema processing in this method. 
+	 * @param source source lexema. Can't be null
+	 * @param text all text content parsed. Can't be null
+	 * @return lexema preprocessed or source parameter if changes are not required
 	 */
 	protected HighlightItem<LexemaType> preprocessLexema(final HighlightItem<LexemaType> source, final String text) {
 		return source;
@@ -153,23 +151,30 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 	private void callHighlighter() {
 		SwingUtilities.invokeLater(()->{
 			try{lockHiglighting();
-				doc.setCharacterAttributes(0,doc.getLength(),getOrdinalCharacterStyle(),false);
-				doc.setParagraphAttributes(0,doc.getLength(),getOrdinalParagraphStyle(),false);
+				doc.setCharacterAttributes(0, doc.getLength(), getOrdinalCharacterStyle(), false);
+				doc.setParagraphAttributes(0, doc.getLength(), getOrdinalParagraphStyle(), false);
 				
-				try{final String 	text = doc.getText(0, getDocument().getLength()) .replace("\r","");
+				try{final String 	text = doc.getText(0, getDocument().getLength()).replace("\r","");
+				
 					if (!text.trim().isEmpty()) {
 						final HighlightItem<LexemaType>[]	lexList = parseString(text);
 		
 						Arrays.sort(lexList, sorter);
 						for (HighlightItem<LexemaType> currentItem : lexList) {
-							final HighlightItem<LexemaType>	item = preprocessLexema(currentItem,text);
+							final HighlightItem<LexemaType>	item = preprocessLexema(currentItem, text);
 							
 							if (item.length > 0) {
-								if (characterStyles.containsKey(item.type)) {
-									doc.setCharacterAttributes(item.from,item.length,characterStyles.get(item.type),useNestedLexemas);
+								if (item.type instanceof StyledAttributesKeeper) {
+									doc.setCharacterAttributes(item.from, item.length, ((StyledAttributesKeeper)item.type).getCharacterAttributes(), useNestedLexemas);
+									doc.setParagraphAttributes(item.from, item.length, ((StyledAttributesKeeper)item.type).getParagraphAttributes(), useNestedLexemas);
 								}
-								if (paragraphStyles.containsKey(item.type)) {
-									doc.setParagraphAttributes(item.from,item.length,paragraphStyles.get(item.type),useNestedLexemas);
+								else {
+									if (characterStyles.containsKey(item.type)) {
+										doc.setCharacterAttributes(item.from, item.length, characterStyles.get(item.type), useNestedLexemas);
+									}
+									if (paragraphStyles.containsKey(item.type)) {
+										doc.setParagraphAttributes(item.from, item.length, paragraphStyles.get(item.type), useNestedLexemas);
+									}
 								}
 							}
 						}
@@ -180,16 +185,5 @@ public abstract class JTextPaneHighlighter<LexemaType> extends JTextPane {
 				unlockHiglighting();
 			}
 		});
-	}
-	
-	private void highlight() {
-		callHighlighter();
-//		synchronized(this) {
-//			if (tt != null) {
-//				tt.cancel();
-//			}
-//			tt = new SimpleTimerTask(()->callHighlighter());
-//			PureLibSettings.COMMON_MAINTENANCE_TIMER.schedule(tt, REFRESH_DELAY_MILLISECONDS);
-//		}
 	}
 }

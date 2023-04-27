@@ -71,7 +71,7 @@ public class CharSourcesAndTargetsTest {
 			sb.append(actual);
 		}
 		Assert.assertEquals(sb.toString(),CHAR_SOURCE_STRING);
-		Assert.assertEquals(src.totalReaded(),CHAR_SOURCE_STRING.length());
+		Assert.assertEquals(src.totalRead(),CHAR_SOURCE_STRING.length());
 	}
 	
 	private void testCharTarget(final CharacterTarget dest) throws PrintingException {

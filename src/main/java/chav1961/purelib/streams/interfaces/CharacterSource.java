@@ -41,7 +41,7 @@ public interface CharacterSource {
 	 * <p>Get count of the total data read</p>
 	 * @return count of the total data read 
 	 */
-	int totalReaded();
+	int totalRead();
 	
 	/**
 	 * <p>Get actual row of the content</p>

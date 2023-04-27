@@ -56,8 +56,8 @@ public interface CharacterTarget extends Appendable {
 	CharacterTarget put(String source, int from, int to) throws PrintingException;
 	
 	/**
-	 * <p>Get count of the total readed data</p>
-	 * @return count of the total readed data
+	 * <p>Get count of the total written data</p>
+	 * @return count of the total written data
 	 */
 	int totalWritten();
 	

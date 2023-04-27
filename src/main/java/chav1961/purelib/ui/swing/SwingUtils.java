@@ -2426,30 +2426,6 @@ loop:			for (;;) {
 					case BUILTIN_LANGUAGE	:
 						bar.add(createBuiltinSubmenu(node));
 						break;
-					case BUILTIN_LRU		:
-						final JMenu				lruMenu = createBuiltinSubmenu(node); 
-						final ComponentListener	l = new ComponentListener() {
-														@Override public void componentResized(ComponentEvent e) {}
-														@Override public void componentMoved(ComponentEvent e) {}
-														@Override public void componentHidden(ComponentEvent e) {}
-														
-														@Override
-														public void componentShown(ComponentEvent e) {
-															final LRUManagerOwner	owner = SwingUtils.getNearestOwner(bar, LRUManagerOwner.class);
-															
-															if (owner != null) {
-																final LRUManager	mgr = owner.getLRUManager();
-																
-																fillLruSubmenu(lruMenu, mgr);
-																mgr.addLRUManagerListener((m, op, s)->fillLruSubmenu(lruMenu, m));
-															}
-															bar.removeComponentListener(this);
-														}
-													};
-													
-						bar.add(lruMenu);
-						bar.addComponentListener(l);
-						break;
 					default:
 						throw new UnsupportedOperationException("Builtin type ["+Builtin.forConstant(node.getName())+"] is not supported yet");
 				}
@@ -2482,30 +2458,6 @@ loop:			for (;;) {
 						break;
 					case BUILTIN_LANGUAGE	:
 						popup.add(createBuiltinSubmenu(node));
-						break;
-					case BUILTIN_LRU		:
-						final JMenu				lruMenu = createBuiltinSubmenu(node); 
-						final ComponentListener	l = new ComponentListener() {
-														@Override public void componentResized(ComponentEvent e) {}
-														@Override public void componentMoved(ComponentEvent e) {}
-														@Override public void componentHidden(ComponentEvent e) {}
-														
-														@Override
-														public void componentShown(ComponentEvent e) {
-															final LRUManagerOwner	owner = SwingUtils.getNearestOwner(popup, LRUManagerOwner.class);
-															
-															if (owner != null) {
-																final LRUManager	mgr = owner.getLRUManager();
-																
-																fillLruSubmenu(lruMenu, mgr);
-																mgr.addLRUManagerListener((m, op, s)->fillLruSubmenu(lruMenu, m));
-															}
-															popup.removeComponentListener(this);
-														}
-													};
-													
-						popup.add(lruMenu);
-						popup.addComponentListener(l);
 						break;
 					default:
 						throw new UnsupportedOperationException("Builtin type ["+Builtin.forConstant(node.getName())+"] is not supported yet");
@@ -2540,30 +2492,6 @@ loop:			for (;;) {
 					case BUILTIN_LANGUAGE	:
 						menu.add(createBuiltinSubmenu(node));
 						break;
-					case BUILTIN_LRU		:
-						final JMenu				lruMenu = createBuiltinSubmenu(node); 
-						final ComponentListener	l = new ComponentListener() {
-														@Override public void componentResized(ComponentEvent e) {}
-														@Override public void componentMoved(ComponentEvent e) {}
-														@Override public void componentHidden(ComponentEvent e) {}
-														
-														@Override
-														public void componentShown(ComponentEvent e) {
-															final LRUManagerOwner	owner = SwingUtils.getNearestOwner(menu, LRUManagerOwner.class);
-															
-															if (owner != null) {
-																final LRUManager	mgr = owner.getLRUManager();
-																
-																fillLruSubmenu(lruMenu, mgr);
-																mgr.addLRUManagerListener((m, op, s)->fillLruSubmenu(lruMenu, m));
-															}
-															menu.removeComponentListener(this);
-														}
-													};
-													
-						menu.add(lruMenu);
-						menu.addComponentListener(l);
-						break;
 					default:
 						throw new UnsupportedOperationException("Builtin type ["+Builtin.forConstant(node.getName())+"] is not supported yet");
 				}
@@ -2585,7 +2513,7 @@ loop:			for (;;) {
 						final Class<?> 				clazz = Class.forName(clazzName);
 						final JRadioButtonMenuItem	radio = new JRadioButtonMenuItem(clazz.getSimpleName());
 	
-						radio.setActionCommand("action:/"+Constants.MODEL_BUILTIN_LAF+"?laf="+clazzName);
+						radio.setActionCommand("action:builtin:/"+Constants.MODEL_BUILTIN_LAF+"?laf="+clazzName);
 						radio.setToolTipText(laf.getName());
 						if (currentLafDesc.equals(laf.getName())) {	// Mark current L&F
 							radio.setSelected(true);
@@ -2600,7 +2528,7 @@ loop:			for (;;) {
 				final String		currentLang = Locale.getDefault().getLanguage();
 				final ButtonGroup	langGroup = new ButtonGroup();
 				
-				AbstractLocalizer.enumerateLocales((lang,langName,icon)->{
+				AbstractLocalizer.enumerateLocales((lang, langName, icon)->{
 					final String						appPath = submenu.getNodeMetadata().getApplicationPath()+"?lang="+lang.name(); 
 					final MutableContentNodeMetadata	md = new MutableContentNodeMetadata(langName, String.class, "./"+langName, PureLibLocalizer.LOCALIZER_SCHEME_URI, lang.name(), lang.name()+".tt", null, null, URI.create(appPath), lang.getIconURI()) 
 																{{setOwner(node.getOwner());}};
@@ -2612,9 +2540,6 @@ loop:			for (;;) {
 					langGroup.add(radio);
 					submenu.add(radio);
 				});
-				break;
-			case BUILTIN_LRU	:
-				submenu.setEnabled(false);
 				break;
 			default : throw new UnsupportedOperationException("Built-in name ["+node.getName()+"] is not suported yet");
 		}

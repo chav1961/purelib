@@ -64,7 +64,7 @@ public class SyntaxTreeCharacterSource<T> implements CharacterSource {
 	}
 
 	@Override
-	public int totalReaded() {
+	public int totalRead() {
 		return index;
 	}
 
