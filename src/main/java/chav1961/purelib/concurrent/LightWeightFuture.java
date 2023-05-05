@@ -14,13 +14,13 @@ import chav1961.purelib.concurrent.interfaces.RequestProcessor;
  * to use it is:</p>
  * <code>
  * ArrayLockingQueue&lt;Future&lt;String,String&gt;&gt; queue = ...
- * // first thread
+ * // First thread: request another thread to convert string content to upper case 
  * Future&lt;String,String&gt; f = new LightWeightFuture("source");
  * queue.put(f);
- * String result = f.get();
- * // second thread
+ * String result = f.get();	// get "SOURCE"
+ * // Second thread: - get request from queue and convert parameter passed to upper case
  * Future&lt;String,String&gt; f = queue.take();
- * f.complete(f.take().toUpperCase());
+ * f.complete(f.take().toUpperCase()); 
  * </code>
  *
  * @param <F> type of source data to process

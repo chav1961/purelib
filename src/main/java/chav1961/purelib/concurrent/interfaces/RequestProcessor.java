@@ -1,5 +1,8 @@
 package chav1961.purelib.concurrent.interfaces;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 import chav1961.purelib.concurrent.LightWeightFuture;
 
 /**
@@ -25,7 +28,8 @@ public interface RequestProcessor<F,T> {
 	void complete(T result);
 
 	/**
-	 * <p>Complete processing as failed. Can be call at once only, subsequent calls will have no effect.</p>
+	 * <p>Complete processing as failed. Can be call at once only, subsequent calls will have no effect. Method {@linkplain Future#get()} will throw {@link ExecutionException}
+	 * with the method call parameter as cause</p>
 	 * @param exception exception to mark failure. Can't be null
 	 * @see #complete(Object)
 	 * @see #reject()
