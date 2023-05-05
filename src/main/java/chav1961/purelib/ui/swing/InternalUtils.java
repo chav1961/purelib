@@ -63,6 +63,7 @@ class InternalUtils {
 	static final String			VALIDATION_NEITHER_TRUE_NOR_FALSE = "purelib.ui.validation.neithertruenorfalse";
 	static final String			VALIDATION_ILLEGAL_TYPE = "purelib.ui.validation.illegaltype";
 	static final String			VALIDATION_ILLEGAL_VALUE = "purelib.ui.validation.illegalvalue";
+	static final String			VALIDATION_ILLEGAL_VALUE_SIGN = "purelib.ui.validation.illegalvaluesign";
 	static final String 		CHOOSE_COLOR_TITLE = "JColorPicketWithMeta.chooser.title";
 
 	static final BufferedImage	BUFFERED_IMAGE = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);

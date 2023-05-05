@@ -49,6 +49,7 @@
 		<key name="purelib.ui.validation.neithertruenorfalse">Field [%1$s] must be 'true' or 'false'</key>
 		<key name="purelib.ui.validation.illegaltype">Field [%1$s] has illegal type (%2$s awaited)</key>
 		<key name="purelib.ui.validation.illegalvalue">Field [%1$s] has illegal value (%2$s)</key>
+		<key name="purelib.ui.validation.illegalvaluesign">Field [%1$s] has illegal value sign (%2$s)</key>		
 
 <!-- Well-known keys  -->
 		<key name="wklk.check.nullOrEmptyValue">Null or empty value is not supported for current control</key>
@@ -437,6 +438,7 @@
 		<key name="purelib.ui.validation.neithertruenorfalse">Поле [%1$s] должно быть 'true' или 'false'</key>
 		<key name="purelib.ui.validation.illegaltype">Поле [%1$s] неверного типа (%2$s ожидался)</key>
 		<key name="purelib.ui.validation.illegalvalue">Поле [%1$s] неверное значение (%2$s)</key>
+		<key name="purelib.ui.validation.illegalvaluesign">Поле [%1$s] недопустимый знак (%2$s)</key>		
 
 <!-- Общеизвестные ключи -->
 		<key name="wklk.check.nullOrEmptyValue">Пустое или отсутствующее значение для данного поля недопустимо</key>

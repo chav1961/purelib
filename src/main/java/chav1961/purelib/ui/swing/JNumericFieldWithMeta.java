@@ -4,6 +4,7 @@ import java.awt.Font;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
@@ -13,11 +14,13 @@ import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.JFormattedTextField.AbstractFormatter;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.InternationalFormatter;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -63,7 +66,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			final String					name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final Localizer					localizer = LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated());
 			final FieldFormat				format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
-			final InternationalFormatter	formatter = InternalUtils.prepareNumberFormatter(format,localizer.currentLocale().getLocale());
+			final InternationalFormatter	formatter = InternalUtils.prepareNumberFormatter(format, localizer.currentLocale().getLocale());
 			final int						columns;
 			
 			if (format.getFormatMask() != null) {
@@ -91,7 +94,8 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 								} catch (ContentException exc) {
 									SwingUtils.getNearestLogger(JNumericFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 								}
-								prepareFieldColor(currentValue = getValue(), format);
+								currentValue = getValue();
+								InternalUtils.setFieldColor(JNumericFieldWithMeta.this, format, getSignum(currentValue));
 							}
 						});
 						monitor.process(MonitorEvent.FocusLost,metadata,JNumericFieldWithMeta.this);
@@ -133,7 +137,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
-					try{final boolean	validated = monitor.process(MonitorEvent.Validation,metadata,JNumericFieldWithMeta.this);
+					try{final boolean	validated = monitor.process(MonitorEvent.Validation, metadata, JNumericFieldWithMeta.this);
 
 						if (validated) {
 							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
@@ -194,7 +198,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 
 	@Override
 	public Object getChangedValueFromComponent() throws SyntaxException {
-		return getValue();
+		return getValue2Validate(getText());
 	}
 
 	@Override
@@ -205,8 +209,8 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		else {
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
-			setValue(newValue = SQLUtils.convert(getValueType(),value));
-			prepareFieldColor(newValue,format);
+			setValue(newValue = SQLUtils.convert(getValueType(), value));
+			InternalUtils.setFieldColor(this, format, getSignum(newValue));
 		}
 	}
 
@@ -218,26 +222,44 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 	@Override
 	public String standardValidation(final Object val) {
 		if (SwingUtils.inAllowedClasses(val,VALID_CLASSES)) {
-			return null;
-		}
-		else if (val instanceof String) {
-			final String	value = val.toString();
+			final Object	number;
 			
-			if (value == null || value.isEmpty()) {
-				return "Value is mandatory and must be filled!";
+			if (val instanceof String) {
+				final String	value = val.toString();
+				
+				if (Utils.checkEmptyOrNullString(value)) {
+					return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_MANDATORY);			
+				}
+				else {
+					try{
+						number = getValue2Validate(value);
+					} catch (SyntaxException e) {
+						return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_VALUE);			
+					}
+				}
 			}
 			else {
-				try{getFormatter().stringToValue(value.toString());
-					return null;
-				} catch (ParseException exc) {
-					return exc.getLocalizedMessage();
+				number = val;
+			}
+
+			final int	signum = getSignum(number);
+			
+			if (metadata.getFormatAssociated() != null && metadata.getFormatAssociated().hasSignRestriction()) {
+				if (!metadata.getFormatAssociated().isHighlighted(signum)) {
+					return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_VALUE_SIGN, number);			
 				}
+				else {
+					return null;
+				}
+			}
+			else {
+				return null;
 			}
 		}
 		else {
-			return "Illegal value type to validate";
+			return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_TYPE);			
 		}
-	}
+}
 
 	@Override
 	public void setInvalid(final boolean invalid) {
@@ -315,18 +337,27 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		}					
 	}
 	
-	private void prepareFieldColor(final Object value, final FieldFormat format) {
+	private int getSignum(final Object value) {
 		if (value instanceof BigDecimal) {
-			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,((BigDecimal)value).signum());
+			return ((BigDecimal)value).signum();
 		}
 		else if (value instanceof Float) {
-			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Float)value).floatValue()));
+			return (int)Math.signum(((Float)value).floatValue());
 		}
 		else if (value instanceof Double) {
-			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Double)value).doubleValue()));
+			return (int)Math.signum(((Double)value).doubleValue());
 		}
-		else if (value instanceof Long) {
-			InternalUtils.setFieldColor(JNumericFieldWithMeta.this,format,(int)Math.signum(((Long)value).longValue()));
+		else {
+			throw new UnsupportedOperationException("Value class ["+value.getClass().getCanonicalName()+"] is not supported yet");
+		}
+	}
+	
+	
+	private Object getValue2Validate(final String value) throws SyntaxException {
+		try{
+			return getFormatter().stringToValue(value);
+		} catch (ParseException exc) {
+			throw new SyntaxException(0, exc.getErrorOffset(), exc.getLocalizedMessage());
 		}
 	}
 }

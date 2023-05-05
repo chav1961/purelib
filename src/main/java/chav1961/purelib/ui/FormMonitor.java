@@ -11,6 +11,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.ModelUtils;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -21,7 +22,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
-public abstract class FormMonitor<T> implements JComponentMonitor {
+public abstract class FormMonitor<T> implements JComponentMonitor, LoggerFacadeOwner {
 	private final Localizer					localizer;
 	private final LoggerFacade				logger;
 	private final T							instance;
@@ -201,7 +202,8 @@ public abstract class FormMonitor<T> implements JComponentMonitor {
 		return mode;
 	}
 	
-	protected LoggerFacade getLogger() {
+	@Override
+	public LoggerFacade getLogger() {
 		return logger;
 	}
 	

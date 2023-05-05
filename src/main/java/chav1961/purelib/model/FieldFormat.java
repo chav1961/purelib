@@ -413,6 +413,15 @@ public class FieldFormat {
 	}
 
 	/**
+	 * <p>Has the field any sign-related settings</p>
+	 * @return true if has
+	 * @since 0.0.7
+	 */
+	public boolean hasSignRestriction() {
+		return negativeHighlight || positiveHighlight || zeroHighlight;
+	}	
+
+	/**
 	 * <p>Does field select it's content on focus</p> 
 	 * @return true if yes
 	 */
