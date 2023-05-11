@@ -123,6 +123,15 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 					JMimeContentFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JMimeContentFieldWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JMimeContentFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
 				callMenu.doClick();
 			},"show-dropdown");

@@ -8,6 +8,7 @@ import java.awt.HeadlessException;
 import java.awt.Insets;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -24,6 +25,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -108,6 +110,15 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 					SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JColorPairPickerWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JColorPairPickerWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

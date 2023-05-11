@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing;
 import java.awt.Component;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
@@ -17,6 +18,7 @@ import javax.swing.border.LineBorder;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -104,6 +106,15 @@ public class JEnumFieldWithMeta extends JComboBox<Enum<?>> implements NodeMetada
 					SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JEnumFieldWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JEnumFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

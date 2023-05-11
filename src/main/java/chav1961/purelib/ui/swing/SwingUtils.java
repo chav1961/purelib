@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Desktop;
+import java.awt.Dialog.ModalityType;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -36,6 +37,7 @@ import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -262,6 +264,8 @@ public abstract class SwingUtils {
 
 	private static final String		UNKNOWN_ACTION_TITLE = "SwingUtils.unknownAction.title";
 	private static final String		UNKNOWN_ACTION_CONTENT = "SwingUtils.unknownAction.content";
+	private static final String		PROP_THEONLY_HELP_DIALOG = "purelib.settings.ui.swing.theOnly.help.window";
+	private static final JDialog	HELP_DIALOG;
 	static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
 	static final URI				MODEL_FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/");
 	
@@ -280,6 +284,13 @@ public abstract class SwingUtils {
 		DEFAULT_VALUES.put(Double.class,0.0);
 		DEFAULT_VALUES.put(BigInteger.class,BigInteger.ZERO);
 		DEFAULT_VALUES.put(BigDecimal.class,BigDecimal.ZERO);
+		
+		if (PureLibSettings.instance().getProperty(PROP_THEONLY_HELP_DIALOG, boolean.class)) {
+			HELP_DIALOG = new JDialog((JFrame)null, ModalityType.MODELESS);
+		}
+		else {
+			HELP_DIALOG = null;
+		}
 	}
 	
 	private SwingUtils() {}
@@ -1040,7 +1051,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws NullPointerException if dialog is null
 	 */
 	public static void centerMainWindow(final JDialog dialog) throws NullPointerException {
-		centerMainWindow(dialog,0.5f);
+		centerMainWindow(dialog, 0.5f);
 	}
 	
 	/**
@@ -1515,21 +1526,27 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Help content reference can't be null");
 		}
 		else {
-			final PopupFactory		pf = PopupFactory.getSharedInstance();
-			final JEditorPane		pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),"");
-			final JScrollPane		scroll = new JScrollPane(pane);
-			final Dimension			ownerSize = owner.getSize(), helpSize = new Dimension(Math.max(640,ownerSize.width),Math.max(480,ownerSize.height)); 
-			final Point				point = new Point((ownerSize.width-helpSize.width)/2,(ownerSize.height-helpSize.height)/2);
+			try {
+				final JEditorPane 		pane = buildAboutContent(helpContent, new Dimension(640,480));
+				final JScrollPane		scroll = new JScrollPane(pane);
+				final JDialog			dlg = PureLibSettings.instance().getProperty(PROP_THEONLY_HELP_DIALOG, boolean.class) 
+												? HELP_DIALOG
+												: new JDialog((JFrame)null, ModalityType.MODELESS);
 
-			pane.setEditable(false);
-			scroll.setPreferredSize(helpSize);
-			SwingUtilities.convertPointToScreen(point,owner);
-			
-			final Popup				popup = pf.getPopup(owner,scroll,point.x,point.y);
-			final PopupListenersSet	set = new PopupListenersSet(owner,pane,popup);
-			
-			pane.setText(StreamsUtil.loadCreoleContent(helpContent,MarkupOutputFormat.XML2HTML));
-			popup.show();
+				dlg.getContentPane().removeAll();
+				dlg.getContentPane().add(scroll);
+				SwingUtils.assignActionKey(scroll, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, KS_EXIT, (e)->{
+					dlg.setVisible(false);
+					if (!PureLibSettings.instance().getProperty(PROP_THEONLY_HELP_DIALOG, boolean.class)) {
+						dlg.dispose();
+					}
+				}, ACTION_EXIT);
+				
+				centerMainWindow(dlg);
+				dlg.setVisible(true);
+			} catch (MimeParseException e) {
+				throw new IOException(e); 
+			}
 		}
 	}
 
@@ -2340,11 +2357,18 @@ loop:			for (;;) {
 			}
 		}
 	}
-	
+
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
+		try(final Reader	rdr = localizer.getContent(content,PureLibSettings.MIME_CREOLE_TEXT,PureLibSettings.MIME_HTML_TEXT)) {
+
+			return buildAboutContent(URIUtils.convert2selfURI(Utils.fromResource(rdr).toCharArray(), Localizer.LOCALIZER_DEFAULT_ENCODING), preferredSize);
+		}
+	}	
+	
+	private static JEditorPane buildAboutContent(final URI content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
 		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);
 	
-		try(final Reader	rdr = localizer.getContent(content,PureLibSettings.MIME_CREOLE_TEXT,PureLibSettings.MIME_HTML_TEXT)) {
+		try(final Reader	rdr = new InputStreamReader(content.toURL().openStream(), PureLibSettings.DEFAULT_CONTENT_ENCODING)) {
 			pane.read(rdr,null);
 		}
 		pane.setEditable(false);
@@ -2967,64 +2991,6 @@ loop:			for (;;) {
 			if (getNodeMetadata().getTooltipId() != null) {
 				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
 			}
-		}
-	}
-
-	private static class PopupListenersSet implements KeyListener, FocusListener, MouseListener, HyperlinkListener {
-		private final Component		owner;
-		private final JEditorPane	pane;
-		private final Popup			popup;
-		
-		PopupListenersSet(final Component owner, final JEditorPane pane, final Popup popup) {
-			this.owner = owner != null ? owner : FocusManager.getCurrentManager().getFocusOwner();
-			this.pane = pane;
-			this.popup = popup;
-			
-			owner.addKeyListener(this);
-			owner.addFocusListener(this);
-			pane.addMouseListener(this);
-			pane.addHyperlinkListener(this);
-		}
-		
-		@Override
-		public void hyperlinkUpdate(HyperlinkEvent e) {
-			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-				Utils.startBrowser(e.getURL());
-			}
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			close();
-		}
-
-
-		@Override
-		public void focusLost(FocusEvent e) {
-			close();
-		}
-
-		@Override
-		public void keyPressed(KeyEvent e) {
-			if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-				e.consume();
-				close();
-			}
-		}
-		
-		@Override public void mouseClicked(MouseEvent e) {}
-		@Override public void mousePressed(MouseEvent e) {}
-		@Override public void mouseReleased(MouseEvent e) {}
-		@Override public void mouseEntered(MouseEvent e) {}
-		@Override public void focusGained(FocusEvent e) {}
-		@Override public void keyTyped(KeyEvent e) {}
-		@Override public void keyReleased(KeyEvent e) {}
-
-		private void close() {
-			popup.hide();
-			pane.removeHyperlinkListener(this);
-			owner.removeKeyListener(this);
-			owner.removeFocusListener(this);
 		}
 	}
 }

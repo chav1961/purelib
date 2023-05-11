@@ -20,6 +20,7 @@ import javax.swing.TransferHandler;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -113,6 +114,15 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 					JFileFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JFileFieldWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");

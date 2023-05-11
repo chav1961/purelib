@@ -230,7 +230,7 @@ public final class PureLibSettings {
 	 * <p>This is a key to "Show tooltip" dismiss delay for debugging purposes</p>
 	 */
 	public static final String		SWING_TOOLTIP_MODE_DISMISS_DELAY = "purelib.settings.ui.swing.tooptip.dismissDelay";
-	
+
 	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>
 	 */

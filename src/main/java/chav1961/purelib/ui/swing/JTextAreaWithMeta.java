@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import javax.swing.SwingUtilities;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -102,6 +104,15 @@ public class JTextAreaWithMeta extends JTextArea implements NodeMetadataOwner, L
 					JTextAreaWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JTextAreaWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JTextAreaWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

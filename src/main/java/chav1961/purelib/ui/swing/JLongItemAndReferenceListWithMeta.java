@@ -54,6 +54,7 @@ import javax.swing.table.TableModel;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -61,6 +62,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
@@ -170,6 +172,15 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 					JLongItemAndReferenceListWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JLongItemAndReferenceListWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JLongItemAndReferenceListWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_DROPDOWN,(e)->{
 //				callSelect.doClick();
 			},"show-dropdown");

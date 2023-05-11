@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.TimerTask;
@@ -26,6 +27,7 @@ import javax.swing.table.TableModel;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -130,6 +132,15 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 					JLongItemAndReferenceFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
+			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
+				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
+					try {
+						SwingUtils.showCreoleHelpWindow(JLongItemAndReferenceFieldWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+					} catch (IOException exc) {
+						SwingUtils.getNearestLogger(JLongItemAndReferenceFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+					}
+				},SwingUtils.ACTION_HELP);
+			}
 			SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_DROPDOWN,(e)->{
 				callSelect.doClick();
 			},"show-dropdown");
