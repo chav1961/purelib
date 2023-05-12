@@ -1504,7 +1504,11 @@ loop:			for (Component comp : children(node)) {
 		}
 		else {
 			try {
-				SwingUtils.showCreoleHelpWindow(owner, URIUtils.convert2selfURI(Utils.fromResource(localizer.getContent(helpKey)).toCharArray(), Localizer.LOCALIZER_DEFAULT_ENCODING));
+				SwingUtils.showCreoleHelpWindow(owner, 
+						URIUtils.convert2selfURI(
+								Utils.fromResource(localizer.getContent(helpKey, PureLibSettings.MIME_CREOLE_TEXT, PureLibSettings.MIME_HTML_TEXT)).toCharArray(),
+						Localizer.LOCALIZER_DEFAULT_ENCODING)
+				);
 			} catch (LocalizationException exc) {
 				throw new IOException("Localization error on ["+helpKey+"]: "+exc.getLocalizedMessage(), exc);
 			}
@@ -2359,7 +2363,7 @@ loop:			for (;;) {
 	}
 
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
-		try(final Reader	rdr = localizer.getContent(content,PureLibSettings.MIME_CREOLE_TEXT,PureLibSettings.MIME_HTML_TEXT)) {
+		try(final Reader	rdr = localizer.getContent(content, PureLibSettings.MIME_CREOLE_TEXT, PureLibSettings.MIME_HTML_TEXT)) {
 
 			return buildAboutContent(URIUtils.convert2selfURI(Utils.fromResource(rdr).toCharArray(), Localizer.LOCALIZER_DEFAULT_ENCODING), preferredSize);
 		}
