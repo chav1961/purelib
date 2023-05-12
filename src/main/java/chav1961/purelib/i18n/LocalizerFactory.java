@@ -15,8 +15,10 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.text.JTextComponent;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
@@ -30,7 +32,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @see LocaleSpecificTextSetter
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 
 public final class LocalizerFactory {
@@ -335,6 +337,18 @@ public final class LocalizerFactory {
 		}
 	}
 
+	/**
+	 * <p>Gather all default localizers from application and build total localizers tree. To support this functionality, all the modules must support 
+	 * {@linkplain DefaultLocalizerProvider} SPI service.</p>
+	 * @param root localizer's root. Can't be null It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} as root
+	 * @param application any application class (contains main(String[]) method). Can't be null
+	 * @return localizers tree. Use this value to pass to all the application methods requires {@linkplain Localizer} as parameter
+	 * @since 0.0.7
+	 */
+	public static Localizer buildDefaultLocalizersTree(final Localizer root, final Object application) {
+		return null;
+	}
+	
 	private static boolean deepCompare(final Localizer left, final Localizer right) {
 		final Set<String>	leftKeys = new HashSet<>(), rightKeys = new HashSet<>();
 
