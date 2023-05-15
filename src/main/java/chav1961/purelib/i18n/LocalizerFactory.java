@@ -338,15 +338,54 @@ public final class LocalizerFactory {
 	}
 
 	/**
-	 * <p>Gather all default localizers from application and build total localizers tree. To support this functionality, all the modules must support 
-	 * {@linkplain DefaultLocalizerProvider} SPI service.</p>
-	 * @param root localizer's root. Can't be null It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} as root
-	 * @param application any application class (contains main(String[]) method). Can't be null
+	 * <p>Gather all default localizers from application and build total localizers tree. Localizer of application module will be 
+	 * {@linkplain Localizer#push(Localizer) pushed} into the three, all others will be {@linkplain Localizer#add(Localizer) added} to the tree root.
+	 * To support this functionality, all the modules having {@linkplain DefaultLocalizerProvider} providers, must support SPI service for it.</p>
+	 * @param root localizer's root. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} as root
+	 * @param application any application class (contains public static void main(String[]) method). Can't be null
 	 * @return localizers tree. Use this value to pass to all the application methods requires {@linkplain Localizer} as parameter
+	 * @throws NullPointerException any parameter is null
+	 * @throws IllegalArgumentException application class doen't contain public static void main(String[]) method
+	 * @throws EnvironmentException there are more than one {@link DefaultLocalizerProvider} in some module(s)
 	 * @since 0.0.7
 	 */
-	public static Localizer buildDefaultLocalizersTree(final Localizer root, final Object application) {
-		return null;
+	public static Localizer buildDefaultLocalizersTree(final Localizer root, final Object application) throws NullPointerException, IllegalArgumentException {
+		if (root == null) {
+			throw new NullPointerException("Root localizer can't be null"); 
+		}
+		else if (application == null) {
+			throw new NullPointerException("Application instance can't be null"); 
+		}
+		else {
+			try{
+				application.getClass().getMethod("main", String[].class);
+			} catch (NoSuchMethodException | SecurityException e) {
+				throw new IllegalArgumentException("Application class must contain public static void main(String[]) method");
+			}
+			final URI	resource = URI.create(DefaultLocalizerProvider.LOCALIZER_PROVIDER_SCHEME+':'+DefaultLocalizerProvider.LOCALIZER_PROVIDER_SUBSCHEME_ANY+":/");
+			Localizer	leaf = null;
+			
+			for (DefaultLocalizerProvider item : ServiceLoader.load(DefaultLocalizerProvider.class)) {
+				if (item.canServe(resource)) {
+					final DefaultLocalizerProvider	provider = item.newInstance(resource); 
+					final Localizer					localizer = provider.getLocalizer();
+					
+					if (application.getClass().getModule().equals(provider.getModule())) {
+						if (leaf == null) {
+							root.push(localizer);
+							leaf = localizer;
+						}
+						else {
+							throw new EnvironmentException("Module ["+item.getModule().getName()+"] has more than the only DefaultLocalizerProvider"); 
+						}
+					}
+					else {
+						root.add(localizer);
+					}
+				}
+			}
+			return leaf != null ? leaf : root;
+		}
 	}
 	
 	private static boolean deepCompare(final Localizer left, final Localizer right) {

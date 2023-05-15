@@ -12,6 +12,11 @@ public interface DefaultLocalizerProvider extends LocalizerOwner, SpiService<Def
 	 * <p>Scheme name for the localizer providers</p>
 	 */
 	public static final String	LOCALIZER_PROVIDER_SCHEME = "i18nProvider";
+
+	/**
+	 * <p>Sub-scheme to find any localizer provider</p>
+	 */
+	public static final String	LOCALIZER_PROVIDER_SUBSCHEME_ANY = "any";
 	
 	/**
 	 * <p>Get provider module description</p>

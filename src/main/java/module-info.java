@@ -91,6 +91,9 @@ module chav1961.purelib {
 			, chav1961.purelib.i18n.XMLLocalizer
 			, chav1961.purelib.i18n.MutableJsonLocalizer;
 
+	uses chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider;
+	provides chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider with chav1961.purelib.basic.PureLibLocalizerProvider ; 	
+	
 	uses chav1961.purelib.sql.interfaces.ResultSetContentParser;
 	provides chav1961.purelib.sql.interfaces.ResultSetContentParser with chav1961.purelib.sql.content.CsvContentParser, chav1961.purelib.sql.content.XMLContentParser, chav1961.purelib.sql.content.JsonContentParser;	
 
