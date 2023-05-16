@@ -271,7 +271,7 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 			}
 		}
 		else {
-			return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_TYPE);			
+			return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_TYPE, Arrays.toString(VALID_CLASSES));			
 		}
 	}
 
@@ -373,8 +373,12 @@ public class JIntegerFieldWithMeta extends JFormattedTextField implements NodeMe
 	}
 	
 	private Object getValue2Validate(final String value) throws SyntaxException {
-		try{
-			return getFormatter().stringToValue(value);
+		try{if (!Utils.checkEmptyOrNullString(value)) {
+				return getFormatter().stringToValue(value);
+			}
+			else {
+				return null;
+			}
 		} catch (ParseException exc) {
 			throw new SyntaxException(0, exc.getErrorOffset(), exc.getLocalizedMessage());
 		}

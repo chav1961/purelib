@@ -192,9 +192,11 @@ class InternalUtils {
 	
 	static String buildStandardValidationMessage(final ContentNodeMetadata metadata, final String messageId, final Object... parameters) {
 		if (parameters.length == 0) {
-			try{return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()));
-			} catch (LocalizationException | IllegalArgumentException | NullPointerException e) {
-				return messageId + "(" + metadata.getLabelId() + ")";
+			try{return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),
+						LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()),
+						parameters[0]);
+			} catch (LocalizationException e) {
+				return PureLibSettings.PURELIB_LOCALIZER.getValue(messageId).replace("%", "%%") + ": (" + metadata.getLabelId() + ")";
 			}
 		}
 		else {
@@ -205,7 +207,7 @@ class InternalUtils {
 				
 				return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),parms.toArray());
 			} catch (LocalizationException | IllegalArgumentException | NullPointerException e) {
-				return messageId + "(" + metadata.getLabelId() + ")";
+				return PureLibSettings.PURELIB_LOCALIZER.getValue(messageId).replace("%", "%%") + ": (" + metadata.getLabelId() + ")";
 			}
 		}
 	}
