@@ -28,7 +28,7 @@ import chav1961.purelib.sql.SQLUtils;
  * . . .<br>
  * class ChildArgParser extends ArgParser {<br>
  * public ChildArgParser(){<br>
- * super(new ZZZarg(...),...);<br>
+ * super(new ZZZarg(...), ...);<br>
  * }<br>
  * }<br>
  * . . .<br>
@@ -43,16 +43,18 @@ import chav1961.purelib.sql.SQLUtils;
  * </code>
  * <p>The class supports a set of argument types (marked as ZZZarg in the example above):</p>
  * <ul>
- * <li>{linkplain BooleanArg} - argument-flag</li>
- * <li>{linkplain IntegerArg} - long integer argument</li>
- * <li>{linkplain RealArg} - double or BigDecimal argument</li>
- * <li>{linkplain StringArg} - string argument</li>
- * <li>{linkplain EnumArg} - any enumeration argument</li>
- * <li>{linkplain URIArg} - {@linkplain URI} argument</li>
- * <li>{linkplain StringListArg} - list of string argument(s)</li>
- * <li>{linkplain ConfigArg} - configuration source argument</li>
- * <li>{linkplain SwitchArg} - configuration source argument</li>
- * <li>{linkplain PatternArg} - pattern source argument</li>
+ * <li>{@linkplain BooleanArg} - argument-flag</li>
+ * <li>{@linkplain IntegerArg} - long integer argument</li>
+ * <li>{@linkplain RealArg} - double or BigDecimal argument</li>
+ * <li>{@linkplain StringArg} - string argument</li>
+ * <li>{@linkplain EnumArg} - any enumeration argument</li>
+ * <li>{@linkplain URIArg} - {@linkplain URI} argument</li>
+ * <li>{@linkplain {@link FileArg} - file/directory path argument</li>
+ * <li>{@linkplain StringListArg} - list of string argument(s)</li>
+ * <li>{@linkplain ConfigArg} - configuration source argument</li>
+ * <li>{@linkplain PatternArg} - pattern source argument</li>
+ * <li>{@linkplain SwitchArg} - switch argument. Can be used to support different sets of application arguments dependent of switching value typed. All the different 
+ * argument sets in the command string must follow this argument, not precede it</li>
  * </ul>
  * <p>Any of these arguments can be declared as positional or key-value argument. Positional arguments must be declared before key-value arguments.
  * Positional argument has name to access to it, but doesn't require the name to be typed in the command string. Key-value argument also has a name and the name
@@ -60,13 +62,18 @@ import chav1961.purelib.sql.SQLUtils;
  * <p>{@linkplain ConfigArg} argument type is used to store part or all the command line arguments in external data source (file, URI connection etc). When you get value
  * for any argument and it doesn't explicitly typed in the command string, it's value will be extracted from the external data source. External data source must have format
  * compatible with {@linkplain SubstitutableProperties} requirements.</p>
+ * 
+ * <p>To make more specific or complex argument checking, you can override protected method {@linkplain #finalValidation(ArgParser)} in the class. If this method returns neither 
+ * null nor empty string, {@linkplain CommandLineParametersException} will be thrown with value returned as the exception message argument. Don't use <b>this</b> variable 
+ * for checking inside the method, use argument passed only</p>
+ * 
  * <p>This class can be used in multi-threaded environment</p>
  * 
  * @see chav1961.purelib.basic JUnit tests
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 public class ArgParser {
 	private final char					keyPrefix;
@@ -170,8 +177,17 @@ public class ArgParser {
 		else {
 			final Map<String,String[]>	pairs = new HashMap<>();
 			
-			parseParameters(ignoreExtra,ignoreUnknown,keyPrefix,caseSensitive,desc,hasConfigArg,args,pairs);
-			return new ArgParser(keyPrefix,caseSensitive,desc,hasConfigArg,pairs);
+			parseParameters(ignoreExtra, ignoreUnknown, keyPrefix, caseSensitive, desc, hasConfigArg, args, pairs);
+			
+			final ArgParser result = new ArgParser(keyPrefix, caseSensitive, desc, hasConfigArg, pairs);
+			final String	validation = finalValidation(result);
+			
+			if (Utils.checkEmptyOrNullString(validation)) {
+				return result;
+			}
+			else {
+				throw new CommandLineParametersException(validation);
+			}
 		}
 	}
 
@@ -319,6 +335,18 @@ public class ArgParser {
 			}
 			return sb.toString();
 		}
+	}
+	
+	/**
+	 * <p>Method to implement more complex argument checking. If the method returns neither null nor empty string, {@linkplain CommandLineParametersException} will 
+	 * be thrown. To check arguments inside the method, use only argument passed, because <b>this</b> variable doesn't get you access to really parsed command string
+	 * arguments</p> 
+	 * @param parser parser item to check it's arguments. Can't be null</p>
+	 * @return null or empty string on success, any error message otherwise.
+	 * @since 0.0.7
+	 */
+	protected String finalValidation(final ArgParser parser) {
+		return null;
 	}
 	
 	static void parseParameters(final boolean ignoreExtra, final boolean ignoreUnknown, final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final boolean hasConfigArg, final String[] args, final Map<String, String[]> pairs) throws CommandLineParametersException {
