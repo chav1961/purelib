@@ -276,17 +276,35 @@ public class ArgParser {
 			sb.append("Usage: ").append(applicationName);
 			for (ArgDescription item : desc) {
 				sb.append(' ');
+				if (!item.isMandatory()) {
+					sb.append('[');
+				}
 				if (item.isPositional()) {
-					sb.append('<').append(item.getName()).append('>');
+					sb.append('<').append(item.getName()).append("::").append(item.getHumanReadedbleArgType()).append('>');
 				}
 				else {
 					sb.append(keyPrefix).append(item.getName());
 					if (item.hasValue()) {
-						sb.append(" <value>");
+						if (item.getDefaultValue() != null && item.getDefaultValue().length > 0) {
+							final String[]	def = item.getDefaultValue();
+							
+							if (def.length == 1) {
+								sb.append(" <").append(item.getHumanReadedbleArgType()).append(", default is ").append(def[0]).append(">");
+							}
+							else if (def.length > 1) {
+								sb.append(" <").append(item.getHumanReadedbleArgType()).append("(default is ").append(Arrays.toString(def)).append(")>");
+							}
+						}
+						else {
+							sb.append(" <").append(item.getHumanReadedbleArgType()).append(">");
+						}
 					}
 				}
 				if (item.isList()) {
 					sb.append("...");
+				}
+				if (!item.isMandatory()) {
+					sb.append(']');
 				}
 			}
 			sb.append('\n');
@@ -474,6 +492,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		boolean isPositional();
 		boolean isList();
 		boolean hasValue();
+		String getHumanReadedbleArgType();
 		void validate(String value) throws CommandLineParametersException;
 	}
 
@@ -580,7 +599,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
@@ -593,6 +612,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public boolean hasValue() {
 			return isPositional();
+		}
+		
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "boolean";
 		}
 
 		@Override
@@ -664,7 +688,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
@@ -690,6 +714,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid integer: "+value);
 				}
 			}
+		}
+
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "integer";
 		}
 
 		@Override
@@ -746,7 +775,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
@@ -755,6 +784,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 					throw new CommandLineParametersException("Argument ["+getName()+"]: value doesn't have valid real: "+value);
 				}
 			}
+		}
+
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "number";
 		}
 
 		@Override
@@ -805,6 +839,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
+		public String getHumanReadedbleArgType() {
+			return "string";
+		}
+
+		@Override
 		public String toString() {
 			return "StringArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
 		}
@@ -834,17 +873,22 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
 				try{Pattern.compile(value);
 				} catch (PatternSyntaxException exc) {
-					throw new CommandLineParametersException("Argument ["+getName()+"], value ["+value+"]: invalid syntax ("+exc.getLocalizedMessage()+")");
+					throw new CommandLineParametersException("Argument ["+getName()+"], value ["+value+"]: invalid pattern syntax ("+exc.getLocalizedMessage()+")");
 				}
 			}
 		}
 
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "pattern";
+		}
+		
 		@Override
 		public String toString() {
 			return "PatternArg [defaults=" + Arrays.toString(getDefaultValue()) + ", toString()=" + super.toString() + "]";
@@ -908,11 +952,32 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 
 		@Override
+		public String getHumanReadedbleArgType() {
+			return "URI";
+		}
+		
+		@Override
 		public String toString() {
 			return "URIArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
 		}
 	}
 
+	protected static enum FileType {
+		FILE_ONLY("file"),
+		DIRECTORY_ONLY("dir"),
+		BOTH("file/dir");
+		
+		private final String	humanReadedble;
+		
+		private FileType(final String humanReadedble) {
+			this.humanReadedble = humanReadedble;
+		}
+		
+		public String getHumanReadedbleArgType() {
+			return humanReadedble;
+		}
+	}
+	
 	protected static class FileArg extends AbstractArg {
 		private static final Set<Class<?>>	SUPPORTED_CONVERSIONS = new HashSet<>();
 		
@@ -921,16 +986,27 @@ loop:	for (int index = 0; index < args.length; index++) {
 			SUPPORTED_CONVERSIONS.add(String.class);
 		}
 		
-		private final String[]	defaults;	
+		private final String[]	defaults;
+		private final FileType	fileType;
 
 		public FileArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			this(name, FileType.BOTH, isMandatory, isPositional, helpDescriptor);
+		}		
+		
+		public FileArg(final String name, final FileType fileType, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = new String[]{""};
+			this.defaults = new String[0];
+			this.fileType = fileType;
 		}
 
 		public FileArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
+			this(name, FileType.BOTH, isPositional, helpDescriptor, defaultValue);
+		}
+		
+		public FileArg(final String name, final FileType fileType, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
 			super(name, false, isPositional, helpDescriptor);
 			this.defaults = new String[]{defaultValue};
+			this.fileType = fileType;
 		}
 		
 		@Override
@@ -958,11 +1034,48 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
+			}
+			else {
+				final File	file = new File(value);
+				
+				if (file.exists()) {
+					switch (fileType) {
+						case BOTH			:
+							break;
+						case DIRECTORY_ONLY	:
+							if (!file.isDirectory()) {
+								throw new CommandLineParametersException("Argument ["+getName()+"] points to file ["+file.getAbsolutePath()+"], not to directory");
+							}
+							else if (!file.canRead()) {
+								throw new CommandLineParametersException("Argument ["+getName()+"] points to directory ["+file.getAbsolutePath()+"], that is not accesible to read for you");
+							}
+							else {
+								break;
+							}
+						case FILE_ONLY		:
+							if (!file.isFile()) {
+								throw new CommandLineParametersException("Argument ["+getName()+"] points to directory ["+file.getAbsolutePath()+"], not to file");
+							}
+							else if (!file.canRead()) {
+								throw new CommandLineParametersException("Argument ["+getName()+"] points to file ["+file.getAbsolutePath()+"], that is not accesible to read for you");
+							}
+							else {
+								break;
+							}
+						default:
+							throw new UnsupportedOperationException("File type ["+fileType+"] is not supported yet");
+					}
+				}
 			}
 		}
 
+		@Override
+		public String getHumanReadedbleArgType() {
+			return fileType.getHumanReadedbleArgType();
+		}
+		
 		@Override
 		public String toString() {
 			return "FileArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
@@ -1008,7 +1121,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		@Override
 		public void validate(final String value) throws CommandLineParametersException {
-			if (value == null || value.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(value)) {
 				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
 			}
 			else {
@@ -1019,6 +1132,18 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 
+		@Override
+		public String getHumanReadedbleArgType() {
+			final StringBuilder	sb = new StringBuilder();
+			char	prefix = '{';
+			
+			for(Enum<?> item : enumType.getEnumConstants()) {
+				sb.append(prefix).append(item.name());
+				prefix='|';
+			}
+			return sb.append('}').toString();
+		}
+		
 		@Override
 		public String toString() {
 			return "EnumArg [defaults=" + Arrays.toString(defaults) + ", enumType=" + enumType + ", toString()=" + super.toString() + "]";
@@ -1066,6 +1191,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "string(s)";
+		}
+		
 		@Override
 		public String toString() {
 			return "StringListArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";
@@ -1128,6 +1258,11 @@ loop:	for (int index = 0; index < args.length; index++) {
 			}
 		}
 
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "configFile";
+		}
+		
 		@Override
 		public String toString() {
 			return "ConfigArg [defaults=" + Arrays.toString(defaults) + ", toString()=" + super.toString() + "]";

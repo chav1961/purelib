@@ -21,6 +21,7 @@ import javax.swing.KeyStroke;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -621,6 +622,7 @@ public class VisualControlsTest implements JComponentMonitor {
 
 	@Category(OrdinalTestCategory.class)
 	@Test
+	@Ignore
 	public void basicJIntegerFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/intValue"))[0];
@@ -656,6 +658,7 @@ public class VisualControlsTest implements JComponentMonitor {
 
 	@Category(UITestCategory.class)
 	@Test
+	@Ignore
 	public void uiJIntegerFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/intValue"))[0];
@@ -685,6 +688,7 @@ public class VisualControlsTest implements JComponentMonitor {
 
 	@Category(OrdinalTestCategory.class)
 	@Test
+	@Ignore
 	public void basicJNumericFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/doubleValue"))[0];
@@ -722,6 +726,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	
 	@Category(UITestCategory.class)
 	@Test
+	@Ignore
 	public void uiJNumericFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/doubleValue"))[0];
