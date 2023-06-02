@@ -1642,7 +1642,6 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		}
 	}
 	
-	
 	public static <T> T preventRecursiveCall(final Throwable t) throws Throwable {
 		throw t;
 	}

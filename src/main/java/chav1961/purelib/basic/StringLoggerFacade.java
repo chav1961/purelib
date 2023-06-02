@@ -41,7 +41,7 @@ public class StringLoggerFacade extends AbstractLoggerFacade {
 			throw new NullPointerException("Resource URI can't be null"); 
 		}
 		else {
-			return this;
+			return new StringLoggerFacade();
 		}
 	}
 

@@ -131,6 +131,8 @@ module chav1961.purelib {
 			, chav1961.purelib.ui.swing.useful.editors.StringEditor;
 	
 	uses chav1961.purelib.basic.interfaces.LoggerFacade;
+	provides chav1961.purelib.basic.interfaces.LoggerFacade with
+			 chav1961.purelib.basic.StringLoggerFacade;
 	
 	uses java.sql.Driver;
 	

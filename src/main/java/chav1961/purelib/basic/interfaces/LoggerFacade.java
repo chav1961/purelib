@@ -2,6 +2,7 @@ package chav1961.purelib.basic.interfaces;
 
 import java.io.Closeable;
 import java.net.URI;
+import java.util.ServiceLoader;
 import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -268,7 +269,12 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 				throw new IllegalArgumentException("Logger facade URI can't be null and must have scheme ["+LOGGER_SCHEME+"]"); 
 			}
 			else {
-				return null;
+				for (LoggerFacade item : ServiceLoader.load(LoggerFacade.class)) {
+					if (item.canServe(loggerUri)) {
+						return item.newInstance(loggerUri);
+					}
+				}
+				throw new IllegalArgumentException("Logger facade for URI ["+loggerUri+"] not found anywhere"); 
 			}
 		}
 	}
