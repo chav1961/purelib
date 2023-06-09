@@ -2,9 +2,11 @@ package chav1961.purelib.basic.interfaces;
 
 import java.io.Closeable;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.ServiceLoader;
 import java.util.Set;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -37,7 +39,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  *    
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
@@ -254,6 +256,7 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 * <p>This class is a factory to get logger facade by it's URI. It implements a 'Factory' template and wraps call to {@linkplain LocalizerFactory#getLocalizer(URI)}</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.6
+	 * @last.update 0.0.7
 	 */
 	public final static class Factory {
 		private Factory() {}
@@ -275,6 +278,31 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 					}
 				}
 				throw new IllegalArgumentException("Logger facade for URI ["+loggerUri+"] not found anywhere"); 
+			}
+		}
+
+		/**
+		 * <p>Get logger facade by any of the URI list.</p> 
+		 * @param loggerUri logger facade URIs to get logger for. Can't be null, empty and all the items must have scheme {@value LoggerFacade#LOGGER_SCHEME}
+		 * @return logger facade created
+		 * @throws IllegalArgumentException when logger facade URIs is null, empty or doesn't have {@value LoggerFacade#LOGGER_SCHEME} scheme
+		 */
+		public static LoggerFacade newInstance(final URI... loggerUris) throws IllegalArgumentException{
+			if (loggerUris == null || loggerUris.length == 0 || Utils.checkArrayContent4Nulls(loggerUris) >= 0) {
+				throw new IllegalArgumentException("Logger facade URI list is null, empty or contains nulls inside"); 
+			}
+			else {
+				for (URI entity : loggerUris) {
+					if (!LOGGER_SCHEME.equals(entity)) {
+						throw new IllegalArgumentException("Logger facade URIs must have scheme ["+LOGGER_SCHEME+"]"); 
+					}
+					for (LoggerFacade item : ServiceLoader.load(LoggerFacade.class)) {
+						if (item.canServe(entity)) {
+							return item.newInstance(entity);
+						}
+					}
+				}
+				throw new IllegalArgumentException("Logger facade for URIs ["+Arrays.toString(loggerUris)+"] not found anywhere"); 
 			}
 		}
 	}
