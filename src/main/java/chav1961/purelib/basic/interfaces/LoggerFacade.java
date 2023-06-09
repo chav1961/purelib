@@ -260,6 +260,25 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 */
 	public final static class Factory {
 		private Factory() {}
+
+		/**
+		 * <p>Can serve given logger URI ?</p>
+		 * @param loggerUri logger URI to test. Can't be null and must contain {@value #LOGGER_SCHEME} scheme
+		 * @return true if can, false otherwise
+		 */
+		public static boolean canServe(final URI loggerUri) {
+			if (loggerUri == null || !LOGGER_SCHEME.equals(loggerUri.getScheme())) {
+				throw new IllegalArgumentException("Logger facade URI can't be null and must have scheme ["+LOGGER_SCHEME+"]"); 
+			}
+			else {
+				for (LoggerFacade item : ServiceLoader.load(LoggerFacade.class)) {
+					if (item.canServe(loggerUri)) {
+						return true;
+					}
+				}
+				return false; 
+			}
+		}
 		
 		/**
 		 * <p>Get logger facade by URI.</p> 

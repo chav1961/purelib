@@ -49,7 +49,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.3
+ * @last.update 0.0.7
  */
 
 public class FileSystemFactory {
@@ -104,6 +104,34 @@ public class FileSystemFactory {
 		}
 	}
 
+	/**
+	 * <p>Can file system serves given URI?</p>
+	 * @param location file system URI to test
+	 * @return true if can. false otherwise
+	 * @throws IOException on any I/O error
+	 * @throws NullPointerException 
+	 * @throws IllegalArgumentException
+	 * @since 0.0.7
+	 */
+	public static boolean canServe(final URI location) throws IOException, NullPointerException, IllegalArgumentException {
+		if (location == null) {
+			throw new NullPointerException("Location can't be null");
+		}
+		else if (!location.isAbsolute()) {
+			throw new IllegalArgumentException("Location URI ["+location+"] need be absolute and need contain a scheme");
+		}
+		else {
+			for (FileSystemInterface item : ServiceLoader.load(FileSystemInterface.class)){
+				try{if (item.canServe(location)) {
+						return true;
+					}
+				} catch (EnvironmentException e) {
+				}
+			}
+			return false;
+		}
+	}	
+	
 	/**
 	 * <p>Get list of available file systems</p>
 	 * @return list of available file systems. Can be empty but not null

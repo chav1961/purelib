@@ -71,6 +71,27 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 	 */
 	public final static class Factory {
 		private Factory() {}
+
+		/**
+		 * <p>Can matrix factory support given URI?</p> 
+		 * @param matrixFactoryUri matrix factory URI to test. Can't be null
+		 * @return true if can, false otherwise
+		 * @throws IllegalArgumentException when localizer URI is null or doesn't have {@value Localizer#LOCALIZER_SCHEME} scheme
+		 * @throws LocalizationException on any errors on creation localizer
+		 */
+		public static boolean canServe(final URI matrixFactoryUri) throws IllegalArgumentException, PreparationException {
+			if (matrixFactoryUri == null) {
+				throw new IllegalArgumentException("Matrix URI can't be null"); 
+			}
+			else {
+				for (MatrixFactory item : ServiceLoader.load(MatrixFactory.class)) {
+					if (item.canServe(matrixFactoryUri)) {
+						return true;
+					}
+				}				
+				return false;
+			}
+		}
 		
 		/**
 		 * <p>Get matrix factory by URI.</p> 

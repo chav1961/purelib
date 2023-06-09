@@ -18,6 +18,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,6 +49,7 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
+import chav1961.purelib.basic.interfaces.SpiServiceFactory;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
@@ -139,7 +141,7 @@ public final class PureLibSettings {
 	/**
 	 * <p>This is current version of the Pure Library</p>
 	 */
-	public static final String		CURRENT_VERSION = "0.0.5";
+	public static final String		CURRENT_VERSION = "0.0.7";
 
 	/**
 	 * <p>This is a vendor of the Pure Library</p>
@@ -417,6 +419,14 @@ public final class PureLibSettings {
 		 * @throws EnvironmentException on creation errors
 		 */
 		<T> T newInstance(URI description) throws EnvironmentException;
+
+		/**
+		 * <p>Does the service supports given URI</p>
+		 * @param uri URI to test. Can't be null
+		 * @return true if can, false otherwise
+		 * @throws EnvironmentException on checking errors
+		 */
+		boolean canServe(URI uri) throws EnvironmentException;
 	}	
 	
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
@@ -426,16 +436,36 @@ public final class PureLibSettings {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {
+															new WellKnownSchemaImpl(LoggerFacade.LOGGER_SCHEME, "", LoggerFacade.Factory.class, true, 
+																	(uri)->{
+																		try{return LoggerFacade.Factory.newInstance(uri);
+																		} catch (LocalizationException e) {
+																			throw new EnvironmentException(e); 
+																		}
+																	},
+																	(uri)->{
+																		return LoggerFacade.Factory.canServe(uri);
+																	}),
 															new WellKnownSchemaImpl(Localizer.LOCALIZER_SCHEME, "", LocalizerFactory.class, true, 
 																(uri)->{
 																	try{return LocalizerFactory.getLocalizer(uri);
 																	} catch (LocalizationException e) {
 																		throw new EnvironmentException(e); 
 																	}
+																},
+																(uri)->{
+																	return LocalizerFactory.hasLocalizerFor(uri);
 																}),
 															new WellKnownSchemaImpl(FileSystemInterface.FILESYSTEM_URI_SCHEME, "", FileSystemFactory.class, true, 
 																(uri)->{
 																	try{return FileSystemFactory.createFileSystem(uri);
+																	} catch (IOException e) {
+																		throw new EnvironmentException(e); 
+																	}
+																},
+																(uri)->{
+																	try{
+																		return FileSystemFactory.canServe(uri);
 																	} catch (IOException e) {
 																		throw new EnvironmentException(e); 
 																	}
@@ -446,15 +476,22 @@ public final class PureLibSettings {
 																		} catch (PreparationException e) {
 																			throw new EnvironmentException(e); 
 																		}
+																	},
+																	(uri)->{
+																		return MatrixFactory.Factory.canServe(uri);
 																	}),
 															new WellKnownSchemaImpl(ResultSetFactory.RESULTSET_PARSERS_SCHEMA, "", ResultSetFactory.class, false, 
-																(uri)->{throw new EnvironmentException("This service doesn't supports SpiService interface");})
+																(uri)->{
+																	throw new EnvironmentException("This service doesn't supports SpiService interface");
+																},
+																(uri)->{
+																	return  false;
+																}),
 														};
 	private static final AtomicInteger				HELP_CONTEXT_COUNT = new AtomicInteger();
 	private static final Object						HELP_CONTEXT_COUNT_SYNC = new Object();
 	private static final List<AutoCloseable>		finalCloseList = new ArrayList<>();
 	static volatile NanoServiceFactory				helpServer = null;
-	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
 			
@@ -817,7 +854,7 @@ public final class PureLibSettings {
 			}
 		}
 	}
-	
+
 	public static void preloadNatives(final URI nativesRoot) throws IOException {
 		preloadNatives(nativesRoot, (s)->true);
 	}
@@ -931,19 +968,26 @@ public final class PureLibSettings {
 		private interface CreationCallback<T> {
 			T create(URI uri) throws EnvironmentException;
 		}
+
+		@FunctionalInterface
+		private interface TestCallback<T> {
+			boolean test(URI uri) throws EnvironmentException;
+		}
 		
 		private final String				schemaName;
 		private final String				description;
 		private final Class<?>				factoryClass;
 		private final boolean				supportsSpi;
 		private final CreationCallback<T>	callback;
+		private final TestCallback<T>		test;
 		
-		WellKnownSchemaImpl(final String schemaName, final String description, final Class<?> factoryClass, final boolean supportsSpi, final CreationCallback<T> callback) {
+		WellKnownSchemaImpl(final String schemaName, final String description, final Class<?> factoryClass, final boolean supportsSpi, final CreationCallback<T> callback, final TestCallback<T> test) {
 			this.schemaName = schemaName;
 			this.description = description;
 			this.factoryClass = factoryClass;
 			this.supportsSpi = supportsSpi;
 			this.callback = callback;
+			this.test = test;
 		}
 
 		@Override public String getSchemaName() {return schemaName;}
@@ -952,6 +996,7 @@ public final class PureLibSettings {
 		@Override public boolean supportsSpiService() {return supportsSpi;}
 		@SuppressWarnings({ "unchecked", "hiding" })
 		@Override public <T> T newInstance(final URI description) throws EnvironmentException {return (T) callback.create(description);}
+		@Override public boolean canServe(final URI uri) throws EnvironmentException {return test.test(uri);}
 
 		@Override
 		public String toString() {
