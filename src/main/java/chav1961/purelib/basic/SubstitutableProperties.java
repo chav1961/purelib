@@ -727,7 +727,7 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 							return awaited.cast(new File(CURRENT_DIR, value).toURI());
 						}
 					case COLOR			:
-						return awaited.cast(PureLibSettings.colorByName(value,null));
+						return awaited.cast(ColorUtils.colorByName(value,null));
 					case CHARARRAY		:
 						return awaited.cast(value == null ? null : value.toCharArray());
 					case UUID			:

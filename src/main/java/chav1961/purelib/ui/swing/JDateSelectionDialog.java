@@ -33,6 +33,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.text.DateFormatter;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -112,11 +113,11 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
             this.monthSpin = new JSpinner(new SpinnerNumberModel(1, 1, 12, 1));
 
             setLayout(new BorderLayout(1,1));
-            setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+            setBackground(ColorUtils.defaultColorScheme().OPTIONAL_FOREGROUND);
 
             final JPanel 	yearAndMonth = new JPanel(new FlowLayout());
             
-            yearAndMonth.setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
+            yearAndMonth.setBackground(ColorUtils.defaultColorScheme().MANDATORY_BACKGROUND);
             
             yearSpin.setEditor(new JSpinner.NumberEditor(yearSpin, "####"));
             yearSpin.addChangeListener((e)->{
@@ -128,7 +129,7 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 			});
             yearAndMonth.add(yearSpin);
 
-            yearLabel.setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
+            yearLabel.setForeground(ColorUtils.defaultColorScheme().MANDATORY_FOREGROUND);
             yearAndMonth.add(yearLabel);
 
             monthSpin.setEditor(new JSpinner.NumberEditor(monthSpin, "##"));
@@ -141,7 +142,7 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 			});
             yearAndMonth.add(monthSpin);
 
-            monthLabel.setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
+            monthLabel.setForeground(ColorUtils.defaultColorScheme().MANDATORY_FOREGROUND);
             yearAndMonth.add(monthLabel);
             
             daysTable.setDefaultRenderer(String.class,days);

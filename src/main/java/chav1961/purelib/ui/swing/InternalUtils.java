@@ -42,6 +42,7 @@ import javax.swing.text.InternationalFormatter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.NumberFormatter;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -94,22 +95,22 @@ class InternalUtils {
 	}
 
 	static void prepareMandatoryColor(final JComponent component) {
-		component.setBackground(PureLibSettings.defaultColorScheme().MANDATORY_BACKGROUND);
-		component.setForeground(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND);
+		component.setBackground(ColorUtils.defaultColorScheme().MANDATORY_BACKGROUND);
+		component.setForeground(ColorUtils.defaultColorScheme().MANDATORY_FOREGROUND);
 		if (component instanceof JTextComponent) {
-			((JTextComponent)component).setSelectedTextColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND);
-			((JTextComponent)component).setDisabledTextColor(PureLibSettings.defaultColorScheme().MANDATORY_FOREGROUND.brighter());
-			((JTextComponent)component).setSelectionColor(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND);
+			((JTextComponent)component).setSelectedTextColor(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND);
+			((JTextComponent)component).setDisabledTextColor(ColorUtils.defaultColorScheme().MANDATORY_FOREGROUND.brighter());
+			((JTextComponent)component).setSelectionColor(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_BACKGROUND);
 		}
 	}
 	
 	static void prepareOptionalColor(final JComponent component) {
-		component.setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-		component.setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+		component.setBackground(ColorUtils.defaultColorScheme().OPTIONAL_BACKGROUND);
+		component.setForeground(ColorUtils.defaultColorScheme().OPTIONAL_FOREGROUND);
 		if (component instanceof JTextComponent) {
-			((JTextComponent)component).setSelectedTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
-			((JTextComponent)component).setDisabledTextColor(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND.brighter());
-			((JTextComponent)component).setSelectionColor(PureLibSettings.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
+			((JTextComponent)component).setSelectedTextColor(ColorUtils.defaultColorScheme().OPTIONAL_SELECTION_FOREGROUND);
+			((JTextComponent)component).setDisabledTextColor(ColorUtils.defaultColorScheme().OPTIONAL_FOREGROUND.brighter());
+			((JTextComponent)component).setSelectionColor(ColorUtils.defaultColorScheme().OPTIONAL_SELECTION_BACKGROUND);
 		}
 	}
 
@@ -154,13 +155,13 @@ class InternalUtils {
 	static void setFieldColor(final JTextComponent component, final FieldFormat format, final int signum) {
 		if (format.isHighlighted(signum)) {
 			if (signum < 0) {
-				component.setForeground(PureLibSettings.defaultColorScheme().NEGATIVEMARK_FOREGROUND);
+				component.setForeground(ColorUtils.defaultColorScheme().NEGATIVEMARK_FOREGROUND);
 			}
 			else if (signum > 0) {
-				component.setForeground(PureLibSettings.defaultColorScheme().POSITIVEMARK_FOREGROUND);
+				component.setForeground(ColorUtils.defaultColorScheme().POSITIVEMARK_FOREGROUND);
 			}
 			else {
-				component.setForeground(PureLibSettings.defaultColorScheme().ZEROMARK_FOREGROUND);
+				component.setForeground(ColorUtils.defaultColorScheme().ZEROMARK_FOREGROUND);
 			}
 		}
 	}

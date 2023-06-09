@@ -51,6 +51,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.URIUtils;
@@ -208,8 +209,8 @@ public class JLongItemAndReferenceListWithMeta<T> extends JList<LongItemAndRefer
 				}
 			}
 			else {
-				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-				setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+				setBackground(ColorUtils.defaultColorScheme().OPTIONAL_BACKGROUND);
+				setForeground(ColorUtils.defaultColorScheme().OPTIONAL_FOREGROUND);
 				setAlignmentX(JTextField.LEFT_ALIGNMENT);
 			}
 			

@@ -19,6 +19,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
@@ -83,7 +84,7 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 							label.setForeground((isSelected ?  list.getSelectionForeground() : list.getForeground()).brighter());
 						}
 						if (cellHasFocus) {
-							label.setBorder(new LineBorder(PureLibSettings.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
+							label.setBorder(new LineBorder(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
 						}
 						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
 								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);

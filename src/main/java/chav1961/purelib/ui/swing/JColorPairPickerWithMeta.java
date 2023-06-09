@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -189,7 +190,7 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 			}
 			else {
 				for (String item : val.substring(1,val.length()-2).split("\\,")) {
-					if (PureLibSettings.colorByName(item.trim(),null) == null) {
+					if (ColorUtils.colorByName(item.trim(),null) == null) {
 						throw new IllegalArgumentException("Unknown color name ["+item.trim()+"] in the value string");
 					}
 				}

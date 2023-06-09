@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -174,8 +175,8 @@ loop:			for (JsonStaxParserLexType item : parser) {
 			throw new NullPointerException("JSON printer can't be null"); 
 		}
 		else {
-			printer.startObject().name(F_FOREGROUND).value(PureLibSettings.nameByColor(foreground, "black"))
-				.splitter().name(F_BACKGROUND).value(PureLibSettings.nameByColor(background, "black")).endObject();
+			printer.startObject().name(F_FOREGROUND).value(ColorUtils.nameByColor(foreground, "black"))
+				.splitter().name(F_BACKGROUND).value(ColorUtils.nameByColor(background, "black")).endObject();
 		}
 	}
 	
@@ -225,7 +226,7 @@ loop:			for (JsonStaxParserLexType item : parser) {
 		}
 		else if (parser.next() == JsonStaxParserLexType.NAME_SPLITTER) {
 			switch (parser.next()) {
-				case STRING_VALUE 	: return PureLibSettings.colorByName(parser.stringValue(), Color.BLACK);
+				case STRING_VALUE 	: return ColorUtils.colorByName(parser.stringValue(), Color.BLACK);
 				default : throw new SyntaxException(parser.row(), parser.col(), "Color value is missing");
 			}
 		}

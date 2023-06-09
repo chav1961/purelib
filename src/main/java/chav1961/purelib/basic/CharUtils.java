@@ -1405,7 +1405,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @since 0.0.3
 	 * @lastUpdate 0.0.6
 	 */
-	public static int tryExtract(final char[] source, final int from, Object... lexemas) throws IllegalArgumentException, SyntaxException {
+	public static int tryExtract(final char[] source, final int from, final Object... lexemas) throws IllegalArgumentException, SyntaxException {
 		int	len, start = from;
 		
 		if (source == null || (len = source.length) == 0) {
@@ -1605,7 +1605,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									final int	oldStart = start;
 									
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
-									if (PureLibSettings.colorByName(new String(source,intResult[0],intResult[1]-intResult[0]+1),null) == null) {
+									if (ColorUtils.colorByName(new String(source,intResult[0],intResult[1]-intResult[0]+1),null) == null) {
 										return - (oldStart+1);
 									}
 								}
@@ -1868,7 +1868,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
 									final String	color = new String(source,intResult[0],intResult[1]-intResult[0]+1);
 									
-									if ((result[resultIndex[0]++] = PureLibSettings.colorByName(color,null)) == null) {
+									if ((result[resultIndex[0]++] = ColorUtils.colorByName(color,null)) == null) {
 										throw new IllegalArgumentException("Unknonw color name ["+color+"]");
 									}
 								}
@@ -3425,7 +3425,8 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     		return result;
     	}
     }
-    
+
+
     private static class OrdinalCharSequence implements CharSequence {
     	private final char[]	content;
     	private final int		from;

@@ -1217,10 +1217,10 @@ public class CSSUtils {
 					return CharUtils.tryExtract(content,from,COLOR_HSL_TEMPLATE) > 0;
 				}
 				else {
-					return PureLibSettings.colorByName(new String(content),null) != null; 
+					return ColorUtils.colorByName(new String(content),null) != null; 
 				}
 			}
-			return PureLibSettings.colorByName(new String(content),null) != null; 
+			return ColorUtils.colorByName(new String(content),null) != null; 
 		}
 	}
 
@@ -1257,7 +1257,7 @@ public class CSSUtils {
 					return Color.getHSBColor((Integer)values[0]/256.0f,0.01f*(Float)values[1],0.01f*(Float)values[2]);
 				}
 				else {
-					final Color		toRet = PureLibSettings.colorByName(new String(content),null); 
+					final Color		toRet = ColorUtils.colorByName(new String(content),null); 
 					
 					if (toRet != null) {
 						return toRet;
@@ -1267,7 +1267,7 @@ public class CSSUtils {
 					}
 				}
 			}
-			final Color	toRet = PureLibSettings.colorByName(new String(content),null); 
+			final Color	toRet = ColorUtils.colorByName(new String(content),null); 
 			
 			if (toRet != null) {
 				return toRet;

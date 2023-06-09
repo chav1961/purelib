@@ -24,6 +24,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableModel;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.URIUtils;
@@ -172,8 +173,8 @@ public class JLongItemAndReferenceFieldWithMeta extends JTextField implements No
 				}
 			}
 			else {
-				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-				setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+				setBackground(ColorUtils.defaultColorScheme().OPTIONAL_BACKGROUND);
+				setForeground(ColorUtils.defaultColorScheme().OPTIONAL_FOREGROUND);
 				setAlignmentX(JTextField.LEFT_ALIGNMENT);
 			}
 			

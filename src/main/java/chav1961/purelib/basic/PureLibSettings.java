@@ -1,9 +1,7 @@
 package chav1961.purelib.basic;
 
 
-import java.awt.Color;
 import java.awt.datatransfer.DataFlavor;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,12 +16,9 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Timer;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -49,7 +44,6 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
-import chav1961.purelib.basic.interfaces.SpiServiceFactory;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;
@@ -64,8 +58,6 @@ import chav1961.purelib.monitoring.NanoServiceControl;
 import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.streams.char2char.CreoleWriter;
-import chav1961.purelib.ui.ColorScheme;
-import chav1961.purelib.ui.swing.SwingUtils;
 
 
 /**
@@ -429,9 +421,6 @@ public final class PureLibSettings {
 		boolean canServe(URI uri) throws EnvironmentException;
 	}	
 	
-	private static final Map<String,Color>			NAME2COLOR = new HashMap<>(); 
-	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
-	private static final ColorScheme				DEFAULT_COLOR_SCHEME; 
 	private static final NanoServiceControl			NANOSERVICE_MBEAN;
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -520,23 +509,6 @@ public final class PureLibSettings {
 			}
 		}
 		
-		try(final InputStream		is = SwingUtils.class.getResourceAsStream("colors.txt");
-			final Reader			rdr = new InputStreamReader(is);
-			final BufferedReader	brdr = new BufferedReader(rdr)) {
-			String					buffer;
-			
-			while ((buffer = brdr.readLine()) != null) {
-				final int			tab = buffer.indexOf('\t');
-				final String		name = buffer.substring(0,tab);
-				final Color			color = toRGB(buffer.substring(tab+1));
-				
-				NAME2COLOR.put(name,color);
-				COLOR2NAME.putIfAbsent(color,name);				
-			}
-		} catch (IOException exc) {
-			logger.log(Level.WARNING,"Internal color table for the Pure library was not loaded: "+exc.getMessage(),exc);
-		}
-
 		try{final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
 			final ObjectName 	monitoringName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring");
 			final ObjectName 	httpServerName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=httpServer");
@@ -554,7 +526,6 @@ public final class PureLibSettings {
 		}
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
-		DEFAULT_COLOR_SCHEME = new ColorScheme();
 		
 		final String	osName = System.getProperty("os.name","unknown").toUpperCase();
         boolean 		windows = osName != null && osName.toLowerCase().indexOf("windows") >= 0;
@@ -612,51 +583,6 @@ public final class PureLibSettings {
 	 */
 	public static SubstitutableProperties instance() {
 		return PROPS;
-	}
-
-	public static ColorScheme defaultColorScheme() {
-		return DEFAULT_COLOR_SCHEME;
-	}
-	
-	/**
-	 * <p>Convert color name to it's {@linkplain Color} representation</p>
-	 * @param name name to convert
-	 * @param defaultColor default Color instance if name can't be converted
-	 * @return Color converted. Can't be null
-	 * @throws IllegalArgumentException if color name is null or empty
-	 */
-	public static Color colorByName(final String name, final Color defaultColor) throws IllegalArgumentException {
-		if (Utils.checkEmptyOrNullString(name)) {
-			throw new IllegalArgumentException("Color name can't be null or empty");
-		}
-		else if (NAME2COLOR.containsKey(name)) {
-			return NAME2COLOR.get(name);
-		}
-		else  if (name.startsWith("#")) {
-			return new Color(Integer.parseUnsignedInt(name,1,name.length()-1,16));
-		}
-		else {
-			return defaultColor;
-		}
-	}
-	
-	/**
-	 * <p>Convert {@linkplain Color} instance to it's symbolic name</p>
-	 * @param color color to convert
-	 * @param defaultName default name if color can't be converted
-	 * @return Color name or default name
-	 * @throws NullPointerException if color instance to convert is null
-	 */
-	public static String nameByColor(final Color color, final String defaultName) throws NullPointerException {
-		if (color == null) {
-			throw new NullPointerException("Color name can't be null or empty");
-		}
-		else if (COLOR2NAME.containsKey(color)) {
-			return COLOR2NAME.get(color);
-		}
-		else {
-			return defaultName;
-		}
 	}
 
 	/**
@@ -875,22 +801,6 @@ public final class PureLibSettings {
 		}
 	}
 	
-	private static Color toRGB(final String rgb) {
-		if (!rgb.isEmpty()) {
-			if (rgb.charAt(0) == '#') {
-				return new Color((int)Long.parseLong(rgb.substring(1).toUpperCase(),16));
-			}
-			else {
-				final String[]	parts = rgb.split("\\,");
-				
-				return new Color(Integer.valueOf(parts[0]),Integer.valueOf(parts[1]),Integer.valueOf(parts[2])); 
-			}
-		}
-		else {
-			return Color.BLACK;
-		}
-	}
-
 	private static MimeType buildMime(final String type, final String subtype) {
 		try{return new MimeType(type,subtype);
 		} catch (MimeParseException e) {

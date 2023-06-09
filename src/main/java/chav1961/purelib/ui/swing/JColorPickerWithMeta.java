@@ -17,6 +17,7 @@ import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JComponent;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -187,11 +188,11 @@ public class JColorPickerWithMeta extends JComponent implements NodeMetadataOwne
 			if (val.isEmpty()) {
 				throw new IllegalArgumentException("Null or empty value is not applicable for the color");
 			}
-			else if (PureLibSettings.colorByName(val.trim(),null) == null) {
+			else if (ColorUtils.colorByName(val.trim(),null) == null) {
 				throw new IllegalArgumentException("Unknown color name ["+val.trim()+"] in the value string");
 			}
 			
-			newValue = PureLibSettings.colorByName(value.toString(),Color.black);
+			newValue = ColorUtils.colorByName(value.toString(),Color.black);
 			repaint();				
 		}
 		else {

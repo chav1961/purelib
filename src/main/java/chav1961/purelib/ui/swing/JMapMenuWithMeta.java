@@ -34,6 +34,7 @@ import javax.swing.ToolTipManager;
 
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -145,13 +146,13 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 			}
 			
 			if (areaDescriptors.containsKey(SELECTED_COLOR_PROP)) {
-				this.selectedColor = PureLibSettings.colorByName(areaDescriptors.getProperty(SELECTED_COLOR_PROP), DEFAULT_SELECTED_COLOR);
+				this.selectedColor = ColorUtils.colorByName(areaDescriptors.getProperty(SELECTED_COLOR_PROP), DEFAULT_SELECTED_COLOR);
 			}
 			else {
 				this.selectedColor = DEFAULT_SELECTED_COLOR;
 			}
 			if (areaDescriptors.containsKey(FOCUSED_COLOR_PROP)) {
-				this.focusedColor = PureLibSettings.colorByName(areaDescriptors.getProperty(FOCUSED_COLOR_PROP), DEFAULT_FOCUSED_COLOR);
+				this.focusedColor = ColorUtils.colorByName(areaDescriptors.getProperty(FOCUSED_COLOR_PROP), DEFAULT_FOCUSED_COLOR);
 			}
 			else {
 				this.focusedColor = DEFAULT_FOCUSED_COLOR;

@@ -21,6 +21,7 @@ import javax.swing.JTextField;
 import javax.swing.TransferHandler;
 import javax.swing.border.Border;
 
+import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -163,8 +164,8 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 				}
 			}
 			else {
-				setBackground(PureLibSettings.defaultColorScheme().OPTIONAL_BACKGROUND);
-				setForeground(PureLibSettings.defaultColorScheme().OPTIONAL_FOREGROUND);
+				setBackground(ColorUtils.defaultColorScheme().OPTIONAL_BACKGROUND);
+				setForeground(ColorUtils.defaultColorScheme().OPTIONAL_FOREGROUND);
 				setAlignmentX(JTextField.LEFT_ALIGNMENT);
 			}
 			
