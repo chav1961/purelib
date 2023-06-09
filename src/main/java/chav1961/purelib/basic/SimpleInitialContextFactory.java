@@ -27,7 +27,7 @@ import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
  *
  */
 public class SimpleInitialContextFactory implements InitialContextFactory {
-	private static final NameParser	PARSER = new SimpleNameParserImpl(); 
+	private static final NameParser				PARSER = new SimpleNameParserImpl(); 
 	
 	private final Map<String, Object>			content = new HashMap<>();
 	private final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
