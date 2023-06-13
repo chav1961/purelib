@@ -269,7 +269,7 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		else {
 			return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_TYPE, Arrays.toString(VALID_CLASSES));			
 		}
-}
+	}
 
 	@Override
 	public void setInvalid(final boolean invalid) {
@@ -361,7 +361,6 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 			throw new UnsupportedOperationException("Value class ["+value.getClass().getCanonicalName()+"] is not supported yet");
 		}
 	}
-	
 	
 	private Object getValue2Validate(final String value) throws SyntaxException {
 		try{if (!Utils.checkEmptyOrNullString(value)) {

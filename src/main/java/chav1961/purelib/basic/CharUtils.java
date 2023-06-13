@@ -9,8 +9,14 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
+import javax.xml.transform.Source;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -1655,7 +1661,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 		}
 		return start;
 	}
-
+	
 	/**
 	 * <p>Extract content from input character array according to lexemas list. Failed extraction produces {@linkplain SyntaxException}.</p> 
 	 * @param source source array to extraction from
@@ -3427,6 +3433,350 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     }
 
 
+    /**
+     * 
+     * format = (charSeq | item)*
+     * item = '%' name ':' type (';'){0,1}
+     * type = ('enum(' canonicalName ')' | 'mark(' number ')' | 'optional(' format ')' | 'choise(' format (';' format)+ ')' | ArgumentTypeItem)
+     * 
+     * To use chars ('%', ':', ';', '(', ')') 'as-is', escape it with the '\' char 
+     * 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+     */
+    static class Extractor {
+    	private static final Set<String>	ARG_TYPES = new HashSet<>();
+    	
+    	static {
+    		for (ArgumentType item : ArgumentType.values()) {
+    			ARG_TYPES.add(item.name());
+    		}
+    	}
+    	
+    	private final Object[]				lexemas;
+    	private final int 					maxResultSize;
+    	private final Map<String,Integer[]>	names = new HashMap<>();
+    	private CharSequence				seq;
+    	private int 						pos = 0;
+    	private Object[]					result;
+    	
+    	public Extractor(final char[] content, final int from, final int to) throws SyntaxException, NullPointerException, IllegalArgumentException {
+    		this(toCharSequence(content, from, to));
+    	}
+    	
+    	public Extractor(final CharSequence format) throws SyntaxException {
+			if (format == null) {
+    			throw new NullPointerException("Format sequence can't be null"); 
+    		}
+    		else {
+        		final List<Object>	forLexemas = new ArrayList<>();
+        		final Lexema[]		parsed = parse(format);
+        		final int[]			parameterNumber = new int[0]; 
+        		final int			processed = syntax(parsed, 0, names, forLexemas, parameterNumber);
+        		
+        		if (processed < parsed.length - 1) {
+        			throw new SyntaxException(0, parsed[processed].col, "Unparsed tail");
+        		}
+        		else {
+            		this.maxResultSize = parameterNumber[0];
+            		this.lexemas = forLexemas.toArray(new Object[forLexemas.size()]);
+        		}
+    		}
+    	}
+
+		private Extractor(final Extractor parent) {
+    		this.lexemas = parent.lexemas;
+    		this.maxResultSize = parent.maxResultSize;
+    	}
+    	
+    	public Extractor getInstance() {
+    		return new Extractor(this);
+    	}
+    	
+    	public int getSize() {
+    		return 0;
+    	}
+
+    	public <T> T get(final String itemName, final Class<T> awaited) {
+    		return null;
+    	}
+
+    	public boolean contains(final String itemName) {
+    		return false;
+    	}
+    	
+    	Object[] getLexemas() {
+    		return lexemas;
+    	}
+    	
+    	void setResult(final Object[] result, final int resultSize) {
+    		
+    	}
+
+		static Lexema[] parse(final CharSequence format) {
+			final List<Lexema>	result = new ArrayList<>();
+			final StringBuilder	sb = new StringBuilder();
+			final char[]		source = terminateAndConvert2CharArray(format, '\0');
+			int					from = 0, start = 0;
+			boolean				escape = false;
+			
+parse:		for (;;) {
+				if (escape && source[from] != 0) {
+					sb.append(source[from++]);
+					escape = false;
+				}
+				else {
+					switch (source[from]) {
+						case 0 		:
+							result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+							break parse;
+						case '%'	:
+							result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+							sb.setLength(0);
+							result.add(new Lexema(from++, LexType.PERCENT));
+							start = from;
+							break;
+						case '('	:
+							result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+							sb.setLength(0);
+							result.add(new Lexema(from++, LexType.OPEN));
+							start = from;
+							break;
+						case ')'	:
+							result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+							sb.setLength(0);
+							result.add(new Lexema(from++, LexType.CLOSE));
+							start = from;
+							break;
+						case ':'	:
+							result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+							sb.setLength(0);
+							result.add(new Lexema(from++, LexType.COLON));
+							start = from;
+							break;
+						case ';'	:
+							result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+							sb.setLength(0);
+							result.add(new Lexema(from++, LexType.SEMICOLON));
+							start = from;
+							break;
+						default :
+							if (Character.isJavaIdentifierStart(source[from])) {
+								result.add(new Lexema(start, LexType.TEXT, sb.toString().toCharArray()));
+								sb.setLength(0);
+								start = from;
+								while (Character.isJavaIdentifierPart(source[from])) {
+									sb.append(source[from++]);
+								}
+								final String	name = sb.toString();
+								
+								sb.setLength(0);
+								switch (name) {
+									case "enum" 	:
+										result.add(new Lexema(start, LexType.ENUM));
+										break;
+									case "mark"		:
+										result.add(new Lexema(start, LexType.MARK));
+										break;
+									case "optional"	:
+										result.add(new Lexema(start, LexType.OPTIONAL));
+										break;
+									case "choise" 	:
+										result.add(new Lexema(start, LexType.CHOISE));
+										break;
+									default	:
+										if (ARG_TYPES.contains(name)) {
+											result.add(new Lexema(start, LexType.PREDEFINED, ArgumentType.valueOf(name)));
+										}
+										else {
+											result.add(new Lexema(start, LexType.TEXT, name.toCharArray()));
+										}
+								}
+								start = from;
+							}
+							else {
+								sb.append(source[from++]);
+							}
+					}
+				}
+			}
+			for(int index = result.size() - 1; index >= 0; index--) {	// remove empty text 
+				if (result.get(index).type == LexType.TEXT && Utils.checkEmptyOrNullString((CharSequence)result.get(index).parameter)) {
+					result.remove(index);
+				}
+			}
+			result.add(new Lexema(from, LexType.EOF));
+			return result.toArray(new Lexema[result.size()]);
+		}
+
+		static int syntax(final Lexema[] lex, int from, Map<String,Integer[]> names, final List<Object> lexemas, final int[] parameterNumber) throws SyntaxException {
+			// TODO Auto-generated method stub
+loop:		for(;;) {
+				switch (lex[from].type) {
+					case PERCENT	:
+						if (!(lex[from+1].type == LexType.NAME && lex[from+2].type == LexType.COLON)) {
+							throw new SyntaxException(0, from, "Illegal format descriptor");
+						}
+						else {
+							final String	name = (String)lex[from+1].parameter; 
+							final int 		lexNumber = parameterNumber[0]++;
+							
+							switch (lex[from+3].type) {
+								case CHOISE		:
+									if (!(lex[from+4].type == LexType.OPEN)) {
+										throw new SyntaxException(0, from, "Missing '('");
+									}
+									else {
+										final List<Object>	tempChoise = new ArrayList<>();
+										
+										from += 4;
+										do {final List<Object>	temp = new ArrayList<>();
+
+											from = syntax(lex, from+1, names, temp, parameterNumber);
+											
+											tempChoise.add(temp.toArray(new Object[temp.size()]));
+										} while (lex[from].type == LexType.SEMICOLON);
+										
+										if (lex[from].type != LexType.CLOSE) {
+											throw new SyntaxException(0, from, "Missing ')'");
+										}
+										else {
+											lexemas.add(new Choise(tempChoise.toArray(new Object[tempChoise.size()])));
+											from++;
+										}
+									}
+									break;
+								case ENUM		:
+									if (!(lex[from+4].type == LexType.OPEN && lex[from+5].type == LexType.TEXT && lex[from+6].type == LexType.CLOSE)) {
+										throw new SyntaxException(0, from, "Illegal mark format descriptor, mark(<number>) awaited");
+									}
+									else {
+										try {
+											final Class<Enum<?>>	cl = (Class<Enum<?>>) Thread.currentThread().getContextClassLoader().loadClass(lex[from+5].parameter.toString());
+											
+											if (!cl.isEnum()) {
+												throw new ClassNotFoundException(lex[from+5].parameter.toString()); 
+											}
+											else {
+												lexemas.add(cl);
+											}
+										} catch (ClassNotFoundException exc) {
+											throw new SyntaxException(0, from, "Unknown enumeration class ["+lex[from+5].parameter.toString()+"]");
+										}
+									}
+									break;									
+								case EOF		:
+									throw new SyntaxException(0, from, "Unexpected end of format");
+								case MARK		:
+									if (!(lex[from+4].type == LexType.OPEN && lex[from+5].type == LexType.TEXT && lex[from+6].type == LexType.CLOSE)) {
+										throw new SyntaxException(0, from, "Illegal mark format descriptor, mark(<number>) awaited");
+									}
+									else {
+										try{
+											lexemas.add(new Mark(Integer.valueOf(lex[from+5].parameter.toString().trim())));
+											from += 7;
+										} catch (NumberFormatException exc) {
+											throw new SyntaxException(0, from, "Illegal mark format descriptor, mark(<number>) awaited");
+										}
+									}
+									break;
+								case OPTIONAL	:
+									if (!(lex[from+4].type == LexType.OPEN)) {
+										throw new SyntaxException(0, from, "Missing '('");
+									}
+									else {
+										final List<Object>	temp = new ArrayList<>();
+										
+										from = syntax(lex, from+5, names, temp, parameterNumber);
+										
+										if (lex[from].type != LexType.CLOSE) {
+											throw new SyntaxException(0, from, "Missing ')'");
+										}
+										else {
+											lexemas.add(new Optional(temp.toArray(new Object[temp.size()])));
+											from++;
+										}
+									}
+									break;
+								case PREDEFINED	:
+									lexemas.add(lex[from+3].parameter);
+									from += 3;
+									break;
+								default:
+									break;
+							}
+						}
+						break;
+					case CHOISE		:
+						lexemas.add("choise");
+						from++;
+						break;
+					case CLOSE		:
+						lexemas.add(')');
+						from++;
+						break;
+					case COLON		:
+						lexemas.add(':');
+						from++;
+						break;
+					case EOF		:
+						break loop;
+					case OPEN		:
+						lexemas.add('(');
+						from++;
+						break;
+					case OPTIONAL	:
+						lexemas.add("optional");
+						from++;
+						break;
+					case SEMICOLON	:
+						lexemas.add(';');
+						from++;
+						break;
+					case ENUM : case MARK : case NAME : case PREDEFINED : case TEXT		:
+						lexemas.add(lex[from++].parameter);
+						break;
+					default :
+						throw new UnsupportedOperationException("Lexema type ["+lex[from].type+"] is not supported yet"); 
+				}
+			}
+			return from;
+		}
+    	
+		private static enum LexType {
+    		TEXT,
+    		PERCENT,
+    		NAME,
+    		COLON,
+    		SEMICOLON,
+    		OPEN,
+    		CLOSE,
+    		ENUM,
+    		MARK,
+    		OPTIONAL,
+    		CHOISE,
+    		PREDEFINED,
+    		EOF
+    	}
+    	
+    	private static class Lexema {
+    		final int		col;
+    		final LexType	type;
+    		final Object	parameter;
+
+    		public Lexema(final int col, final LexType type) {
+    			this(col, type, null);
+    		}
+    		
+    		public Lexema(final int col, final LexType type, final Object parameter) {
+				this.col = col;
+				this.type = type;
+				this.parameter = parameter;
+			}
+    	}
+    }
+    
+    
     private static class OrdinalCharSequence implements CharSequence {
     	private final char[]	content;
     	private final int		from;

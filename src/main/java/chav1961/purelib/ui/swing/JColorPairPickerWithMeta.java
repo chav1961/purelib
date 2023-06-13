@@ -48,7 +48,6 @@ public class JColorPairPickerWithMeta extends JComponent implements NodeMetadata
 	public static final String 			FOREGROUND_NAME = "foreground";
 	public static final String 			BACKGROUND_NAME = "background";
 	
-	private static final String 		TITLE = "JColorPicketWithMeta.chooser.title";
 	private static final Class<?>[]		VALID_CLASSES = {ColorPair.class};
 
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
