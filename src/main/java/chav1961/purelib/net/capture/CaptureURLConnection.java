@@ -175,9 +175,9 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 	public void connect() throws IOException {
 		if (!connected) {
 			try{lineOut.open();
-				final FloatControl	fc = (FloatControl) lineOut.getControl(Type.MASTER_GAIN);
-				
-				fc.setValue(fc.getMinimum() + volume*(fc.getMaximum()-fc.getMinimum())/100);
+//				final FloatControl	fc = (FloatControl) lineOut.getControl(Type.MASTER_GAIN);
+//				
+//				fc.setValue(fc.getMinimum() + volume*(fc.getMaximum()-fc.getMinimum())/100);
 				lineOut.start();
 			
 			} catch (LineUnavailableException e) {

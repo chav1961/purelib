@@ -1,8 +1,12 @@
 package chav1961.purelib.net;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -57,4 +61,45 @@ public class URIsTest {
 		}
 		conn.getInputStream();
 	}
+
+//	@Test
+	public void rawAudioTest() throws IOException, InterruptedException {
+		final URL			urlIn = new URL("capture://microphone");
+		final URLConnection	connIn = urlIn.openConnection();
+		final byte[]		content = new byte[100000 * 4];
+		int len;
+		
+		System.err.println("REad...");
+		connIn.connect();
+		try(final InputStream		is = connIn.getInputStream()) {
+			
+			len = is.read(content);
+		}
+		System.err.println("Write "+len+"...");
+		
+		try(final OutputStream	os = new FileOutputStream("e:/chav1961/sample.pcm")){
+			os.write(content,0,len);
+			os.flush();
+		}
+		
+		
+		final URL			urlOut = new URL("playback://speaker");
+		final URLConnection	conn = urlOut.openConnection();
+		
+		conn.connect();
+		try(final InputStream		is= new ByteArrayInputStream(content);
+			final DataInputStream	dis = new DataInputStream(is);
+			final OutputStream		os = conn.getOutputStream();
+			final DataOutputStream	dos = new DataOutputStream(os)) {
+			
+			for (int index = 0; index < content.length/2; index++) {
+				dos.writeShort(dis.readShort());
+			}
+			dos.flush();
+			Thread.sleep(1000);
+		}
+		conn.getInputStream();
+		System.err.println("Stop...");
+	}
+
 }
