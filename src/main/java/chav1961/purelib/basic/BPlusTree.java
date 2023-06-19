@@ -11,7 +11,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.BPlusTreeNode;
 import chav1961.purelib.enumerations.ContinueMode;
 
-public class BPlusTree <NodeId,K extends Comparable<? super K>,V> {
+class BPlusTree <NodeId,K extends Comparable<? super K>,V> {
 	public static class BPlusTreeConteneException extends ContentException {
 		private static final long serialVersionUID = -5557152301088161210L;
 
