@@ -11,7 +11,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 
 @FunctionalInterface
@@ -27,6 +27,21 @@ public interface LineByLineProcessorCallback {
 	 * @throws SyntaxException is any syntax errors were detected
 	 */
 	void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException;
+
+	/**
+	 * <p>Process line from the source character stream</p>
+	 * @param displacement of the same first char from the beginning of the data stream
+	 * @param lineNo 1-based sequential line number in the data stream
+	 * @param data data stream to process. This data is in almost all cases a true source data, so you must not modify it to avoid unpredictable side effects in the caller methods
+	 * @param from starting position of the actual line in the data stream
+	 * @param length length of the actual line in the data stream
+	 * @param codePointsDetected any code point in the line was detected
+	 * @throws IOException is any I/O errors were detected
+	 * @throws SyntaxException is any syntax errors were detected
+	 */
+	default void processLine(long displacement, int lineNo, char[] data, int from, int length, boolean codePointsDetected) throws IOException, SyntaxException {
+		processLine(displacement, lineNo, data, from, length);
+	}
 	
 	/**
 	 * <p>Ends processing content.</p>

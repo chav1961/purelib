@@ -30,28 +30,40 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
 public class LineByLineProcessor implements Closeable, Flushable {
 	private final List<DataStack>				pushes = new ArrayList<>();
 	private final GrowableCharArray<?>			gca = new GrowableCharArray<>(true);
 	private final LineByLineProcessorCallback	callback;
+	private final boolean 						codePointsSupport;
 	private boolean								interruptProcessing = false, insideReaderProcessing = false;
 	private int									lineNo = 1;
 	private int									displacement = 0;
-	
+
 	/**
 	 * <p>Create line-by-line processor instance</p>
 	 * @param callback callback to process
 	 * @throws IllegalArgumentException any parameter's problems
 	 */
 	public LineByLineProcessor(final LineByLineProcessorCallback callback) {
+		this(callback, false);
+	}	
+	/**
+	 * <p>Create line-by-line processor instance</p>
+	 * @param callback callback to process
+	 * @param codePointsSupport
+	 * @throws IllegalArgumentException any parameter's problems
+	 * @since 0.0.7
+	 */
+	public LineByLineProcessor(final LineByLineProcessorCallback callback, final boolean codePointsSupport) {
 		if (callback == null) {
 			throw new NullPointerException("Callback can't be null");
 		}
 		else {
 			this.callback = callback;
+			this.codePointsSupport = codePointsSupport;
 		}		
 	}
 
@@ -102,8 +114,13 @@ public class LineByLineProcessor implements Closeable, Flushable {
 
 	protected void uncheckedWrite(final char[] cbuf, final int off, final int len) throws IOException, SyntaxException {
 		if (gca.length() > 0) {
+			boolean codePointFound = false;
+			
 			for (int index = off, maxIndex = Math.min(cbuf.length,off+len); index < maxIndex; index++) {
-				if (cbuf[index] == '\n') {
+				if (codePointsSupport && Character.isHighSurrogate(cbuf[index])) {
+					codePointFound = true;
+				}
+				else if (cbuf[index] == '\n') {
 					gca.append(cbuf,off,index+1);
 					processFromBuilder();
 					if (interruptProcessing) {
@@ -122,10 +139,14 @@ public class LineByLineProcessor implements Closeable, Flushable {
 		}
 		else {
 			int	start = off;
+			boolean codePointFound = false;
 			
 			for (int index = off, maxIndex = Math.min(cbuf.length,off+len); index < maxIndex; index++) {
-				if (cbuf[index] == '\n') {
-					callback.processLine(displacement,lineNo++,cbuf,start,index-start+1);
+				if (codePointsSupport && Character.isHighSurrogate(cbuf[index])) {
+					codePointFound = true;
+				}
+				else if (cbuf[index] == '\n') {
+					callback.processLine(displacement,lineNo++,cbuf,start,index-start+1,codePointFound);
 					displacement += index-start+1;
 					if (interruptProcessing) {
 						interruptProcessing = false;
@@ -134,6 +155,7 @@ public class LineByLineProcessor implements Closeable, Flushable {
 						return;
 					}
 					start = index + 1;
+					codePointFound = false;
 				}
 			}
 			if (start < off+len) {
