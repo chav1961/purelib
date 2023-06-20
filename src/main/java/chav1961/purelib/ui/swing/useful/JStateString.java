@@ -7,7 +7,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Image;
-import java.awt.Point;
 import java.awt.PopupMenu;
 import java.awt.Taskbar;
 import java.awt.Taskbar.Feature;
@@ -32,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.GroupLayout;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -42,16 +40,12 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 
 import chav1961.purelib.basic.AbstractLoggerFacade;
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleTimerTask;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -95,6 +89,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private static final int		STATE_STAGED = 2;
 	private static final Icon		CANCEL_ICON = PureLibStandardIcons.CANCEL.getIcon();
 	private static final SimpleDateFormat	SDF = new SimpleDateFormat("DDD HH:mm:ss");
+	private static final int		PERCENT_100 = 100;
 
 	static {
 		SDF.setTimeZone(TimeZone.getTimeZone("UTC"));	
@@ -870,7 +865,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 		final Window	w = getParentWindow4ProgressBar();
 		
 		if (w != null && taskBar.isSupported(Feature.PROGRESS_VALUE_WINDOW)) {
-			taskBar.setWindowProgressValue(w, (int) (value * 100 / progressBarTotal));
+			taskBar.setWindowProgressValue(w, (int) (value * PERCENT_100 / (progressBarTotal == 0 ? PERCENT_100 : progressBarTotal)));
 		}
 	}
 	
