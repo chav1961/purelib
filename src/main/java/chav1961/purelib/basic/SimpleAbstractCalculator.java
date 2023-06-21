@@ -4,7 +4,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 
-public abstract class SimpleAbstractCalculator<LexType extends Enum<?>, NodeType extends SyntaxNode<?,?>> {
+abstract class SimpleAbstractCalculator<LexType extends Enum<?>, NodeType extends SyntaxNode<?,?>> {
 	protected final Class<LexType>	lexClazz;
 	
 	protected SimpleAbstractCalculator(Class<LexType> lexClazz) {

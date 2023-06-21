@@ -213,12 +213,12 @@ public class XMLUtils {
 			throw new NullPointerException("Logger facade can't be null"); 
 		}
 		else {
-			try(final LoggerFacade			tran = logger.transaction("loadHTML")) {
+			try(final LoggerFacade				tran = logger.transaction("loadHTML")) {
 				final DocumentBuilderFactory	dbf = DocumentBuilderFactory.newInstance();
-				final DocumentBuilder		docBuilder = dbf.newDocumentBuilder();
-				final Document				doc = docBuilder.newDocument();
-				final HTMLEditorKit.Parser	parser = new ParserDelegator();
-				final HTMLTableParser		parserCallback = new HTMLTableParser(doc);
+				final DocumentBuilder			docBuilder = dbf.newDocumentBuilder();
+				final Document					doc = docBuilder.newDocument();
+				final HTMLEditorKit.Parser		parser = new ParserDelegator();
+				final HTMLTableParser			parserCallback = new HTMLTableParser(doc);
 				
 				parser.parse(new InputStreamReader(html, PureLibSettings.DEFAULT_CONTENT_ENCODING), parserCallback, true);
 				tran.rollback();

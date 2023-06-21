@@ -3432,7 +3432,53 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	}
     }
 
-
+    /**
+     * <p>Convert char sequence to string</p>
+     * @param seq sequence to convert. Can' be null
+     * @return string converted. Can't be null
+     * @throws NullPointerException char sequence is null
+     * @since 0.0.7
+     */
+    public static String toString(final CharSequence seq) throws NullPointerException {
+    	if (seq == null) {
+    		throw new NullPointerException("Char sequence to convert to string can't be null");
+    	}
+    	else if (seq instanceof String) {
+    		return (String)seq;
+    	}
+    	else {
+    		return new StringBuilder(seq).toString();
+    	}
+    }
+    
+    /**
+     * <p>Convert char sequence to string</p>
+     * @param seq sequence to convert. Can' be null
+     * @param from from index in the sequence
+     * @param to to index in the sequence
+     * @return string converted. Can't be null
+     * @throws NullPointerException char sequence is null
+     * @throws IllegalArgumentException form or/and to indices out of range
+     * @since 0.0.7
+     */
+    public static String toString(final CharSequence seq, final int from, final int to) throws NullPointerException, IllegalArgumentException {
+    	if (seq == null) {
+    		throw new NullPointerException("Char sequence to convert to string can't be null");
+    	}
+    	else if (from < 0 || from >= seq.length()) {
+    		throw new IllegalArgumentException("From index ["+from+"] out of range 0.."+(seq.length()-1));
+    	}
+    	else if (to < 0 || to >= seq.length()) {
+    		throw new IllegalArgumentException("To index ["+to+"] out of range 0.."+(seq.length()-1));
+    	}
+    	else if (to < from) {
+    		throw new IllegalArgumentException("To index ["+to+"] less than from index ["+from+"]");
+    	}
+    	else {
+        	return new StringBuilder().append(seq, from, to).toString();
+    	}
+    }
+    
     /**
      * 
      * format = (charSeq | item)*

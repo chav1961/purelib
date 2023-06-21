@@ -9,7 +9,7 @@ import chav1961.purelib.basic.interfaces.Maintenable;
  * <p>This class is a simple extension of {@linkplain TimerTask} to use it in lambda-styles calls.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 public class SimpleTimerTask extends TimerTask {
 	private final Runnable	runnable;
@@ -129,8 +129,16 @@ public class SimpleTimerTask extends TimerTask {
 		return stt;
 	}
 	
-	
-	public static <T> SimpleTimerTask startMaintenance(final Maintenable<T> maintenable, final T content) {
+	/**
+	 * <p>Start maintenable task</p>
+	 * @param <T> maintenable content to pass into teh task 
+	 * @param maintenable maintenable task to execute. Can't be null
+	 * @param content content to pass to maintenable task. Can't be null
+	 * @return timer task created. Can't be null
+	 * @throws NullPointerException on any parameter is null
+	 * @since 0.0.7
+	 */
+	public static <T> SimpleTimerTask startMaintenance(final Maintenable<T> maintenable, final T content) throws NullPointerException {
 		if (maintenable == null) {
 			throw new NullPointerException("Maintenable can't be null");
 		}

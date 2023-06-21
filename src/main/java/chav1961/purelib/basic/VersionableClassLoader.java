@@ -16,7 +16,7 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.concurrent.LightWeightListenerList.LightWeightListenerCallback;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
-public class VersionableClassLoader<Version> extends SimpleURLClassLoader {
+class VersionableClassLoader<Version> extends SimpleURLClassLoader {
 	private static final long					TIMER_TICK = 60000;
 	private static final ReentrantReadWriteLock	SWAP_LOCK = new ReentrantReadWriteLock();
 	

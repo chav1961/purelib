@@ -8,7 +8,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
-public class SwitchFilesystemLoggerFacade extends AbstractLoggerFacade {
+class SwitchFilesystemLoggerFacade extends AbstractLoggerFacade {
 	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":switchfs:/");
 	
 	private final FileSystemInterface	fsi;
