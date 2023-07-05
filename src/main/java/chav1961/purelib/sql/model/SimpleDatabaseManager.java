@@ -128,17 +128,26 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 					trans.message(Severity.info, "Version table ["+VERSION_TABLE+"] found in the database, schema="+conn.getSchema());
 					conn.setSchema(model.getTheSameLastModel().getName());
 					
-					final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), versioningSchema);
+					final ContentNodeMetadata	oldModel = loadLastDbVersion(conn, VERSION_MODEL.getChild(VERSION_TABLE), versioningSchema, applicationId);
 					final T						oldVersion = oldModel == null ? mgmt.getInitialVersion() : mgmt.getVersion(oldModel);
 					final T						currentVersion = model.getTheSameLastVersion(); 
 					final int					result = currentVersion != null ? currentVersion.compareTo(oldVersion) : -1;
 					
 					if (result > 0) {
-						trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
-						mgmt.onUpgrade(conn, currentVersion, model.getTheSameLastModel(), oldVersion, oldModel);
-						trans.message(Severity.info, "Upgrade to version ["+currentVersion+"] completed");
-						storeCurrentDbVersion(conn, applicationId, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, currentVersion);
-						trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
+						if (oldModel == null) {
+							trans.message(Severity.info, "No any old versions in the database, create will be called");
+							mgmt.onCreate(conn, model.getTheSameLastModel());
+							trans.message(Severity.info, "Creation completed, inital version is ["+currentVersion+"]");
+							storeCurrentDbVersion(conn, applicationId, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, currentVersion);
+							trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
+						}
+						else {
+							trans.message(Severity.info, "Current model version ["+currentVersion+"] is newer than database version ["+oldVersion+"], upgrade will be called");
+							mgmt.onUpgrade(conn, currentVersion, model.getTheSameLastModel(), oldVersion, oldModel);
+							trans.message(Severity.info, "Upgrade to version ["+currentVersion+"] completed");
+							storeCurrentDbVersion(conn, applicationId, VERSION_MODEL.getChild(VERSION_TABLE), model.getTheSameLastModel(), versioningSchema, currentVersion);
+							trans.message(Severity.info, "Database version was changed to ["+currentVersion+"]");
+						}
 					}
 					else if (result < 0) {
 						trans.message(Severity.info, "Current model version ["+currentVersion+"] is older  than database version ["+oldVersion+"], downgrade will be called");
@@ -188,7 +197,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 	}
 	
 	public ContentNodeMetadata getCurrentDatabaseModel() throws SQLException {
-		return loadLastDbVersion(getConnection(), VERSION_MODEL.getChild(VERSION_TABLE), modelMgmt.getTheSameLastModel().getName());
+		return loadLastDbVersion(getConnection(), VERSION_MODEL.getChild(VERSION_TABLE), modelMgmt.getTheSameLastModel().getName(), applicationId);
 	}
 
 	public DatabaseManagement<T> getManagement() throws SQLException {
@@ -388,7 +397,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		conn.commit();
 	}
 
-	private static ContentNodeMetadata loadLastDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final String schema) throws SQLException {
+	private static ContentNodeMetadata loadLastDbVersion(final Connection conn, final ContentNodeMetadata versionModel, final String schema, final UUID applicationId) throws SQLException {
 		final String	versionSchema; 
 		
 		try(final ResultSet	rs = conn.getMetaData().getTables(null, schema, VERSION_TABLE, null)) {
@@ -405,7 +414,7 @@ public class SimpleDatabaseManager<T extends Comparable<T>> implements AutoClose
 		try(final PreparedStatement			stmt = conn.prepareStatement(select);
 			final VersionInstanceManager	vim = new VersionInstanceManager()) {
 		
-			stmt.setString(1, "");
+			stmt.setString(1, applicationId.toString());
 
 			try(final ResultSet				rs = stmt.executeQuery()) {
 				if (rs.next()) {

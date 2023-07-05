@@ -5,16 +5,20 @@ import java.util.Arrays;
 
 /**
  * <p>This class is an implementation for versions of something. It contains parts splitted by dots. Any depth of dots is supported. 
- * This class implements {@linkplain Comparable} interface and can be user for sorting, comparison, ordering etc. Parts can have any nature
+ * This class implements {@linkplain Comparable} interface and can be used for sorting, comparison, ordering etc. Parts can have any nature
  * (not only numbers) so will be compared in lexical order</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
  */
 public class SimpleDottedVersion implements Comparable<SimpleDottedVersion>, Serializable {
-	private static final long 				serialVersionUID = -3748545032045896481L;
+	private static final long	serialVersionUID = -3748545032045896481L;
+	
+	/**
+	 * <p>This field can be used an initial version for anything. It's value is "0.0"</p>
+	 */
 	public static final SimpleDottedVersion	INITIAL_VERSION = new SimpleDottedVersion("0.0"); 
 	
-	private final String[]			parts;
+	private final String[]	parts;
 	
 	/**
 	 * <p>Constructor of the class</p>
