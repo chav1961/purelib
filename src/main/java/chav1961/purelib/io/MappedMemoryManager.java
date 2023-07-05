@@ -23,7 +23,7 @@ import chav1961.purelib.concurrent.LightWeightRWLockerWrapper;
 import chav1961.purelib.concurrent.LightWeightRWLockerWrapper.Locker;
 import chav1961.purelib.io.interfaces.RawMemoryInterface;
 
-public class MappedMemoryManager implements RawMemoryInterface, Closeable, Flushable, LoggerFacadeOwner {
+ class MappedMemoryManager implements RawMemoryInterface, Closeable, Flushable, LoggerFacadeOwner {
 	private static final int	TOP_MAGIC = 0xFFEFCDED;
 	private static final int	CLUSTER_MAGIC = 0xFFEFCDDE;
 	private static final int	AREA_HEADER_MAGIC = 0xFFEFCD00;

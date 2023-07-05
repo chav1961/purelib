@@ -448,7 +448,7 @@ public class Utils {
 	 * @throws NullPointerException if any parametetrs are null
 	 */
 	public static String fromResource(final URL resourceURL) throws IOException, NullPointerException {
-		return fromResource(resourceURL,"UTF-8");
+		return fromResource(resourceURL, PureLibSettings.DEFAULT_CONTENT_ENCODING);
 	}
 	
 	/**
