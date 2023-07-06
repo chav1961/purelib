@@ -1,6 +1,7 @@
 package chav1961.purelib.matrix;
 
 import java.util.Arrays;
+import java.util.function.IntUnaryOperator;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.cdb.CompilerUtils;
@@ -59,7 +60,7 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
-	public Matrix add(final Matrix another) {
+	public IntMatrix add(final Matrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -113,7 +114,7 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
-	public Matrix sub(final Matrix another) {
+	public IntMatrix sub(final Matrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -167,7 +168,7 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
-	public Matrix mul(final Matrix another) {
+	public IntMatrix mul(final Matrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -235,8 +236,60 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
+	public IntMatrix h_mul(final Matrix<?> another) {
+		if (another == null) {
+			throw new NullPointerException("Matrix to add can't be null"); 
+		}
+		else if (!MatrixUtils.areDimensions2MulValid(this,another)) {
+			throw new IllegalArgumentException("Matrix to multiply has dimensions ["+MatrixUtils.printDimensions(another)+"] differ with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
+		}
+		else {
+			final int		anotherSize = another.getSize(0) * another.getSize(1);  
+			final int		anotherX = another.getSize(0);
+			final int[]		sum = new int[sizeY * anotherX];
+					
+			switch (CompilerUtils.defineClassType(another.getContentType())) {
+				case CompilerUtils.CLASSTYPE_INT	:
+					final int[]			anotherInt = new int[anotherSize];
+					
+					((IntMatrix)another).get(0, anotherInt, 0, anotherSize);
+					for (int x = 0; x < sizeY; x++) {
+						sum[x] *= anotherInt[x];
+					}
+					break;
+				case CompilerUtils.CLASSTYPE_LONG	:	
+					final long[]			anotherLong = new long[anotherSize];
+					
+					((LongMatrix)another).get(0, anotherLong, 0, anotherSize);
+					for (int x = 0; x < sizeY; x++) {
+						sum[x] *= anotherLong[x];
+					}
+					break;
+				case CompilerUtils.CLASSTYPE_FLOAT	:	
+					final float[]			anotherFloat = new float[anotherSize];
+					
+					((FloatMatrix)another).get(0, anotherFloat, 0, anotherSize);
+					for (int x = 0; x < sizeY; x++) {
+						sum[x] *= anotherFloat[x];
+					}
+					break;
+				case CompilerUtils.CLASSTYPE_DOUBLE	:
+					final double[]			anotherDouble = new double[anotherSize];
+					
+					((DoubleMatrix)another).get(0, anotherDouble, 0, anotherSize);
+					for (int x = 0; x < sizeY; x++) {
+						sum[x] *= anotherDouble[x];
+					}
+					break;
+				default : throw new IllegalArgumentException("Matrix to add has unsupported type ["+another.getContentType().getCanonicalName()+"]");
+			}
+			return new IntMatrixImpl(sizeY, anotherX, false, sum);
+		}
+	}
+	
+	@Override
 	// see https://github.com/vkostyukov/la4j
-	public Matrix inv() throws CalculationException {
+	public IntMatrix inv() throws CalculationException {
 		if (sizeX != sizeY) {
 			throw new CalculationException("Matrix to invert is not a square matrix");
 		}
@@ -273,12 +326,12 @@ public class IntMatrixImpl implements IntMatrix {
 	                }
 	            }
 	        }			
-			return new FloatMatrixImpl(sizeX, sizeY, false, result);
+			return null;//new FloatMatrixImpl(sizeX, sizeY, false, result);
 		}
 	}
 
 	@Override
-	public Matrix transp() {
+	public IntMatrix transp() {
 		if (sizeX == 1 || sizeY == 1) {
 			return new IntMatrixImpl(sizeY, sizeX, content);
 		}
@@ -296,34 +349,26 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
-	public Matrix add(final Number number) {
+	public IntMatrix add(final Number number) {
 		if (number == null) {
 			throw new NullPointerException("Number to add can't be null"); 
 		}
 		else {
-			final int[]	result = content.clone();
-			final int	val = number.intValue();
+			final int val = number.intValue();
 			
-			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
-				result[index] += val;
-			}
-			return new IntMatrixImpl(sizeX, sizeY, false, result);
+			return function((t)->t + val);
 		}
 	}
 
 	@Override
-	public Matrix mul(final Number number) {
+	public IntMatrix mul(final Number number) {
 		if (number == null) {
 			throw new NullPointerException("Number to moltiply can't be null"); 
 		}
 		else {
-			final int[]	result = content.clone();
-			final int	val = number.intValue();
+			final int val = number.intValue();
 			
-			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
-				result[index] *= val;
-			}
-			return new IntMatrixImpl(sizeX, sizeY, false, result);
+			return function((t)->t * val);
 		}
 	}
 
@@ -333,9 +378,24 @@ public class IntMatrixImpl implements IntMatrix {
 	}
 
 	@Override
-	public Matrix setEpsilon(final double epsilon) {
+	public IntMatrix setEpsilon(final double epsilon) {
 		this.epsilon = Math.abs(epsilon);
 		return this;
+	}
+
+	@Override
+	public IntMatrix function(final IntUnaryOperator op) {
+		if (op == null) {
+			throw new NullPointerException("Function operator can't be null"); 
+		}
+		else {
+			final int[]	result = content.clone();
+			
+			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
+				result[index] = op.applyAsInt(result[index]);
+			}
+			return new IntMatrixImpl(sizeX, sizeY, false, result);
+		}
 	}
 	
 	@Override

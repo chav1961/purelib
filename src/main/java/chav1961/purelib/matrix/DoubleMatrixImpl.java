@@ -1,6 +1,7 @@
 package chav1961.purelib.matrix;
 
 import java.util.Arrays;
+import java.util.function.DoubleUnaryOperator;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.cdb.CompilerUtils;
@@ -59,7 +60,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public Matrix add(final Matrix another) {
+	public DoubleMatrix add(final Matrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -113,7 +114,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public Matrix sub(final Matrix another) {
+	public DoubleMatrix sub(final Matrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -167,7 +168,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public Matrix mul(final Matrix another) {
+	public DoubleMatrix mul(final Matrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -235,8 +236,60 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
+	public DoubleMatrix h_mul(Matrix<?> another) {
+		if (another == null) {
+			throw new NullPointerException("Matrix to add can't be null"); 
+		}
+		else if (!MatrixUtils.areDimensions2MulValid(this,another)) {
+			throw new IllegalArgumentException("Matrix to multiply has dimensions ["+MatrixUtils.printDimensions(another)+"] differ with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
+		}
+		else {
+			final int		anotherSize = another.getSize(0) * another.getSize(1);  
+			final int		anotherX = another.getSize(0);
+			final double[]	sum = content.clone();
+					
+			switch (CompilerUtils.defineClassType(another.getContentType())) {
+				case CompilerUtils.CLASSTYPE_INT	:
+					final int[]			anotherInt = new int[anotherSize];
+					
+					((IntMatrix)another).get(0, anotherInt, 0, anotherSize);
+					for (int x = 0; x < sum.length; x++) {
+						sum[x] *= anotherInt[x];
+					}
+					break;
+				case CompilerUtils.CLASSTYPE_LONG	:	
+					final long[]			anotherLong = new long[anotherSize];
+					
+					((LongMatrix)another).get(0, anotherLong, 0, anotherSize);
+					for (int x = 0; x < sum.length; x++) {
+						sum[x] *= anotherLong[x];
+					}
+					break;
+				case CompilerUtils.CLASSTYPE_FLOAT	:	
+					final float[]			anotherFloat = new float[anotherSize];
+					
+					((FloatMatrix)another).get(0, anotherFloat, 0, anotherSize);
+					for (int x = 0; x < sum.length; x++) {
+						sum[x] *= anotherFloat[x];
+					}
+					break;
+				case CompilerUtils.CLASSTYPE_DOUBLE	:
+					final double[]			anotherDouble = new double[anotherSize];
+					
+					((DoubleMatrix)another).get(0, anotherDouble, 0, anotherSize);
+					for (int x = 0; x < sum.length; x++) {
+						sum[x] *= anotherDouble[x];
+					}
+					break;
+				default : throw new IllegalArgumentException("Matrix to add has unsupported type ["+another.getContentType().getCanonicalName()+"]");
+			}
+			return new DoubleMatrixImpl(sizeY, anotherX, false, sum);
+		}
+	}
+	
+	@Override
 	// see https://github.com/vkostyukov/la4j
-	public Matrix inv() throws CalculationException {
+	public DoubleMatrix inv() throws CalculationException {
 		if (sizeX != sizeY) {
 			throw new CalculationException("Matrix to invert is not a square matrix");
 		}
@@ -274,7 +327,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public Matrix transp() {
+	public DoubleMatrix transp() {
 		if (sizeX == 1 || sizeY == 1) {
 			return new DoubleMatrixImpl(sizeY, sizeX, content);
 		}
@@ -292,34 +345,26 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public Matrix add(final Number number) {
+	public DoubleMatrix add(final Number number) {
 		if (number == null) {
 			throw new NullPointerException("Number to add can't be null"); 
 		}
 		else {
-			final double[]	result = content.clone();
-			final double	val = number.doubleValue();
+			final double val = number.doubleValue();
 			
-			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
-				result[index] += val;
-			}
-			return new DoubleMatrixImpl(sizeX, sizeY, false, result);
+			return function((t)->t + val);
 		}
 	}
 
 	@Override
-	public Matrix mul(final Number number) {
+	public DoubleMatrix mul(final Number number) {
 		if (number == null) {
 			throw new NullPointerException("Number to moltiply can't be null"); 
 		}
 		else {
-			final double[]	result = content.clone();
-			final double	val = number.doubleValue();
+			final double val = number.doubleValue();
 			
-			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
-				result[index] *= val;
-			}
-			return new DoubleMatrixImpl(sizeX, sizeY, false, result);
+			return function((t)->t * val);
 		}
 	}
 
@@ -329,11 +374,25 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public Matrix setEpsilon(final double epsilon) {
+	public DoubleMatrix setEpsilon(final double epsilon) {
 		this.epsilon = Math.abs(epsilon);
 		return this;
 	}
 
+	@Override
+	public DoubleMatrix function(final DoubleUnaryOperator op) {
+		if (op == null) {
+			throw new NullPointerException("Function operator can't be null"); 
+		}
+		else {
+			final double[]	result = content.clone();
+			
+			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
+				result[index] = op.applyAsDouble(result[index]);
+			}
+			return new DoubleMatrixImpl(sizeX, sizeY, false, result);
+		}
+	}
 	
 	@Override
 	public void get(final int from, final double[] content, final int to, final int length) {

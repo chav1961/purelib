@@ -11,17 +11,18 @@ import chav1961.purelib.basic.exceptions.CalculationException;
  * @see FloatMatrix
  * @see DoubleMatrix
  */
-public interface Matrix {
+public interface Matrix<M extends Matrix<?>> {
 	Class<?> getContentType();
 	int getDimensions();
 	int getSize(int dimension);
-	Matrix add(Matrix another);
-	Matrix sub(Matrix another);
-	Matrix mul(Matrix another);
-	Matrix inv() throws CalculationException;
-	Matrix transp();
-	Matrix add(Number number);
-	Matrix mul(Number number);
+	M add(Matrix<?> another);
+	M sub(Matrix<?> another);
+	M mul(Matrix<?> another);
+	M h_mul(Matrix<?> another);
+	M inv() throws CalculationException;
+	M transp();
+	M add(Number number);
+	M mul(Number number);
 	double getEpsilon();
-	Matrix setEpsilon(double epsilon);
+	M setEpsilon(double epsilon);
 }
