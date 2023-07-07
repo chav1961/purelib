@@ -15,6 +15,20 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	private final int		sizeX, sizeY;
 	private final double[]	content;
 	private double			epsilon = 1e-10;
+
+	public DoubleMatrixImpl(final int sizeX, final int sizeY) {
+		if (sizeX <= 0) {
+			throw new IllegalArgumentException("X size ["+sizeX+"] must be greater than 0"); 
+		}
+		else if (sizeY <= 0) {
+			throw new IllegalArgumentException("Y size ["+sizeY+"] must be greater than 0"); 
+		}
+		else {
+			this.sizeX = sizeX;
+			this.sizeY = sizeY;
+			this.content = new double[sizeX*sizeY];
+		}
+	}
 	
 	public DoubleMatrixImpl(final int sizeX, final int sizeY, final double... filled) {
 		this(sizeX,sizeY,true,filled);
@@ -65,7 +79,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
 		else if (!MatrixUtils.areDimensions2AddValid(this,another)) {
-			throw new IllegalArgumentException("Matrix to add has dimensions ["+MatrixUtils.printDimensions(another)+"] differ with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
+			throw new IllegalArgumentException("Matrix to add has dimensions ["+MatrixUtils.printDimensions(another)+"] uncompatible with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
 		}
 		else {
 			final double[]	result = content.clone();
@@ -109,7 +123,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 					break;
 				default : throw new IllegalArgumentException("Matrix to add has unsupporte type ["+another.getContentType().getCanonicalName()+"]");
 			}
-			return new DoubleMatrixImpl(sizeX, sizeY, false, result);
+			return new DoubleMatrixImpl(getSize(0), getSize(1), false, result);
 		}
 	}
 
@@ -119,7 +133,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
 		else if (!MatrixUtils.areDimensions2AddValid(this,another)) {
-			throw new IllegalArgumentException("Matrix to subtract has dimensions ["+MatrixUtils.printDimensions(another)+"] differ with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
+			throw new IllegalArgumentException("Matrix to subtract has dimensions ["+MatrixUtils.printDimensions(another)+"] uncompatible with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
 		}
 		else {
 			final double[]	result = content.clone();
@@ -163,7 +177,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 					break;
 				default : throw new IllegalArgumentException("Matrix to add has unsupporte type ["+another.getContentType().getCanonicalName()+"]");
 			}
-			return new DoubleMatrixImpl(sizeX, sizeY, false, result);
+			return new DoubleMatrixImpl(getSize(0), getSize(1), false, result);
 		}
 	}
 
@@ -173,23 +187,28 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
 		else if (!MatrixUtils.areDimensions2MulValid(this,another)) {
-			throw new IllegalArgumentException("Matrix to multiply has dimensions ["+MatrixUtils.printDimensions(another)+"] differ with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
+			throw new IllegalArgumentException("Matrix to multiply has dimensions ["+MatrixUtils.printDimensions(another)+"] uncompatible with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
 		}
 		else {
 			final int		anotherSize = another.getSize(0) * another.getSize(1);  
-			final int		anotherX = another.getSize(0);
-			final double[]	sum = new double[sizeY * anotherX];
+			final int		currentY = getSize(0);
+			final int		anotherX = another.getSize(1);
+			final int		size = getSize(1);
+			final double[]	sum = new double[currentY * anotherX];
 					
 			switch (CompilerUtils.defineClassType(another.getContentType())) {
 				case CompilerUtils.CLASSTYPE_INT	:
 					final int[]			anotherInt = new int[anotherSize];
 					
 					((IntMatrix)another).get(0, anotherInt, 0, anotherSize);
-					for (int x = 0; x < sizeY; x++) {
-					    for (int y = 0; y < anotherX; y++) {
-						      for (int index = 0; index < sizeX; index++) {
-							      sum[y + sizeY * x] += content[index + sizeX * x] * anotherInt[y + anotherX * index];
-						      }
+					for (int y = 0; y < currentY; y++) {
+					    for (int x = 0; x < anotherX; x++) {
+					    	double temp = 0;
+					    	
+							for (int index = 0; index < size; index++) {
+							    temp += content[index + size * y] * anotherInt[x + anotherX * index];
+							}
+							sum[x + currentY * y] = temp;
 					    }
 					}
 					break;
@@ -197,11 +216,14 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 					final long[]			anotherLong = new long[anotherSize];
 					
 					((LongMatrix)another).get(0, anotherLong, 0, anotherSize);
-					for (int x = 0; x < sizeY; x++) {
-					    for (int y = 0; y < anotherX; y++) {
-						      for (int index = 0; index < sizeX; index++) {
-							      sum[y + sizeY * x] += content[index + sizeX * x] * anotherLong[y + anotherX * index];
-						      }
+					for (int y = 0; y < currentY; y++) {
+					    for (int x = 0; x < anotherX; x++) {
+					    	double temp = 0;
+					    	
+							for (int index = 0; index < size; index++) {
+							    temp += content[index + size * y] * anotherLong[x + anotherX * index];
+							}
+							sum[x + currentY * y] = temp;
 					    }
 					}
 					break;
@@ -209,11 +231,14 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 					final float[]			anotherFloat = new float[anotherSize];
 					
 					((FloatMatrix)another).get(0, anotherFloat, 0, anotherSize);
-					for (int x = 0; x < sizeY; x++) {
-					    for (int y = 0; y < anotherX; y++) {
-						      for (int index = 0; index < sizeX; index++) {
-							      sum[y + sizeY * x] += content[index + sizeX * x] * anotherFloat[y + anotherX * index];
-						      }
+					for (int y = 0; y < currentY; y++) {
+					    for (int x = 0; x < anotherX; x++) {
+					    	double temp = 0;
+					    	
+							for (int index = 0; index < size; index++) {
+							    temp += content[index + size * y] * anotherFloat[x + anotherX * index];
+							}
+							sum[x + currentY * y] = temp;
 					    }
 					}
 					break;
@@ -221,17 +246,20 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 					final double[]			anotherDouble = new double[anotherSize];
 					
 					((DoubleMatrix)another).get(0, anotherDouble, 0, anotherSize);
-					for (int x = 0; x < sizeY; x++) {
-					    for (int y = 0; y < anotherX; y++) {
-						      for (int index = 0; index < sizeX; index++) {
-							      sum[y + sizeY * x] += content[index + sizeX * x] * anotherDouble[y + anotherX * index];
-						      }
+					for (int y = 0; y < currentY; y++) {
+					    for (int x = 0; x < anotherX; x++) {
+					    	double temp = 0;
+					    	
+							for (int index = 0; index < size; index++) {
+							    temp += content[index + size * y] * anotherDouble[x + anotherX * index];
+							}
+							sum[x + currentY * y] = temp;
 					    }
 					}
 					break;
 				default : throw new IllegalArgumentException("Matrix to add has unsupported type ["+another.getContentType().getCanonicalName()+"]");
 			}
-			return new DoubleMatrixImpl(sizeY, anotherX, false, sum);
+			return new DoubleMatrixImpl(currentY, anotherX, false, sum);
 		}
 	}
 
@@ -240,12 +268,11 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
-		else if (!MatrixUtils.areDimensions2MulValid(this,another)) {
-			throw new IllegalArgumentException("Matrix to multiply has dimensions ["+MatrixUtils.printDimensions(another)+"] differ with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
+		else if (!MatrixUtils.areDimensions2AddValid(this,another)) {
+			throw new IllegalArgumentException("Matrix to multiply has dimensions ["+MatrixUtils.printDimensions(another)+"] uncompatible with current matrix ["+MatrixUtils.printDimensions(this)+"]"); 
 		}
 		else {
 			final int		anotherSize = another.getSize(0) * another.getSize(1);  
-			final int		anotherX = another.getSize(0);
 			final double[]	sum = content.clone();
 					
 			switch (CompilerUtils.defineClassType(another.getContentType())) {
@@ -283,7 +310,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 					break;
 				default : throw new IllegalArgumentException("Matrix to add has unsupported type ["+another.getContentType().getCanonicalName()+"]");
 			}
-			return new DoubleMatrixImpl(sizeY, anotherX, false, sum);
+			return new DoubleMatrixImpl(getSize(0), getSize(1), false, sum);
 		}
 	}
 	
@@ -328,19 +355,20 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 
 	@Override
 	public DoubleMatrix transp() {
-		if (sizeX == 1 || sizeY == 1) {
-			return new DoubleMatrixImpl(sizeY, sizeX, content);
+		if (getSize(0) == 1 || getSize(1) == 1) {
+			return new DoubleMatrixImpl(getSize(1), getSize(0), content);
 		}
 		else {
 			final double[]	result = new double[content.length];
+			final int		X = getSize(1), Y = getSize(0); 
 			int				target = 0;
 			
-			for (int x = 0; x < sizeX; x++) {
-				for (int y = 0; y < sizeY; y++) {
-					result[target++] = content[y * sizeX + x];
+			for (int x = 0; x < X; x++) {
+				for (int y = 0; y < Y; y++) {
+					result[target++] = content[y * X + x];
 				}
 			}
-			return new DoubleMatrixImpl(sizeY, sizeX, false, result);
+			return new DoubleMatrixImpl(getSize(1), getSize(0), false, result);
 		}
 	}
 
@@ -390,18 +418,52 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 			for (int index = 0, maxIndex = result.length; index < maxIndex; index++) {
 				result[index] = op.applyAsDouble(result[index]);
 			}
-			return new DoubleMatrixImpl(sizeX, sizeY, false, result);
+			return new DoubleMatrixImpl(getSize(0), getSize(1), false, result);
 		}
 	}
 	
 	@Override
 	public void get(final int from, final double[] content, final int to, final int length) {
-		System.arraycopy(this.content, from, content, to, length);
+		if (from < 0 || from >= this.content.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(this.content.length-1)); 
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content to copy to can't be null"); 
+		}
+		else if (to < 0 || to >= content.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(content.length-1)); 
+		}
+		else if (length < 0 || to + length > content.length) {
+			throw new IllegalArgumentException("Length ["+to+"] is negative or (to+length) out of range 0.."+(content.length)); 
+		}
+		else if (from + length > this.content.length) {
+			throw new IllegalArgumentException("Length ["+to+"]: (from+length) out of range 0.."+(this.content.length)); 
+		}
+		else {
+			System.arraycopy(this.content, from, content, to, length);
+		}
 	}
 
 	@Override
 	public void set(final double[] content, final int from, final int to, final int length) {
-		System.arraycopy(content, from, this.content, to, length);
+		if (content == null) {
+			throw new NullPointerException("Content to copy to can't be null"); 
+		}
+		else if (from < 0 || from >= content.length) {
+			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(content.length)); 
+		}
+		else if (to < 0 || to >= this.content.length) {
+			throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(this.content.length-1)); 
+		}
+		else if (length < 0 || to + length > this.content.length) {
+			throw new IllegalArgumentException("Length ["+to+"] is negative or (to+length) out of range 0.."+(this.content.length)); 
+		}
+		else if (from + length > content.length) {
+			throw new IllegalArgumentException("Length ["+to+"]: (from+length) out of range 0.."+(content.length)); 
+		}
+		else {
+			System.arraycopy(content, from, this.content, to, length);
+		}
 	}
 
 	@Override

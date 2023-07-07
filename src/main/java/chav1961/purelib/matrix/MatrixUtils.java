@@ -4,11 +4,11 @@ import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.matrix.interfaces.Matrix;
 
 public class MatrixUtils {
-	public static Matrix zero(final Class<?> type, int size) {
+	public static Matrix<?> zero(final Class<?> type, int size) {
 		return zero(type,size,size);
 	}
 
-	public static Matrix zero(final Class<?> type, final int sizeX, final int sizeY) {
+	public static Matrix<?> zero(final Class<?> type, final int sizeX, final int sizeY) {
 		if (type == null) {
 			throw new NullPointerException("Class type can't be null");
 		}
@@ -41,7 +41,7 @@ public class MatrixUtils {
 		}
 	}
 	
-	public static Matrix identity(final Class<?> type, final int size) {
+	public static Matrix<?> identity(final Class<?> type, final int size) {
 		if (type == null) {
 			throw new NullPointerException("Class type can't be null");
 		}
@@ -83,7 +83,7 @@ public class MatrixUtils {
 		}
 	}
 	
-	public static Matrix filled(final Class<?> type, final int sizeX, final int sizeY, final Number filled) {
+	public static Matrix<?> filled(final Class<?> type, final int sizeX, final int sizeY, final Number filled) {
 		if (type == null) {
 			throw new NullPointerException("Class type can't be null");
 		}
@@ -139,7 +139,7 @@ public class MatrixUtils {
 		}
 	}
 
-	static boolean areDimensions2AddValid(final Matrix first, final Matrix second) {
+	static boolean areDimensions2AddValid(final Matrix<?> first, final Matrix<?> second) {
 		final int	firstDim = first.getDimensions(), secondDim = second.getDimensions();
 		
 		if (firstDim != secondDim) {
@@ -155,11 +155,11 @@ public class MatrixUtils {
 		}
 	}
 
-	static boolean areDimensions2MulValid(final Matrix first, final Matrix second) {
+	static boolean areDimensions2MulValid(final Matrix<?> first, final Matrix<?> second) {
 		return first.getDimensions() == 2 && second.getDimensions() == 2 && first.getSize(1) == second.getSize(0);
 	}
-	
-	static String printDimensions(final Matrix matrix) {
+
+	static String printDimensions(final Matrix<?> matrix) {
 		final StringBuilder	sb = new StringBuilder();
 		
 		for (int index = 0, maxIndex = matrix.getDimensions(); index < maxIndex; index++) {

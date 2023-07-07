@@ -4,14 +4,14 @@ import java.net.URI;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.MatrixFactory;
 
-public class OrdinalMatrixFactory implements MatrixFactory {
+public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFactory> {
 	private static final String			SUBSCHEME = "ordinal";
-	private static final URI			SERVE = URI.create(Localizer.LOCALIZER_SCHEME+":"+SUBSCHEME+":/");
+	private static final URI			SERVE = URI.create(MATRIX_FACTORY_SCHEME+":"+SUBSCHEME+":/");
 	
 	public OrdinalMatrixFactory() {
 	}
@@ -27,7 +27,7 @@ public class OrdinalMatrixFactory implements MatrixFactory {
 	}
 
 	@Override
-	public Matrix newMatrix(final Class<?> content, final int rows, final int cols) {
+	public Matrix<?> newMatrix(final Class<?> content, final int rows, final int cols) {
 		if (content == null) {
 			throw new NullPointerException("Content class can't be null"); 
 		}

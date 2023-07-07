@@ -13,7 +13,7 @@ import chav1961.purelib.basic.interfaces.SpiService;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  */
-public interface MatrixFactory extends SpiService<MatrixFactory> {
+public interface MatrixFactory {
 	/**
 	 * <p>Scheme name for the matrix factories</p>
 	 */
@@ -26,7 +26,7 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @return matrix created
 	 */
-	Matrix newMatrix(final Class<?> content, final int rows, final int cols);
+	Matrix<?> newMatrix(final Class<?> content, final int rows, final int cols);
 
 	/**
 	 * <p>Create int matrix with the given rows and columns and fill it with initial values.</p>  
@@ -35,7 +35,7 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix newMatrix(final int rows, final int cols, final int... content);
+	Matrix<?> newMatrix(final int rows, final int cols, final int... content);
 	
 	/**
 	 * <p>Create long matrix with the given rows and columns and fill it with initial values.</p>  
@@ -44,7 +44,7 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix newMatrix(final int rows, final int cols, final long... content);
+	Matrix<?> newMatrix(final int rows, final int cols, final long... content);
 	
 	/**
 	 * <p>Create float matrix with the given rows and columns and fill it with initial values.</p>  
@@ -53,7 +53,7 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix newMatrix(final int rows, final int cols, final float... content);
+	Matrix<?> newMatrix(final int rows, final int cols, final float... content);
 	
 	/**
 	 * <p>Create double matrix with the given rows and columns and fill it with initial values.</p>  
@@ -62,7 +62,7 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix newMatrix(final int rows, final int cols, final double... content);
+	Matrix<?> newMatrix(final int rows, final int cols, final double... content);
 
 	/**
 	 * <p>This class is a factory to get matrix factory by it's URI. It implements a 'Factory' template.</p> 
@@ -85,7 +85,7 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 			}
 			else {
 				for (MatrixFactory item : ServiceLoader.load(MatrixFactory.class)) {
-					if (item.canServe(matrixFactoryUri)) {
+					if ((item instanceof SpiService) && ((SpiService<MatrixFactory>)item).canServe(matrixFactoryUri)) {
 						return true;
 					}
 				}				
@@ -106,9 +106,9 @@ public interface MatrixFactory extends SpiService<MatrixFactory> {
 			}
 			else {
 				for (MatrixFactory item : ServiceLoader.load(MatrixFactory.class)) {
-					if (item.canServe(matrixFactoryUri)) {
+					if ((item instanceof SpiService) && ((SpiService<MatrixFactory>)item).canServe(matrixFactoryUri)) {
 						try {
-							return item.newInstance(matrixFactoryUri);
+							return ((SpiService<MatrixFactory>)item).newInstance(matrixFactoryUri);
 						} catch (EnvironmentException e) {
 							throw new PreparationException("Error creating matrix factory instance for the URI ["+matrixFactoryUri+"]: "+e.getLocalizedMessage());
 						}
