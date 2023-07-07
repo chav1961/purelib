@@ -195,4 +195,28 @@ public class MatrixUtils {
 			return false;
 		}
 	}
+	
+	static int indices2Displ(final Matrix<?> matrix, final int... indices) {
+		if (indices == null) {
+			throw new NullPointerException("Indices can't be null");
+		}
+		else if (matrix.getDimensions() != indices.length) {
+			throw new IllegalArgumentException("Illegal number of indices ["+indices.length+"], awaited is ["+matrix.getDimensions()+"]");
+		}
+		else {
+			int displ = indices[indices.length - 1];
+			
+			for(int dim = 0; dim < matrix.getDimensions()-1; dim++) {
+				int current = indices[dim];
+				
+				if (current < 0 || current >= matrix.getSize(dim)) {
+					throw new IllegalArgumentException("Index number ["+dim+"]: index value ["+current+"] out of range 0.."+(matrix.getSize(dim) - 1));
+				}
+				else {
+					displ += current*matrix.getSize(dim + 1);
+				}
+			}
+			return displ;
+		}
+	}
 }

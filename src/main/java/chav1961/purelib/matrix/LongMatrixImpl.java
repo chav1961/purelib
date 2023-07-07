@@ -208,7 +208,7 @@ public class LongMatrixImpl implements LongMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherInt[x + anotherX * index];
 							}
-							sum[x + currentY * y] = temp;
+							sum[x + anotherX * y] = temp;
 					    }
 					}
 					break;
@@ -223,7 +223,7 @@ public class LongMatrixImpl implements LongMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherLong[x + anotherX * index];
 							}
-							sum[x + currentY * y] = temp;
+							sum[x + anotherX * y] = temp;
 					    }
 					}
 					break;
@@ -238,7 +238,7 @@ public class LongMatrixImpl implements LongMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherFloat[x + anotherX * index];
 							}
-							sum[x + currentY * y] = (long)temp;
+							sum[x + anotherX * y] = (long)temp;
 					    }
 					}
 					break;
@@ -253,7 +253,7 @@ public class LongMatrixImpl implements LongMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherDouble[x + anotherX * index];
 							}
-							sum[x + currentY * y] = (long)temp;
+							sum[x + anotherX * y] = (long)temp;
 					    }
 					}
 					break;
@@ -386,6 +386,16 @@ public class LongMatrixImpl implements LongMatrix {
 			}
 			return new LongMatrixImpl(getSize(0), getSize(1), false, result);
 		}
+	}
+	
+	@Override
+	public long get(final int... indices) {
+		return content[MatrixUtils.indices2Displ(this, indices)];
+	}
+
+	@Override
+	public void set(final long value, final int... indices) {
+		content[MatrixUtils.indices2Displ(this, indices)] = value;
 	}
 	
 	@Override

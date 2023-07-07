@@ -208,7 +208,7 @@ public class IntMatrixImpl implements IntMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherInt[x + anotherX * index];
 							}
-							sum[x + currentY * y] = temp;
+							sum[x + anotherX * y] = temp;
 					    }
 					}
 					break;
@@ -223,7 +223,7 @@ public class IntMatrixImpl implements IntMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherLong[x + anotherX * index];
 							}
-							sum[x + currentY * y] = (int)temp;
+							sum[x + anotherX * y] = (int)temp;
 					    }
 					}
 					break;
@@ -238,7 +238,7 @@ public class IntMatrixImpl implements IntMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherFloat[x + anotherX * index];
 							}
-							sum[x + currentY * y] = (int)temp;
+							sum[x + anotherX * y] = (int)temp;
 					    }
 					}
 					break;
@@ -253,7 +253,7 @@ public class IntMatrixImpl implements IntMatrix {
 							for (int index = 0; index < size; index++) {
 							    temp += content[index + size * y] * anotherDouble[x + anotherX * index];
 							}
-							sum[x + currentY * y] = (int)temp;
+							sum[x + anotherX * y] = (int)temp;
 					    }
 					}
 					break;
@@ -387,6 +387,17 @@ public class IntMatrixImpl implements IntMatrix {
 			return new IntMatrixImpl(getSize(0), getSize(1), false, result);
 		}
 	}
+
+	@Override
+	public int get(final int... indices) {
+		return content[MatrixUtils.indices2Displ(this, indices)];
+	}
+
+	@Override
+	public void set(final int value, final int... indices) {
+		content[MatrixUtils.indices2Displ(this, indices)] = value;
+	}
+	
 	
 	@Override
 	public void get(final int from, final int[] content, final int to, final int length) {
