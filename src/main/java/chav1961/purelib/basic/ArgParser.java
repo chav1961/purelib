@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -928,6 +929,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		static {
 			SUPPORTED_CONVERSIONS.add(URI.class);
+			SUPPORTED_CONVERSIONS.add(URL.class);
 			SUPPORTED_CONVERSIONS.add(String.class);
 		}
 		
@@ -952,7 +954,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 				}
 			} catch (ContentException e) {
-				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type ("+e.getLocalizedMessage()+")"); 
 			}
 		}
 
@@ -1046,7 +1048,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 				}
 			} catch (ContentException e) {
-				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type ("+e.getLocalizedMessage()+")"); 
 			}
 		}
 
@@ -1259,7 +1261,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 				}
 			} catch (ContentException e) {
-				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type"); 
+				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type ("+e.getLocalizedMessage()+")"); 
 			}
 		}
 

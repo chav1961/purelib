@@ -168,7 +168,6 @@ public class CompilerUtilsTest {
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-	
 	}
 
 	@Test
