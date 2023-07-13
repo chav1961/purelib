@@ -13,11 +13,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 
-import javax.xml.transform.Source;
-
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
@@ -176,15 +177,26 @@ public class CharUtils {
 														, new Object[] {ArgumentType.signedInt, ',', ArgumentType.signedInt, "size", ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(2)}
 														, new Object[] {"center", ArgumentType.signedInt, ',', ArgumentType.signedInt, "size", ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(3)}
 													)};
+	private static final TranslitRecord[]	TRANSLITTER = buildTranslitters();
 
 	static {
-		CONSTANTS.placeName("true",true);
-		CONSTANTS.placeName("on",true);
-		CONSTANTS.placeName("y",true);
+		CONSTANTS.placeName((CharSequence)"true",true);
+		CONSTANTS.placeName((CharSequence)"on",true);
+		CONSTANTS.placeName((CharSequence)"y",true);
 		
-		CONSTANTS.placeName("false",false);
-		CONSTANTS.placeName("off",false);
-		CONSTANTS.placeName("n",false);
+		CONSTANTS.placeName((CharSequence)"false",false);
+		CONSTANTS.placeName((CharSequence)"off",false);
+		CONSTANTS.placeName((CharSequence)"n",false);
+	}
+
+	/**
+	 * <p>This enumeration describes soundex algorithms</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
+	public static enum SoundexAlgorthm {
+		NYSIIS,
+		RussianMetaphone;
 	}
 	
 	/**
@@ -3478,6 +3490,93 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
         	return new StringBuilder().append(seq, from, to).toString();
     	}
     }
+
+    /**
+     * <p>Calculate soundex string by source sequence</p>
+     * @param source source sequence. Can't be null
+     * @return soundex string calculated. Can't be null
+     * @throws NullPointerException source sequence is null
+     */
+    public static String soundex(final CharSequence source) throws NullPointerException {
+    	return soundex(source, SoundexAlgorthm.RussianMetaphone);
+    }
+
+    /**
+     * <p>Calculate soundex string by source sequence</p>
+     * @param source source sequence. Can't be null
+     * @param algo soundex algorithm to use. Can't be null
+     * @return soundex string calculated. Can't be null
+     * @throws NullPointerException any argument is null
+     */
+    public static String soundex(final CharSequence source, final SoundexAlgorthm algo) throws NullPointerException {
+    	switch (algo) {
+			case NYSIIS				:
+				return soundexNYSIIS(translit(source));
+			case RussianMetaphone	:
+				return soundexRussianMetaphone(source);
+			default:
+				throw new UnsupportedOperationException("Soundex algorithm ["+algo+"] is not supported yet");
+    	}
+    }
+
+	private static String soundexNYSIIS(final CharSequence source) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private static String soundexRussianMetaphone(final CharSequence source) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private static CharSequence translit(final CharSequence source) {
+    	final StringBuilder		sb = new StringBuilder();
+    	final TranslitRecord[]	temp = TRANSLITTER;
+    	
+loop:  	for(int index = 0, maxIndex = source.length(); index < maxIndex; index++) {
+    		final char	current = source.charAt(maxIndex);
+			int low = 0, high = temp.length - 1;
+			
+			while (low <= high) {
+				int mid = (low + high) >>> 1;
+				char midVal = temp[mid].source;
+				
+				if (midVal < current) {
+					low = mid + 1;
+				}
+				else if (midVal > current) {
+					high = mid - 1;
+				}
+				else {
+					sb.append(temp[mid].target);
+					continue loop;
+				}
+			}
+			sb.append(current);
+    	}
+		return sb.toString();
+    }
+    
+	private static TranslitRecord[] buildTranslitters() {
+		try {final Properties props = SubstitutableProperties.of(CharUtils.class.getResourceAsStream("translittable.txt"));
+		
+			final TranslitRecord[]	result = new TranslitRecord[2 * props.size()];
+			int	index = 0;
+			
+			for(Entry<Object, Object> item : props.entrySet()) {
+				final char		key = item.getKey().toString().charAt(0);
+				final String	value = item.getValue().toString();
+				
+				result[index++] = new TranslitRecord(Character.toUpperCase(key), "*".equals(value) ? "" : value);
+				result[index++] = new TranslitRecord(Character.toLowerCase(key), "*".equals(value) ? "" : value);
+			}
+			Arrays.sort(result, (o1,o2)->o2.source - o1.source);
+			return result;
+		} catch (IOException e) {
+			throw new PreparationException(e.getLocalizedMessage()); 
+		}
+	}
+
     
     /**
      * 
@@ -3989,6 +4088,16 @@ loop:		for(;;) {
 			final char[]	leftVal = left.get(), rightVal = right.get();
 			
 			return leftVal != null && rightVal != null && Arrays.equals(leftVal,rightVal);
+		}
+    }
+    
+    private static class TranslitRecord {
+    	final char		source;
+    	final char[]	target;
+
+    	public TranslitRecord(final char source, final String target) {
+			this.source = source;
+			this.target = target.toCharArray();
 		}
     }
 }
