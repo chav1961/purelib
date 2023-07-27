@@ -10,18 +10,16 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.FloatControl;
-import javax.sound.sampled.FloatControl.Type;
 import javax.sound.sampled.Line;
-import javax.sound.sampled.Port;
-import javax.sound.sampled.SourceDataLine;
-import javax.sound.sampled.TargetDataLine;
 import javax.sound.sampled.Line.Info;
 import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.Port;
+import javax.sound.sampled.TargetDataLine;
 
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.growablearrays.GrowableByteArray;
+import chav1961.purelib.basic.Utils;
 
 public class CaptureURLConnection extends URLConnection implements Closeable {
 	private static final String		AUDIO_DEVICE = "audio";
@@ -51,13 +49,13 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 	private static final int		MAX_VOLUME = 100;
 	private static final int		DEFAULT_VOLUME = 80;
 
-	private final int				rate; 
-	private final int				bits; 
-	private final int				signed; 
-	private final int				endian; 
-	private final int				channels; 
-	private final int				encoding;
-	private final int				volume;
+//	private final int				rate; 
+//	private final int				bits; 
+//	private final int				signed; 
+//	private final int				endian; 
+//	private final int				channels; 
+//	private final int				encoding;
+//	private final int				volume;
 	private final Line.Info			device;
 	private final TargetDataLine	lineOut;
 	private final int				frameBuffer;
@@ -67,93 +65,94 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 
 	CaptureURLConnection(final URL url) throws IOException {
 		super(url);
-		final String	host = url.getHost();
-		final String	query = url.getQuery();
+		final String		host = url.getHost();
+		final String		query = url.getQuery();
+		final AudioFormat	af = buildAudioFormat(query); 
 		
-		if (query != null && !query.isEmpty()) {
-			final Hashtable<String, String[]> 	keys = URIUtils.parseQuery(query.toLowerCase());
-
-			if (keys.containsKey(RATE_KEY)) {
-				int	value = toNumber(RATE_KEY, keys.get(RATE_KEY)[0]);
-				checkValue(RATE_KEY,value,AVAILABLE_RATES);
-				rate = value;
-			}
-			else {
-				rate = DEFAULT_RATE;
-			}
-		
-			if (keys.containsKey(BITS_KEY)) {
-				int	value = toNumber(BITS_KEY, keys.get(BITS_KEY)[0]);
-				checkValue(BITS_KEY,value,AVAILABLE_BITS);
-				bits = value;
-			}
-			else {
-				bits = DEFAULT_BITS;
-			}
-
-			if (keys.containsKey(SIGNED_KEY)) {
-				signed = checkValue(SIGNED_KEY,keys.get(SIGNED_KEY)[0],AVAILABLE_SIGNED);
-			}
-			else {
-				signed = DEFAULT_SIGNED;
-			}
-
-			if (keys.containsKey(ENDIAN_KEY)) {
-				endian = checkValue(ENDIAN_KEY,keys.get(ENDIAN_KEY)[0],AVAILABLE_ENDIAN);
-			}
-			else {
-				endian = DEFAULT_ENDIAN;
-			}
-
-			if (keys.containsKey(CHANNELS_KEY)) {
-				int	value = toNumber(CHANNELS_KEY, keys.get(CHANNELS_KEY)[0]);
-				checkValue(CHANNELS_KEY,value,AVAILABLE_CHANNELS);
-				channels = value;
-			}
-			else {
-				channels = DEFAULT_CHANNELS;
-			}
-
-			if (keys.containsKey(ENCODING_KEY)) {
-				encoding = checkValue(ENCODING_KEY,keys.get(ENCODING_KEY)[0],AVAILABLE_ENCODING);
-			}
-			else {
-				encoding = DEFAULT_ENCODING;
-			}
-
-			if (keys.containsKey(VOLUME_KEY)) {
-				int	value = toNumber(VOLUME_KEY, keys.get(VOLUME_KEY)[0]);
-				
-				if (value < MIN_VOLUME || value > MAX_VOLUME) {
-					throw new IOException("Volume key value ["+value+"] outsize the range "+MIN_VOLUME+".."+MAX_VOLUME);
-				}
-				else {
-					volume = value;
-				}
-			}
-			else {
-				volume = DEFAULT_VOLUME;
-			}
-		}
-		else {
-			rate = DEFAULT_RATE;
-			bits = DEFAULT_BITS;
-			signed = DEFAULT_SIGNED;
-			endian = DEFAULT_ENDIAN;
-			channels = DEFAULT_CHANNELS;
-			encoding = DEFAULT_ENCODING;
-			volume = DEFAULT_VOLUME;
-		}
-		
-		final AudioFormat	af = new AudioFormat(rate, bits, channels, signed == 0, endian == 0);
+//		if (query != null && !query.isEmpty()) {
+//			final Hashtable<String, String[]> 	keys = URIUtils.parseQuery(query.toLowerCase());
+//
+//			if (keys.containsKey(RATE_KEY)) {
+//				int	value = toNumber(RATE_KEY, keys.get(RATE_KEY)[0]);
+//				checkValue(RATE_KEY,value,AVAILABLE_RATES);
+//				rate = value;
+//			}
+//			else {
+//				rate = DEFAULT_RATE;
+//			}
+//		
+//			if (keys.containsKey(BITS_KEY)) {
+//				int	value = toNumber(BITS_KEY, keys.get(BITS_KEY)[0]);
+//				checkValue(BITS_KEY,value,AVAILABLE_BITS);
+//				bits = value;
+//			}
+//			else {
+//				bits = DEFAULT_BITS;
+//			}
+//
+//			if (keys.containsKey(SIGNED_KEY)) {
+//				signed = checkValue(SIGNED_KEY,keys.get(SIGNED_KEY)[0],AVAILABLE_SIGNED);
+//			}
+//			else {
+//				signed = DEFAULT_SIGNED;
+//			}
+//
+//			if (keys.containsKey(ENDIAN_KEY)) {
+//				endian = checkValue(ENDIAN_KEY,keys.get(ENDIAN_KEY)[0],AVAILABLE_ENDIAN);
+//			}
+//			else {
+//				endian = DEFAULT_ENDIAN;
+//			}
+//
+//			if (keys.containsKey(CHANNELS_KEY)) {
+//				int	value = toNumber(CHANNELS_KEY, keys.get(CHANNELS_KEY)[0]);
+//				checkValue(CHANNELS_KEY,value,AVAILABLE_CHANNELS);
+//				channels = value;
+//			}
+//			else {
+//				channels = DEFAULT_CHANNELS;
+//			}
+//
+//			if (keys.containsKey(ENCODING_KEY)) {
+//				encoding = checkValue(ENCODING_KEY,keys.get(ENCODING_KEY)[0],AVAILABLE_ENCODING);
+//			}
+//			else {
+//				encoding = DEFAULT_ENCODING;
+//			}
+//
+//			if (keys.containsKey(VOLUME_KEY)) {
+//				int	value = toNumber(VOLUME_KEY, keys.get(VOLUME_KEY)[0]);
+//				
+//				if (value < MIN_VOLUME || value > MAX_VOLUME) {
+//					throw new IOException("Volume key value ["+value+"] outsize the range "+MIN_VOLUME+".."+MAX_VOLUME);
+//				}
+//				else {
+//					volume = value;
+//				}
+//			}
+//			else {
+//				volume = DEFAULT_VOLUME;
+//			}
+//		}
+//		else {
+//			rate = DEFAULT_RATE;
+//			bits = DEFAULT_BITS;
+//			signed = DEFAULT_SIGNED;
+//			endian = DEFAULT_ENDIAN;
+//			channels = DEFAULT_CHANNELS;
+//			encoding = DEFAULT_ENCODING;
+//			volume = DEFAULT_VOLUME;
+//		}
+//		
+//		final AudioFormat	af = new AudioFormat(rate, bits, channels, signed == 0, endian == 0);
 
 		if (host != null) {
 			switch (host) {
 				case AUDIO_DEVICE	:
-					device = testDevice(host,AudioSystem.getSourceLineInfo(Port.Info.LINE_IN));
+					device = testDevice(host, AudioSystem.getSourceLineInfo(Port.Info.LINE_IN));
 					break;
 				case MICROPHONE_DEVICE	:
-					device = testDevice(host,AudioSystem.getSourceLineInfo(Port.Info.MICROPHONE));
+					device = testDevice(host, AudioSystem.getSourceLineInfo(Port.Info.MICROPHONE));
 					break;
 				default :
 					throw new IOException("Device ["+host+"] is not supported");
@@ -233,14 +232,42 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 		}
 	}
 
-	private int toNumber(final String key, final String value) throws IOException {
+	public static boolean hasDevice(final URL url) {
+		if (url == null) {
+			throw new NullPointerException("URL to test can't be null"); 
+		}
+		else {
+			try{final String		host = url.getHost();
+				final String		query = url.getQuery();
+				final AudioFormat	af = buildAudioFormat(query);
+				
+				if (!Utils.checkEmptyOrNullString(host)) {
+					switch (host) {
+						case AUDIO_DEVICE	:
+							return AudioSystem.getSourceLineInfo(Port.Info.LINE_IN).length > 0;
+						case MICROPHONE_DEVICE	:
+							return AudioSystem.getSourceLineInfo(Port.Info.MICROPHONE).length > 0;
+						default :
+							throw new IOException("Device ["+host+"] is not supported");
+					}
+				}
+				else {
+					return false;
+				}
+			} catch (IOException e) {
+				return false;
+			} 
+		}
+	}
+	
+	private static int toNumber(final String key, final String value) throws IOException {
 		try{return Integer.valueOf(value);
 		} catch (NumberFormatException exc) {
 			throw new IOException("Query key ["+key+"] value is not a valid integer ["+value+"]");
 		}
 	}
 	
-	private void checkValue(final String key, final int value, final int[] available) throws IOException {
+	private static void checkValue(final String key, final int value, final int[] available) throws IOException {
 		for (int item : available) {
 			if (value == item) {
 				return;
@@ -249,7 +276,7 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 		throw new IOException("Unsupported query key ["+key+"] value ["+value+"], valid  values are "+Arrays.toString(available));
 	}
 
-	private int checkValue(final String key, final String value, final String[] available) throws IOException {
+	private static int checkValue(final String key, final String value, final String[] available) throws IOException {
 		for (int index = 0; index < available.length; index++) {
 			if (value.equals(available[index])) {
 				return index;
@@ -265,5 +292,92 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 		else {
 			return info[0];
 		}
+	}
+	
+	private static AudioFormat buildAudioFormat(final String query) throws IOException {
+		final int	rate; 
+		final int	bits; 
+		final int	signed; 
+		final int	endian; 
+		final int	channels;
+		final int	encoding;
+		final int	volume;
+		
+		if (!Utils.checkEmptyOrNullString(query)) {
+			final Hashtable<String, String[]> 	keys = URIUtils.parseQuery(query.toLowerCase());
+
+			if (keys.containsKey(RATE_KEY)) {
+				int	value = toNumber(RATE_KEY, keys.get(RATE_KEY)[0]);
+				checkValue(RATE_KEY,value,AVAILABLE_RATES);
+				rate = value;
+			}
+			else {
+				rate = DEFAULT_RATE;
+			}
+		
+			if (keys.containsKey(BITS_KEY)) {
+				int	value = toNumber(BITS_KEY, keys.get(BITS_KEY)[0]);
+				checkValue(BITS_KEY,value,AVAILABLE_BITS);
+				bits = value;
+			}
+			else {
+				bits = DEFAULT_BITS;
+			}
+
+			if (keys.containsKey(SIGNED_KEY)) {
+				signed = checkValue(SIGNED_KEY,keys.get(SIGNED_KEY)[0],AVAILABLE_SIGNED);
+			}
+			else {
+				signed = DEFAULT_SIGNED;
+			}
+
+			if (keys.containsKey(ENDIAN_KEY)) {
+				endian = checkValue(ENDIAN_KEY,keys.get(ENDIAN_KEY)[0],AVAILABLE_ENDIAN);
+			}
+			else {
+				endian = DEFAULT_ENDIAN;
+			}
+
+			if (keys.containsKey(CHANNELS_KEY)) {
+				int	value = toNumber(CHANNELS_KEY, keys.get(CHANNELS_KEY)[0]);
+				checkValue(CHANNELS_KEY,value,AVAILABLE_CHANNELS);
+				channels = value;
+			}
+			else {
+				channels = DEFAULT_CHANNELS;
+			}
+
+			if (keys.containsKey(ENCODING_KEY)) {
+				encoding = checkValue(ENCODING_KEY,keys.get(ENCODING_KEY)[0],AVAILABLE_ENCODING);
+			}
+			else {
+				encoding = DEFAULT_ENCODING;
+			}
+
+			if (keys.containsKey(VOLUME_KEY)) {
+				int	value = toNumber(VOLUME_KEY, keys.get(VOLUME_KEY)[0]);
+				
+				if (value < MIN_VOLUME || value > MAX_VOLUME) {
+					throw new IOException("Volume key value ["+value+"] outsize the range "+MIN_VOLUME+".."+MAX_VOLUME);
+				}
+				else {
+					volume = value;
+				}
+			}
+			else {
+				volume = DEFAULT_VOLUME;
+			}
+		}
+		else {
+			rate = DEFAULT_RATE;
+			bits = DEFAULT_BITS;
+			signed = DEFAULT_SIGNED;
+			endian = DEFAULT_ENDIAN;
+			channels = DEFAULT_CHANNELS;
+			encoding = DEFAULT_ENCODING;
+			volume = DEFAULT_VOLUME;
+		}
+		
+		return new AudioFormat(rate, bits, channels, signed == 0, endian == 0);
 	}
 }

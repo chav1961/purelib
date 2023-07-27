@@ -169,6 +169,9 @@
 <!-- File content manipulator localization  -->
 		<key name="JFileContentManipulator.unsaved.title">WARNING!</key>
 		<key name="JFileContentManipulator.unsaved.body">You content was modified but still unsaved.\nSave it?</key> 
+		<key name="JFileContentManipulator.unsaved.caption">There are unsaved content in your application</key>
+		<key name="JFileContentManipulator.unsaved.selectAll">Select all</key>
+		<key name="JFileContentManipulator.unsaved.deselectAll">Deselect all</key>
 		<key name="JFileContentManipulator.progress.loading">Loading %1$s...</key>
 		<key name="JFileContentManipulator.progress.saving">Saving %1$s...</key>
 		<key name="JFileContentManipulator.lru.missing.title">WARNING!</key>
@@ -558,6 +561,9 @@
 <!-- Локализация манипулятора файлового контента  -->
 		<key name="JFileContentManipulator.unsaved.title">ВНИМАНИЕ!</key>
 		<key name="JFileContentManipulator.unsaved.body">Ваши данные были изменены, но так и не сохранены.\nСохранить их?</key> 
+		<key name="JFileContentManipulator.unsaved.caption">В вашем приложении есть несохраненные изменения</key>
+		<key name="JFileContentManipulator.unsaved.selectAll">Отметить все</key>
+		<key name="JFileContentManipulator.unsaved.deselectAll">Сбросить все</key>
 		<key name="JFileContentManipulator.progress.loading">Загрузка %1$s...</key>
 		<key name="JFileContentManipulator.progress.saving">Сохранение %1$s...</key>
 		<key name="JFileContentManipulator.lru.missing.title">ВНИМАНИЕ!</key>

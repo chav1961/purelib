@@ -24,6 +24,7 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
@@ -38,9 +39,11 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.LocalizerOwner;
+import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.interfaces.LRUPersistence;
+import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeListener;
 import chav1961.purelib.ui.swing.useful.interfaces.FileContentChangeType;
@@ -329,6 +332,8 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			panel.add(caption, BorderLayout.NORTH);
 			panel.add(new JScrollPane(list), BorderLayout.CENTER);
 			panel.add(rightPanel, BorderLayout.EAST);
+			
+			list.setCellRenderer(SwingUtils.getCellRenderer(ItemAndSelection.class, new FieldFormat(ItemAndSelection.class), ListCellRenderer.class));
 
 			switch (new JLocalizedOptionPane(localizer).confirm(getOwner(), panel, UNSAVED_TITLE, JOptionPane.QUESTION_MESSAGE, JOptionPane.YES_NO_CANCEL_OPTION)) {
 				case  JOptionPane.YES_OPTION :

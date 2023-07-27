@@ -24,6 +24,7 @@ public class JEnableMaskManipulator {
 	private final List<JComponent>			entities = new ArrayList<>();
 	private final List<Long>				enableStack = new ArrayList<>();
 	private final List<Long>				checkStack = new ArrayList<>();
+	private final long						localMask;
 	private long							currentEnableMask = 0L;
 	private long							currentCheckMask = 0L;
 	
@@ -70,16 +71,25 @@ loop:		for (String itemName : itemNames) {
 			}
 			this.parent = null;
 			this.names = itemNames;
+			this.localMask = 0;
 			this.entities.addAll(Arrays.asList(components));
-			refreshState();
+			refreshState(~localMask);
 		}
 	}
 
 	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final JComponent... components) throws IllegalArgumentException {
-		this(parent, false, components);
+		this(parent, false, 0, components);
 	}	
-	
+
+	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final long localMask, final JComponent... components) throws IllegalArgumentException {
+		this(parent, false, localMask, components);
+	}	
+
 	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
+		this(parent, ignoreMissing, 0, components);
+	}
+	
+	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final boolean ignoreMissing, final long localMask, final JComponent... components) throws IllegalArgumentException {
 		if (parent == null) {
 			throw new NullPointerException("Parent manipulator can't be null");
 		}
@@ -90,7 +100,8 @@ loop:		for (String itemName : itemNames) {
 			this.parent = parent;
 			this.entities.addAll(Arrays.asList(components));
 			this.names = null;
-			refreshState();
+			this.localMask = localMask;
+			refreshState(~0L);
 		}
 	}
 	
@@ -128,7 +139,12 @@ loop:		for (String itemName : itemNames) {
 	 */
 	public long getEnableMask() {
 		if (parent != null) {
-			return parent.getEnableMask();
+			if (localMask != 0) {
+				return parent.getEnableMask() & ~localMask | currentEnableMask & localMask;  
+			}
+			else {
+				return parent.getEnableMask();
+			}
 		}
 		else {
 			return currentEnableMask;
@@ -141,7 +157,12 @@ loop:		for (String itemName : itemNames) {
 	 */
 	public long getCheckMask() {
 		if (parent != null) {
-			return parent.getCheckMask();
+			if (localMask != 0) {
+				return parent.getCheckMask() & ~localMask | currentCheckMask & localMask;  
+			}
+			else {
+				return parent.getCheckMask();
+			}
 		}
 		else {
 			return currentCheckMask;
@@ -154,12 +175,18 @@ loop:		for (String itemName : itemNames) {
 	 */
 	public void setEnableMask(final long enableMask) {
 		if (parent != null) {
-			parent.setEnableMask(enableMask);
+			if (localMask != 0) {
+				parent.setEnableMask(enableMask & ~localMask);
+				currentEnableMask = enableMask & localMask;
+			}
+			else {
+				parent.setEnableMask(enableMask);
+			}
 		}
 		else {
 			currentEnableMask = enableMask;
 		}
-		refreshState();
+		refreshState(~0L);
 	}
 
 	/**
@@ -168,12 +195,18 @@ loop:		for (String itemName : itemNames) {
 	 */
 	public void setCheckMask(final long checkMask) {
 		if (parent != null) {
-			parent.setCheckMask(checkMask);
+			if (localMask != 0) {
+				parent.setCheckMask(checkMask & ~localMask);
+				currentCheckMask = checkMask & localMask;
+			}
+			else {
+				parent.setCheckMask(checkMask);
+			}
 		}
 		else {
 			currentCheckMask = checkMask;
 		}
-		refreshState();
+		refreshState(~0L);
 	}
 	
 	/**
@@ -300,7 +333,7 @@ loop:		for (String itemName : itemNames) {
 	 * <p>Manually refresh state of the items</p>
 	 */
 	public void refresh() {
-		refreshState();
+		refreshState(~localMask);
 	}
 	
 	private String[] getComponentNames() {
@@ -312,24 +345,28 @@ loop:		for (String itemName : itemNames) {
 		}
 	}
 	
-	private void refreshState() {
+	private void refreshState(final long mask) {
 		for(int index = 0; index < getComponentNames().length; index++) {
-			final boolean	enableState = (getEnableMask() & (1L << index)) != 0;
-			final boolean	checkState = (getCheckMask() & (1L << index)) != 0;
+			final long	bit = 1L << index;
 			
-			for (JComponent component : entities) {
-				final Container	c = SwingUtils.findComponentByName(component, getComponentNames()[index]);
-		
-				if (c instanceof JComponent) {
-					((JComponent)c).setEnabled(enableState);
-				}
-				if (c instanceof AbstractButton) {
-					((AbstractButton)c).setSelected(checkState);
+			if ((mask & bit) != 0) {
+				final boolean	enableState = (getEnableMask() & bit) != 0;
+				final boolean	checkState = (getCheckMask() & bit) != 0;
+				
+				for (JComponent component : entities) {
+					final Container	c = SwingUtils.findComponentByName(component, getComponentNames()[index]);
+			
+					if (c instanceof JComponent) {
+						((JComponent)c).setEnabled(enableState);
+					}
+					if (c instanceof AbstractButton) {
+						((AbstractButton)c).setSelected(checkState);
+					}
 				}
 			}
 		}
 		if (parent != null) {
-			parent.refreshState();
+			parent.refreshState(mask & ~localMask);
 		}
 	}
 }
