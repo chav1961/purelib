@@ -1,10 +1,12 @@
 package chav1961.purelib.basic;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.basic.intern.UnsafedUtils;
 
 /**
  * <p>This class is a sort of fast prefix tree. It class implements {@link SyntaxTreeInterface} interface by the And/Or tree algorithm. And/Or tree is a specific implementation of the well-known 
@@ -51,9 +53,11 @@ import chav1961.purelib.basic.intern.UnsafedUtils;
  * @last.update 0.0.7
  */
 public class AndOrTree <T> implements SyntaxTreeInterface<T> {
-	private static final int	TYPE_OR = 0; 
-	private static final int	TYPE_AND = 1; 
-	private static final int	TYPE_TERM = 2;
+	private static final int	MAGIC = 0xDEDA00F0; 
+	
+	private static final byte	TYPE_OR = 0; 
+	private static final byte	TYPE_AND = 1; 
+	private static final byte	TYPE_TERM = 2;
 	private static final int	RANGE_ALLOCATE = 8;
 	private static final int	RANGE_STEP = 64;
 	
@@ -516,6 +520,64 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	 */
 	public void print(final PrintWriter ps) {
 		print(root, ps, "");
+	}
+	
+	/**
+	 * <p>Upload tree content to output stream. Only tree content without cargos will be uploaded</p>
+	 * @param <T> tree cargo type
+	 * @param tree tree to upload. Can't be null
+	 * @param dos stream to upload the tree to. Can't be null
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.7
+	 */
+	public static <T> void rawUpload(final AndOrTree<T> tree, final DataOutputStream dos) throws IOException, NullPointerException {
+		if (tree == null) {
+			throw new NullPointerException("Tree to upload can't be null");
+		}
+		else if (dos == null) {
+			throw new NullPointerException("Stream to upload to can't be null");
+		}
+		else {
+			dos.writeInt(MAGIC);
+			dos.writeLong(tree.actualId);
+			dos.writeLong(tree.step);
+			dos.writeLong(tree.amount);
+			dos.writeInt(tree.maxNameLength);
+			upload(tree.root, dos);
+			dos.flush();
+		}
+	}
+	
+	/**
+	 * <p>Create tree from input stream was uploaded by {@linkplain #rawUpload(AndOrTree, DataOutputStream)} method. Only tree content without cargos will be download</p> 
+	 * @param <T> tree cargo type
+	 * @param dis stream do download the tree from. Can't be null.
+	 * @return tree instance download. Can't be null 
+	 * @throws NullPointerException on any parameter is null
+	 * @throws IOException on any I/O errors
+	 * @since 0.0.7
+	 */
+	public static <T> AndOrTree<T> rawDownload(final DataInputStream dis) throws IOException, NullPointerException {
+		if (dis == null) {
+			throw new NullPointerException("Stream to download from can't be null");
+		}
+		else if (dis.readInt() != MAGIC) {
+			throw new IOException("Illegal stream format: invalid magic"); 
+		}
+		else {
+			final long			actualId = dis.readLong();
+			final long			step = dis.readLong();
+			final long			amount = dis.readLong();
+			final int			maxNameLength = dis.readInt();
+			final Node			root = download(null, dis);
+			final AndOrTree<T>	result = new AndOrTree<T>(actualId, step);
+			
+			result.amount = amount;
+			result.maxNameLength = maxNameLength;
+			result.root = root;
+			return result;
+		}
 	}
 	
 	private long placeName(final char[] source, final int from, final int to, final long id, final T cargo, final boolean createId, final boolean refreshCargo) {
@@ -1637,10 +1699,149 @@ seek:	while (root != null && from < to) {
 		((OrNode)root).chars = newChars;
 		((OrNode)root).children = newChildren;
 	}
+	
+	private static void upload(final Node node, final DataOutputStream dos) throws IOException {
+		byte	content = (byte)node.type; 
+		byte	lengthIndex, idIndex;
 
+		switch (node.type) {
+			case TYPE_OR	:
+				lengthIndex = getMinimalLengthIndex(((OrNode)node).filled); 
+				content |= lengthIndex << 2; 
+				dos.writeByte(content);
+				switch(lengthIndex) {
+					case 0 : dos.writeByte(((OrNode)node).filled);	break;
+					case 1 : dos.writeShort(((OrNode)node).filled);	break;
+					case 2 : dos.writeInt(((OrNode)node).filled); 	break;
+					case 3 : dos.writeLong(((OrNode)node).filled); 	break;
+				}
+				for(char val : ((OrNode)node).chars) {
+					dos.writeChar(val);
+				}
+				for(Node child : ((OrNode)node).children) {
+					upload(child, dos);
+				}
+				break;
+			case TYPE_AND	:
+				lengthIndex = getMinimalLengthIndex(((AndNode)node).chars.length); 
+				content |= lengthIndex << 2;
+				content |= ((AndNode)node).child != null ? (byte)0b10000000 : 0;
+				dos.writeByte(content);
+				switch(lengthIndex) {
+					case 0 : dos.writeByte(((AndNode)node).chars.length);	break;
+					case 1 : dos.writeShort(((AndNode)node).chars.length);	break;
+					case 2 : dos.writeInt(((AndNode)node).chars.length); 	break;
+					case 3 : dos.writeLong(((AndNode)node).chars.length); 	break;
+				}
+				for(char val : ((AndNode)node).chars) {
+					dos.writeChar(val);
+				}
+				if (((AndNode)node).child != null) {
+					upload(((AndNode)node).child, dos);
+				}
+				break;
+			case TYPE_TERM	:
+				lengthIndex = getMinimalLengthIndex(((TermNode)node).nameLen); 
+				content |= lengthIndex << 2;
+				idIndex = getMinimalLengthIndex(((TermNode)node).id); 
+				content |= idIndex << 4;
+				content |= ((TermNode)node).child != null ? (byte)0b10000000 : 0;
+				dos.writeByte(content);
+				switch(lengthIndex) {
+					case 0 : dos.writeByte(((TermNode)node).nameLen); 	break;
+					case 1 : dos.writeShort(((TermNode)node).nameLen); 	break;
+					case 2 : dos.writeInt(((TermNode)node).nameLen); 	break;
+					case 3 : dos.writeLong(((TermNode)node).nameLen);	break;
+				}
+				switch(idIndex) {
+					case 0 : dos.writeByte((int) ((TermNode)node).id); 	break;
+					case 1 : dos.writeShort((int) ((TermNode)node).id);	break;
+					case 2 : dos.writeInt((int) ((TermNode)node).id); 	break;
+					case 3 : dos.writeLong((int) ((TermNode)node).id);	break;
+				}
+				if (((TermNode)node).child != null) {
+					upload(((TermNode)node).child, dos);
+				}
+				break;
+			default :
+				throw new UnsupportedOperationException("Node type ["+node.type+"] is not supported yet");
+		}
+	}
+	
+	private static Node download(final Node parent, final DataInputStream dis) throws IOException {
+		byte	content = dis.readByte();
+		int		length;
+		long	id;
+		
+		switch (content & 0x03) {
+			case TYPE_OR	:
+				length = (int) readValue(dis, (content >> 2) & 0x03);
+				final OrNode or = new OrNode(length);
+				
+				for(int index = 0; index < or.chars.length; index++) {
+					or.chars[index] = dis.readChar();
+				}
+				for(int index = 0; index < or.chars.length; index++) {
+					or.children[index] = download(or, dis);
+				}
+				or.parent = parent;
+				return or;
+			case TYPE_AND	:
+				length = (int) readValue(dis, (content >> 2) & 0x03);
+				final AndNode and = new AndNode(length);
+				
+				for(int index = 0; index < and.chars.length; index++) {
+					and.chars[index] = dis.readChar();
+				}
+				if ((content & 0b10000000) != 0) {
+					and.child = download(and, dis);
+				}
+				return and;
+			case TYPE_TERM	:
+				length = (int) readValue(dis, (content >> 2) & 0x03);
+				id = readValue(dis, (content >> 4) & 0x03);
+				
+				final TermNode term = new TermNode(parent, null);
+				term.id = id;
+				term.nameLen = length;
+				if ((content & 0b10000000) != 0) {
+					term.child = download(term, dis);
+				}
+				return term;
+			default :
+				throw new UnsupportedOperationException("Node type ["+(content & 0x0F)+"] is not supported yet");
+		}
+	}
+
+	private static long readValue(final DataInputStream dis, final int lengthIndex) throws IOException {
+		switch (lengthIndex) {
+			case 0 : return dis.readByte();
+			case 1 : return dis.readShort();
+			case 2 : return dis.readInt();
+			case 3 : return dis.readLong();
+			default :
+				throw new UnsupportedOperationException("Length index ["+(lengthIndex)+"] is not supported yet");
+		}
+	}
+
+	private static byte getMinimalLengthIndex(final long value) {
+		if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+			return 0;
+		}
+		else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+			return 1;
+		}
+		else if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
+			return 2;
+		}
+		else {
+			return 3;
+		}
+	}
+	
 	private static class Node {
 		int			type;
-		Node 		parent;
+		Node		parent;
 	}
 	
 	private static class OrNode extends Node {
