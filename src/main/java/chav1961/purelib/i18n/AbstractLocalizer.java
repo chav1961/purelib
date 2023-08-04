@@ -87,7 +87,7 @@ public abstract class AbstractLocalizer implements Localizer {
 																	@Override 
 																	public LocaleDescriptor next() {
 																		if (!hasNext()) {
-																			throw new NoSuchElementException("Call next() wwhen hasNext() == false");
+																			throw new NoSuchElementException("Call next() when hasNext() == false");
 																		}
 																		else {
 																			return LOCALES[index++];
