@@ -1708,7 +1708,7 @@ seek:	while (root != null && from < to) {
 			case TYPE_OR	:
 				final OrNode	or = (OrNode)node;
 				
-				lengthIndex = getMinimalLengthIndex(or.filled); 
+				lengthIndex = Utils.getSignificantSize(or.filled); 
 				content |= lengthIndex << 2; 
 				dos.writeByte(content);
 				switch(lengthIndex) {
@@ -1725,7 +1725,7 @@ seek:	while (root != null && from < to) {
 				}
 				break;
 			case TYPE_AND	:
-				lengthIndex = getMinimalLengthIndex(((AndNode)node).chars.length); 
+				lengthIndex = Utils.getSignificantSize(((AndNode)node).chars.length); 
 				content |= lengthIndex << 2;
 				content |= ((AndNode)node).child != null ? (byte)0b10000000 : 0;
 				dos.writeByte(content);
@@ -1743,9 +1743,9 @@ seek:	while (root != null && from < to) {
 				}
 				break;
 			case TYPE_TERM	:
-				lengthIndex = getMinimalLengthIndex(((TermNode)node).nameLen); 
+				lengthIndex = Utils.getSignificantSize(((TermNode)node).nameLen); 
 				content |= lengthIndex << 2;
-				idIndex = getMinimalLengthIndex(((TermNode)node).id); 
+				idIndex = Utils.getSignificantSize(((TermNode)node).id); 
 				content |= idIndex << 4;
 				content |= ((TermNode)node).child != null ? (byte)0b10000000 : 0;
 				dos.writeByte(content);
@@ -1827,21 +1827,6 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
-	private static byte getMinimalLengthIndex(final long value) {
-		if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
-			return 0;
-		}
-		else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
-			return 1;
-		}
-		else if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
-			return 2;
-		}
-		else {
-			return 3;
-		}
-	}
-	
 	private static class Node {
 		int			type;
 		Node		parent;

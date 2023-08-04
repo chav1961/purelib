@@ -1686,7 +1686,27 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			}
 		}
 	}
-	
+
+	/**
+	 * <p>Get minimal size to represent value passes exactly</p>
+	 * @param value value to define size for.</p>
+	 * @return 0 - byte enough, 1 - short enough, 2 - int enough, otherwise 3.
+	 * @since 0.0.7
+	 */
+	public static byte getSignificantSize(final long value) {
+		if (value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+			return 0;
+		}
+		else if (value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+			return 1;
+		}
+		else if (value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
+			return 2;
+		}
+		else {
+			return 3;
+		}
+	}
 	
 	@FunctionalInterface
 	public interface DirectProxyExecutor {
