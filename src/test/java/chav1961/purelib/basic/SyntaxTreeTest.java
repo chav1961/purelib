@@ -1,5 +1,10 @@
 package chav1961.purelib.basic;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 
 import org.junit.Assert;
@@ -53,10 +58,10 @@ public class SyntaxTreeTest {
 	@Test
 	public void specialTest() {
 		final SyntaxTreeInterface<String>	sti = new AndOrTree<>();
-		final long	id1 = sti.placeOrChangeName("skip20_1", "skip20_1");
-		final long	id2 = sti.placeOrChangeName("skip20_2", "skip20_2");
-		final long	id3 = sti.placeOrChangeName("skip2", "skip2");
-		final long	id4 = sti.placeOrChangeName("skip2", "skip2");
+		final long	id1 = sti.placeOrChangeName((CharSequence)"skip20_1", "skip20_1");
+		final long	id2 = sti.placeOrChangeName((CharSequence)"skip20_2", "skip20_2");
+		final long	id3 = sti.placeOrChangeName((CharSequence)"skip2", "skip2");
+		final long	id4 = sti.placeOrChangeName((CharSequence)"skip2", "skip2");
 		
 		Assert.assertEquals(id3, id4);
 	}	
@@ -128,6 +133,53 @@ public class SyntaxTreeTest {
 		ps.println("Seek: time="+((startTime4-startTime3)/data.length)+", size="+((freeMem3-freeMem4)/(1 << PERF_AMOUNT)));
 	}
 
+	@Category(OrdinalTestCategory.class)
+	@Test
+	public void andOrTreeSpecificTest() throws IOException {
+		final SyntaxTreeInterface<Object>	src = new AndOrTree<>();
+		
+		src.placeName((CharSequence)"abcde", null);
+		src.placeName((CharSequence)"abcde1", null);
+		src.placeName((CharSequence)"bcdea", null);
+		
+		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream()) {
+			try(final DataOutputStream	dos = new DataOutputStream(baos)) {
+				AndOrTree.rawUpload((AndOrTree<?>)src, dos);
+				
+				try{AndOrTree.rawUpload((AndOrTree<?>)null, dos);
+					Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+				} catch (NullPointerException exc) {
+				}
+				try{AndOrTree.rawUpload((AndOrTree<?>)src, null);
+					Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+				} catch (NullPointerException exc) {
+				}
+			}
+			try(final ByteArrayInputStream			bais = new ByteArrayInputStream(baos.toByteArray());
+				final DataInputStream				dis = new DataInputStream(bais)) {
+				final SyntaxTreeInterface<Object>	target = AndOrTree.rawDownload(dis);
+				
+				Assert.assertTrue(target.seekName((CharSequence)"abcde") >= 0);
+				Assert.assertTrue(target.seekName((CharSequence)"abcde1") >= 0);
+				Assert.assertTrue(target.seekName((CharSequence)"bcdea") >= 0);
+				Assert.assertFalse(target.seekName((CharSequence)"unknown") >= 0);
+				
+				target.placeName((CharSequence)"cega", null);
+
+				Assert.assertTrue(target.seekName((CharSequence)"abcde") >= 0);
+				Assert.assertTrue(target.seekName((CharSequence)"abcde1") >= 0);
+				Assert.assertTrue(target.seekName((CharSequence)"bcdea") >= 0);
+				Assert.assertTrue(target.seekName((CharSequence)"cega") >= 0);
+				Assert.assertFalse(target.seekName((CharSequence)"unknown") >= 0);
+
+				try{AndOrTree.rawDownload(dis);
+					Assert.fail("Mandatory exception was not detected (illegal input format)");
+				} catch (IOException exc) {
+				}
+			}
+		}
+	}	
+	
 	private void basicFunctionalityTest(final SyntaxTreeInterface<Object> tt) {
 		Assert.assertEquals(tt.size(),0);
 		
@@ -198,19 +250,19 @@ public class SyntaxTreeTest {
 		tt.walk(PRINT);
 		Assert.assertEquals(amount[0],13);
 
-		Assert.assertEquals(tt.getName(tt.seekName("abcde")),"abcde");	// Restore names by ids
-		Assert.assertEquals(tt.getName(tt.seekName("cdefg")),"cdefg");
-		Assert.assertEquals(tt.getName(tt.seekName("bcdef")),"bcdef");
-		Assert.assertEquals(tt.getName(tt.seekName("defgh")),"defgh");
-		Assert.assertEquals(tt.getName(tt.seekName("efghi")),"efghi");
-		Assert.assertEquals(tt.getName(tt.seekName("ghijk")),"ghijk");
-		Assert.assertEquals(tt.getName(tt.seekName("fghij")),"fghij");
-		Assert.assertEquals(tt.getName(tt.seekName("hijlk")),"hijlk");
-		Assert.assertEquals(tt.getName(tt.seekName("ijklm")),"ijklm");
-		Assert.assertEquals(tt.getName(tt.seekName("abcdef")),"abcdef");
-		Assert.assertEquals(tt.getName(tt.seekName("acdef")),"acdef");
-		Assert.assertEquals(tt.getName(tt.seekName("abc")),"abc");
-		Assert.assertEquals(tt.getName(tt.seekName("abcdeg")),"abcdeg");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"abcde")),"abcde");	// Restore names by ids
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"cdefg")),"cdefg");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"bcdef")),"bcdef");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"defgh")),"defgh");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"efghi")),"efghi");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"ghijk")),"ghijk");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"fghij")),"fghij");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"hijlk")),"hijlk");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"ijklm")),"ijklm");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"abcdef")),"abcdef");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"acdef")),"acdef");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"abc")),"abc");
+		Assert.assertEquals(tt.getName(tt.seekName((CharSequence)"abcdeg")),"abcdeg");
 		
 		tt.clear();
 		amount[0] = 0;

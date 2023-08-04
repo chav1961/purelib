@@ -524,14 +524,14 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	
 	/**
 	 * <p>Upload tree content to output stream. Only tree content without cargos will be uploaded</p>
-	 * @param <T> tree cargo type
+	 * @param <U> tree cargo type
 	 * @param tree tree to upload. Can't be null
 	 * @param dos stream to upload the tree to. Can't be null
 	 * @throws NullPointerException on any parameter is null
 	 * @throws IOException on any I/O errors
 	 * @since 0.0.7
 	 */
-	public static <T> void rawUpload(final AndOrTree<T> tree, final DataOutputStream dos) throws IOException, NullPointerException {
+	public static <U> void rawUpload(final AndOrTree<U> tree, final DataOutputStream dos) throws IOException, NullPointerException {
 		if (tree == null) {
 			throw new NullPointerException("Tree to upload can't be null");
 		}
@@ -1706,20 +1706,22 @@ seek:	while (root != null && from < to) {
 
 		switch (node.type) {
 			case TYPE_OR	:
-				lengthIndex = getMinimalLengthIndex(((OrNode)node).filled); 
+				final OrNode	or = (OrNode)node;
+				
+				lengthIndex = getMinimalLengthIndex(or.filled); 
 				content |= lengthIndex << 2; 
 				dos.writeByte(content);
 				switch(lengthIndex) {
-					case 0 : dos.writeByte(((OrNode)node).filled);	break;
-					case 1 : dos.writeShort(((OrNode)node).filled);	break;
-					case 2 : dos.writeInt(((OrNode)node).filled); 	break;
-					case 3 : dos.writeLong(((OrNode)node).filled); 	break;
+					case 0 : dos.writeByte(or.filled);	break;
+					case 1 : dos.writeShort(or.filled);	break;
+					case 2 : dos.writeInt(or.filled); 	break;
+					case 3 : dos.writeLong(or.filled); 	break;
 				}
-				for(char val : ((OrNode)node).chars) {
-					dos.writeChar(val);
+				for(int index = 0; index < or.filled; index++) {
+					dos.writeChar(or.chars[index]);
 				}
-				for(Node child : ((OrNode)node).children) {
-					upload(child, dos);
+				for(int index = 0; index < or.filled; index++) {
+					upload(or.children[index], dos);
 				}
 				break;
 			case TYPE_AND	:
@@ -1784,6 +1786,7 @@ seek:	while (root != null && from < to) {
 				for(int index = 0; index < or.chars.length; index++) {
 					or.children[index] = download(or, dis);
 				}
+				or.filled = length;
 				or.parent = parent;
 				return or;
 			case TYPE_AND	:
