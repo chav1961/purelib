@@ -966,8 +966,13 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 		for (Entry<Object,Object> item : props.entrySet()) {
 			result.add(item.getKey().toString());
 		}
-		for (Entry<Object,Object> item : props.defaults.entrySet()) {
-			result.add(item.getKey().toString());
+		if (props.defaults instanceof SubstitutableProperties) {
+			result.addAll(((SubstitutableProperties)props.defaults).availableKeys());
+		}
+		else {
+			for (Entry<Object,Object> item : props.defaults.entrySet()) {
+				result.add(item.getKey().toString());
+			}
 		}
 		return result;
 	}

@@ -481,6 +481,7 @@ public final class PureLibSettings {
 	private static final Object						HELP_CONTEXT_COUNT_SYNC = new Object();
 	private static final List<AutoCloseable>		finalCloseList = new ArrayList<>();
 	static volatile NanoServiceFactory				helpServer = null;
+	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
 			
