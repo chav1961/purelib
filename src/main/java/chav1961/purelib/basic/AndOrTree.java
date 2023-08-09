@@ -576,6 +576,9 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			result.amount = amount;
 			result.maxNameLength = maxNameLength;
 			result.root = root;
+			
+			buildRevert(result.root, result);
+			
 			return result;
 		}
 	}
@@ -883,7 +886,7 @@ seek:	for(;;) {
 					node.id = id;
 				}
 				node.nameLen = to - from;
-				placeRevert(node,node.id);
+				placeRevert(node, node.id);
 				amount++;
 			}
 			if (refreshCargo || node.cargo == null) {
@@ -1631,6 +1634,23 @@ seek:	while (root != null && from < to) {
 	private Node getRevert(final long id) {
 		return revert.get(id);
 	}
+	
+	private static void buildRevert(final Node root, final AndOrTree<?> result) {
+		if (root != null) {
+			if (root.type == TYPE_OR) {
+				for (int index = 0, maxIndex = ((OrNode)root).filled; index < maxIndex; index++) {
+					buildRevert(((OrNode)root).children[index], result);
+				}
+			}
+			else if (root.type == TYPE_AND) {
+				buildRevert(((AndNode)root).child, result);
+			}
+			else if (root.type == TYPE_TERM) {
+				buildRevert(((TermNode)root).child, result);
+				result.placeRevert(root, ((TermNode)root).id);
+			}
+		}
+	}
 
 	private static void clear(final Node root) {
 		if (root != null) {
@@ -1799,6 +1819,7 @@ seek:	while (root != null && from < to) {
 				if ((content & 0b10000000) != 0) {
 					and.child = download(and, dis);
 				}
+				and.parent = parent;
 				return and;
 			case TYPE_TERM	:
 				length = (int) readValue(dis, (content >> 2) & 0x03);

@@ -233,6 +233,7 @@ public class PlaybackURLConnection extends URLConnection implements Closeable {
 						while (displ < len) {
 							displ += lineIn.write(frame, displ, len-displ);
 						}
+						lineIn.flush();
 					}
 					if (gba.length() > frameBuffer) {
 						len = gba.read(index, frame);

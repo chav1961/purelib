@@ -178,26 +178,12 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 //				
 //				fc.setValue(fc.getMinimum() + volume*(fc.getMaximum()-fc.getMinimum())/100);
 				lineOut.start();
-			
+				this.is = new AudioInputStream(lineOut);
 			} catch (LineUnavailableException e) {
 				throw new IOException("Audio line is unavailable: "+e.getLocalizedMessage(),e);
 			}
 			connected = true;
 
-			this.is = new InputStream() {
-				final byte[]	buffer = new byte[1];
-
-				@Override
-				public int read(final byte[] b, final int off, final int len) throws IOException {
-					return lineOut.read(b, off, len);
-				}
-				
-				@Override
-				public int read() throws IOException {
-					lineOut.read(buffer,0,buffer.length);
-					return buffer[0];
-				}
-			};
 		}
 	}
 
@@ -227,6 +213,7 @@ public class CaptureURLConnection extends URLConnection implements Closeable {
 	public void close() throws IOException {
 		if (connected) {
 			connected = false;
+			is.close();
 			lineOut.stop();
 			lineOut.close();
 		}
