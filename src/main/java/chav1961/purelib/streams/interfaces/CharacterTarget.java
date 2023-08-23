@@ -1,5 +1,7 @@
 package chav1961.purelib.streams.interfaces;
 
+import java.io.Flushable;
+
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 
@@ -8,9 +10,9 @@ import chav1961.purelib.basic.exceptions.PrintingException;
  * @see chav1961.purelib.streams.chartarget
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
-public interface CharacterTarget extends Appendable {
+public interface CharacterTarget extends Appendable, Flushable {
 	/**
 	 * <p>Put symbol into the target</p>
 	 * @param symbol symbol to put

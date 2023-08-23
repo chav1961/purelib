@@ -13,7 +13,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class WriterCharTarget implements CharacterTarget {
 	private final Writer		targetWr;
@@ -215,7 +215,18 @@ public class WriterCharTarget implements CharacterTarget {
 		throw new EnvironmentException("This class not supports this method");
 	}
 	
+	@Override
+	public void flush() throws IOException {
+		if (targetPs != null) {
+			targetPs.flush();
+		}
+		if (targetWr != null) {
+			targetWr.flush();
+		}
+	}
+	
 	@Override public int totalWritten() {return written;}
 	@Override public int atRow() {return 0;}
 	@Override public int atColumn() {return 0;}
+
 }

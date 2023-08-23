@@ -11,7 +11,7 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class ArrayCharTarget implements CharacterTarget {
 	private final char[]	target;
@@ -150,8 +150,13 @@ public class ArrayCharTarget implements CharacterTarget {
 	@Override public int atRow() {return 0;}
 	@Override public int atColumn() {return 0;}
 
+	@Override
+	public void flush() throws IOException {
+	}
+	
 	private void internalReset() {
 		this.actual = from;
 		this.written = 0;
 	}
+
 }
