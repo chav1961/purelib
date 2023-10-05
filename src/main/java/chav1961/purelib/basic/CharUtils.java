@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -21,6 +22,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 
 /**
  * <p>This class contains implementation of the most-commonly-used char data parsing/printing functions in the system. It can be used to parse character 
@@ -3474,6 +3476,48 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	}
     	else {
         	return new StringBuilder().append(seq, from, to).toString();
+    	}
+    }
+
+    public static String toWords(final long value, final SupportedLanguages lang, final int options) throws NullPointerException {
+    	if (lang == null) {
+    		throw new NullPointerException("Language type can't be null"); 
+    	}
+    	else {
+        	return null;
+    	}
+    }
+
+    public static long fromWords(final CharSequence seq, final SupportedLanguages lang, final int options) throws NullPointerException {
+    	if (seq == null || seq.length() == 0) {
+    		throw new IllegalArgumentException("Sequence to convert can't be null or empty"); 
+    	}
+    	else if (lang == null) {
+    		throw new NullPointerException("Language type can't be null"); 
+    	}
+    	else {
+        	return fromWords(seq, 0, seq.length()-1, lang, options);
+    	}
+    }
+    
+    public static long fromWords(final CharSequence seq, final int from, final int to, final SupportedLanguages lang, final int options) throws NullPointerException {
+    	if (seq == null || seq.length() == 0) {
+    		throw new IllegalArgumentException("Sequence to convert can't be null or empty"); 
+    	}
+    	else if (from < 0 || from >= seq.length()) {
+    		throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+(seq.length() - 1)); 
+    	}
+    	else if (to < 0 || to >= seq.length()) {
+    		throw new IllegalArgumentException("To position ["+to+"] out of range 0.."+(seq.length() - 1)); 
+    	}
+    	else if (from > to) {
+    		throw new IllegalArgumentException("From position ["+from+"] must be less or equals than to position ["+to+"]"); 
+    	}    
+    	else if (lang == null) {
+    		throw new NullPointerException("Language type can't be null"); 
+    	}
+    	else {
+    		return 0;
     	}
     }
     
