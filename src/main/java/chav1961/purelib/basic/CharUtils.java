@@ -138,6 +138,11 @@ public class CharUtils {
 	public static final int			PREF_DOUBLE = 8;
 	public static final int			PREF_ANY = PREF_INT | PREF_LONG | PREF_FLOAT | PREF_DOUBLE;
 	public static final int			MAX_SUBST_DEPTH = 16;
+	public static final int			WORDS_NEGATIVE = 1;
+	public static final int			WORDS_MALE = 2;
+	public static final int			WORDS_FEMALE = 4;
+	public static final int			WORDS_PLURAL = 8;
+	public static final int			WORDS_ORDINAL = 16;
 	public static final Appendable	NULL_APPENDABLE = new Appendable() {
 										@Override public Appendable append(CharSequence csq, int start, int end) throws IOException {return this;}
 										@Override public Appendable append(char c) throws IOException {return this;}
@@ -176,6 +181,27 @@ public class CharUtils {
 														, new Object[] {ArgumentType.signedInt, ',', ArgumentType.signedInt, "size", ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(2)}
 														, new Object[] {"center", ArgumentType.signedInt, ',', ArgumentType.signedInt, "size", ArgumentType.signedInt, ',', ArgumentType.signedInt, new Mark(3)}
 													)};
+	private static final String		WORDS_EN_ZERO = "zero";
+	private static final String		WORDS_EN_MINUS = "minus";
+	private static final String[]	WORDS_EN_DIMENSIONS = {"quintillions", "quadrillions", "trillions", "billions", "millions", "thousands", ""};
+	private static final String[]	WORDS_EN_HUNDREDS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_EN_DECS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_EN_TEENS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_EN_UNITS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String		WORDS_RU_ZERO = "ноль";
+	private static final String		WORDS_RU_MINUS = "минус";
+	private static final Map<String, WordsKeeper>	WORDS_EN_SET = new HashMap<>();
+	private static final String[]	WORDS_RU_DIMENSIONS_1 = {"квинтиллионов", "квадриллионов", "триллионов", "милиардов", "милионов", "тысяч", ""};
+	private static final String[]	WORDS_RU_DIMENSIONS_234 = {"квинтиллионов", "квадриллионов", "триллионов", "милиардов", "милионов", "тысяч", ""};
+	private static final String[]	WORDS_RU_DIMENSIONS_567890 = {"квинтиллионов", "квадриллионов", "триллионов", "милиардов", "милионов", "тысяч", ""};
+	private static final String[]	WORDS_RU_HUNDREDS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_RU_DECS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_RU_TEENS = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_RU_UNITS_M = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_RU_UNITS_F = {"", "", "", "", "", "", "", "", "", "", };
+	private static final String[]	WORDS_RU_UNITS_N = {"", "", "", "", "", "", "", "", "", "", };
+	private static final Map<String, WordsKeeper>	WORDS_RU_SET = new HashMap<>();
+			
 	static {
 		CONSTANTS.placeName((CharSequence)"true",true);
 		CONSTANTS.placeName((CharSequence)"on",true);
@@ -3484,11 +3510,18 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     		throw new NullPointerException("Language type can't be null"); 
     	}
     	else {
-        	return null;
+    		switch (lang) {
+				case en	:
+					return toWordsEn(value, options);
+				case ru	:
+					return toWordsRu(value, options);
+				default	:
+					throw new UnsupportedOperationException("Language ["+lang+"] is not supported yet");
+    		}
     	}
     }
 
-    public static long fromWords(final CharSequence seq, final SupportedLanguages lang, final int options) throws NullPointerException {
+	public static long fromWords(final CharSequence seq, final SupportedLanguages lang, final int options) throws NullPointerException {
     	if (seq == null || seq.length() == 0) {
     		throw new IllegalArgumentException("Sequence to convert can't be null or empty"); 
     	}
@@ -3517,11 +3550,249 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     		throw new NullPointerException("Language type can't be null"); 
     	}
     	else {
-    		return 0;
+    		switch (lang) {
+				case en	:
+					return fromWordsEn(splitWords(seq, from, to), options);
+				case ru	:
+					return fromWordsRu(splitWords(seq, from, to), options);
+				default	:
+					throw new UnsupportedOperationException("Language ["+lang+"] is not supported yet");
+    		}
     	}
     }
+
+	private static String toWordsEn(final long value, final int options) {
+		if (value == 0) {
+			return WORDS_EN_ZERO;
+		}
+		else if (value < 0) {
+			if ((options | WORDS_NEGATIVE) != 0) {
+				return WORDS_EN_MINUS + ' ' + toWordsEn(-value, options);
+			}
+			else {
+				throw new IllegalArgumentException("Negative value ["+value+"] without WORDS_NEGATIVE option");
+			}
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			final int[]			parts = splitLong(value);
+
+			for(int index = 0; index < parts.length; index++) {
+				if (parts[index] != 0) {
+					toWordsEn(sb, parts[index], WORDS_EN_DIMENSIONS[index], options);
+				}
+			}
+			return sb.toString();
+		}
+	}
+
+	private static void toWordsEn(final StringBuilder sb, int value, final String units, final int options) {
+		final int	hundreds = value / 100;
+		
+		if (hundreds != 0) {
+			sb.append(WORDS_EN_HUNDREDS[hundreds]).append(' ');
+			value %= 100;
+		}
+		if (value > 10 && value < 20) {
+			sb.append(WORDS_EN_TEENS[value - 10]).append(' ');
+		}
+		else {
+			final int	decs = value / 10;
+			
+			if (decs != 0) {
+				sb.append(WORDS_EN_DECS[decs]).append(' ');
+				value %= 10;
+			}
+			if (value != 0) {
+				sb.append(WORDS_EN_UNITS[decs]).append(' ');
+			}
+		}
+		sb.append(units).append(' ');
+	}
+
+	private static String toWordsRu(final long value, final int options) {
+		if (value == 0) {
+			return WORDS_RU_ZERO;
+		}
+		else if (value < 0) {
+			if ((options | WORDS_NEGATIVE) != 0) {
+				return WORDS_RU_MINUS + ' '+ toWordsEn(-value, options);
+			}
+			else {
+				throw new IllegalArgumentException("Negative value ["+value+"] without WORDS_NEGATIVE option");
+			}
+		}
+		else {
+			final StringBuilder	sb = new StringBuilder();
+			final int[]			parts = splitLong(value);
+			final String[]		units;
+			
+			if ((options & (WORDS_MALE | WORDS_FEMALE)) == (WORDS_MALE | WORDS_FEMALE)) {
+				units = WORDS_RU_UNITS_N; 
+			}
+			else if ((options & WORDS_MALE) != 0) {
+				units = WORDS_RU_UNITS_M; 
+			}
+			else if ((options & WORDS_FEMALE) != 0) {
+				units = WORDS_RU_UNITS_F; 
+			}
+			else {
+				throw new IllegalArgumentException("Neither WORDS_MALE nor WORDS_FEMALE in the options");
+			}
+
+			for(int index = 0; index < parts.length; index++) {
+				if (parts[index] != 0) {
+					toWordsRu(sb, parts[index], WORDS_RU_DIMENSIONS_1[index], WORDS_RU_DIMENSIONS_234[index], WORDS_RU_DIMENSIONS_567890[index], units, options);
+				}
+			}
+			return sb.toString();
+		}
+	}
+
     
-    /**
+	private static void toWordsRu(final StringBuilder sb, int value, final String units1, final String units234, final String units567890, final String[] units, int options) {
+		final int	hundreds = value / 100;
+		
+		if (hundreds != 0) {
+			sb.append(WORDS_RU_HUNDREDS[hundreds]).append(' ');
+			value %= 100;
+		}
+		if (value > 10 && value < 20) {
+			sb.append(WORDS_RU_TEENS[value - 10]).append(' ');
+		}
+		else {
+			final int	decs = value / 10;
+			
+			if (decs != 0) {
+				sb.append(WORDS_RU_DECS[decs]).append(' ');
+				value %= 10;
+			}
+			if (value != 0) {
+				sb.append(units[decs]).append(' ');
+			}
+		}
+		if (value == 1) {
+			sb.append(units1).append(' ');
+		}
+		else if (value >= 2 && value <= 4) {
+			sb.append(units234).append(' ');
+		}
+		else {
+			sb.append(units567890).append(' ');
+		}
+	}
+
+	private static long fromWordsEn(final String[] values, final int options) {
+		if (values.length == 0) {
+			throw new IllegalArgumentException("Sequence doesn't contain any words");
+		}
+		else if (values.length == 1 && values[0].equals(WORDS_EN_ZERO)) {
+			return 0;
+		}
+		else {
+			final	int multiplucator;
+			long	totalSum = 0, temp = 0;
+			int		current = 0;
+			
+			if (values[current].equals(WORDS_EN_MINUS)) {
+				multiplucator = -1;
+				current++;
+			}
+			else {
+				multiplucator = 1;
+			}
+			for (;current < values.length; current++) {
+				final WordsKeeper	wk = WORDS_EN_SET.get(values[current]);
+				
+				if (wk == null) {
+					throw new IllegalArgumentException("Unknown word ["+values[current]+"] in the sequence"); 
+				}
+				else if (wk.isUnit) {
+					totalSum += wk.getValue() * temp;
+					temp = 0;
+				}
+				else {
+					temp += wk.getValue();
+				}
+			}
+			totalSum += temp;
+			return multiplucator * totalSum;
+		}
+	}
+
+	private static long fromWordsRu(final String[] values, final int options) {
+		if (values.length == 0) {
+			throw new IllegalArgumentException("Sequence doesn't contain any words");
+		}
+		else if (values.length == 1 && values[0].equals(WORDS_RU_ZERO)) {
+			return 0;
+		}
+		else {
+			final	int multiplucator;
+			long	totalSum = 0, temp = 0;
+			int		current = 0;
+			
+			if (values[current].equals(WORDS_RU_MINUS)) {
+				multiplucator = -1;
+				current++;
+			}
+			else {
+				multiplucator = 1;
+			}
+			for (;current < values.length; current++) {
+				final WordsKeeper	wk = WORDS_RU_SET.get(values[current]);
+				
+				if (wk == null) {
+					throw new IllegalArgumentException("Unknown word ["+values[current]+"] in the sequence"); 
+				}
+				else if (wk.isUnit) {
+					totalSum += wk.getValue() * temp;
+					temp = 0;
+				}
+				else {
+					temp += wk.getValue();
+				}
+			}
+			totalSum += temp;
+			return multiplucator * totalSum;
+		}
+	}
+
+    private static int[] splitLong(long value) {
+    	final int[]	parts = new int[7];
+    	
+    	for(int index = parts.length - 1; index >= 0 ; index--) {
+    		parts[index] = (int) (value % 1000);
+    		value /= 1000;
+    	}
+		return parts;
+	}
+    
+    private static String[] splitWords(final CharSequence seq, final int from, final int to) {
+    	final List<String>	result = new ArrayList<String>();
+    	final StringBuilder	sb = new StringBuilder();
+    	
+    	for(int index = from; index <= to; index++) {
+    		final char	value = seq.charAt(index);
+    		
+    		if (Character.isWhitespace(value)) {
+    			if (!sb.isEmpty()) {
+    				result.add(sb.toString());
+    				sb.setLength(0);
+    			}
+    		}
+    		else {
+    			sb.append(value);
+    		}
+    	}
+		if (!sb.isEmpty()) {
+			result.add(sb.toString());
+		}
+		return result.toArray(new String[result.size()]);
+    }
+
+
+	/**
      * 
      * format = (charSeq | item)*
      * item = '%' name ':' type (';'){0,1}
@@ -4031,6 +4302,35 @@ loop:		for(;;) {
 			final char[]	leftVal = left.get(), rightVal = right.get();
 			
 			return leftVal != null && rightVal != null && Arrays.equals(leftVal,rightVal);
+		}
+    }
+    
+    private static class WordsKeeper {
+    	private final String	word;
+    	private final boolean	isUnit;
+    	private final long		value;
+    	
+		private WordsKeeper(final String word, final boolean isUnit, final long value) {
+			this.word = word;
+			this.isUnit = isUnit;
+			this.value = value;
+		}
+
+		public String getWord() {
+			return word;
+		}
+
+		public boolean isUnit() {
+			return isUnit;
+		}
+
+		public long getValue() {
+			return value;
+		}
+
+		@Override
+		public String toString() {
+			return "WordsKeeper [word=" + word + ", isUnit=" + isUnit + ", value=" + value + "]";
 		}
     }
 }
