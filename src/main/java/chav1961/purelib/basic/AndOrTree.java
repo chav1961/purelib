@@ -386,10 +386,10 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	@Override
 	public int compareNames(final long id1, final long id2) {
 		if (id1 < 0) {
-			throw new IllegalArgumentException("'id' ["+id1+"] need be non-negtive");
+			throw new IllegalArgumentException("'id' ["+id1+"] must be non-negtive");
 		}
 		else if (id2 < 0) {
-			throw new IllegalArgumentException("'id' ["+id2+"] need be non-negtive");
+			throw new IllegalArgumentException("'id' ["+id2+"] must be non-negtive");
 		}
 		else if (id1 == id2) {
 			if (getRevert(id1) == null) {
@@ -1274,7 +1274,7 @@ seek:	while (root != null && from < to) {
 
 			        low = 0;	high = maxIndex - 1;
 			        while (low <= high) {	// Binary search
-			            if ((midVal = Character.toUpperCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
 			                low = mid + 1;
 			            }
 			            else if (midVal > symbol) {
@@ -1288,7 +1288,7 @@ seek:	while (root != null && from < to) {
 					symbol = Character.toLowerCase(source[from]);
 			        low = 0;	high = maxIndex - 1;
 			        while (low <= high) {	// Binary search
-			            if ((midVal = Character.toLowerCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
 			                low = mid + 1;
 			            }
 			            else if (midVal > symbol) {
@@ -1304,7 +1304,7 @@ seek:	while (root != null && from < to) {
 				case TYPE_AND 	:
 					temp = ((AndNode)root).chars;
 					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
-						if (Character.toUpperCase(temp[index]) != Character.toUpperCase(source[from]) && Character.toLowerCase(temp[index]) != Character.toLowerCase(source[from])) {
+						if (temp[index] != source[from] && Character.toUpperCase(temp[index]) != Character.toUpperCase(source[from]) && Character.toLowerCase(temp[index]) != Character.toLowerCase(source[from])) {
 							root = null;
 							break seek;
 						}
@@ -1357,7 +1357,7 @@ seek:	while (root != null && from < to) {
 
 			        low = 0;	high = maxIndex - 1;
 			        while (low <= high) {	// Binary search
-			            if ((midVal = Character.toUpperCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
 			                low = mid + 1;
 			            }
 			            else if (midVal > symbol) {
@@ -1371,7 +1371,7 @@ seek:	while (root != null && from < to) {
 					symbol = Character.toLowerCase(source.charAt(from));
 			        low = 0;	high = maxIndex - 1;
 			        while (low <= high) {	// Binary search
-			            if ((midVal = Character.toLowerCase(temp[mid = (low + high) >>> 1])) < symbol) {
+			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
 			                low = mid + 1;
 			            }
 			            else if (midVal > symbol) {
@@ -1387,7 +1387,9 @@ seek:	while (root != null && from < to) {
 				case TYPE_AND 	:
 					temp = ((AndNode)root).chars;
 					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
-						if (Character.toUpperCase(temp[index]) != Character.toUpperCase(source.charAt(from)) && Character.toLowerCase(temp[index]) != Character.toLowerCase(source.charAt(from))) {
+						final char currentChar = source.charAt(from);
+						
+						if (temp[index] != currentChar && Character.toUpperCase(temp[index]) != Character.toUpperCase(currentChar) && Character.toLowerCase(temp[index]) != Character.toLowerCase(currentChar)) {
 							root = null;
 							break seek;
 						}
@@ -1427,142 +1429,6 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
-	private static Node fetchNode(Node root, final char[] source, int from, final int to, final int[] forPosition) {
-		char	temp[], symbol, midVal;
-		int		index, maxIndex, low, high, mid;
-		
-seek:	while (root != null && from < to) {
-			switch (root.type) {
-				case TYPE_OR 	:
-					symbol = source[from];
-					temp = ((OrNode)root).chars;
-					maxIndex = ((OrNode)root).filled;
-
-			        low = 0;	high = maxIndex - 1;
-			        while (low <= high) {	// Binary search
-			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
-			                low = mid + 1;
-			            }
-			            else if (midVal > symbol) {
-			                high = mid - 1;
-			            }
-			            else {
-							root = ((OrNode)root).children[mid];
-							continue seek;
-			            }
-			        }
-					root = null;
-					break seek;
-				case TYPE_AND 	:
-					temp = ((AndNode)root).chars;
-					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
-						if (temp[index] != source[from]) {
-							root = null;
-							break seek;
-						}
-					}
-					if (index < maxIndex) {
-						break seek;
-					}
-					else {
-						root = ((AndNode)root).child;
-					}
-					break;
-				case TYPE_TERM	:
-					if (from == to) {
-						break seek;
-					}
-					else {
-						root = ((TermNode)root).child;
-					}
-					break;
-			}
-		}
-		forPosition[0] = from;
-		if (from == to) {
-			if (root instanceof TermNode) {
-				return root;
-			}
-			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
-				return ((AndNode)((OrNode)root).children[0]).child;
-			}
-			else {
-				return root;
-			}
-		}
-		else {
-			return root;
-		}
-	}
-	
-	private static Node fetchNode(Node root, final CharSequence source, int from, final int to, final int[] forPosition) {
-		char	temp[], symbol, midVal;
-		int		index, maxIndex, low, high, mid;
-		
-seek:	while (root != null && from < to) {
-			switch (root.type) {
-				case TYPE_OR 	:
-					symbol = source.charAt(from);
-					temp = ((OrNode)root).chars;
-					maxIndex = ((OrNode)root).filled;
-
-			        low = 0;	high = maxIndex - 1;
-			        while (low <= high) {	// Binary search
-			            if ((midVal = temp[mid = (low + high) >>> 1]) < symbol) {
-			                low = mid + 1;
-			            }
-			            else if (midVal > symbol) {
-			                high = mid - 1;
-			            }
-			            else {
-							root = ((OrNode)root).children[mid];
-							continue seek;
-			            }
-			        }
-					root = null;
-					break seek;
-				case TYPE_AND 	:
-					temp = ((AndNode)root).chars;
-					for (index = 0, maxIndex = temp.length; index < maxIndex && from < to; index++, from++) {
-						if (temp[index] != source.charAt(from)) {
-							root = null;
-							break seek;
-						}
-					}
-					if (index < maxIndex) {
-						break seek;
-					}
-					else {
-						root = ((AndNode)root).child;
-					}
-					break;
-				case TYPE_TERM	:
-					if (from == to) {
-						break seek;
-					}
-					else {
-						root = ((TermNode)root).child;
-					}
-					break;
-			}
-		}
-		forPosition[0] = from;
-		if (from == to) {
-			if (root instanceof TermNode) {
-				return root;
-			}
-			else if ((root instanceof OrNode) && ((OrNode)root).chars[0] == '\0') {
-				return ((AndNode)((OrNode)root).children[0]).child;
-			}
-			else {
-				return root;
-			}
-		}
-		else {
-			return root;
-		}
-	}
-	
 	protected void print(final Node root, final PrintWriter ps, final String prefix) {
 		if (root != null) {
 			ps.print(prefix);
