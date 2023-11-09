@@ -452,15 +452,6 @@ public class SimpleInitialContextFactory implements InitialContextFactory {
 
 		private List<String>	parts = new ArrayList<>();
 		
-		public SimpleNameImpl(final String name) {
-			if (Utils.checkEmptyOrNullString(name)) {
-				throw new IllegalArgumentException("Name can't be null or empty"); 
-			}
-			else {
-				this.parts = SimpleNameParserImpl.parseName(name);
-			}
-		}
-		
 		private SimpleNameImpl(final List<String> from) {
 			this.parts = from;
 		}

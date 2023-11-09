@@ -15,7 +15,7 @@ import java.util.stream.Stream.Builder;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 
 public class SequenceIterator<T> implements Iterator<T> {
@@ -28,12 +28,14 @@ public class SequenceIterator<T> implements Iterator<T> {
 			throw new NullPointerException("List of iterators can't be null");
 		}
 		else {
-			for (int index = 0; index < list.size(); index++) {
-				if (list.get(index) == null) {
-					throw new NullPointerException("The ["+index+"]-th element of the iterator list is null!");
-				}
+			final int	nullItem = Utils.checkArrayContent4Nulls(list);
+			
+			if (nullItem >= 0) {
+				throw new NullPointerException("The ["+nullItem+"]-th element of the iterator list is null!");
 			}
-			this.list = list.toArray(new Iterator[list.size()]); 
+			else {
+				this.list = list.toArray(new Iterator[list.size()]); 
+			}
 		}
 	}
 	
@@ -43,12 +45,14 @@ public class SequenceIterator<T> implements Iterator<T> {
 			throw new NullPointerException("List of iterators can't be null");
 		}
 		else {
-			for (int index = 0; index < list.length; index++) {
-				if (list[index] == null) {
-					throw new NullPointerException("The ["+index+"]-th element of the iterator list is null!");
-				}
+			final int	nullItem = Utils.checkArrayContent4Nulls(list);
+			
+			if (nullItem >= 0) {
+				throw new NullPointerException("The ["+nullItem+"]-th element of the iterator list is null!");
 			}
-			this.list = list; 
+			else {
+				this.list = list; 
+			}
 		}
 	}
 
@@ -64,12 +68,19 @@ public class SequenceIterator<T> implements Iterator<T> {
 			throw new NullPointerException("List of iterators can't be null");
 		}
 		else {
-			return new Iterable<T>() {
-				@Override
-				public Iterator<T> iterator() {
-					return new SequenceIterator<T>(list);
-				}
-			};
+			final int	nullItem = Utils.checkArrayContent4Nulls(list);
+			
+			if (nullItem >= 0) {
+				throw new NullPointerException("The ["+nullItem+"]-th element of the iterator list is null!");
+			}
+			else {
+				return new Iterable<T>() {
+					@Override
+					public Iterator<T> iterator() {
+						return new SequenceIterator<T>(list);
+					}
+				};
+			}
 		}
 	}
 	

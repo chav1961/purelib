@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.math;
 
 public class MathUtils {
 	public static int signum(final int signum) {
