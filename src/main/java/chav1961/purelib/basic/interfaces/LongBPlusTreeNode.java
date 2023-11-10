@@ -4,7 +4,8 @@ public interface LongBPlusTreeNode<K extends Comparable<? super K>,V> extends BP
 	long getIdForKey(K key);
 	long getIdForKeyGE(K key);
 	long getIdForKeyLE(K key);
+	long getCurrentId();
 	long getNextSiblingId();
 	long getPrevSiblingId();
-	void split(long left, long right);
+	LongBPlusTreeNode<K,V>[] split(long left, long right);
 }

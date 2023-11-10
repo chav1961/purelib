@@ -37,6 +37,7 @@ class ObjectBPlusTree <NodeId, K extends Comparable<? super K>, V> extends BPlus
 		}
 	}
 
+	@Override
 	public V get(final K key) throws BPlusTreeContentException, NullPointerException {
 		if (key == null) {
 			throw new NullPointerException("Key to get can't be null");
@@ -56,6 +57,7 @@ class ObjectBPlusTree <NodeId, K extends Comparable<? super K>, V> extends BPlus
 		}
 	}
 
+	@Override
 	public V[] get(final K keyFrom, final K keyTo, final boolean nearestFrom, final boolean nearestTo) throws BPlusTreeContentException, NullPointerException {
 		if (keyFrom == null) {
 			throw new NullPointerException("Key to get from can't be null");
@@ -100,6 +102,7 @@ class ObjectBPlusTree <NodeId, K extends Comparable<? super K>, V> extends BPlus
 		}
 	}
 	
+	@Override
 	public void insert(final K key, final V value) throws BPlusTreeContentException, NullPointerException {
 		if (key == null) {
 			throw new NullPointerException("Key to insert can't be null");
@@ -129,6 +132,13 @@ loop:		for (;;) {
 		}
 	}
 		
+	@Override
+	public void update(K key, V value) throws BPlusTreeContentException, NullPointerException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
 	public V delete(final K key) throws BPlusTreeContentException, NullPointerException {
 		if (key == null) {
 			throw new NullPointerException("Key to delete can't be null");
@@ -154,6 +164,10 @@ loop:		for (;;) {
 		
 	}
 
+	public boolean walk(final WalkerCallback<K,V> callback) throws BPlusTreeContentException, NullPointerException {
+		return false;
+	}
+	
 	public boolean walk(final K keyFrom, final K keyTo, final boolean nearestFrom, final boolean nearestTo, final WalkerCallback<K,V> callback) throws BPlusTreeContentException, NullPointerException {
 		if (keyFrom == null) {
 			throw new NullPointerException("Key to get from can't be null");
@@ -541,6 +555,12 @@ loop:		for (;;) {
 		}
 
 		@Override
+		public long getCurrentId() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+		
+		@Override
 		public long getPrevSiblingId() {
 			// TODO Auto-generated method stub
 			return -1;
@@ -576,9 +596,9 @@ loop:		for (;;) {
 		}
 
 		@Override
-		public void split(final long left, final long right) {
+		public LongBPlusTreeNode<K,V>[] split(final long left, final long right) {
 			// TODO Auto-generated method stub
-			
+			return null;
 		}
 		
 	}
