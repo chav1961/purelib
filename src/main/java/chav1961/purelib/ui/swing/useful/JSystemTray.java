@@ -287,7 +287,7 @@ public class JSystemTray extends AbstractLoggerFacade implements LocaleChangeLis
 	@Override
 	protected synchronized void toLogger(final Severity level, final String text, final Throwable throwable) {
 		switch (level) {
-			case info	:
+			case info	: case note		:
 				icon.displayMessage(getLocalizedString(applicationName), getLocalizedString(text), MessageType.INFO);
 				break;
 			case error	: case severe	:
