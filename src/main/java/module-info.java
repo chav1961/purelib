@@ -39,6 +39,7 @@ module chav1961.purelib {
 	exports chav1961.purelib.i18n.interfaces;
 	exports chav1961.purelib.json;
 	exports chav1961.purelib.json.interfaces;
+	exports chav1961.purelib.math;
 	exports chav1961.purelib.matrix;
 	exports chav1961.purelib.matrix.interfaces;
 	exports chav1961.purelib.model;
