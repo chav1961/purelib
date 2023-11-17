@@ -3,3 +3,4 @@ chav1961.purelib.net.root.RootHandlerProvider
 chav1961.purelib.net.self.SelfHandlerProvider
 chav1961.purelib.net.playback.PlaybackHandlerProvider
 chav1961.purelib.net.capture.CaptureHandlerProvider
+chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider

@@ -1,20 +1,22 @@
-package chav1961.purelib.net.self;
+package chav1961.purelib.net.namingrepo;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.util.Base64;
-import java.util.Hashtable;
+
+import javax.naming.CompositeName;
+import javax.naming.InitialContext;
+import javax.naming.Name;
+import javax.naming.NamingException;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.fsys.FileSystemFactory;
-import chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider;
 
 /**
  * <p>This class is  handler to support "self" schema URL. Format of self URL is:</p>
@@ -28,39 +30,35 @@ import chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider;
  * @see URIUtils#convert2selfURI(byte[])
  * @see URIUtils#convert2selfURI(char[], String)
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2
- * @last.update 0.0.4
+ * @since 0.0.7
  */
 public class Handler extends URLStreamHandler {
-	public static final String	PROTOCOL = "self";
+	public static final String	PROTOCOL = "namingrepo";
 	
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
-		return new SelfStreamHandler(){
-//			private URLConnection	conn;
-//			boolean					wasConnected = false;
-			
+		return new NamingRepoStreamHandler(){
 			public URLConnection openConnection(final URL url) throws IOException {
-				return /*conn =*/ super.openConnection(url);
+				return super.openConnection(url);
 			};
 		}.openConnection(url);
 	}
 
-	private static class SelfStreamHandler extends URLStreamHandler {
+	private static class NamingRepoStreamHandler extends URLStreamHandler {
 		private final ClassLoader	loader;
 		
 		/**
 		 * <p>Create class instance</p>
 		 */
-		public SelfStreamHandler() {
-			this(SelfStreamHandler.class.getClassLoader());
+		public NamingRepoStreamHandler() {
+			this(NamingRepoStreamHandler.class.getClassLoader());
 		}
 		
 		/**
 		 * <p>Create class instance</p>
 		 * @param loader loader to use in the {@link FileSystemFactory#createFileSystem(URI, ClassLoader)} call
 		 */
-		public SelfStreamHandler(final ClassLoader loader) {
+		public NamingRepoStreamHandler(final ClassLoader loader) {
 			if (loader == null) {
 				throw new NullPointerException("Class loader can't be null"); 
 			}
@@ -72,34 +70,25 @@ public class Handler extends URLStreamHandler {
 		@Override
 		protected URLConnection openConnection(final URL url) throws IOException {
 			if (url.getProtocol().equalsIgnoreCase(PROTOCOL)) {
-				try{final URI	uri = url.toURI();				
-					
-					return new SelfURLConnection(url,loader,uri.getFragment());
-				} catch (URISyntaxException e) {
-					throw new IOException("URL ["+url+"] - syntax error: "+e.getLocalizedMessage());
-				}
+				return new NamingRepoURLConnection(url,loader);
 			}
 			else {
 				throw new IOException("URL ["+url+"]: scheme ["+url.getProtocol()+"] is not supported by this stream handler, use ["+PROTOCOL+"] only!");
 			}
 		}
 	
-		private static class SelfURLConnection extends URLConnection {
-			private final String		content;
-			private final Hashtable<String,String[]>	query;
-			private boolean				closed = false;
+		private static class NamingRepoURLConnection extends URLConnection {
+			private final InitialContext	initialContext;
+			private final Name				name;
+			private boolean					closed = false;
 			
-			protected SelfURLConnection(final URL url, final ClassLoader loader, final String content) throws IOException {
+			protected NamingRepoURLConnection(final URL url, final ClassLoader loader) throws IOException {
 				super(url);
-				final int 	queryIndex = content.indexOf('?'); 
-				
-				if (queryIndex >= 0) {
-					this.content = content.substring(0,queryIndex);
-					this.query = URIUtils.parseQuery(content.substring(queryIndex+1));
-				}
-				else {
-					this.content = content;
-					this.query = new Hashtable<>();
+				try {
+					initialContext = new InitialContext();
+					name = new CompositeName("protocol/"+url.getPath());
+				} catch (NamingException e) {
+					throw new IOException(e);
 				}
 			}
 	
@@ -107,9 +96,6 @@ public class Handler extends URLStreamHandler {
 			public void connect() throws IOException {
 				if (!getDoInput() && !getDoOutput()) {
 					throw new IOException("Neither setDoInput(), nor setDoOutput() was required on the connection. Call one of these method before");
-				}
-				else if (getDoOutput()) {
-					throw new IOException("This URL is a read-only and can't be modified");
 				}
 				else {
 					closed = false;
@@ -122,24 +108,47 @@ public class Handler extends URLStreamHandler {
 					throw new IllegalStateException("This method can be called exactly once. Reconnect to data source!"); 
 				}
 				else {
-					closed = true;
-					return new ByteArrayInputStream(Base64.getDecoder().decode(content)); 
+					try {
+						final Object	value = initialContext.lookup(name);
+						
+						if (value instanceof byte[]) {
+							return new ByteArrayInputStream((byte[])value); 
+						}
+						else {
+							return new ByteArrayInputStream(new byte[0]);
+						}
+					} catch (NamingException e) {
+						throw new IOException(e);
+					} finally {
+						closed = true;
+					}
 				}
 			}
 			
 			@Override
 			public OutputStream getOutputStream() throws IOException {
-				throw new IOException("This URL is a read-only and can't be modified");
+				if (closed) {
+					throw new IllegalStateException("This method can be called exactly once. Reconnect to data source!"); 
+				}
+				else {
+					closed = true;
+					return new ByteArrayOutputStream() {
+						@Override
+						public void close() throws IOException {
+							try{
+								super.close();
+								initialContext.bind(name, this.toByteArray());
+							} catch (NamingException e) {
+								throw new IOException(e);
+							}
+						}
+					};
+				}
 	        }
 			
 			@Override
 			public String getContentEncoding() {
-				if (query.containsKey("encoding")) {
-					return query.get("encoding")[0];
-				}
-				else {
-					return super.getContentEncoding();
-				}
+				return super.getContentEncoding();
 			}
 		}
 	}
