@@ -2,13 +2,11 @@ package chav1961.purelib.net;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.spi.URLStreamHandlerProvider;
@@ -22,6 +20,7 @@ import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.net.capture.CaptureHandlerProvider;
 import chav1961.purelib.net.fsys.FSysHandlerProvider;
+import chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider;
 import chav1961.purelib.net.playback.PlaybackHandlerProvider;
 import chav1961.purelib.net.root.RootHandlerProvider;
 import chav1961.purelib.net.self.SelfHandlerProvider;
@@ -36,12 +35,13 @@ public class URIsTest {
 		for (URLStreamHandlerProvider item : ServiceLoader.load(URLStreamHandlerProvider.class)) {
 			providers.add((Class<URLStreamHandlerProvider>)item.getClass());
 		}
-		Assert.assertEquals(5,providers.size());
+		Assert.assertEquals(6,providers.size());
 		Assert.assertTrue(providers.contains(FSysHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(RootHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(SelfHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(PlaybackHandlerProvider.class));		
 		Assert.assertTrue(providers.contains(CaptureHandlerProvider.class));		
+		Assert.assertTrue(providers.contains(NamingRepoHandlerProvider.class));		
 	}
 
 //	@Test

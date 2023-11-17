@@ -80,13 +80,12 @@ public class Handler extends URLStreamHandler {
 		private static class NamingRepoURLConnection extends URLConnection {
 			private final InitialContext	initialContext;
 			private final Name				name;
-			private boolean					closed = false;
 			
 			protected NamingRepoURLConnection(final URL url, final ClassLoader loader) throws IOException {
 				super(url);
 				try {
 					initialContext = new InitialContext();
-					name = new CompositeName("protocol/"+url.getPath());
+					name = new CompositeName("protocol"+url.getPath());
 				} catch (NamingException e) {
 					throw new IOException(e);
 				}
@@ -97,53 +96,37 @@ public class Handler extends URLStreamHandler {
 				if (!getDoInput() && !getDoOutput()) {
 					throw new IOException("Neither setDoInput(), nor setDoOutput() was required on the connection. Call one of these method before");
 				}
-				else {
-					closed = false;
-				}
 			}
 			
 			@Override
 			public InputStream getInputStream() throws IOException {
-				if (closed) {
-					throw new IllegalStateException("This method can be called exactly once. Reconnect to data source!"); 
-				}
-				else {
-					try {
-						final Object	value = initialContext.lookup(name);
-						
-						if (value instanceof byte[]) {
-							return new ByteArrayInputStream((byte[])value); 
-						}
-						else {
-							return new ByteArrayInputStream(new byte[0]);
-						}
-					} catch (NamingException e) {
-						throw new IOException(e);
-					} finally {
-						closed = true;
+				try {
+					final Object	value = initialContext.lookup(name);
+					
+					if (value instanceof byte[]) {
+						return new ByteArrayInputStream((byte[])value); 
 					}
+					else {
+						return new ByteArrayInputStream(new byte[0]);
+					}
+				} catch (NamingException e) {
+					throw new IOException(e);
 				}
 			}
 			
 			@Override
 			public OutputStream getOutputStream() throws IOException {
-				if (closed) {
-					throw new IllegalStateException("This method can be called exactly once. Reconnect to data source!"); 
-				}
-				else {
-					closed = true;
-					return new ByteArrayOutputStream() {
-						@Override
-						public void close() throws IOException {
-							try{
-								super.close();
-								initialContext.bind(name, this.toByteArray());
-							} catch (NamingException e) {
-								throw new IOException(e);
-							}
+				return new ByteArrayOutputStream() {
+					@Override
+					public void close() throws IOException {
+						try{
+							super.close();
+							initialContext.bind(name, this.toByteArray());
+						} catch (NamingException e) {
+							throw new IOException(e);
 						}
-					};
-				}
+					}
+				};
 	        }
 			
 			@Override
