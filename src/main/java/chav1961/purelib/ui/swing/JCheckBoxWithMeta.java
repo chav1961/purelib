@@ -89,7 +89,15 @@ public class JCheckBoxWithMeta extends JCheckBox implements NodeMetadataOwner, L
 					SwingUtils.getNearestLogger(JCheckBoxWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			addActionListener((e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
+			addActionListener((e)->{
+				try{
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
+					if (getInputVerifier().verify(JCheckBoxWithMeta.this)) {
+						monitor.process(MonitorEvent.Saving,metadata,JCheckBoxWithMeta.this);
+					}
+				} catch (ContentException exc) {
+				}
+			});
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {

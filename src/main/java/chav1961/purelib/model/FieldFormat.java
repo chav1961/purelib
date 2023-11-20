@@ -323,7 +323,7 @@ public class FieldFormat {
 			this.length = len;
 			this.height = height;
 			this.frac = frac;
-			this.contentType = defineContentType(clazz,mask,wizardType);
+			this.contentType = defineContentType(clazz, mask, wizardType);
 			this.mask = mask;
 			this.wizardType = wizardType;
 		}

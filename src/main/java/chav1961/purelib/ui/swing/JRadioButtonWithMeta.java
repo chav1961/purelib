@@ -89,7 +89,15 @@ public class JRadioButtonWithMeta extends JRadioButton implements NodeMetadataOw
 					SwingUtils.getNearestLogger(JRadioButtonWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
-			addActionListener((e)->getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true));
+			addActionListener((e)->{
+				try{
+					getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
+					if (getInputVerifier().verify(JRadioButtonWithMeta.this)) {
+						monitor.process(MonitorEvent.Saving,metadata,JRadioButtonWithMeta.this);
+					}
+				} catch (ContentException exc) {
+				}
+			});
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
