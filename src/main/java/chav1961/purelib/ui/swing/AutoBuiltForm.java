@@ -66,6 +66,7 @@ import chav1961.purelib.ui.FormMonitor;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
+import chav1961.purelib.ui.interfaces.UIFormManager;
 import chav1961.purelib.ui.interfaces.UIItemState;
 import chav1961.purelib.ui.interfaces.UIItemState.AvailableAndVisible;
 import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
@@ -406,8 +407,8 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 							firstFocusedComponent = fieldComponent;
 							fieldComponent.requestFocusInWindow();
 						}
-						if ((fieldComponent instanceof JTextComponent) && format.hasLocalEditor()) {
-							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])formMgr.getForEditorContent(instance, null, metadata.getName(), key, size));
+						if ((fieldComponent instanceof JTextComponent) && format.hasLocalEditor() && (formMgr instanceof UIFormManager)) {
+							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])((UIFormManager)formMgr).getForEditorContent(instance, null, metadata.getName(), key, size));
 						}
 						trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",metadata.getUIPath(),metadata.getClass().getCanonicalName());
 						labelIds.add(metadata.getLabelId());
@@ -431,7 +432,8 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 									((ActionListener)l).actionPerformed(e);
 								}
 							});
-							try{process(MonitorEvent.Action, metadata, button, button);
+							try{
+								process(MonitorEvent.Action, metadata, button, button);
 							} catch (ContentException exc) {
 								logger.message(Severity.error,exc,"Button [%1$s]: processing error %2$s",metadata.getApplicationPath(),exc.getLocalizedMessage());
 							}
@@ -637,11 +639,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 			default:
 				break;
 		}
-		try {
-			return monitor.process(event, metadata, component, parameters);
-		} catch (NullPointerException exc) {
-			return monitor.process(event, metadata, component, parameters);
-		}
+		return monitor.process(event, metadata, component, parameters);
 	}
 	
 	/**
@@ -719,9 +717,18 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 			}
 		}
 	}
-	
+
 	private void processComponentState(final JComponent component, final ContentNodeMetadata metadata) {
-		switch (itemState.getItemState(metadata)) {
+		if (instance instanceof UIItemState) {
+			processComponentStateInternal((UIItemState)instance, component, metadata);
+		}
+		else {
+			processComponentStateInternal(itemState, component, metadata);
+		}
+	}
+	
+	private void processComponentStateInternal(final UIItemState state, final JComponent component, final ContentNodeMetadata metadata) {
+		switch (state.getItemState(metadata)) {
 			case DEFAULT		:
 				break;
 			case AVAILABLE		:
@@ -765,7 +772,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 			default : throw new UnsupportedOperationException("Item state ["+itemState.getItemState(metadata)+"] is not supported yet"); 
 		}
 	}
-	
+
 	private void fillLocalizedStrings(final Locale oldLocale, final Locale newLocale) {
 		mdi.walkDown((mode,applicationPath,uiPath,node)->{
 			if (mode == NodeEnterMode.ENTER) {
