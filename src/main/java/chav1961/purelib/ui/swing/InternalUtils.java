@@ -353,7 +353,7 @@ class InternalUtils {
 		return Utils.nvl(JColorChooser.showDialog(owner,PureLibSettings.PURELIB_LOCALIZER.getValue(CHOOSE_COLOR_TITLE),initialColor),initialColor);
 	}
 	
-	static File chooseFile(final Component owner, final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
+	static File chooseFile(final Component owner, final Localizer localizer, final File initialFile, final int options) throws HeadlessException, LocalizationException {
 		final JFileChooser	chooser = new JFileChooser();
 		final File			currentPath = initialFile;
 		
@@ -366,18 +366,39 @@ class InternalUtils {
 				chooser.setCurrentDirectory(currentPath);
 			}
 		}
-		if (chooser.showSaveDialog(owner) == JFileChooser.APPROVE_OPTION) {
-			final File	sel = chooser.getSelectedFile();  
-			
-			return sel != null ? sel.getAbsoluteFile() : null;
+		if ((options | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE) != 0 && (options | JFileSelectionDialog.OPTIONS_CAN_SELECT_DIR) != 0) {
+			chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+		}
+		else if ((options | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE) != 0) {
+			chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		}
+		else if ((options | JFileSelectionDialog.OPTIONS_CAN_SELECT_DIR) != 0) {
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		}
+		if ((options | JFileSelectionDialog.OPTIONS_FOR_SAVE) != 0) {
+			if (chooser.showSaveDialog(owner) == JFileChooser.APPROVE_OPTION) {
+				final File	sel = chooser.getSelectedFile();  
+				
+				return sel != null ? sel.getAbsoluteFile() : null;
+			}
+			else {
+				return null;
+			}
 		}
 		else {
-			return null;
+			if (chooser.showOpenDialog(owner) == JFileChooser.APPROVE_OPTION) {
+				final File	sel = chooser.getSelectedFile();  
+				
+				return sel != null ? sel.getAbsoluteFile() : null;
+			}
+			else {
+				return null;
+			}
 		}
 	}
 	
-	static FileSystemInterface chooseFileSystem(final Component owner, final Localizer localizer, final FileSystemInterface initialFS) throws HeadlessException, LocalizationException {
-		try{for(String item : JFileSelectionDialog.select((Dialog)null, localizer, initialFS, JFileSelectionDialog.OPTIONS_FOR_OPEN | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE)) {
+	static FileSystemInterface chooseFileSystem(final Component owner, final Localizer localizer, final FileSystemInterface initialFS, final int options) throws HeadlessException, LocalizationException {
+		try{for(String item : JFileSelectionDialog.select((Dialog)null, localizer, initialFS, options)) {
 				return initialFS.open(item);
 			}
 		} catch (IOException exc) {

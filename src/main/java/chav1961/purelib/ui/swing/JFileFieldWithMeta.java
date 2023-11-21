@@ -8,6 +8,7 @@ import java.awt.event.FocusListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -19,7 +20,6 @@ import javax.swing.JTextField;
 import javax.swing.TransferHandler;
 
 import chav1961.purelib.basic.ColorUtils;
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -46,6 +46,8 @@ import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 import chav1961.purelib.ui.swing.useful.ComponentKeepedBorder;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog;
+import chav1961.purelib.ui.swing.useful.JFileSelectionDialog.FilterCallback;
 
 public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = 8167088888478756141L;
@@ -53,11 +55,12 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	public static final String 			CHOOSER_NAME = "chooser";
 	
 	private static final Class<?>[]		VALID_CLASSES = {File.class, FileSystemInterface.class, FileKeeper.class};
-	
+
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
 	private final JButton				callSelect = new JButton(InternalConstants.ICON_FOLDER);
 	private final Class<?>				contentClass;
+	private final FileWizardOptions			options;
 	private Object						currentValue, newValue;
 	private boolean						invalid = false;	
 	
@@ -77,6 +80,8 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
+			
+			this.options = FileWizardOptions.of(format.getWizardType() != null ? format.getWizardType() : "");
 
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
@@ -364,12 +369,13 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 
 	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
-		return InternalUtils.chooseFile(this, localizer, initialFile);
+		return InternalUtils.chooseFile(this, localizer, initialFile, options.options);
 	}
 
 	protected FileSystemInterface chooseFileSystem(final Localizer localizer, final FileSystemInterface initialFile) throws HeadlessException, LocalizationException {
-		return InternalUtils.chooseFileSystem(this, localizer, initialFile);
+		return InternalUtils.chooseFileSystem(this, localizer, initialFile, options.options);
 	}
+	
 	
 	private void fillLocalizedStrings() throws LocalizationException {
 		final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()); 
@@ -399,7 +405,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			else {
-				final FileSystemInterface	result = InternalUtils.chooseFileSystem(this, localizer, (FileSystemInterface)currentValue);
+				final FileSystemInterface	result = InternalUtils.chooseFileSystem(this, localizer, (FileSystemInterface)currentValue, options.options);
 				
 				if (result != null) {
 					assignValueToComponent(result);
@@ -420,7 +426,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			SwingUtils.getNearestLogger(JFileFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
 		}					
 	}
-	
+
 	private static class FileTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 608229074222584792L;
 

@@ -57,6 +57,7 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 	private final ContentNodeMetadata	metadata;
 	private final Localizer				localizer;
 	private final JButton				callMenu = new JButton(InternalConstants.ICON_FOLDER);
+	private final FileWizardOptions		options;
 	private MimeBasedContent			currentValue, newValue;
 	private boolean						invalid = false;	
 	
@@ -80,6 +81,7 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 
+			this.options = FileWizardOptions.of(format.getWizardType() != null ? format.getWizardType() : "");
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
 				private Border	oldBorder;
@@ -324,7 +326,7 @@ public class JMimeContentFieldWithMeta extends JTextField implements NodeMetadat
 	}
 	
 	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
-		return InternalUtils.chooseFile(this, localizer, initialFile);
+		return InternalUtils.chooseFile(this, localizer, initialFile, options.options);
 	}
 
 	private void fillLocalizedStrings() throws LocalizationException {

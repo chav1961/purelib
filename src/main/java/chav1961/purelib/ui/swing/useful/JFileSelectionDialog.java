@@ -83,10 +83,25 @@ import chav1961.purelib.ui.swing.interfaces.AcceptAndCancelCallback;
  */
 public class JFileSelectionDialog extends JPanel implements LocaleChangeListener, LocalizerOwner, LoggerFacadeOwner {
 	private static final long 	serialVersionUID = 4285629141818684880L;
+
+	private static final String	ACCEPT_ALL_FILES = "JFileSelectionDialog.filter.acceptAll";
+	
+	public static final int		OPTIONS_CAN_SELECT_DIR = 1 << 0; 
+	public static final int		OPTIONS_CAN_SELECT_FILE = 1 << 1; 
+	public static final int		OPTIONS_CAN_MULTIPLE_SELECT = 1 << 2; 
+	public static final int		OPTIONS_FILE_MUST_EXISTS = 1 << 3; 
+	public static final int		OPTIONS_ALLOW_MKDIR = 1 << 4; 
+	public static final int		OPTIONS_ALLOW_DELETE = 1 << 5; 
+	public static final int		OPTIONS_FOR_SAVE  = 1 << 6; 
+	public static final int		OPTIONS_FOR_OPEN  = 1 << 7; 
+	public static final int		OPTIONS_CONFIRM_REPLACEMENT = 1 << 8; 
+	public static final int		OPTIONS_NOCHECK_FILTER = 1 << 9; 
+	public static final int		OPTIONS_APPEND_EXTENSION = 1 << 10; 
+	public static final FilterCallback	ALL_FILES = FilterCallback.of(ACCEPT_ALL_FILES, "*");
+	
 	private static final int	ICON_BORDER_WIDTH = 2;
 	private static final int	MIN_WIDTH = 400;
 	private static final int	MIN_HEIGHT = 270;
-	private static final String	ACCEPT_ALL_FILES = "JFileSelectionDialog.filter.acceptAll";
 	private static final String	ACCEPT_OPEN = "JFileSelectionDialog.button.open";
 	private static final String	ACCEPT_OPEN_TT = "JFileSelectionDialog.button.open.tt";
 	private static final String	ACCEPT_SAVE = "JFileSelectionDialog.button.save";
@@ -117,20 +132,8 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	private static final String	NOT_ACCEPTED_BY_FILTER_MESSAGE = "JFileSelectionDialog.ask.notaccepted.byFilter.message";
 	private static final String	FILE_NAME_NOT_FILLED = "JFileSelectionDialog.error.filename.not.filled";
 	
-	public static final int		OPTIONS_CAN_SELECT_DIR = 1 << 0; 
-	public static final int		OPTIONS_CAN_SELECT_FILE = 1 << 1; 
-	public static final int		OPTIONS_CAN_MULTIPLE_SELECT = 1 << 2; 
-	public static final int		OPTIONS_FILE_MUST_EXISTS = 1 << 3; 
-	public static final int		OPTIONS_ALLOW_MKDIR = 1 << 4; 
-	public static final int		OPTIONS_ALLOW_DELETE = 1 << 5; 
-	public static final int		OPTIONS_FOR_SAVE  = 1 << 6; 
-	public static final int		OPTIONS_FOR_OPEN  = 1 << 7; 
-	public static final int		OPTIONS_CONFIRM_REPLACEMENT = 1 << 8; 
-	public static final int		OPTIONS_NOCHECK_FILTER = 1 << 9; 
-	public static final int		OPTIONS_APPEND_EXTENSION = 1 << 10; 
 
 	private static final Comparator<String[]>	ORDER = (s1,s2)->s1[1].compareToIgnoreCase(s2[1]);
-	private static final FilterCallback			ALL_CALLBACK = FilterCallback.of(ACCEPT_ALL_FILES, "*");
 	
 	private static final Iterator<String>		NULL_ITERATOR = new Iterator<String>() {
 													@Override public boolean hasNext() {return false;}
@@ -566,7 +569,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 			this.canSelectFile = (options & OPTIONS_CAN_SELECT_FILE) != 0;
 
 			if (filters.length == 0) {
-				filter.addItem(ALL_CALLBACK);
+				filter.addItem(ALL_FILES);
 			}
 			else {
 				for (FilterCallback item : filters) {

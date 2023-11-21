@@ -76,6 +76,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final Localizer 			localizer;
 	private final JButton				callSelect = new JButton("...");
 	private final JPopupMenu			popup;
+	private final FileWizardOptions		options;
 	private File						lastFile = new File("./");
 	private volatile ImageKeeperImpl	currentValue = null, newValue = null;
 	private volatile Image				grayScaleValue = null;
@@ -101,6 +102,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 			
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
+
+			this.options = FileWizardOptions.of(format.getWizardType() != null ? format.getWizardType() : "");
 			this.popup = SwingUtils.toJComponent(InternalConstants.MDI.byUIPath(URI.create("ui:/model/navigation.top.JImageContainerWithMeta.menu")),JPopupMenu.class);
 			SwingUtils.assignActionListeners(this.popup,this);
 
@@ -437,7 +440,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	}
 	
 	private File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
-		return InternalUtils.chooseFile(this, localizer, initialFile);
+		return InternalUtils.chooseFile(this, localizer, initialFile, options.options);
 	}
 	
 	@OnAction("action:/menu.copy")
