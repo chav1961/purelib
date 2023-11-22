@@ -54,7 +54,7 @@ public class JDatabaseTableWithMetaTest {
 			final ResultSet		rs = stmt.executeQuery("select * from public.\"JDatabaseTableWithMetaTest_x\"")) {
 			final SwingUnitTest ut = new SwingUnitTest(f);
 			final ContentMetadataInterface	mdi = ContentModelFactory.forDBContentDescription(conn.getMetaData(), null, "public", "JDatabaseTableWithMetaTest_x");
-			final JDataBaseTableWithMeta 	t = new JDataBaseTableWithMeta(mdi.getRoot(), PureLibSettings.PURELIB_LOCALIZER, true, true);
+			final JDataBaseTableWithMeta<?,?> 	t = new JDataBaseTableWithMeta<>(mdi.getRoot(), PureLibSettings.PURELIB_LOCALIZER, true, true);
 			
 			f.getContentPane().add(new JScrollPane(t));
 			SwingUtils.centerMainWindow(f);

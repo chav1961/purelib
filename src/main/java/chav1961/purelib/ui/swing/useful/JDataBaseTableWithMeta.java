@@ -62,7 +62,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		else {
 			this.meta = meta;
 			this.localizer = localizer;
-			this.model = (InnerTableModel<K,Inst>)getSourceModel();
+			this.model = (InnerTableModel<K, Inst>) getModel();
 			this.enableManipulations = enableManipulations;
 
 			SwingUtils.assignActionKey(this, SwingUtils.KS_INSERT, (e)->manipulate(getSelectedRow(), SwingUtils.ACTION_INSERT), SwingUtils.ACTION_INSERT);

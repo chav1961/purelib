@@ -18,19 +18,18 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.ui.swing.SwingUtils;
 
@@ -40,26 +39,26 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * left of these is located at row header view in the scroll pane.</p>   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class JFreezableTable extends JTable {
 	private static final long 			serialVersionUID = 5593084316211899679L;
 
 	protected final TableModelListener	listener = (e)->processTableChange(e);
 	
-	private volatile TableModel			model = null;
-	private volatile boolean			leftBarExists = false;
-	private volatile boolean			transferFocus = true;
-	private volatile JTable				leftBar = null;
+	private volatile boolean			transferFocusInside = false;
 	
+	private final JTable				leftBar;
+	private final boolean				leftBarExists;
 	private final String[]				columns2Freeze;
+	private final boolean[]				reduceFocusCalls = new boolean[2];
 	private final ListSelectionListener	rightLSL = (e) -> {
 											for(int index : getSelectionModel().getSelectedIndices()) {
-												leftBar.getSelectionModel().setSelectionInterval(index,index);
+												getLeftBar().getSelectionModel().setSelectionInterval(index,index);
 											}
 										};
 	private final ListSelectionListener	leftLSL = (e) -> {
-												for(int index : leftBar.getSelectionModel().getSelectedIndices()) {
+												for(int index : getLeftBar().getSelectionModel().getSelectedIndices()) {
 													getSelectionModel().setSelectionInterval(index,index);
 												}
 										};
@@ -69,10 +68,12 @@ public class JFreezableTable extends JTable {
 											
 											@Override
 											public void keyPressed(KeyEvent e) {
-												if (e.getKeyCode() == KeyEvent.VK_RIGHT && leftBar.getColumnModel().getSelectedColumns()[0] == leftBar.getColumnModel().getColumnCount()-1) {
-													getColumnModel().getSelectionModel().setSelectionInterval(0,0);
-													transferFocus = false;
-													requestFocusInWindow();
+												if (leftBarExists()) {
+													if (e.getKeyCode() == KeyEvent.VK_RIGHT && getLeftBar().getColumnModel().getSelectedColumns()[0] == getLeftBar().getColumnModel().getColumnCount()-1) {
+														transferFocusInside = true;
+														SwingUtilities.invokeLater(()->requestFocusInWindow());
+														getColumnModel().getSelectionModel().setSelectionInterval(0,0);
+													}
 												}
 											}
 										};
@@ -82,10 +83,12 @@ public class JFreezableTable extends JTable {
 											
 											@Override
 											public void keyPressed(KeyEvent e) {
-												if (e.getKeyCode() == KeyEvent.VK_LEFT && getColumnModel().getSelectedColumnCount() > 0 && getColumnModel().getSelectedColumns()[0] == 0) {
-													leftBar.getColumnModel().getSelectionModel().setSelectionInterval(leftBar.getColumnModel().getColumnCount()-1,leftBar.getColumnModel().getColumnCount()-1);
-													transferFocus = false;
-													leftBar.requestFocusInWindow();
+												if (leftBarExists()) {
+													if (e.getKeyCode() == KeyEvent.VK_LEFT && getColumnModel().getSelectedColumnCount() > 0 && getColumnModel().getSelectedColumns()[0] == 0) {
+														transferFocusInside = true;
+														SwingUtilities.invokeLater(()->getLeftBar().requestFocusInWindow());
+														getLeftBar().getColumnModel().getSelectionModel().setSelectionInterval(getLeftBar().getColumnModel().getColumnCount()-1, getLeftBar().getColumnModel().getColumnCount()-1);
+													}
 												}
 											}
 										};
@@ -106,7 +109,6 @@ public class JFreezableTable extends JTable {
 		}
 		else {
 			this.columns2Freeze = columns2freeze;
-			
 			final StringBuilder	sb = new StringBuilder();
 			
 			if (model instanceof NodeMetadataOwner) {
@@ -120,8 +122,17 @@ public class JFreezableTable extends JTable {
 				throw new IllegalArgumentException("Freezed coulmns ["+sb.substring(1)+"] are not known in the table model");
 			}
 			else {
-				prepareRenderers(this, model);
+				if (columns2freeze.length > 0) {
+					this.leftBar = createLeftBar();
+					this.leftBarExists = true;					
+				}
+				else {
+					this.leftBar = null;
+					this.leftBarExists = false;					
+				}
 				setModel(model);
+				
+				prepareRenderers(this, getModel());
 				setCellSelectionEnabled(false);
 				setRowSelectionAllowed(true);
 				setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -133,51 +144,82 @@ public class JFreezableTable extends JTable {
 							parent = parent.getParent();
 						}
 						
-						if ((parent instanceof JScrollPane) && columns2freeze.length > 0) {
-							createLeftBar((JScrollPane)parent);
-						}
-						else {
-							removeLeftBar();
+						if (leftBarExists()) {
+							if (parent instanceof JScrollPane) {
+								addLeftBar((JScrollPane)parent);
+							}
+							else {
+								removeLeftBar((JScrollPane)parent);
+							}
 						}
 					}
 				});
 				addFocusListener(new FocusListener() {
-					@Override public void focusLost(FocusEvent e) {processFocus(e,false,true);}
-					@Override public void focusGained(FocusEvent e) {processFocus(e,true,true);}
+					@Override 
+					public void focusLost(final FocusEvent e) {
+						processFocus(e, false, true);
+					}
+					
+					@Override 
+					public void focusGained(final FocusEvent e) {
+						processFocus(e, true, true);
+					}
 				});
 			}
 		}
 	}
 
-	@Override
-	public void setModel(final TableModel dataModel) {
-		if (this.model instanceof NodeMetadataOwner) {
-			this.model.removeTableModelListener(listener);
-		}
-		this.model = dataModel;
-		if (model instanceof NodeMetadataOwner) {
-			final ContentNodeMetadata[] children = extractChildren((NodeMetadataOwner)model);
-			
-			dataModel.addTableModelListener(listener);
-			super.setModel(new RightTableModel(dataModel, children, columns2Freeze));
-			if (leftBarExists()) {
-				leftBar.setModel(new LeftTableModel(dataModel, children, columns2Freeze));
-			}
-		}
-		else {
-			super.setModel(dataModel);
-		}
-	}
-	
 	/**
-	 * <p>Get source table model passed into {@linkplain #setModel(TableModel)} method</p>
-	 * @return source table model. Can't be null
+	 * <p>Get source model </p>
+	 * @return source model
 	 * @since 0.0.6
 	 */
 	public TableModel getSourceModel() {
-		return ((RightTableModel)getModel()).nested;
+		final TableModel	model = getModel();
+		
+		return model instanceof RightTableModelWrapper ? ((RightTableModelWrapper)model).nested : model;
+	}
+	
+	@Override
+	public void setModel(final TableModel dataModel) {
+		if (columns2Freeze == null) {
+			super.setModel(dataModel);
+		}
+		else {
+			final LeftTableModelWrapper		lw = new LeftTableModelWrapper(dataModel, columns2Freeze.length); 
+			final RightTableModelWrapper	rw = new RightTableModelWrapper(dataModel, columns2Freeze.length); 
+			
+			if (leftBarExists()) {
+				getLeftBar().setModel(lw);
+				prepareRenderers(getLeftBar(), lw);
+			}
+			super.setModel(rw);
+		}
 	}
 
+	@Override
+	public void setDefaultRenderer(final Class<?> columnClass, final TableCellRenderer renderer) {
+		super.setDefaultRenderer(columnClass, renderer);
+		
+		if (leftBarExists()) {
+			getLeftBar().setDefaultRenderer(columnClass, renderer);
+		}
+	}
+	
+	@Override
+	public void setDefaultEditor(final Class<?> columnClass, final TableCellEditor editor) {
+		super.setDefaultEditor(columnClass, editor);
+		
+		if (leftBarExists()) {
+			getLeftBar().setDefaultEditor(columnClass, editor);
+		}
+	}
+
+	protected RightTableModelWrapper getModelWrapper() {
+		
+		return (RightTableModelWrapper)super.getModel();
+	}
+	
 	protected JTable getLeftBar() {
 		return leftBar;
 	}
@@ -186,73 +228,84 @@ public class JFreezableTable extends JTable {
 		return leftBarExists;
 	}
 
-	protected void createLeftBar(final JScrollPane scroll) {
-		final ContentNodeMetadata[] children = extractChildren((NodeMetadataOwner)model);
-		final TableModel			leftModel = new LeftTableModel(model, children, columns2Freeze);
+	protected JTable createLeftBar() {
+		final JTable	result = new JTable();
 		
-		leftBar = new JTable(leftModel);
-		
-		for (KeyStroke item : getInputMap().keys()) {
-			leftBar.getInputMap().put(item, getInputMap().get(item));
+		if (getInputMap().keys() != null) {
+			for (KeyStroke item : getInputMap().keys()) {
+				result.getInputMap().put(item, getInputMap().get(item));
+			}
 		}
-		for (Object item : getActionMap().keys()) {
-			leftBar.getActionMap().put(item, getActionMap().get(item));
+		if (getActionMap().keys() != null) {
+			for (Object item : getActionMap().keys()) {
+				result.getActionMap().put(item, getActionMap().get(item));
+			}
 		}
-		prepareRenderers(leftBar, leftModel);
-		
-        leftBar.setPreferredScrollableViewportSize(new Dimension(200,0));
-		scroll.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER,leftBar.getTableHeader());
-		scroll.setRowHeaderView(leftBar);
-		leftBarExists = true;
-		leftBar.addFocusListener(new FocusListener() {
-			@Override public void focusLost(FocusEvent e) {processFocus(e,false,false);}
-			@Override public void focusGained(FocusEvent e) {processFocus(e,true,false);}
+		result.setName("JFreezableTable.LeftBar");
+		return result;
+	}
+	
+	protected void addLeftBar(final JScrollPane parent) {
+		getLeftBar().setPreferredScrollableViewportSize(new Dimension(200,0));
+		parent.setCorner(ScrollPaneConstants.UPPER_LEFT_CORNER, getLeftBar().getTableHeader());
+		parent.setRowHeaderView(getLeftBar());
+		getLeftBar().addFocusListener(new FocusListener() {
+			@Override 
+			public void focusLost(FocusEvent e) {
+				processFocus(e, false, false);
+			}
+			
+			@Override 
+			public void focusGained(FocusEvent e) {
+				processFocus(e, true, false);
+			}
 		});
-		leftBar.getSelectionModel().addListSelectionListener(leftLSL);
+		getLeftBar().getSelectionModel().addListSelectionListener(leftLSL);
 		this.getSelectionModel().addListSelectionListener(rightLSL);
-		leftBar.addKeyListener(leftKL);
+		getLeftBar().addKeyListener(leftKL);
 		this.addKeyListener(rightKL);
 	}
-
-	protected void removeLeftBar() {
-		if (leftBar != null) {
-			leftBar.removeKeyListener(leftKL);
-			this.removeKeyListener(rightKL);
-			leftBar.getSelectionModel().removeListSelectionListener(leftLSL);
-			this.getSelectionModel().removeListSelectionListener(rightLSL);
-			leftBar = null;
-		}
-		leftBarExists = false;
+	
+	protected void removeLeftBar(final JScrollPane parent) {
+		getLeftBar().removeKeyListener(leftKL);
+		this.removeKeyListener(rightKL);
+		getLeftBar().getSelectionModel().removeListSelectionListener(leftLSL);
+		this.getSelectionModel().removeListSelectionListener(rightLSL);
 	}
 
 	protected void processFocus(final FocusEvent e, final boolean gained, final boolean right) {
-		if (leftBarExists() && gained && getParent() != null) {
-			if (!transferFocus) {
-				transferFocus = true;
-			}
-			else {
-				final Component 			c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-				final Container 			root = c.getFocusCycleRootAncestor();
-				final FocusTraversalPolicy 	policy = root.getFocusTraversalPolicy();
-				final Component				before = policy.getComponentBefore(root,e.getComponent());
-				final Component				after = policy.getComponentAfter(root,e.getComponent());
-				final Component				from = e.getOppositeComponent();
-				    
-				if (from == this || from == leftBar) {
-					if (right) {
-						if (before == leftBar) {
-							after.requestFocusInWindow();
+		if (reduceFocusCalls[0] != gained || reduceFocusCalls[1] != right) {
+			reduceFocusCalls[0] = gained;
+			reduceFocusCalls[1] = right;
+			
+			if (leftBarExists() && gained && getParent() != null) {
+				if (transferFocusInside) {
+					transferFocusInside = false;
+				}
+				else {
+					final Component 			c = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+					final Container 			root = c.getFocusCycleRootAncestor();
+					final FocusTraversalPolicy 	policy = root.getFocusTraversalPolicy();
+					final Component				before = policy.getComponentBefore(root,e.getComponent());
+					final Component				after = policy.getComponentAfter(root,e.getComponent());
+					final Component				from = e.getOppositeComponent();
+					    
+					if (from == this || from == leftBar) {
+						if (right) {
+							if (before == leftBar) {
+								SwingUtilities.invokeLater(()->after.requestFocusInWindow());
+							}
+							else if (after == leftBar) {
+								SwingUtilities.invokeLater(()->before.requestFocusInWindow());
+							}
 						}
-						else if (after == leftBar) {
-							before.requestFocusInWindow();
-						}
-					}
-					else {
-						if (before == this) {
-							after.requestFocusInWindow();
-						}
-						else if (after == this) {
-							before.requestFocusInWindow();
+						else {
+							if (before == this) {
+								SwingUtilities.invokeLater(()->after.requestFocusInWindow());
+							}
+							else if (after == this) {
+								SwingUtilities.invokeLater(()->before.requestFocusInWindow());
+							}
 						}
 					}
 				}
@@ -282,160 +335,113 @@ public class JFreezableTable extends JTable {
 		}
 	}
 
-	private static ContentNodeMetadata[] extractChildren(final NodeMetadataOwner model) {
-		final String[]				names = model.getMetadataChildrenNames();
-		final ContentNodeMetadata[]	result = new ContentNodeMetadata[names.length];
-		int		index = 0;
-		
-		for (String item : names) {
-			result[index++] = model.getNodeMetadata(item);
-		}
-		return result;
-	}
-	
-	private static abstract class SplittedTableModel extends DefaultTableModel{
-		private static final long serialVersionUID = 1L;
-
-		private final LightWeightListenerList<TableModelListener>	ll = new LightWeightListenerList<>(TableModelListener.class);
-		
-		protected final TableModel				nested;
-		protected final ContentNodeMetadata[]	children;
-		protected volatile int[]				columnIndices;
-		
-		protected SplittedTableModel(final TableModel nested, final ContentNodeMetadata[] children, final String... freezedColumns) {
+	private static class LeftTableModelWrapper implements TableModel {
+		private final TableModel	nested;
+		private final int			frozenColumns;
+				
+		private LeftTableModelWrapper(final TableModel nested, final int frozenColumns) {
 			this.nested = nested;
-			this.children = children;
-			buildExcludes(freezedColumns);
-			nested.addTableModelListener((e) -> {
-				buildExcludes(freezedColumns);
-				ll.fireEvent((listener)->listener.tableChanged(e));
-			});
+			this.frozenColumns = frozenColumns;
 		}
 
-		protected abstract void buildExcludes(final String[] freezedColumns);
-		
 		@Override
 		public int getRowCount() {
-			if (nested == null) {
-				return 0;
-			}
-			else {
-				return nested.getRowCount();
-			}
+			return nested.getRowCount();
 		}
 
 		@Override
 		public int getColumnCount() {
-			return columnIndices.length;
+			return frozenColumns;
 		}
 
 		@Override
 		public String getColumnName(final int columnIndex) {
-			return nested.getColumnName(columnIndices[columnIndex]);
+			return nested.getColumnName(columnIndex);
 		}
 
 		@Override
 		public Class<?> getColumnClass(final int columnIndex) {
-			return nested.getColumnClass(columnIndices[columnIndex]);
+			return nested.getColumnClass(columnIndex);
 		}
 
 		@Override
 		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-			return nested.isCellEditable(rowIndex,columnIndices[columnIndex]);
+			return nested.isCellEditable(rowIndex, columnIndex);
 		}
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex) {
-			return nested.getValueAt(rowIndex,columnIndices[columnIndex]);
+			return nested.getValueAt(rowIndex, columnIndex);
 		}
 
 		@Override
-		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-			nested.setValueAt(aValue,rowIndex,columnIndices[columnIndex]);
+		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+			nested.setValueAt(aValue, rowIndex, columnIndex);
 		}
 
 		@Override
 		public void addTableModelListener(final TableModelListener l) {
-			if (l == null) {
-				throw new NullPointerException("Table model listener can't be null");
-			}
-			else {
-				ll.addListener(l);
-			}
+			nested.addTableModelListener(l);
 		}
 
 		@Override
 		public void removeTableModelListener(final TableModelListener l) {
-			if (l == null) {
-				throw new NullPointerException("Table model listener can't be null");
-			}
-			else {
-				ll.addListener(l);
-			}
-		}
-
-		protected ContentNodeMetadata getColumnModel(final int columnIndex) {
-			return children[columnIndex];
+			nested.removeTableModelListener(l);
 		}
 	}
 
-	private static class LeftTableModel extends SplittedTableModel {
-		private LeftTableModel(final TableModel nested, final ContentNodeMetadata[] children, final String... freezedColumns) {
-			super(nested, children, freezedColumns);
+	private static class RightTableModelWrapper implements TableModel {
+		private final TableModel	nested;
+		private final int			frozenColumns;
+		
+		private RightTableModelWrapper(final TableModel nested, final int frozenColumns) {
+			this.nested = nested;
+			this.frozenColumns = frozenColumns;
 		}
 
 		@Override
-		protected void buildExcludes(final String[] freezedColumns) {
-			if (nested == null || freezedColumns == null) {
-				columnIndices = new int[0];
-			}
-			else {
-				final int		count = nested.getColumnCount();
-				final int[]		columns = new int[freezedColumns.length];
-				
-loop:			for (int index = 0, cursor = 0; index < count; index++) {
-					final String	colName = getColumnModel(index).getName();
-					
-					for (String item : freezedColumns) {
-						if (colName.equals(item)) {
-							columns[cursor++] = index;
-							continue loop;
-						}
-					}
-				}
-				columnIndices = columns;
-			}
-		}
-	}
-
-	private static class RightTableModel extends SplittedTableModel {
-		private RightTableModel(final TableModel nested, final ContentNodeMetadata[] children, final String... freezedColumns) {
-			super(nested, children, freezedColumns);
+		public int getRowCount() {
+			return nested.getRowCount();
 		}
 
 		@Override
-		protected void buildExcludes(final String[] freezedColumns) {
-			if (nested == null || freezedColumns == null) {
-				columnIndices = new int[0];
-			}
-			else {
-				final int		count = nested.getColumnCount();
-				final int[]		columns = new int[count - freezedColumns.length];
-				
-loop:			for (int index = 0, cursor = 0; index < count; index++) {
-					final String	colName = getColumnModel(index).getName();
-					
-					if (!colName.isEmpty()) {
-						for (String item : freezedColumns) {
-							if (colName.equals(item)) {
-								continue loop;
-							}
-						}
-						columns[cursor++] = index;
-					}
-				}
-				columnIndices = columns;
-			}
+		public int getColumnCount() {
+			return nested.getColumnCount() - frozenColumns;
+		}
+
+		@Override
+		public String getColumnName(final int columnIndex) {
+			return nested.getColumnName(columnIndex + frozenColumns);
+		}
+
+		@Override
+		public Class<?> getColumnClass(final int columnIndex) {
+			return nested.getColumnClass(columnIndex + frozenColumns);
+		}
+
+		@Override
+		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
+			return nested.isCellEditable(rowIndex, columnIndex + frozenColumns);
+		}
+
+		@Override
+		public Object getValueAt(final int rowIndex, final int columnIndex) {
+			return nested.getValueAt(rowIndex, columnIndex + frozenColumns);
+		}
+
+		@Override
+		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
+			nested.setValueAt(aValue, rowIndex, columnIndex + frozenColumns);
+		}
+
+		@Override
+		public void addTableModelListener(final TableModelListener l) {
+			nested.addTableModelListener(l);
+		}
+
+		@Override
+		public void removeTableModelListener(final TableModelListener l) {
+			nested.removeTableModelListener(l);
 		}
 	}
 }
