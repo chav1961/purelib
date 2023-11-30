@@ -366,16 +366,16 @@ class InternalUtils {
 				chooser.setCurrentDirectory(currentPath);
 			}
 		}
-		if ((options | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE) != 0 && (options | JFileSelectionDialog.OPTIONS_CAN_SELECT_DIR) != 0) {
+		if ((options & JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE) != 0 && (options & JFileSelectionDialog.OPTIONS_CAN_SELECT_DIR) != 0) {
 			chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		}
-		else if ((options | JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE) != 0) {
+		else if ((options & JFileSelectionDialog.OPTIONS_CAN_SELECT_FILE) != 0) {
 			chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		}
-		else if ((options | JFileSelectionDialog.OPTIONS_CAN_SELECT_DIR) != 0) {
+		else if ((options & JFileSelectionDialog.OPTIONS_CAN_SELECT_DIR) != 0) {
 			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		}
-		if ((options | JFileSelectionDialog.OPTIONS_FOR_SAVE) != 0) {
+		if ((options & JFileSelectionDialog.OPTIONS_FOR_SAVE) != 0) {
 			if (chooser.showSaveDialog(owner) == JFileChooser.APPROVE_OPTION) {
 				final File	sel = chooser.getSelectedFile();  
 				

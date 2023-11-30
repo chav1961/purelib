@@ -951,7 +951,7 @@ public class ContentModelFactory {
 				final String	builtinTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
 				final String	builtinAction = getAttribute(document,XML_ATTR_ACTION);
 				
-				if (!Constants.MODEL_AVAILABLE_BUILTINS.contains(builtinName)) {
+				if (!Constants.Builtin.isBuiltinValid(builtinName)) {
 					throw new EnvironmentException("Illegal name ["+builtinName+"] for built-in navigation. Available names are "+Constants.MODEL_AVAILABLE_BUILTINS);						
 				}
 				else {

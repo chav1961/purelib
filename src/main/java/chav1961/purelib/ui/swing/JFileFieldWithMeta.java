@@ -81,7 +81,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
-			this.options = FileWizardOptions.of(format.getWizardType() != null ? format.getWizardType() : "");
+			this.options = FileWizardOptions.of(!Utils.checkEmptyOrNullString(format.getWizardType()) ? format.getWizardType() : "");
 
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
@@ -368,11 +368,11 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		}
 	}
 
-	protected File chooseFile(final Localizer localizer, final File initialFile) throws HeadlessException, LocalizationException {
+	protected File chooseFile(final Localizer localizer, final File initialFile, final FileWizardOptions options) throws HeadlessException, LocalizationException {
 		return InternalUtils.chooseFile(this, localizer, initialFile, options.options);
 	}
 
-	protected FileSystemInterface chooseFileSystem(final Localizer localizer, final FileSystemInterface initialFile) throws HeadlessException, LocalizationException {
+	protected FileSystemInterface chooseFileSystem(final Localizer localizer, final FileSystemInterface initialFile, final FileWizardOptions options) throws HeadlessException, LocalizationException {
 		return InternalUtils.chooseFileSystem(this, localizer, initialFile, options.options);
 	}
 	
@@ -389,7 +389,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		try{final Localizer	localizer = LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated());
 		
 			if (getValueType().isAssignableFrom(File.class)) {
-				final File	result = chooseFile(localizer,(File)currentValue);
+				final File	result = chooseFile(localizer,(File)currentValue, options);
 				
 				if (result != null) {
 					assignValueToComponent(result);
@@ -397,7 +397,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 				}
 			}
 			else if (getValueType().isAssignableFrom(FileKeeper.class)) {
-				final File	result = chooseFile(localizer,((FileKeeper)currentValue).toFile());
+				final File	result = chooseFile(localizer,((FileKeeper)currentValue).toFile(), options);
 				
 				if (result != null) {
 					assignValueToComponent(result);

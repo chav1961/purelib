@@ -3,6 +3,8 @@ package chav1961.purelib.model;
 import java.util.HashSet;
 import java.util.Set;
 
+import chav1961.purelib.basic.Utils;
+
 /**
  * <p>This class contains a set of well-known constants for the model entities</p>
  * @author Alexander Chernomyrdin aka chav1961
@@ -34,6 +36,14 @@ public class Constants {
 	public static final String	MODEL_BUILTIN_LANGUAGE = "builtin.languages";
 	public static final String	MODEL_BUILTIN_LAF = "builtin.lookAndFeel";
 	public static final String	MODEL_BUILTIN_LRU = "builtin.LRU";
+
+	static final Set<String>	MODEL_AVAILABLE_BUILTINS = new HashSet<>();
+	
+	static {
+		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LANGUAGE);
+		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LAF);
+		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LRU);
+	}
 	
 	/**
 	 * <p>This enumeration contains all built-in menu types supported</p>
@@ -66,25 +76,37 @@ public class Constants {
 		 * @throws IllegalArgumentException when constant name is null, empty or unknown 
 		 */
 		public static Builtin forConstant(final String constantName) throws IllegalArgumentException {
-			if (constantName == null || constantName.isEmpty()) {
+			if (Utils.checkEmptyOrNullString(constantName)) {
 				throw new IllegalArgumentException("Constant name can't be nullor empty"); 
 			}
 			else {
 				for (Builtin item : values()) {
-					if (constantName.equals(item.getConstantName())) {
+					if (constantName.startsWith(item.getConstantName())) {
 						return item;
 					}
 				}
 				throw new NullPointerException("Constant name ["+constantName+"] not found in the builtins"); 
 			}
 		}
-	}
-	
-	static final Set<String>	MODEL_AVAILABLE_BUILTINS = new HashSet<>();
-	
-	static {
-		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LANGUAGE);
-		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LAF);
-		Constants.MODEL_AVAILABLE_BUILTINS.add(Constants.MODEL_BUILTIN_LRU);
+		
+		/**
+		 * <p>Check builtin constant name is valid</p>
+		 * @param constantName constant name to check. Can't be null or empty
+		 * @return true is name is valid, false otherwise
+		 * @throws IllegalArgumentException when constant name is null or empty 
+		 */
+		public static boolean isBuiltinValid(final String constantName) throws IllegalArgumentException {
+			if (Utils.checkEmptyOrNullString(constantName)) {
+				throw new IllegalArgumentException("Constant name can't be nullor empty"); 
+			}
+			else {
+				for (Builtin item : values()) {
+					if (constantName.startsWith(item.getConstantName())) {
+						return true;
+					}
+				}
+				return false; 
+			}
+		}
 	}
 }

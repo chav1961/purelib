@@ -474,7 +474,8 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 				if (instance instanceof ModuleAccessor) {
 					((ModuleAccessor)instance).allowUnnamedModuleAccess(loader.getUnnamedModule());
 				}
-				
+
+				processContainerState(mdi.getRoot());
 				trans.rollback();
 			}
 		}
@@ -728,48 +729,52 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	}
 	
 	private void processComponentStateInternal(final UIItemState state, final JComponent component, final ContentNodeMetadata metadata) {
+		final String 	labelName = component.getName()+"/label";
+		final Container	label = SwingUtils.findComponentByName(this, labelName);
+		
 		switch (state.getItemState(metadata)) {
 			case DEFAULT		:
 				break;
 			case AVAILABLE		:
-				if (component instanceof JComponent) {
-					((JComponent)component).setVisible(true);
-					((JComponent)component).setEnabled(true);
-					if (component instanceof JTextComponent) {
-						((JTextComponent)component).setEditable(true);
-						((JTextComponent)component).setDragEnabled(true);
-					}
+				((JComponent)component).setVisible(true);
+				((JComponent)component).setEnabled(true);
+				label.setVisible(true);
+				label.setEnabled(true);
+				if (component instanceof JTextComponent) {
+					((JTextComponent)component).setEditable(true);
+					((JTextComponent)component).setDragEnabled(true);
 				}
 				break;
 			case NOTAVAILABLE	:
-				if (component instanceof JComponent) {
-					((JComponent)component).setVisible(true);
-					((JComponent)component).setEnabled(false);
-				}
+				((JComponent)component).setVisible(true);
+				((JComponent)component).setEnabled(false);
+				label.setVisible(true);
+				label.setEnabled(false);
 				break;
 			case HIDDEN		:
-				if (component instanceof JComponent) {
-					((JComponent)component).setVisible(true);
-					((JComponent)component).setEnabled(false);
-				}
+				((JComponent)component).setVisible(true);
+				((JComponent)component).setEnabled(false);
+				label.setVisible(true);
+				label.setEnabled(false);
 				break;
 			case NOTVISIBLE		:
-				if (component instanceof JComponent) {
-					((JComponent)component).setVisible(false);
-					((JComponent)component).setEnabled(false);
-				}
+				((JComponent)component).setVisible(false);
+				((JComponent)component).setEnabled(false);
+				label.setVisible(false);
+				label.setEnabled(false);
 				break;
 			case READONLY		:
-				if (component instanceof JComponent) {
-					((JComponent)component).setVisible(false);
-					((JComponent)component).setEnabled(false);
-					if (component instanceof JTextComponent) {
-						((JTextComponent)component).setEditable(false);
-						((JTextComponent)component).setDragEnabled(false);
-					}
+				((JComponent)component).setVisible(true);
+				((JComponent)component).setEnabled(false);
+				label.setVisible(true);
+				label.setEnabled(true);
+				if (component instanceof JTextComponent) {
+					((JTextComponent)component).setEditable(false);
+					((JTextComponent)component).setDragEnabled(false);
 				}
 				break;
-			default : throw new UnsupportedOperationException("Item state ["+itemState.getItemState(metadata)+"] is not supported yet"); 
+			default : 
+				throw new UnsupportedOperationException("Item state ["+state.getItemState(metadata)+"] is not supported yet"); 
 		}
 	}
 

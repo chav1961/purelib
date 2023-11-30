@@ -532,8 +532,9 @@ public class VisualControlsTest implements JComponentMonitor {
 		final File						selectedFile = new File("test");
 		final JFileFieldWithMeta		file = new JFileFieldWithMeta(itemMeta, this) {
 											private static final long serialVersionUID = 1134427067018687415L;
+											
 											@Override
-											protected File chooseFile(Localizer localizer, File initialFile) throws HeadlessException, LocalizationException {
+											protected File chooseFile(Localizer localizer, File initialFile, FileWizardOptions options) throws HeadlessException, LocalizationException {
 												return selectedFile;
 											}
 											};
