@@ -124,6 +124,8 @@ import chav1961.purelib.i18n.interfaces.SupportedLanguages;
  * <li> {@linkplain #terminateAndConvert2CharArray(String, char)} method for a special functionality - terminate string representation with the given char and convert result to char array (frequently uses in parsers)</li>  
  * </ul>
  * <p>Many of the methods can throw {@linkplain SyntaxException} on parsing errors.</p>
+ * 
+ * <p>This class can be used in multi-thread environment</p>
  *  
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961

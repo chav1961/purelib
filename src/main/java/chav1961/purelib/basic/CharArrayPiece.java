@@ -6,6 +6,9 @@ import java.util.Comparator;
 
 /**
  * <p>This class implements {@linkplain CharSequence} interface on char array.</p>
+ * 
+ * <p>This class can be used in multi-thread environment</p>
+ * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
  */

@@ -16,6 +16,8 @@ import java.util.Arrays;
  * <p>The most of all methods of the class return the {@link BitCharSet} type. It's exactly <b>this</b> reference, so you can use them in the
  * chained operations (for example new BitCharSet().add('a','b','c').addRange('0','9') etc)</p>
  * 
+ * <p>This class is not thread-safe</p>
+ * 
  * @see ExtendedBitCharSet
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961

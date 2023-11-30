@@ -50,6 +50,8 @@ import chav1961.purelib.basic.interfaces.ConsoleManagerInterface;
  * <p>Syntax of the command templates is described in the {@link chav1961.purelib.basic.annotations.ConsoleCommand ConsoleCommand} annotation. See {@link #processHelp() processHelp()} and {@link #processHelp(java.lang.String) processHelp(String)} methods for example.</p>
  * <p>When variable parts in the console command contains special symbols (for example, file names with blank chars), use quotas(") to prevent data content against parsing, for example <b><code>help "my command"</code></b></p>      
  * <p>This class implements {@link java.io.Closeable Closeable} interface, so it can be used in the <b>try-with-resource</b> statements.</p>
+ *
+ * <p>This class is not thread-safe</p>
  * 
  * @see chav1961.purelib.basic.annotations.ConsoleCommand @ConsoleCommand
  * @see chav1961.purelib.basic.annotations.ConsoleCommandPrefix @ConsoleCommandPrefix

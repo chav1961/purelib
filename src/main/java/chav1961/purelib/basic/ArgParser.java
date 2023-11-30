@@ -76,6 +76,7 @@ import chav1961.purelib.sql.SQLUtils;
  * @since 0.0.3
  * @last.update 0.0.7
  */
+
 public class ArgParser {
 	private final char					keyPrefix;
 	private final boolean				caseSensitive;

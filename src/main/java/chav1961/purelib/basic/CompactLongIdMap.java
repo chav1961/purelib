@@ -6,7 +6,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.interfaces.LongIdTreeInterface;
 
-public class CompactLongIdMap<T> implements LongIdTreeInterface<T> {
+class CompactLongIdMap<T> implements LongIdTreeInterface<T> {
 	private static final int			INITIAL_SIZE = 4;
 	
 	private final Class<T>				contentType;

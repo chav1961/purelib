@@ -1,6 +1,6 @@
 package chav1961.purelib.basic;
 
-public class CancellableJob {
+class CancellableJob {
 	private static final int	STATE_INITIAL = 0;
 	private static final int	STATE_FIRST_PROCESS = 1;
 	private static final int	STATE_NEXT_PROCESS = 2;

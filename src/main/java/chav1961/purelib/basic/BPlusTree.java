@@ -5,7 +5,7 @@ import java.net.URI;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.ContinueMode;
 
-public abstract class BPlusTree<K extends Comparable<? super K>, V> {
+abstract class BPlusTree<K extends Comparable<? super K>, V> {
 	public static final String	BPLUS_TREE_SCHEMA = "bplustree";
 	
 	public static class BPlusTreeContentException extends ContentException {

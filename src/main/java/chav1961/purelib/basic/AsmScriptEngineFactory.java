@@ -1,6 +1,5 @@
 package chav1961.purelib.basic;
 
-import java.awt.datatransfer.MimeTypeParseException;
 import java.util.Arrays;
 
 import javax.script.Bindings;
@@ -18,6 +17,8 @@ import chav1961.purelib.streams.char2byte.AsmWriter;
  * is <b>"javaasm"</b> or <b>"jasm"</b>. To execute compiled assembler immediately, it need contains a <b>public static</b> Object main({@linkplain Bindings},String[])
  * method in it. String[] parameters are exactly {@linkplain BasicScriptEngineController#execute(String...)} parameters. Using this class thru 
  * {@linkplain ScriptEngine#eval(String)} method, this String[] parameters are exactly <b>new</b> String[0].</p> 
+ * 
+ * <p>This class is not thread-safe</p>
  * 
  * @see ScriptEngineManager
  * @see ScriptEngineFactory

@@ -40,7 +40,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * <li>seeking of existent string ~0.9 microseconds/item</li> 
  * </ul>
  *
- * This class is not thread-safe.
+ * <p>This class is not thread-safe.</p>
  * 
  * @param <T> any king of data associated with the tree elements
  * 
@@ -52,6 +52,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @since 0.0.1
  * @last.update 0.0.7
  */
+
 public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	private static final int	MAGIC = 0xDEDA00F0; 
 	

@@ -12,6 +12,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
  * <p>This class is an implementation of {@link LoggerFacade} interface for the java.util.logging package.</p>
+ * 
  * <p>This class is not thread-safe.</p>
  * 
  * @see LoggerFacade

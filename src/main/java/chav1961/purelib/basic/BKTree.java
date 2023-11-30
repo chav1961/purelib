@@ -5,7 +5,9 @@ import java.util.function.BiConsumer;
 
 /**
  * <p>This class implements Burkhard-Keller tree.</p>
+ * 
  * <p>This class is not thread-safe</p>
+ * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  * @param <Content> content item type inside the tree
