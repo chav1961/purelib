@@ -1,7 +1,7 @@
 package chav1961.purelib.basic;
 
+import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -22,27 +22,38 @@ public class SequenceIterator<T> implements Iterator<T> {
 	private final Iterator<T>[]	list;
 	private int					current = 0;
 
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param list collection of iterators. Can't be null</p>
+	 * @throws IllegalArgumentException when connection is null or contains nulls inside
+	 */
 	@SuppressWarnings("unchecked")
-	public SequenceIterator(final List<Iterator<T>> list) {
-		if (list == null) {
-			throw new NullPointerException("List of iterators can't be null");
+	public SequenceIterator(final Collection<Iterator<T>> list) throws IllegalArgumentException {
+		if (list == null || Utils.checkCollectionContent4Nulls(list) >= 0) {
+			throw new IllegalArgumentException("List of iterators is null or contains nulls inside");
 		}
 		else {
-			final int	nullItem = Utils.checkArrayContent4Nulls(list);
-			
-			if (nullItem >= 0) {
-				throw new NullPointerException("The ["+nullItem+"]-th element of the iterator list is null!");
-			}
-			else {
-				this.list = list.toArray(new Iterator[list.size()]); 
-			}
+			this.list = list.toArray(new Iterator[list.size()]); 
 		}
 	}
+
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param list iterable list. Can't be null
+	 * @throws IllegalArgumentException when connection is null or contains nulls inside
+	 */
+	public SequenceIterator(@SuppressWarnings("unchecked") final Iterable<T>... list) throws IllegalArgumentException {
+		this(toIterators(list));
+	}	
 	
-	
-	public SequenceIterator(@SuppressWarnings("unchecked") final Iterator<T>... list) {
-		if (list == null) {
-			throw new NullPointerException("List of iterators can't be null");
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param list iterator list. Can't be null
+	 * @throws IllegalArgumentException when connection is null or contains nulls inside
+	 */
+	public SequenceIterator(@SuppressWarnings("unchecked") final Iterator<T>... list) throws IllegalArgumentException {
+		if (list == null || Utils.checkArrayContent4Nulls(list) >= 0) {
+			throw new IllegalArgumentException("List of iterators is null or contains nulls inside");
 		}
 		else {
 			final int	nullItem = Utils.checkArrayContent4Nulls(list);
@@ -59,28 +70,38 @@ public class SequenceIterator<T> implements Iterator<T> {
 	/**
 	 * <p>Build iterator instance </p>
 	 * @param <T> any referenced type
+	 * @param list iterable list to iterate on it's content
+	 * @return iterable instance. Can be empty, but no null
+	 */
+	@SafeVarargs
+	public static <T> Iterable<T> iterable(final Iterable<T>... list){
+		if (list == null || Utils.checkArrayContent4Nulls(list) >= 0) {
+			throw new IllegalArgumentException("List of iterators is null or contains nulls inside");
+		}
+		else {
+			return iterable(toIterators(list));
+		}
+	}	
+	
+	
+	/**
+	 * <p>Build iterator instance </p>
+	 * @param <T> any referenced type
 	 * @param list iterator list to iterate on it's content
 	 * @return iterable instance. Can be empty, but no null
 	 */
 	@SafeVarargs
 	public static <T> Iterable<T> iterable(final Iterator<T>... list){
-		if (list == null) {
-			throw new NullPointerException("List of iterators can't be null");
+		if (list == null || Utils.checkArrayContent4Nulls(list) >= 0) {
+			throw new IllegalArgumentException("List of iterators is null or contains nulls inside");
 		}
 		else {
-			final int	nullItem = Utils.checkArrayContent4Nulls(list);
-			
-			if (nullItem >= 0) {
-				throw new NullPointerException("The ["+nullItem+"]-th element of the iterator list is null!");
-			}
-			else {
-				return new Iterable<T>() {
-					@Override
-					public Iterator<T> iterator() {
-						return new SequenceIterator<T>(list);
-					}
-				};
-			}
+			return new Iterable<T>() {
+				@Override
+				public Iterator<T> iterator() {
+					return new SequenceIterator<T>(list);
+				}
+			};
 		}
 	}
 	
@@ -130,5 +151,21 @@ public class SequenceIterator<T> implements Iterator<T> {
 				return SequenceIterator.this;
 			}
 		};
+	}
+
+	@SafeVarargs
+	static <T> Iterator<T>[] toIterators(final Iterable<T>... list) {
+		if (list == null || Utils.checkArrayContent4Nulls(list) >= 0) {
+			throw new IllegalArgumentException("Iterable list is null or contaoins nulls inside"); 
+		}
+		else {
+			@SuppressWarnings("unchecked")
+			final Iterator<T>[]	result = new Iterator[list.length];
+			
+			for(int index = 0; index < result.length; index++) {
+				result[index] = list[index].iterator();
+			}
+			return result;
+		}
 	}
 }

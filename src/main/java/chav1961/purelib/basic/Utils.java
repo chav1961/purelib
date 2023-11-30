@@ -20,6 +20,7 @@ import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1506,35 +1507,75 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @throws NullPointerException when object to test is null
 	 * @throws IllegalArgumentException when object to test is not a referenced array
 	 * @since 0.0.3
+	 * @last.update 0.0.7
 	 */
-	public static int checkArrayContent4Nulls(final Object array) throws NullPointerException, IllegalArgumentException {
+	public static <T> int checkArrayContent4Nulls(final T[] array) throws NullPointerException, IllegalArgumentException {
 		return checkArrayContent4Nulls(array,false);
 	}
 	
 	/**
 	 * <p>Check array content for nulls</p>
-	 * @param array referenced type array to check 
+	 * @param array referenced type array to check
+	 * @param checkStrings4Empty check all {@linkplain CharSequence} instances in the array are not empty (if presents)
 	 * @return index of the same first null in the array, otherwise -1
 	 * @throws NullPointerException when object to test is null
 	 * @throws IllegalArgumentException when object to test is not a referenced array
 	 * @since 0.0.4
+	 * @last.update 0.0.7
 	 */
-	public static int checkArrayContent4Nulls(final Object array, final boolean checkStrings4Empty) throws NullPointerException, IllegalArgumentException {
+	public static <T> int checkArrayContent4Nulls(final T[] array, final boolean checkStrings4Empty) throws NullPointerException, IllegalArgumentException {
 		if (array == null) {
 			throw new NullPointerException("Array object to check can't be null"); 
-		}
-		else if (!array.getClass().isArray()) {
-			throw new IllegalArgumentException("Object to check is not array"); 
-		}
-		else if (array.getClass().getComponentType().isPrimitive()) {
-			throw new IllegalArgumentException("Array of primitive types can't be checked by this method"); 
 		}
 		else {
 			final boolean	checkEmpties = checkStrings4Empty && String.class.isAssignableFrom(array.getClass().getComponentType()); 
 			
-			for (int index = 0, maxIndex = Array.getLength(array); index < maxIndex; index++) {
-				if (Array.get(array,index) == null || checkEmpties && ((String)Array.get(array,index)).isEmpty()) {
+			for (int index = 0, maxIndex = array.length; index < maxIndex; index++) {
+				T 	item = array[index];
+				
+				if (item == null || checkEmpties && (item instanceof CharSequence) && ((CharSequence)item).isEmpty()) {
 					return index;
+				}
+			}
+			return -1;
+		}
+	}
+
+	/**
+	 * <p>Check collection content for nulls</p>
+	 * @param <T> collection item type
+	 * @param collection collection to check. Can't be null
+	 * @return index of the same first null in the collection, otherwise -1
+	 * @throws NullPointerException when object to test is null
+	 * @throws IllegalArgumentException when object to test is not a referenced array
+	 */
+	public static <T> int checkCollectionContent4Nulls(final Collection<T> collection) throws NullPointerException, IllegalArgumentException {
+		return checkCollectionContent4Nulls(collection,false);
+	}
+
+	/**
+	 * <p>Check collection content for nulls</p>
+	 * @param <T> collection item type
+	 * @param collection collection to check. Can't be null
+	 * @param checkStrings4Empty check all {@linkplain CharSequence} instances in the array are not empty (if presents)
+	 * @return index of the same first null in the collection, otherwise -1
+	 * @throws NullPointerException when object to test is null
+	 * @throws IllegalArgumentException when object to test is not a referenced array
+	 */
+	public static <T> int checkCollectionContent4Nulls(final Collection<T> collection, final boolean checkStrings4Empty) throws NullPointerException, IllegalArgumentException {
+		if (collection == null) {
+			throw new NullPointerException("Array object to check can't be null"); 
+		}
+		else {
+			final boolean	checkEmpties = checkStrings4Empty && String.class.isAssignableFrom(collection.getClass().getComponentType());
+			int				index = 0;
+			
+			for(T item : collection) {
+				if (item == null || checkEmpties && (item instanceof CharSequence) && ((CharSequence)item).isEmpty()) {
+					return index;
+				}
+				else {
+					index++;
 				}
 			}
 			return -1;

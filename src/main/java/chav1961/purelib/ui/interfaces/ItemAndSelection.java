@@ -3,6 +3,7 @@ package chav1961.purelib.ui.interfaces;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -113,8 +114,8 @@ public interface ItemAndSelection<T> {
 		}
 	}
 
-	static <T> Iterable<T> extract(final boolean selection, final Iterable<ItemAndSelection<T>> content) {
-		if (content == null || Utils.checkArrayContent4Nulls(content) >= 0) {
+	static <T> Iterable<T> extract(final boolean selection, final Collection<ItemAndSelection<T>> content) {
+		if (content == null || Utils.checkCollectionContent4Nulls(content) >= 0) {
 			throw new NullPointerException("Content is null or contains nulls inside");
 		}
 		else {

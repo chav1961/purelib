@@ -49,14 +49,24 @@ public class SequenceIteratorTest {
 			collection.add(item);
 		}
 		Assert.assertEquals(collection,template);
+
+		collection.clear();	
+		for(String item : new WrapperIterable<String>(inst1,inst2)) {
+			collection.add(item);
+		}
+		Assert.assertEquals(collection,template);
 		
+		try{new SequenceIterator<String>((Iterable<String>[])null);
+			Assert.fail("Mandatory exception was not detected (null list)");
+		} catch (IllegalArgumentException exc) {
+		}
 		try{new SequenceIterator<String>((Iterator<String>[])null);
 			Assert.fail("Mandatory exception was not detected (null list)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 		try{new SequenceIterator<String>(inst1.iterator(),null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument in the list)");
-		} catch (NullPointerException exc) {
+		} catch (IllegalArgumentException exc) {
 		}
 	}
 	
@@ -64,8 +74,13 @@ public class SequenceIteratorTest {
 		private final Iterator<Str>[]	content;
 		
 		@SafeVarargs
-		WrapperIterable(Iterator<Str>... content) {
+		WrapperIterable(final Iterator<Str>... content) {
 			this.content = content;
+		}
+
+		@SafeVarargs
+		WrapperIterable(final Iterable<Str>... content) {
+			this.content = SequenceIterator.toIterators(content);
 		}
 		
 		@Override
