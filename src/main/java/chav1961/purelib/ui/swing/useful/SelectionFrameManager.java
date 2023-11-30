@@ -46,6 +46,7 @@ public class SelectionFrameManager {
 	private final LightWeightListenerList<SelectionFrameListener>	listeners = new LightWeightListenerList<>(SelectionFrameListener.class);
 	private final List<SelectionStateKeeper>	stateKeepers = new ArrayList<>();
 	private final SelectionStateKeeper			ssk = new SelectionStateKeeper();
+	private boolean				isSelectedNow = false;
 	
 	public SelectionFrameManager(final JComponent component, final boolean keepSelectionOnMouseExit) {
 		if (component == null) {
@@ -123,6 +124,15 @@ public class SelectionFrameManager {
 	
 	public boolean isVisible() {
 		return ssk.visible;
+	}
+
+	public boolean hasSelectionNow() {
+		return isSelectedNow;
+	}
+	
+	public void resetCurrentSelection() {
+		ultimateAutomat(TERM_RESET, null);
+		background.repaint();
 	}
 	
 	public void addSelectionFrameListener(final SelectionFrameListener l) {
@@ -460,6 +470,7 @@ public class SelectionFrameManager {
 			default :
 				throw new UnsupportedOperationException("Current selection style ["+ssk.currentStyle+"] is not supported yet");
 		}
+		isSelectedNow = false;
 	}
 
 	private void fireSelectionCompleted() {
@@ -481,6 +492,7 @@ public class SelectionFrameManager {
 			default :
 				throw new UnsupportedOperationException("Current selection style ["+ssk.currentStyle+"] is not supported yet");
 		}
+		isSelectedNow = true;
 	}
 
 	private void refreshContent() {
