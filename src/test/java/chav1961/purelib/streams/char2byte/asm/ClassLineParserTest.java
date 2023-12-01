@@ -16,6 +16,7 @@ import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.cdb.JavaByteCodeConstants;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
@@ -36,7 +37,7 @@ public class ClassLineParserTest {
 			final Class<?>	clazz = checkClass(cc,this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
-			Assert.assertEquals(clazz.getModifiers() & (Constants.ACC_PUBLIC | Constants.ACC_FINAL | Constants.ACC_SYNTHETIC),(Constants.ACC_PUBLIC | Constants.ACC_FINAL | Constants.ACC_SYNTHETIC));
+			Assert.assertEquals(clazz.getModifiers() & (JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_FINAL | JavaByteCodeConstants.ACC_SYNTHETIC),(JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_FINAL | JavaByteCodeConstants.ACC_SYNTHETIC));
 			Assert.assertFalse(clazz.isInterface());
 		}
 
@@ -108,7 +109,7 @@ public class ClassLineParserTest {
 			final Class<?>	clazz = checkClass(cc,this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
-			Assert.assertEquals(clazz.getModifiers() & (Constants.ACC_PUBLIC | Constants.ACC_FINAL ),(Constants.ACC_PUBLIC | Constants.ACC_FINAL));
+			Assert.assertEquals(clazz.getModifiers() & (JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_FINAL ),(JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_FINAL));
 			Assert.assertEquals(clazz.getSuperclass(),Throwable.class);
 		}
 
@@ -141,7 +142,7 @@ public class ClassLineParserTest {
 			final Class<?>	clazz = checkClass(cc,this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
-			Assert.assertEquals(clazz.getModifiers() & (Constants.ACC_PUBLIC | Constants.ACC_ABSTRACT),(Constants.ACC_PUBLIC | Constants.ACC_ABSTRACT));
+			Assert.assertEquals(clazz.getModifiers() & (JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_ABSTRACT),(JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_ABSTRACT));
 			Assert.assertEquals(clazz.getSuperclass(),Throwable.class);
 			Assert.assertArrayEquals(clazz.getInterfaces(),new Class<?>[]{AutoCloseable.class,Cloneable.class});
 		}

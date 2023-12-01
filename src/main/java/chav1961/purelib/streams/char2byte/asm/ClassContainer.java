@@ -15,6 +15,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.cdb.JavaByteCodeConstants;
 
 
 class ClassContainer implements Closeable {
@@ -27,7 +28,7 @@ class ClassContainer implements Closeable {
 	private final List<long[]>					forwards = new ArrayList<>();
 	
 	private short	classModifiers = 0, thisId = 0, superId = 0, interfCount = 0, fieldCount = 0;
-	private short	currentMajor = Constants.MAJOR_1_7, currentMinor = Constants.MINOR_1_7;
+	private short	currentMajor = JavaByteCodeConstants.MAJOR_1_7, currentMinor = JavaByteCodeConstants.MINOR_1_7;
 	private long	joinedClassName = 0, constantValueId;
 	private boolean methodBodyAwait = false;
 	private URI		sourceRef = null;
@@ -35,7 +36,7 @@ class ClassContainer implements Closeable {
 	public ClassContainer() {
 		tree.placeName("long",null);			// To use in LocalVarTable descriptors
 		tree.placeName("double",null);
-		constantValueId = tree.placeName(Constants.ATTRIBUTE_ConstantValue,0,Constants.ATTRIBUTE_ConstantValue.length,null);	// To use in initials
+		constantValueId = tree.placeName(JavaByteCodeConstants.ATTRIBUTE_ConstantValue,0,JavaByteCodeConstants.ATTRIBUTE_ConstantValue.length,null);	// To use in initials
 	}
 
 	@Override
@@ -116,7 +117,7 @@ class ClassContainer implements Closeable {
 		else if (methodBodyAwait) {
 			throw new IllegalStateException("Previous call to addMethodDescription(...) not commited with addMethodBody(...)!");
 		}
-		else if ((modifiers & Constants.ACC_ABSTRACT) != 0 && (classModifiers & Constants.ACC_ABSTRACT) == 0) {
+		else if ((modifiers & JavaByteCodeConstants.ACC_ABSTRACT) != 0 && (classModifiers & JavaByteCodeConstants.ACC_ABSTRACT) == 0) {
 			throw new IllegalStateException("Attempt to add abstract method to non-abstract class!");
 		}
 		else {
@@ -146,7 +147,7 @@ class ClassContainer implements Closeable {
 			throw new IllegalStateException("Last call to addMethodDescription(...) not commited with addMethodBody(...)!");
 		}
 		if (superId == 0) {						// Defaults for java.lang.Object extension
-			superId = getConstantPool().asClassDescription(tree.placeOrChangeName(Constants.OBJECT_NAME,0,Constants.OBJECT_NAME.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+			superId = getConstantPool().asClassDescription(tree.placeOrChangeName(JavaByteCodeConstants.OBJECT_NAME,0,JavaByteCodeConstants.OBJECT_NAME.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
 		}
 		
 		short	attr_sourcefile = 0, attr_sourcefile_text = 0; 
@@ -158,7 +159,7 @@ class ClassContainer implements Closeable {
 		
 		final InOutGrowableByteArray	result = new InOutGrowableByteArray(false); 
 		
-		result.writeInt(Constants.MAGIC);		// Magic
+		result.writeInt(JavaByteCodeConstants.MAGIC);		// Magic
 		result.writeShort(currentMinor);		// File minor version
 		result.writeShort(currentMajor);		// File major version
 		result.writeShort(getConstantPool().getPoolSize());	// Constant pool size

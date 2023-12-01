@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.cdb.JavaByteCodeConstants;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -26,7 +27,7 @@ public class InterfaceLineParserTest {
 			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
-			Assert.assertEquals(clazz.getModifiers() & (Constants.ACC_PUBLIC | Constants.ACC_INTERFACE | Constants.ACC_ABSTRACT | Constants.ACC_SYNTHETIC),(Constants.ACC_PUBLIC | Constants.ACC_INTERFACE | Constants.ACC_ABSTRACT | Constants.ACC_SYNTHETIC));
+			Assert.assertEquals(clazz.getModifiers() & (JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_INTERFACE | JavaByteCodeConstants.ACC_ABSTRACT | JavaByteCodeConstants.ACC_SYNTHETIC),(JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_INTERFACE | JavaByteCodeConstants.ACC_ABSTRACT | JavaByteCodeConstants.ACC_SYNTHETIC));
 			Assert.assertTrue(clazz.isInterface());
 		}
 
@@ -62,7 +63,7 @@ public class InterfaceLineParserTest {
 			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
-			Assert.assertEquals(clazz.getModifiers() & (Constants.ACC_PUBLIC | Constants.ACC_INTERFACE | Constants.ACC_ABSTRACT),(Constants.ACC_PUBLIC | Constants.ACC_INTERFACE | Constants.ACC_ABSTRACT));
+			Assert.assertEquals(clazz.getModifiers() & (JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_INTERFACE | JavaByteCodeConstants.ACC_ABSTRACT),(JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_INTERFACE | JavaByteCodeConstants.ACC_ABSTRACT));
 			Assert.assertEquals(clazz.getSuperclass(),null);
 			Assert.assertArrayEquals(clazz.getInterfaces(),new Class<?>[]{AutoCloseable.class,Cloneable.class});
 		}

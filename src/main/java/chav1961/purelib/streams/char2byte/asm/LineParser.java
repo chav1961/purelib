@@ -15,6 +15,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -39,6 +40,7 @@ import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.cdb.JavaByteCodeConstants;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackChanges;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroClassLoader;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCompiler;
@@ -202,23 +204,23 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticDirective(DIR_VARTABLE,m,".vartable");
 		placeStaticDirective(DIR_FORWARD,m,".forward");
 		
-		placeStaticDirective(OPTION_PUBLIC,new DirectiveOption(Constants.ACC_PUBLIC),Constants.ACC_PUBLIC_NAME);
-		placeStaticDirective(OPTION_FINAL,new DirectiveOption(Constants.ACC_FINAL),Constants.ACC_FINAL_NAME);
-		placeStaticDirective(OPTION_ABSTRACT,new DirectiveOption(Constants.ACC_ABSTRACT),Constants.ACC_ABSTRACT_NAME);
-		placeStaticDirective(OPTION_SYNTHETIC,new DirectiveOption(Constants.ACC_SYNTHETIC),Constants.ACC_SYNTHETIC_NAME);
-		placeStaticDirective(OPTION_ENUM,new DirectiveOption(Constants.ACC_ENUM),Constants.ACC_ENUM_NAME);
+		placeStaticDirective(OPTION_PUBLIC,new DirectiveOption(JavaByteCodeConstants.ACC_PUBLIC),JavaByteCodeConstants.ACC_PUBLIC_NAME);
+		placeStaticDirective(OPTION_FINAL,new DirectiveOption(JavaByteCodeConstants.ACC_FINAL),JavaByteCodeConstants.ACC_FINAL_NAME);
+		placeStaticDirective(OPTION_ABSTRACT,new DirectiveOption(JavaByteCodeConstants.ACC_ABSTRACT),JavaByteCodeConstants.ACC_ABSTRACT_NAME);
+		placeStaticDirective(OPTION_SYNTHETIC,new DirectiveOption(JavaByteCodeConstants.ACC_SYNTHETIC),JavaByteCodeConstants.ACC_SYNTHETIC_NAME);
+		placeStaticDirective(OPTION_ENUM,new DirectiveOption(JavaByteCodeConstants.ACC_ENUM),JavaByteCodeConstants.ACC_ENUM_NAME);
 		placeStaticDirective(OPTION_EXTENDS,new DirectiveClassOption(),"extends");
 		placeStaticDirective(OPTION_IMPLEMENTS,new DirectiveInterfacesOption(),"implements");
-		placeStaticDirective(OPTION_PRIVATE,new DirectiveOption(Constants.ACC_PRIVATE),Constants.ACC_PRIVATE_NAME);
-		placeStaticDirective(OPTION_PROTECTED,new DirectiveOption(Constants.ACC_PROTECTED),Constants.ACC_PROTECTED_NAME);
-		placeStaticDirective(OPTION_STATIC,new DirectiveOption(Constants.ACC_STATIC),Constants.ACC_STATIC_NAME);
-		placeStaticDirective(OPTION_VOLATILE,new DirectiveOption(Constants.ACC_VOLATILE),Constants.ACC_VOLATILE_NAME);
-		placeStaticDirective(OPTION_TRANSIENT,new DirectiveOption(Constants.ACC_TRANSIENT),Constants.ACC_TRANSIENT_NAME);
-		placeStaticDirective(OPTION_SYNCHRONIZED,new DirectiveOption(Constants.ACC_SYNCHRONIZED),Constants.ACC_SYNCHRONIZED_NAME);
-		placeStaticDirective(OPTION_BRIDGE,new DirectiveOption(Constants.ACC_BRIDGE),Constants.ACC_BRIDGE_NAME);
-		placeStaticDirective(OPTION_VARARGS,new DirectiveOption(Constants.ACC_VARARGS),Constants.ACC_VARARGS_NAME);
-		placeStaticDirective(OPTION_NATIVE,new DirectiveOption(Constants.ACC_NATIVE),Constants.ACC_NATIVE_NAME);
-		placeStaticDirective(OPTION_STRICT,new DirectiveOption(Constants.ACC_STRICT),Constants.ACC_STRICT_NAME);
+		placeStaticDirective(OPTION_PRIVATE,new DirectiveOption(JavaByteCodeConstants.ACC_PRIVATE),JavaByteCodeConstants.ACC_PRIVATE_NAME);
+		placeStaticDirective(OPTION_PROTECTED,new DirectiveOption(JavaByteCodeConstants.ACC_PROTECTED),JavaByteCodeConstants.ACC_PROTECTED_NAME);
+		placeStaticDirective(OPTION_STATIC,new DirectiveOption(JavaByteCodeConstants.ACC_STATIC),JavaByteCodeConstants.ACC_STATIC_NAME);
+		placeStaticDirective(OPTION_VOLATILE,new DirectiveOption(JavaByteCodeConstants.ACC_VOLATILE),JavaByteCodeConstants.ACC_VOLATILE_NAME);
+		placeStaticDirective(OPTION_TRANSIENT,new DirectiveOption(JavaByteCodeConstants.ACC_TRANSIENT),JavaByteCodeConstants.ACC_TRANSIENT_NAME);
+		placeStaticDirective(OPTION_SYNCHRONIZED,new DirectiveOption(JavaByteCodeConstants.ACC_SYNCHRONIZED),JavaByteCodeConstants.ACC_SYNCHRONIZED_NAME);
+		placeStaticDirective(OPTION_BRIDGE,new DirectiveOption(JavaByteCodeConstants.ACC_BRIDGE),JavaByteCodeConstants.ACC_BRIDGE_NAME);
+		placeStaticDirective(OPTION_VARARGS,new DirectiveOption(JavaByteCodeConstants.ACC_VARARGS),JavaByteCodeConstants.ACC_VARARGS_NAME);
+		placeStaticDirective(OPTION_NATIVE,new DirectiveOption(JavaByteCodeConstants.ACC_NATIVE),JavaByteCodeConstants.ACC_NATIVE_NAME);
+		placeStaticDirective(OPTION_STRICT,new DirectiveOption(JavaByteCodeConstants.ACC_STRICT),JavaByteCodeConstants.ACC_STRICT_NAME);
 		placeStaticDirective(OPTION_THROWS,new DirectiveExceptionsOption(),"throws");
 		placeStaticDirective(OPTION_BOOTSTRAP,new DirectiveSpecialFlag(SPECIAL_FLAG_BOOTSTRAP),"bootstrap");
 
@@ -1139,10 +1141,10 @@ class LineParser implements LineByLineProcessorCallback {
 		while (data[start] != '\n') {
 			endOption = start = skipSimpleName(data,start);
 			switch ((int)staticDirectiveTree.seekName(data,startOption,endOption)) {
-				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_PUBLIC,"class"); break;
-				case OPTION_FINAL		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_FINAL,"class"); break;
-				case OPTION_ABSTRACT	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_ABSTRACT,"class"); break;
-				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"class"); break;
+				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_PUBLIC,"class"); break;
+				case OPTION_FINAL		: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_FINAL,"class"); break;
+				case OPTION_ABSTRACT	: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_ABSTRACT,"class"); break;
+				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_SYNTHETIC,"class"); break;
 				case OPTION_EXTENDS		:
 					if (extendsId != -1) {
 						throw new ContentException("Duplicate option 'extends' in the 'class' directive!");
@@ -1152,7 +1154,7 @@ class LineParser implements LineByLineProcessorCallback {
 						
 						final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
 
-						if ((parent.getModifiers() & Constants.ACC_FINAL) != 0 || (parent.getModifiers() & Constants.ACC_PRIVATE) != 0) {
+						if ((parent.getModifiers() & JavaByteCodeConstants.ACC_FINAL) != 0 || (parent.getModifiers() & JavaByteCodeConstants.ACC_PRIVATE) != 0) {
 							throw new ContentException("Attempt to extends final or  private class ["+new String(data,startName,endName-startName)+"]!"); 
 						}
 						else {
@@ -1172,7 +1174,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 							final Class<?>	member = cdr.getClassDescription(data,startName,endName);
 
-							if ((member.getModifiers() & Constants.ACC_INTERFACE) == 0) {
+							if ((member.getModifiers() & JavaByteCodeConstants.ACC_INTERFACE) == 0) {
 								throw new ContentException("Implements item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
 							}
 							else {
@@ -1212,12 +1214,12 @@ class LineParser implements LineByLineProcessorCallback {
 		int				startOption = start, endOption;
 		List<Long>		implementsNames = null;
 
-		classFlags |= Constants.ACC_INTERFACE | Constants.ACC_ABSTRACT;
+		classFlags |= JavaByteCodeConstants.ACC_INTERFACE | JavaByteCodeConstants.ACC_ABSTRACT;
 		while (data[start] != '\n') {
 			endOption = start = skipSimpleName(data,start);
 			switch ((int)staticDirectiveTree.seekName(data,startOption,endOption)) {
-				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_PUBLIC,"class"); break;
-				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,Constants.ACC_SYNTHETIC,"class"); break;
+				case OPTION_PUBLIC		: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_PUBLIC,"class"); break;
+				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_SYNTHETIC,"class"); break;
 				case OPTION_EXTENDS	:
 					if (implementsNames != null) {
 						throw new ContentException("Duplicate option 'implements' in the 'class' directive!");
@@ -1230,7 +1232,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 							final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
 
-							if ((parent.getModifiers() & Constants.ACC_INTERFACE) == 0) {
+							if ((parent.getModifiers() & JavaByteCodeConstants.ACC_INTERFACE) == 0) {
 								throw new ContentException("Extends item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
 							}
 							else {
@@ -1246,7 +1248,7 @@ class LineParser implements LineByLineProcessorCallback {
 			startOption = start = InternalUtils.skipBlank(data,start);
 		}
 		classNameId = id;
-		classFlags |= Constants.ACC_PUBLIC;
+		classFlags |= JavaByteCodeConstants.ACC_PUBLIC;
 		cc.setClassName(classFlags,packageId,id);
 		if (implementsNames != null) {
 			for (Long item : implementsNames) {
@@ -1435,11 +1437,11 @@ class LineParser implements LineByLineProcessorCallback {
 						default :
 							throw new UnsupportedOperationException();
 					}
-					cc.addFieldDescription((short)(forEntity.options| Constants.ACC_PUBLIC | Constants.ACC_STATIC | Constants.ACC_FINAL),id,typeId,valueId);
+					cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId,valueId);
 				}
 			}
 			else {
-				cc.addFieldDescription((short)(forEntity.options| Constants.ACC_PUBLIC | Constants.ACC_STATIC | Constants.ACC_FINAL),id,typeId);
+				cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId);
 			}
 			tree.getCargo(id).nameType = checkType;
 		}
@@ -1457,7 +1459,7 @@ class LineParser implements LineByLineProcessorCallback {
 			final long		typeId = tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(retType));
 			
 			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS,OPTION_BOOTSTRAP);
-			if ((classFlags & Constants.ACC_ABSTRACT) == 0 && (forEntity.options & Constants.ACC_ABSTRACT) != 0) {
+			if ((classFlags & JavaByteCodeConstants.ACC_ABSTRACT) == 0 && (forEntity.options & JavaByteCodeConstants.ACC_ABSTRACT) != 0) {
 				throw new ContentException("Attempt to add abstract method to the non-abstract class!");
 			}
 			else {
@@ -1465,7 +1467,7 @@ class LineParser implements LineByLineProcessorCallback {
 					if (typeId != voidId) {
 						throw new ContentException("Constructor method need return void type!");
 					}
-					else if ((forEntity.options & Constants.ACC_STATIC) != 0) {	// This is a <clinit>
+					else if ((forEntity.options & JavaByteCodeConstants.ACC_STATIC) != 0) {	// This is a <clinit>
 						if (classConstructorCount == 0) {
 							methodNameId = classConstructorId;
 							classConstructorCount++;
@@ -1504,7 +1506,7 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS);
 		
-		forEntity.options |= Constants.ACC_ABSTRACT | Constants.ACC_PUBLIC; 
+		forEntity.options |= JavaByteCodeConstants.ACC_ABSTRACT | JavaByteCodeConstants.ACC_PUBLIC; 
 		if (forEntity.throwsList.size() > 0) {
 			final long[] 	throwsList = new long[forEntity.throwsList.size()];
 			
@@ -1688,10 +1690,10 @@ class LineParser implements LineByLineProcessorCallback {
 				minor = parm[0];
 			}
 			if (major == 1 && minor == 7) {
-				cc.changeClassFormatVersion(Constants.MAJOR_1_7,Constants.MINOR_1_7);
+				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_7,JavaByteCodeConstants.MINOR_1_7);
 			}
 			else if (major == 1 && minor == 8) {
-				cc.changeClassFormatVersion(Constants.MAJOR_1_8,Constants.MINOR_1_8);
+				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_8,JavaByteCodeConstants.MINOR_1_8);
 			}
 			else {
 				throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available now!");
@@ -1990,7 +1992,7 @@ class LineParser implements LineByLineProcessorCallback {
 					final NameDescriptor	nd = cc.getNameTree().getCargo(typeId);
 					
 					if (nd != null) {
-						final short			typeDispl = nd.cpIds[Constants.CONSTANT_Class];
+						final short			typeDispl = nd.cpIds[JavaByteCodeConstants.CONSTANT_Class];
 					
 						if (typeDispl != Short.MAX_VALUE) {
 							putCommand((byte)desc.operation,(byte)((typeDispl >> 8) & 0xFF),(byte)(typeDispl & 0xFF));
@@ -2709,7 +2711,7 @@ class LineParser implements LineByLineProcessorCallback {
 	 */
 	private static short addAndCheckDuplicates(final short source, final short added, final String directive) throws ContentException {
 		if ((source & added) != 0) {
-			throw new ContentException("Duplicate option ["+Constants.getAccNameByOption(added)+"] in the ["+directive+"] directive");
+			throw new ContentException("Duplicate option ["+Modifier.toString(added)+"] in the ["+directive+"] directive");
 		}
 		else {
 			return (short) (source | added);
@@ -2813,17 +2815,17 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private static boolean checkMutualPrivateProtectedPublic(final short flags) {
-		final int	result = flags & (Constants.ACC_PUBLIC | Constants.ACC_PROTECTED | Constants.ACC_PRIVATE);
+		final int	result = flags & (JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_PROTECTED | JavaByteCodeConstants.ACC_PRIVATE);
 		
 		return result == 3 || result == 5 || result == 6 || result == 7;
 	}
 
 	private static boolean checkMutualAbstractFinal(final short flags) {
-		return (flags & Constants.ACC_ABSTRACT) != 0 && (flags & Constants.ACC_FINAL) != 0;
+		return (flags & JavaByteCodeConstants.ACC_ABSTRACT) != 0 && (flags & JavaByteCodeConstants.ACC_FINAL) != 0;
 	}
 
 	private static boolean checkMutualStaticAbstract(final short flags) {
-		return (flags & Constants.ACC_ABSTRACT) != 0 && (flags & Constants.ACC_STATIC) != 0;
+		return (flags & JavaByteCodeConstants.ACC_ABSTRACT) != 0 && (flags & JavaByteCodeConstants.ACC_STATIC) != 0;
 	}
 
 	private static int skipSimpleName(final char[] data, int from) {

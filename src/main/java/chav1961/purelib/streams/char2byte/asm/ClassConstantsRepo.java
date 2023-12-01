@@ -6,6 +6,7 @@ import java.io.IOException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.cdb.JavaByteCodeConstants;
 
 
 class ClassConstantsRepo implements Closeable {
@@ -48,10 +49,10 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			final short	utfId = asUTF(classId); 
 			
-			iogba.writeByte(Constants.CONSTANT_Class);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Class);
 			iogba.writeShort(utfId);
 			classes.addRef(result = nextVal(),classId);
-			names.getCargo(classId).cpIds[Constants.CONSTANT_Class] = result;
+			names.getCargo(classId).cpIds[JavaByteCodeConstants.CONSTANT_Class] = result;
 		}
 		
 		return result;
@@ -63,7 +64,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			final short	forClass = asClassDescription(classId), forField = asNameAndTypeDescription(fieldId,typeId);  
 			
-			iogba.writeByte(Constants.CONSTANT_Fieldref);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Fieldref);
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
 			entityRefs.addRef(result = nextVal(),classId,fieldId,typeId);
@@ -82,7 +83,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			final short	forClass = asClassDescription(classId), forField = asNameAndTypeDescription(methodId,signatureId);  
 			
-			iogba.writeByte(Constants.CONSTANT_Methodref);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Methodref);
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
 			entityRefs.addRef(result = nextVal(),classId,methodId,signatureId);
@@ -96,7 +97,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			final short	forClass = asClassDescription(classId), forField = asNameAndTypeDescription(methodId,signatureId);  
 			
-			iogba.writeByte(Constants.CONSTANT_InterfaceMethodref);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_InterfaceMethodref);
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
 			entityRefs.addRef(result = nextVal(),classId,methodId,signatureId);
@@ -110,7 +111,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			final short	utf = asUTF(stringId);
 			
-			iogba.writeByte(Constants.CONSTANT_String);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_String);
 			iogba.writeShort(utf);
 			strings.addRef(result = nextVal(),stringId);
 		}
@@ -121,7 +122,7 @@ class ClassConstantsRepo implements Closeable {
 		short	result = integers.getRef(value);
 		
 		if (result == 0) {
-			iogba.writeByte(Constants.CONSTANT_Integer);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Integer);
 			iogba.writeInt(value);
 			integers.addRef(result = nextVal(),value);
 		}
@@ -132,7 +133,7 @@ class ClassConstantsRepo implements Closeable {
 		short	result = longs.getRef(value);
 		
 		if (result == 0) {
-			iogba.writeByte(Constants.CONSTANT_Long);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Long);
 			iogba.writeLong(value);
 			longs.addRef(result = nextVal(),value);
 			nextVal();	// Placed 2 slots!
@@ -145,7 +146,7 @@ class ClassConstantsRepo implements Closeable {
 		short	result = floats.getRef(bytes);
 		
 		if (result == 0) {
-			iogba.writeByte(Constants.CONSTANT_Float);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Float);
 			iogba.writeInt(bytes);
 			floats.addRef(result = nextVal(),bytes);
 		}
@@ -157,7 +158,7 @@ class ClassConstantsRepo implements Closeable {
 		short	result = doubles.getRef(bytes);
 		
 		if (result == 0) {
-			iogba.writeByte(Constants.CONSTANT_Double);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Double);
 			iogba.writeLong(bytes);
 			doubles.addRef(result = nextVal(),bytes);
 			nextVal();	// Placed 2 slots!
@@ -171,7 +172,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			short	forName = asUTF(fieldId), forType = asUTF(typeId);
 			
-			iogba.writeByte(Constants.CONSTANT_NameAndType);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_NameAndType);
 			iogba.writeShort(forName);
 			iogba.writeShort(forType);
 			nameAndType.addRef(result = nextVal(),fieldId,typeId);
@@ -183,7 +184,7 @@ class ClassConstantsRepo implements Closeable {
 		short	result = utfs.getRef(stringId);
 		
 		if (result == 0) {
-			iogba.writeByte(Constants.CONSTANT_Utf8);
+			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Utf8);
 			iogba.writeUTF(names.getName(stringId));
 			utfs.addRef(result = nextVal(),stringId);
 		}

@@ -12,6 +12,7 @@ import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.cdb.JavaByteCodeConstants;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackMapRecord;
 
@@ -66,15 +67,15 @@ class MethodDescriptor implements Closeable {
 		for (int index = 0; index < tLen; index++) {
 			this.throwsDispl[index] = ccr.asClassDescription(tree.placeOrChangeName(tree.getName(throwsList[index]).replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 		}
-		this.exceptionsWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Exceptions,0,Constants.ATTRIBUTE_Exceptions.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.codeWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_Code,0,Constants.ATTRIBUTE_Code.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LocalVariableTable,0,Constants.ATTRIBUTE_LocalVariableTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_LineNumberTable,0,Constants.ATTRIBUTE_LineNumberTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(Constants.ATTRIBUTE_StackMapTable,0,Constants.ATTRIBUTE_StackMapTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.exceptionsWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_Exceptions,0,JavaByteCodeConstants.ATTRIBUTE_Exceptions.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.codeWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_Code,0,JavaByteCodeConstants.ATTRIBUTE_Code.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_LocalVariableTable,0,JavaByteCodeConstants.ATTRIBUTE_LocalVariableTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_LineNumberTable,0,JavaByteCodeConstants.ATTRIBUTE_LineNumberTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_StackMapTable,0,JavaByteCodeConstants.ATTRIBUTE_StackMapTable.length,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 		
-		this.methodBodyAwait = (accessFlags & (Constants.ACC_NATIVE | Constants.ACC_ABSTRACT)) == 0;
+		this.methodBodyAwait = (accessFlags & (JavaByteCodeConstants.ACC_NATIVE | JavaByteCodeConstants.ACC_ABSTRACT)) == 0;
 		pushStack.add(0,new StackLevel(varDispl,(short)0));
-		if ((accessFlags & Constants.ACC_STATIC) == 0) {
+		if ((accessFlags & JavaByteCodeConstants.ACC_STATIC) == 0) {
 			addParameterDeclaration((short)0,thisId,classId);
 		}
 		this.needStackMapTable = needStackMapTable(majorVersion,minorVersion);  
@@ -91,11 +92,11 @@ class MethodDescriptor implements Closeable {
 	}
 	
 	boolean isAbstract() {
-		return (accessFlags & Constants.ACC_ABSTRACT) != 0; 
+		return (accessFlags & JavaByteCodeConstants.ACC_ABSTRACT) != 0; 
 	}
 	
 	boolean isStatic() {
-		return (accessFlags & Constants.ACC_STATIC) != 0; 
+		return (accessFlags & JavaByteCodeConstants.ACC_STATIC) != 0; 
 	}
 
 	boolean isBootstrap() {
@@ -333,7 +334,7 @@ class MethodDescriptor implements Closeable {
 			for (int index = 0, maxIndex = parm.length; index < maxIndex; index++) {
 				parm[index] = tree.placeOrChangeName(tree.getName(parametersList.get(index)).replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 			}
-			final long		signatureId = tree.placeOrChangeName(InternalUtils.buildMethodSignature(tree,(accessFlags & Constants.ACC_STATIC) != 0,returnedTypeId,parm),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)); 
+			final long		signatureId = tree.placeOrChangeName(InternalUtils.buildMethodSignature(tree,(accessFlags & JavaByteCodeConstants.ACC_STATIC) != 0,returnedTypeId,parm),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)); 
 			final int		classLen = tree.getNameLength(classId), methodLen = tree.getNameLength(methodId), signatureLen = getNameTree().getNameLength(signatureId); 
 			final char[]	forShortName = new char[methodLen+signatureLen], forLongName = new char[classLen+1+methodLen+signatureLen];
 
@@ -356,7 +357,7 @@ class MethodDescriptor implements Closeable {
 				if (className.lastIndexOf('.') >= 0) {
 					className = className.substring(className.lastIndexOf('.')+1);
 				}
-				if ((accessFlags & Constants.ACC_STATIC) != 0) {
+				if ((accessFlags & JavaByteCodeConstants.ACC_STATIC) != 0) {
 					tree.placeOrChangeName(new String(forShortName).replace(CLASS_INIT_STRING,className),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 					tree.placeOrChangeName(new String(forLongName).replace(CLASS_INIT_STRING,className),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 				}
@@ -377,7 +378,7 @@ class MethodDescriptor implements Closeable {
 	}
 
 	private boolean needStackMapTable(final short majorVersion, final short minorVersion) {
-		return majorVersion == Constants.MAJOR_1_8 && minorVersion == Constants.MINOR_1_8;
+		return majorVersion == JavaByteCodeConstants.MAJOR_1_8 && minorVersion == JavaByteCodeConstants.MINOR_1_8;
 	}
 	
 	private static class StackLevel {
