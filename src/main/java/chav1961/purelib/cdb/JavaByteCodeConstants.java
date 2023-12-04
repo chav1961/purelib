@@ -1,8 +1,5 @@
 package chav1961.purelib.cdb;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * <p>This class keeps a set of constants used in the Java Byte Code</p>
  * @author Alexander Chernomyrdin aka chav1961
@@ -14,10 +11,48 @@ public class JavaByteCodeConstants {
 	 * <p>Class file header constants</p>
 	 */
 	public static final int				MAGIC = 0xCAFEBABE;
+	public static final short			MAJOR_21 = 0x0041;
+	public static final short			MINOR_21 = 0x0000;
+	public static final short			MAJOR_20 = 0x0040;
+	public static final short			MINOR_20 = 0x0000;
+	public static final short			MAJOR_19 = 0x003F;
+	public static final short			MINOR_19 = 0x0000;
+	public static final short			MAJOR_18 = 0x003E;
+	public static final short			MINOR_18 = 0x0000;
+	public static final short			MAJOR_17 = 0x003D;
+	public static final short			MINOR_17 = 0x0000;
+	public static final short			MAJOR_16 = 0x003C;
+	public static final short			MINOR_16 = 0x0000;
+	public static final short			MAJOR_15 = 0x003B;
+	public static final short			MINOR_15 = 0x0000;
+	public static final short			MAJOR_14 = 0x003A;
+	public static final short			MINOR_14 = 0x0000;
+	public static final short			MAJOR_13 = 0x0039;
+	public static final short			MINOR_13 = 0x0000;
+	public static final short			MAJOR_12 = 0x0038;
+	public static final short			MINOR_12 = 0x0000;
+	public static final short			MAJOR_11 = 0x0037;
+	public static final short			MINOR_11 = 0x0000;
+	public static final short			MAJOR_10 = 0x0036;
+	public static final short			MINOR_10 = 0x0000;
+	public static final short			MAJOR_9 = 0x0035;
+	public static final short			MINOR_9 = 0x0000;
+	public static final short			MAJOR_8 = 0x0034;
+	public static final short			MINOR_8 = 0x0000;
+	public static final short			MAJOR_1_7 = 0x0033;
 	public static final short			MINOR_1_7 = 0x0000;
-	public static final short			MAJOR_1_7 = 0x0031;
-	public static final short			MINOR_1_8 = 0x0000;
-	public static final short			MAJOR_1_8 = 0x0032;
+	public static final short			MAJOR_1_6 = 0x0032;
+	public static final short			MINOR_1_6 = 0x0000;
+	public static final short			MAJOR_1_5 = 0x0031;
+	public static final short			MINOR_1_5 = 0x0000;
+	public static final short			MAJOR_1_4 = 0x0030;
+	public static final short			MINOR_1_4 = 0x0000;
+	public static final short			MAJOR_1_3 = 0x002F;
+	public static final short			MINOR_1_3 = 0x0000;
+	public static final short			MAJOR_1_2 = 0x002E;
+	public static final short			MINOR_1_2 = 0x0000;
+	public static final short			MAJOR_1_1 = 0x002D;
+	public static final short			MINOR_1_1 = 0x0000;
 	public static final char[]			OBJECT_NAME = "java/lang/Object".toCharArray();
 
 	
@@ -92,7 +127,7 @@ public class JavaByteCodeConstants {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.7
 	 */
-	public static enum AnnotationType {
+	public static enum JavaAttributeType {
 		ConstantValue(new JavaClassVersion(45,3)),
 		Code(new JavaClassVersion(45,3)),
 		StackMapTable(new JavaClassVersion(50,0)),
@@ -126,7 +161,7 @@ public class JavaByteCodeConstants {
 		
 		private final JavaClassVersion	fromVersion;
 		
-		AnnotationType(final JavaClassVersion	fromVersion) {
+		JavaAttributeType(final JavaClassVersion	fromVersion) {
 			this.fromVersion = fromVersion;
 		}
 		
@@ -144,30 +179,30 @@ public class JavaByteCodeConstants {
 	}
 	
 	
-	public static final char[]			ATTRIBUTE_ConstantValue = AnnotationType.ConstantValue.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Code = AnnotationType.Code.name().toCharArray();
-	public static final char[]			ATTRIBUTE_StackMapTable = AnnotationType.StackMapTable.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Exceptions = AnnotationType.Exceptions.name().toCharArray();
-	public static final char[]			ATTRIBUTE_InnerClasses = AnnotationType.InnerClasses.name().toCharArray();
-	public static final char[]			ATTRIBUTE_EnclosingMethod = AnnotationType.EnclosingMethod.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Synthetic = AnnotationType.Synthetic.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Signature = AnnotationType.Signature.name().toCharArray();
-	public static final char[]			ATTRIBUTE_SourceFile = AnnotationType.SourceFile.name().toCharArray();
-	public static final char[]			ATTRIBUTE_SourceDebugExtension = AnnotationType.SourceDebugExtension.name().toCharArray();
-	public static final char[]			ATTRIBUTE_LineNumberTable = AnnotationType.LineNumberTable.name().toCharArray();
-	public static final char[]			ATTRIBUTE_LocalVariableTable = AnnotationType.LocalVariableTable.name().toCharArray();
-	public static final char[]			ATTRIBUTE_LocalVariableTypeTable = AnnotationType.LocalVariableTypeTable.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Deprecated = AnnotationType.Deprecated.name().toCharArray();
-	public static final char[]			ATTRIBUTE_RuntimeVisibleTypeAnnotations = AnnotationType.RuntimeVisibleTypeAnnotations.name().toCharArray();
-	public static final char[]			ATTRIBUTE_RuntimeInvisibleTypeAnnotations = AnnotationType.RuntimeInvisibleTypeAnnotations.name().toCharArray();
-	public static final char[]			ATTRIBUTE_AnnotationDefault = AnnotationType.AnnotationDefault.name().toCharArray();
-	public static final char[]			ATTRIBUTE_BootstrapMethods = AnnotationType.BootstrapMethods.name().toCharArray();
-	public static final char[]			ATTRIBUTE_MethodParameters = AnnotationType.MethodParameters.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Module = AnnotationType.Module.name().toCharArray();
-	public static final char[]			ATTRIBUTE_ModulePackages = AnnotationType.ModulePackages.name().toCharArray();
-	public static final char[]			ATTRIBUTE_ModuleMainClass = AnnotationType.ModuleMainClass.name().toCharArray();
-	public static final char[]			ATTRIBUTE_NestHost = AnnotationType.NestHost.name().toCharArray();
-	public static final char[]			ATTRIBUTE_NestMembers = AnnotationType.NestMembers.name().toCharArray();
-	public static final char[]			ATTRIBUTE_Record = AnnotationType.Record.name().toCharArray();
-	public static final char[]			ATTRIBUTE_PermittedSubclasses = AnnotationType.PermittedSubclasses.name().toCharArray();
+	public static final char[]			ATTRIBUTE_ConstantValue = JavaAttributeType.ConstantValue.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Code = JavaAttributeType.Code.name().toCharArray();
+	public static final char[]			ATTRIBUTE_StackMapTable = JavaAttributeType.StackMapTable.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Exceptions = JavaAttributeType.Exceptions.name().toCharArray();
+	public static final char[]			ATTRIBUTE_InnerClasses = JavaAttributeType.InnerClasses.name().toCharArray();
+	public static final char[]			ATTRIBUTE_EnclosingMethod = JavaAttributeType.EnclosingMethod.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Synthetic = JavaAttributeType.Synthetic.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Signature = JavaAttributeType.Signature.name().toCharArray();
+	public static final char[]			ATTRIBUTE_SourceFile = JavaAttributeType.SourceFile.name().toCharArray();
+	public static final char[]			ATTRIBUTE_SourceDebugExtension = JavaAttributeType.SourceDebugExtension.name().toCharArray();
+	public static final char[]			ATTRIBUTE_LineNumberTable = JavaAttributeType.LineNumberTable.name().toCharArray();
+	public static final char[]			ATTRIBUTE_LocalVariableTable = JavaAttributeType.LocalVariableTable.name().toCharArray();
+	public static final char[]			ATTRIBUTE_LocalVariableTypeTable = JavaAttributeType.LocalVariableTypeTable.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Deprecated = JavaAttributeType.Deprecated.name().toCharArray();
+	public static final char[]			ATTRIBUTE_RuntimeVisibleTypeAnnotations = JavaAttributeType.RuntimeVisibleTypeAnnotations.name().toCharArray();
+	public static final char[]			ATTRIBUTE_RuntimeInvisibleTypeAnnotations = JavaAttributeType.RuntimeInvisibleTypeAnnotations.name().toCharArray();
+	public static final char[]			ATTRIBUTE_AnnotationDefault = JavaAttributeType.AnnotationDefault.name().toCharArray();
+	public static final char[]			ATTRIBUTE_BootstrapMethods = JavaAttributeType.BootstrapMethods.name().toCharArray();
+	public static final char[]			ATTRIBUTE_MethodParameters = JavaAttributeType.MethodParameters.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Module = JavaAttributeType.Module.name().toCharArray();
+	public static final char[]			ATTRIBUTE_ModulePackages = JavaAttributeType.ModulePackages.name().toCharArray();
+	public static final char[]			ATTRIBUTE_ModuleMainClass = JavaAttributeType.ModuleMainClass.name().toCharArray();
+	public static final char[]			ATTRIBUTE_NestHost = JavaAttributeType.NestHost.name().toCharArray();
+	public static final char[]			ATTRIBUTE_NestMembers = JavaAttributeType.NestMembers.name().toCharArray();
+	public static final char[]			ATTRIBUTE_Record = JavaAttributeType.Record.name().toCharArray();
+	public static final char[]			ATTRIBUTE_PermittedSubclasses = JavaAttributeType.PermittedSubclasses.name().toCharArray();
 }

@@ -378,7 +378,7 @@ class MethodDescriptor implements Closeable {
 	}
 
 	private boolean needStackMapTable(final short majorVersion, final short minorVersion) {
-		return majorVersion == JavaByteCodeConstants.MAJOR_1_8 && minorVersion == JavaByteCodeConstants.MINOR_1_8;
+		return majorVersion == JavaByteCodeConstants.MAJOR_8 && minorVersion == JavaByteCodeConstants.MINOR_8;
 	}
 	
 	private static class StackLevel {
