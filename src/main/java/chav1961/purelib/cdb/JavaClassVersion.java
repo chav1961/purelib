@@ -60,4 +60,53 @@ public class JavaClassVersion implements Comparable<JavaClassVersion> {
 	public String toString() {
 		return major+"."+minor;
 	}
+	
+	public String toHumanReadableString() {
+		switch (major) {
+			case JavaByteCodeConstants.MAJOR_1_1	:
+				return "1.1";
+			case JavaByteCodeConstants.MAJOR_1_2	:
+				return "1.2";
+			case JavaByteCodeConstants.MAJOR_1_3	:
+				return "1.3";
+			case JavaByteCodeConstants.MAJOR_1_4	:
+				return "1.4";
+			case JavaByteCodeConstants.MAJOR_1_5	:
+				return "1.5";
+			case JavaByteCodeConstants.MAJOR_1_6	:
+				return "1.6";
+			case JavaByteCodeConstants.MAJOR_1_7	:
+				return "1.7";
+			case JavaByteCodeConstants.MAJOR_8		:
+				return "8";
+			case JavaByteCodeConstants.MAJOR_9		:
+				return "9";
+			case JavaByteCodeConstants.MAJOR_10		:
+				return "10";
+			case JavaByteCodeConstants.MAJOR_11		:
+				return "11";
+			case JavaByteCodeConstants.MAJOR_12		:
+				return "12";
+			case JavaByteCodeConstants.MAJOR_13		:
+				return "13";
+			case JavaByteCodeConstants.MAJOR_14		:
+				return "14";
+			case JavaByteCodeConstants.MAJOR_15		:
+				return "15";
+			case JavaByteCodeConstants.MAJOR_16		:
+				return "16";
+			case JavaByteCodeConstants.MAJOR_17		:
+				return "17";
+			case JavaByteCodeConstants.MAJOR_18		:
+				return "18";
+			case JavaByteCodeConstants.MAJOR_19		:
+				return "19";
+			case JavaByteCodeConstants.MAJOR_20		:
+				return "20";
+			case JavaByteCodeConstants.MAJOR_21		:
+				return "21";
+			default :
+				return "<unknown>";
+		}
+	}
 }
