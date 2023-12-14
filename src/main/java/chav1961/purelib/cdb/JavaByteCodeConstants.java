@@ -116,7 +116,10 @@ public class JavaByteCodeConstants {
 	public static final byte			CONSTANT_Utf8 = 1;
 	public static final byte			CONSTANT_MethodHandle = 15;
 	public static final byte			CONSTANT_MethodType = 16;
+	public static final byte			CONSTANT_Dynamic = 17;
 	public static final byte			CONSTANT_InvokeDynamic = 18;
+	public static final byte			CONSTANT_Module = 19;
+	public static final byte			CONSTANT_Package = 20;
 	
 	/**
 	 * <p>Attribute names</p>
