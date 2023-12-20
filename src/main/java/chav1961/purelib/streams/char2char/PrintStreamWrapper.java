@@ -9,7 +9,7 @@ import chav1961.purelib.basic.interfaces.CharStreamPrinter;
 
 /**
  * <p>This class is a wrapper to {@linkplain PrintStream} class. It is used to prevent suppression of all I/O exception by source {@linkplain PrintStream} class,
- * because it blinks I/O errors during execution and can be caused to unpredictable behavior.</p>    
+ * because it blinds I/O errors during execution and can be caused to unpredictable behavior.</p>    
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
  */

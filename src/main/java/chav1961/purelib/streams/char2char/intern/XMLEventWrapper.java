@@ -11,7 +11,7 @@ import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
-public class XMLEventWrapper implements XMLEventWriter {
+class XMLEventWrapper implements XMLEventWriter {
 	private final List<String>		stack = new ArrayList<>();
 	private final XMLEventWriter 	nested;
 	

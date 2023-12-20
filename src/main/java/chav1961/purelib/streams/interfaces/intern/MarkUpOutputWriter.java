@@ -21,6 +21,7 @@ public interface MarkUpOutputWriter<Terminals extends Enum<?>, SectionState exte
 	void startDoc() throws IOException, SyntaxException;
 	void write(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException;
 	void writeEscaped(final long displacement, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException;
+	void writeNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException;	
 	void insertImage(final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException;
 	void insertLink(final boolean localRef, final long displacement, final char[] data, final int startLink, final int endLink, final int startCaption, final int endCaption) throws IOException, SyntaxException;
 	void processSection(final FSM<Terminals,SectionState,SectionActions,Parameter> fsm,final Terminals terminal,final SectionState fromState,final SectionState toState,final SectionActions[] action,final Parameter parameter) throws FlowException;

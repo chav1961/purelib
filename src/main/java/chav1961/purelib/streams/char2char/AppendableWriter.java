@@ -3,10 +3,23 @@ package chav1961.purelib.streams.char2char;
 import java.io.IOException;
 import java.io.Writer;
 
+/**
+ * <p>This class gets {@linkplain Writer} interface for any class, implements {@linkplain Appendable} interface</p>
+ * 
+ * <p>This class is not thread-safe</p>
+ * 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ */
 public class AppendableWriter extends Writer {
 	private final Appendable	app;
 	
-	public AppendableWriter(final Appendable app) {
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param app nested class, implements {@linkplain Appendable} interface
+	 * @throws NullPointerException if parameter is null
+	 */
+	public AppendableWriter(final Appendable app) throws NullPointerException {
 		if (app == null) {
 			throw new NullPointerException("Appendable to write can't be null");
 		}

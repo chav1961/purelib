@@ -15,7 +15,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleOutputWriter;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
 import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
@@ -24,7 +23,6 @@ import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
 import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
 class CreoleXMLOutputWriter extends CreoleOutputWriter {
-	
 	private static final String		NAMESPACE = "http://www.wikicreole.org/";
 	private static final String		PREFIX = "cre";
 

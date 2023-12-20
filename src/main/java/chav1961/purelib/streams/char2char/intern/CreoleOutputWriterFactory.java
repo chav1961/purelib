@@ -41,6 +41,7 @@ public class CreoleOutputWriterFactory {
 				case XML2HTML	: writer = new CreoleHTMLOutputWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHTMLOutputWriter>)epilogue); break;
 				case XML2PDF	: writer = new CreoleFOPOutputWriter(nested,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)prologue,(PrologueEpilogueMaster<XMLEventWriter,CreoleFOPOutputWriter>)epilogue); break;
 				case PARSEDCSV	: writer = new CreoleHighlighterWriter(nested,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleHighlighterWriter>)epilogue); break;
+				case MARKDOWN	: writer = new CreoleMarkdownWriter(nested,(PrologueEpilogueMaster<Writer,CreoleMarkdownWriter>)prologue,(PrologueEpilogueMaster<Writer,CreoleMarkdownWriter>)epilogue); break;
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 			return writer;
@@ -59,6 +60,7 @@ public class CreoleOutputWriterFactory {
 				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getPrologue();
 				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getPrologue();
 				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getPrologue();
+				case MARKDOWN	: return (PrologueEpilogueMaster<Wr, T>) CreoleMarkdownWriter.getPrologue();
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 		}
@@ -76,6 +78,7 @@ public class CreoleOutputWriterFactory {
 				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getEpilogue();
 				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getEpilogue();
 				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getEpilogue();
+				case MARKDOWN	: return (PrologueEpilogueMaster<Wr, T>) CreoleMarkdownWriter.getEpilogue();
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 		}
@@ -93,6 +96,7 @@ public class CreoleOutputWriterFactory {
 				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getPrologue(source);
 				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getPrologue(source);
 				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getPrologue(source);
+				case MARKDOWN	: return (PrologueEpilogueMaster<Wr, T>) CreoleMarkdownWriter.getPrologue();
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 		}
@@ -110,6 +114,7 @@ public class CreoleOutputWriterFactory {
 				case XML2HTML	: return (PrologueEpilogueMaster<Wr, T>) CreoleHTMLOutputWriter.getEpilogue(source);
 				case XML2PDF	: return (PrologueEpilogueMaster<Wr, T>) CreoleFOPOutputWriter.getEpilogue(source);
 				case PARSEDCSV	: return (PrologueEpilogueMaster<Wr, T>) CreoleHighlighterWriter.getEpilogue(source);
+				case MARKDOWN	: return (PrologueEpilogueMaster<Wr, T>) CreoleMarkdownWriter.getEpilogue();
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
 		}

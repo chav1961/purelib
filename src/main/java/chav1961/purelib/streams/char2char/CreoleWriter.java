@@ -15,6 +15,7 @@ import chav1961.purelib.streams.char2char.intern.CreoleOutputWriterFactory;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack.ListType;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
+import chav1961.purelib.streams.interfaces.intern.CreoleMarkUpOutputWriter;
 import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
 /**
@@ -70,7 +71,7 @@ public class CreoleWriter extends Writer {
 	private final LineByLineProcessor	lblp = new LineByLineProcessor(callback);
 	private final ListManipulationStack	lms = new ListManipulationStack();
 	private final Writer				nested;
-	private final CreoleOutputWriter	writer;
+	private final CreoleMarkUpOutputWriter<Long>	writer;
 	private final GrowableCharArray<?>	gca = new GrowableCharArray<GrowableCharArray<?>>(false);
 	private boolean						needParse = true, skipTheFirst = false, wasParagraph = false;
 	private long						nonCreoleDisplacement = -1;
@@ -99,7 +100,7 @@ public class CreoleWriter extends Writer {
 		}
 		else {
 			this.nested = nested;
-			this.writer = (CreoleOutputWriter) CreoleOutputWriterFactory.getInstance(format, nested, prologue, epilogue);
+			this.writer = (CreoleMarkUpOutputWriter<Long>) CreoleOutputWriterFactory.getInstance(format, nested, prologue, epilogue);
 			try{automat(0,0,0,CreoleTerminals.TERM_SOD,0);
 			} catch (SyntaxException exc) {
 				throw new IOException(exc.getLocalizedMessage(),exc); 
@@ -107,7 +108,7 @@ public class CreoleWriter extends Writer {
 		}
 	}
 
-	public <Wr,Inst> CreoleWriter(final CreoleOutputWriter writer) throws IOException {
+	public <Wr,Inst> CreoleWriter(final CreoleMarkUpOutputWriter<Long> writer) throws IOException {
 		if (writer == null) {
 			throw new NullPointerException("Output writer can't be null");
 		}
@@ -694,7 +695,7 @@ loop:		for (;from < to; from++) {
 	}
 
 	protected void internalWriteNonCreole(final long displacement, final int lineNo, final int colNo, final char[] content, final int from, final int to, final boolean keepNewLines) throws IOException, SyntaxException {
-		writer.internalWriteNonCreole(displacement,lineNo,colNo,content,from,to,keepNewLines);
+		writer.writeNonCreole(displacement,lineNo,colNo,content,from,to,keepNewLines);
 	}	
 	
 	protected int parseHref(final char[] data, int from, final int to) {	//  RFC 3986

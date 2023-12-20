@@ -10,7 +10,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleOutputWriter;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
 import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
@@ -95,7 +94,7 @@ class CreoleHTMLOutputWriter extends CreoleOutputWriter {
 	}
 	
 	@Override
-	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
+	public void writeNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
 		internalWrite(displacement,CODE_OPEN);
 		writeEscaped(displacement,content,from,to,keepNewLines);
 		internalWrite(displacement,CODE_CLOSE);

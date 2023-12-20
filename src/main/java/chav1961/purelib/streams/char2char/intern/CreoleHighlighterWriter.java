@@ -11,7 +11,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.char2char.CreoleOutputWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 import chav1961.purelib.streams.char2char.CreoleWriter.CreoleLexema;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
@@ -73,7 +72,7 @@ public class CreoleHighlighterWriter extends CreoleOutputWriter {
 	}	
 
 	@Override
-	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
+	public void writeNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
 		write(displacement, content, from, to, keepNewLines);
 		putLexema(CreoleLexema.NonCreoleContent, (int)displacement, to-from);
 	}

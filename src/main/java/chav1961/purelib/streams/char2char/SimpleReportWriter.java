@@ -42,7 +42,7 @@ import chav1961.purelib.sql.SQLUtils;
  * <expression>::={<ordinal_expression>|<group_expression>}
  * <group_expression>::={'sum'|'count'|'avg'|'min'|'max'}'('<ordinal_expression>')'
  */
-public class SimpleReportWriter extends Writer {
+class SimpleReportWriter extends Writer {
 	private static final char[]	CRLF = System.lineSeparator().toCharArray();
 	
 	private enum Option {

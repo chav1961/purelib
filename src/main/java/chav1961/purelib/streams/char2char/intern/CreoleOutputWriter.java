@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.char2char;
+package chav1961.purelib.streams.char2char.intern;
 
 
 import java.io.IOException;
@@ -13,7 +13,7 @@ import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
 import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
 import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
 
-public abstract class CreoleOutputWriter implements CreoleMarkUpOutputWriter<Long> {
+abstract class CreoleOutputWriter implements CreoleMarkUpOutputWriter<Long> {
 	@SuppressWarnings("unchecked")
 	protected static final FSM.FSMLine<CreoleTerminals,CreoleSectionState,CreoleSectionActions>[]	SECTION_TABLE = new FSM.FSMLine[]{
 								new FSM.FSMLine<>(CreoleSectionState.INITIAL,CreoleTerminals.TERM_SOD,CreoleSectionState.ORDINAL,CreoleSectionActions.DIV_OPEN),
@@ -135,7 +135,7 @@ public abstract class CreoleOutputWriter implements CreoleMarkUpOutputWriter<Lon
 		write(displacement,content,0,content.length,keepNewLines);
 	}
 
-	public void internalWriteNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
+	public void writeNonCreole(long displacement, int lineNo, int colNo, char[] content, int from, int to, boolean keepNewLines) throws SyntaxException, IOException {
 		write(displacement,content,from,to,keepNewLines);
 	}		
 }

@@ -129,15 +129,15 @@ public class PreprocessingReader extends AbstractPreprocessingReader {
 	private static final Map<Class<?>,Class<?>>	WRAPPERS = new HashMap<>();
 	
 	static {
-		COMMANDS.placeName("#if",CommandType.CMD_IF);
-		COMMANDS.placeName("#elseif",CommandType.CMD_ELSEIF);
-		COMMANDS.placeName("#else",CommandType.CMD_ELSE);
-		COMMANDS.placeName("#endif",CommandType.CMD_ENDIF);
-		COMMANDS.placeName("#define",CommandType.CMD_DEFINE);
-		COMMANDS.placeName("#undef",CommandType.CMD_UNDEF);
-		COMMANDS.placeName("#error",CommandType.CMD_ERROR);
-		COMMANDS.placeName("#warning",CommandType.CMD_WARNING);
-		COMMANDS.placeName("#include",CommandType.CMD_INCLUDE);
+		COMMANDS.placeName((CharSequence)"#if",CommandType.CMD_IF);
+		COMMANDS.placeName((CharSequence)"#elseif",CommandType.CMD_ELSEIF);
+		COMMANDS.placeName((CharSequence)"#else",CommandType.CMD_ELSE);
+		COMMANDS.placeName((CharSequence)"#endif",CommandType.CMD_ENDIF);
+		COMMANDS.placeName((CharSequence)"#define",CommandType.CMD_DEFINE);
+		COMMANDS.placeName((CharSequence)"#undef",CommandType.CMD_UNDEF);
+		COMMANDS.placeName((CharSequence)"#error",CommandType.CMD_ERROR);
+		COMMANDS.placeName((CharSequence)"#warning",CommandType.CMD_WARNING);
+		COMMANDS.placeName((CharSequence)"#include",CommandType.CMD_INCLUDE);
 		
 		WRAPPERS.put(boolean.class,Boolean.class);
 		WRAPPERS.put(byte.class,Byte.class);
@@ -355,7 +355,7 @@ public class PreprocessingReader extends AbstractPreprocessingReader {
 				for (to = index+1; to < maxIndex && Character.isJavaIdentifierPart(sb.charAt(to)); to++) {
 				}
 
-				final long	id = getDefinitions().seekName(sb.substring(index,to));
+				final long	id = getDefinitions().seekName((CharSequence)sb.substring(index,to));
 				
 				if (id >= 0) {
 					final char[]	value = getDefinitions().getCargo(id);

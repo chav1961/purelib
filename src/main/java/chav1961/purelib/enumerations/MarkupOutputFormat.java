@@ -42,5 +42,10 @@ public enum MarkupOutputFormat {
 	/**
 	 * <p>Parsed CSV format to use in the Creole syntax highlighters.</p>
 	 */
-	PARSEDCSV
+	PARSEDCSV,
+	
+	/**
+	 * <p>Content, converted to markdown syntax</p>
+	 */
+	MARKDOWN
 }

@@ -1,24 +1,16 @@
 package chav1961.purelib.streams.char2char;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
-import java.net.URL;
-import java.util.HashMap;
 import java.util.Map;
 
 import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.sql.SQLUtils;
-import chav1961.purelib.streams.char2char.AbstractPreprocessingReader.IncludeCallback;
 
 /**
  * <p>This class implements preprocessing for the reader nested. It supports a set of preprocessor operators:</p>
