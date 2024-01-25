@@ -537,11 +537,13 @@ class LineParser implements LineByLineProcessorCallback {
 						final GrowableCharArray<?>	writer = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
 						final String				className = this.getClass().getPackage().getName()+'.'+new String(currentMacros.getName()); 
 						
-						try{MacroCompiler.compile(className,currentMacros.getRoot(),writer,stringRepo);
+						try{MacroCompiler.compile(className, currentMacros.getRoot(), writer, stringRepo);
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
 							macros.placeOrChangeName((CharSequence)macroName,currentMacros);
 						} catch (CalculationException | InstantiationException | RuntimeException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
 							throw new SyntaxException(lineNo, 0, e.getLocalizedMessage(),e); 
+						} catch (VerifyError e) {
+							throw new SyntaxException(lineNo, 0, e.getLocalizedMessage()+"\nClass content:\n"+new String(writer.extract()), e); 
 						}
 						state = ParserState.beforePackage;
 						currentMacros = null;
