@@ -13,16 +13,19 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.cdb.JavaByteCodeConstants;
+import chav1961.purelib.cdb.JavaClassVersion;
+import chav1961.purelib.cdb.JavaByteCodeConstants.JavaAttributeType;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackMapRecord;
 
 class MethodDescriptor implements Closeable {
 	private static final String					INIT_STRING = "<init>"; 
-	private static final String					CLASS_INIT_STRING = "<clinit>"; 
+	private static final String					CLASS_INIT_STRING = "<clinit>";
 
 	final short									accessFlags;
 	final short									specialFlags;
-	
+
+	private final JavaClassVersion				version;
 	private final List<Long>					parametersList = new ArrayList<>();
 	private final List<StackLevel>				pushStack = new ArrayList<>();
 	private final List<short[]>					tryTable = new ArrayList<>();	
@@ -48,6 +51,7 @@ class MethodDescriptor implements Closeable {
 	MethodDescriptor(final short majorVersion, final short minorVersion, final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final short specialFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
 		final int	tLen = throwsList.length;
 		
+		this.version = new JavaClassVersion(majorVersion, minorVersion);
 		this.tree = tree;						
 		this.ccr = ccr;	
 		this.accessFlags = accessFlags;
@@ -378,7 +382,7 @@ class MethodDescriptor implements Closeable {
 	}
 
 	private boolean needStackMapTable(final short majorVersion, final short minorVersion) {
-		return majorVersion == JavaByteCodeConstants.MAJOR_8 && minorVersion == JavaByteCodeConstants.MINOR_8;
+		return JavaAttributeType.StackMapTable.getFromClassVersion().compareTo(new JavaClassVersion(majorVersion, minorVersion)) <= 0;
 	}
 	
 	private static class StackLevel {
