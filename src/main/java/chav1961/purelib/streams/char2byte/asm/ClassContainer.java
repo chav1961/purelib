@@ -34,8 +34,8 @@ class ClassContainer implements Closeable {
 	private URI		sourceRef = null;
 	
 	public ClassContainer() {
-		tree.placeName("long",null);			// To use in LocalVarTable descriptors
-		tree.placeName("double",null);
+		tree.placeName((CharSequence)"long",null);			// To use in LocalVarTable descriptors
+		tree.placeName((CharSequence)"double",null);
 		constantValueId = tree.placeName(JavaByteCodeConstants.ATTRIBUTE_ConstantValue,0,JavaByteCodeConstants.ATTRIBUTE_ConstantValue.length,null);	// To use in initials
 	}
 
@@ -153,8 +153,8 @@ class ClassContainer implements Closeable {
 		short	attr_sourcefile = 0, attr_sourcefile_text = 0; 
 		
 		if (sourceRef != null) {
-			attr_sourcefile = ccr.asUTF(tree.placeName("SourceFile",null));
-			attr_sourcefile_text = ccr.asUTF(tree.placeName(sourceRef.toString(),null));
+			attr_sourcefile = ccr.asUTF(tree.placeName((CharSequence)"SourceFile",null));
+			attr_sourcefile_text = ccr.asUTF(tree.placeName((CharSequence)sourceRef.toString(),null));
 		}		
 		
 		final InOutGrowableByteArray	result = new InOutGrowableByteArray(false); 

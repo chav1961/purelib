@@ -84,6 +84,8 @@ class StackAndVarRepo {
 	private int							currentStackTop = -1, maxStackDepth = 0, shadowStackTop;
 	private int[]						varFrames = new int[INITIAL_VARFRAME_STACK_SIZE];
 	private int[]						varContent = new int[INITIAL_VARFRAME_SIZE];
+	private short[]						varClass = new short[INITIAL_VARFRAME_SIZE];
+	private boolean[]					varPrepared = new boolean[INITIAL_VARFRAME_SIZE];
 	private int							lastVarFrameDispl = -1, lastVarFrameStackDispl = -1;
 	private short						previousStackMapDispl = 0;
 	
@@ -107,12 +109,14 @@ class StackAndVarRepo {
 		}
 	}
 	
-	void addVar(final int varDispl, final int varType) throws ContentException {
+	void addVar(final int varDispl, final int varType, final short classRef, final boolean isPrepared) throws ContentException {
 		if (varType == CompilerUtils.CLASSTYPE_DOUBLE || varType == CompilerUtils.CLASSTYPE_LONG) {
 			ensureVarFrameCapacity(varDispl+1);
 			if (varContent[varDispl] == SPECIAL_TYPE_UNPREPARED && varContent[varDispl+1] == SPECIAL_TYPE_UNPREPARED) {
 				varContent[varDispl] = varType;
+				varPrepared[varDispl] = isPrepared;
 				varContent[varDispl+1] = SPECIAL_TYPE_TOP;
+				varPrepared[varDispl+1] = isPrepared;
 			}
 			else {
 				throw new ContentException("variable overlay redefinition were detected at frame location ["+varDispl+"]");
@@ -122,6 +126,8 @@ class StackAndVarRepo {
 			ensureVarFrameCapacity(varDispl);
 			if (varContent[varDispl] == SPECIAL_TYPE_UNPREPARED) {
 				varContent[varDispl] = varType;
+				varClass[varDispl] = classRef;
+				varPrepared[varDispl] = isPrepared;
 			}
 			else {
 				throw new ContentException("variable overlay redefinition were detected at frame location ["+varDispl+"]");
@@ -684,7 +690,7 @@ class StackAndVarRepo {
 	}
 
 	VarSnapshot makeVarSnapshot() {
-		return new VarSnapshot(varContent,lastVarFrameDispl); 
+		return new VarSnapshot(varContent, varClass, varPrepared, lastVarFrameDispl); 
 	}
 	
 	StackMapRecord createStackMapRecord(final short displ) {
@@ -747,15 +753,17 @@ class StackAndVarRepo {
 
 	private void ensureVarFrameStackCapacity() {
 		if (lastVarFrameStackDispl >= varFrames.length-1) {
-			varFrames = Arrays.copyOf(varFrames,2*varFrames.length);
+			varFrames = Arrays.copyOf(varFrames, 2*varFrames.length);
 		}
 	}
 
 	private void ensureVarFrameCapacity(final int varLocation) {
 		lastVarFrameDispl = Math.max(lastVarFrameDispl,varLocation);
 		if (lastVarFrameDispl >= varContent.length-1) {
-			varContent = Arrays.copyOf(varContent,2*varContent.length);
-			Arrays.fill(varContent,lastVarFrameDispl,varContent.length,SPECIAL_TYPE_UNPREPARED);
+			varContent = Arrays.copyOf(varContent, 2*varContent.length);
+			Arrays.fill(varContent, lastVarFrameDispl, varContent.length, SPECIAL_TYPE_UNPREPARED);
+			varClass = Arrays.copyOf(varClass, 2*varClass.length);
+			Arrays.fill(varClass, lastVarFrameDispl, varClass.length, (short)0);
 		}
 	}
 	
@@ -763,7 +771,7 @@ class StackAndVarRepo {
 		private final int[]	content;
 		
 		StackSnapshot(final int[] stackContent, final int stackSize) {
-			this.content = Arrays.copyOf(stackContent,stackSize+1);
+			this.content = Arrays.copyOf(stackContent, stackSize + 1);
 		}
 
 		int getLength() {
@@ -820,10 +828,14 @@ class StackAndVarRepo {
 	}
 	
 	static class VarSnapshot {
-		private final int[]	content;
+		private final int[]		content;
+		private final short[]	types;
+		private final boolean[]	prepared;
 		
-		VarSnapshot(final int[] varContent, final int stackSize) {
-			this.content = Arrays.copyOf(varContent,stackSize+1);
+		VarSnapshot(final int[] varContent, final short[] types, final boolean[] prepared, final int varSize) {
+			this.content = Arrays.copyOf(varContent, varSize + 1);
+			this.types = Arrays.copyOf(types, varSize + 1);
+			this.prepared = Arrays.copyOf(prepared, varSize + 1);
 		}
 
 		int getLength() {
@@ -895,27 +907,31 @@ class StackAndVarRepo {
 			return    1	// 0xFF byte size 
 					+ 2 // displ size
 					+ 2 // stack content length size
-					+ calculateTypeArraySize(stack.content)	// stack content
+					+ calculateTypeArraySize(stack.content, null)	// stack content
 					+ 2	// var frame content length size
-					+ calculateTypeArraySize(vars.content)	// var frame content
+					+ calculateTypeArraySize(vars.content, vars.prepared)	// var frame content
 					;
 		}
 		
 		public void write(final InOutGrowableByteArray os) throws IOException {
 			os.writeByte(0xFF);
 			os.writeShort(displ);
-			os.writeShort(calculateTypeArraySize(vars.content));
-			for (int item : vars.content) {
-				os.writeByte(toStackFrameTypes(item));
-				if (item == CompilerUtils.CLASSTYPE_REFERENCE) {
-					os.writeShort(0);
+			os.writeShort(vars.content.length);
+//			os.writeShort(calculateTypeArraySize(vars.content));
+			for (int index = 0; index < vars.content.length; index++) {
+				final int	verification = toStackFrameTypes(vars.content[index], vars.prepared[index]); 
+				
+				os.writeByte(verification);
+				if (verification == 7) {
+					os.writeShort(vars.types[index]);
 				}
 			}
-			os.writeShort(calculateTypeArraySize(stack.content));
-			for (int item : stack.content) {
-				os.writeByte(toStackFrameTypes(item));	
-				if (item == CompilerUtils.CLASSTYPE_REFERENCE) {
-					os.writeShort(0);
+			os.writeShort(stack.content.length);
+//			os.writeShort(calculateTypeArraySize(stack.content));
+			for (int index = 0; index < stack.content.length; index++) {
+				os.writeByte(toStackFrameTypes(stack.content[index], true));	
+				if (stack.content[index] == CompilerUtils.CLASSTYPE_REFERENCE) {
+					os.writeShort(vars.types[index]);
 				}
 			}
 		}
@@ -925,30 +941,35 @@ class StackAndVarRepo {
 			return "StackMapRecord [displ=" + displ + ", stack=" + stack + ", vars=" + vars + "]";
 		}
 		
-		private static int toStackFrameTypes(final int type) {
-			switch (type) {
-				case CompilerUtils.CLASSTYPE_REFERENCE	: 
-					return 7;
-				case CompilerUtils.CLASSTYPE_BOOLEAN : case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT :
-				case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
-					return 1;	
-				case CompilerUtils.CLASSTYPE_LONG		: 
-					return 4;	
-				case CompilerUtils.CLASSTYPE_FLOAT		: 
-					return 2;	
-				case CompilerUtils.CLASSTYPE_DOUBLE		: 
-					return 3;	
-				case SPECIAL_TYPE_TOP					: 
-					return 0;
-				default : throw new UnsupportedOperationException();
+		private static int toStackFrameTypes(final int type, final boolean wasPrepared) {
+			if (wasPrepared) {
+				switch (type) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	: 
+						return 7;
+					case CompilerUtils.CLASSTYPE_BOOLEAN : case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT :
+					case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
+						return 1;	
+					case CompilerUtils.CLASSTYPE_LONG		: 
+						return 4;	
+					case CompilerUtils.CLASSTYPE_FLOAT		: 
+						return 2;	
+					case CompilerUtils.CLASSTYPE_DOUBLE		: 
+						return 3;	
+					case SPECIAL_TYPE_TOP					: 
+						return 0;
+					default : throw new UnsupportedOperationException();
+				}
+			}
+			else {
+				return 0;
 			}
 		}
 		
-		private static int calculateTypeArraySize(final int[] array) {
+		private static int calculateTypeArraySize(final int[] array, final boolean[] prepared) {
 			int	result = array.length;
 			
-			for (int item : array) {
-				if (item == CompilerUtils.CLASSTYPE_REFERENCE) {
+			for (int index = 0; index < array.length; index++) {
+				if (array[index] == CompilerUtils.CLASSTYPE_REFERENCE && (prepared == null || prepared[index])) {
 					result += 2;
 				}
 			}

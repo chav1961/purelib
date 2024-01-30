@@ -127,7 +127,7 @@ class InternalUtils {
 		return signatureByLetter(methodSignature.charAt(from+1));
 	}
 	
-	static int fieldSignature2Type(final String fieldSignature) {
+	static int fieldSignature2Type(final CharSequence fieldSignature) {
 		return signatureByLetter(fieldSignature.charAt(0));
 	}	
 

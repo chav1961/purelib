@@ -863,18 +863,18 @@ public class StackAndVarRepoTest {
 		final StackAndVarRepo		repo = new StackAndVarRepo(callback);
 
 		repo.startVarFrame();
-		repo.addVar(0,CompilerUtils.CLASSTYPE_INT);
-		repo.addVar(1,CompilerUtils.CLASSTYPE_LONG);
+		repo.addVar(0,CompilerUtils.CLASSTYPE_INT, (short)0, true);
+		repo.addVar(1,CompilerUtils.CLASSTYPE_LONG, (short)0, true);
 		
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(0));
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG,repo.getVarType(1));
 		Assert.assertEquals(3,repo.makeVarSnapshot().getLength());
 		
-		try{repo.addVar(0,CompilerUtils.CLASSTYPE_INT);
+		try{repo.addVar(0,CompilerUtils.CLASSTYPE_INT, (short)0, true);
 			Assert.fail("Mandatory exception was not detected (redefinition overlay)");
 		} catch (ContentException exc) {
 		}
-		try{repo.addVar(2,CompilerUtils.CLASSTYPE_DOUBLE);
+		try{repo.addVar(2,CompilerUtils.CLASSTYPE_DOUBLE, (short)0, true);
 			Assert.fail("Mandatory exception was not detected (redefinition overlay)");
 		} catch (ContentException exc) {
 		}
@@ -922,20 +922,20 @@ public class StackAndVarRepoTest {
 		
 		repo.startVarFrame();
 		for (int index = 0; index <= 20; index++) {
-			repo.addVar(index,CompilerUtils.CLASSTYPE_INT);
+			repo.addVar(index,CompilerUtils.CLASSTYPE_INT, (short)0, true);
 		}
 		for (int index = 0; index <= 20; index++) {
-			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(index));
+			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT, repo.getVarType(index));
 		}
 		repo.stopVarFrame();
 
 		for (int index = 0; index <= 5; index++) {
 			repo.startVarFrame();
-			repo.addVar(index,CompilerUtils.CLASSTYPE_INT);
+			repo.addVar(index,CompilerUtils.CLASSTYPE_INT, (short)0, true);
 		}
 
 		for (int index = 5; index >= 0; index--) {
-			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(index));
+			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT, repo.getVarType(index));
 			Assert.assertEquals(index+1,repo.makeVarSnapshot().getLength());
 			repo.stopVarFrame();
 		}

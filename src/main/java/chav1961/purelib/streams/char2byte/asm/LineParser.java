@@ -547,7 +547,7 @@ class LineParser implements LineByLineProcessorCallback {
 						} catch (CalculationException | InstantiationException | RuntimeException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
 							throw new SyntaxException(lineNo, 0, e.getLocalizedMessage(),e); 
 						} catch (VerifyError | ClassFormatError e) {
-							throw new SyntaxException(lineNo, 0, e.getLocalizedMessage()+"\nClass content:\n"+new String(writer.extract()), e); 
+							throw new ContentException(e.getClass().getSimpleName()+": "+e.getLocalizedMessage()+"\nClass content:\n"+new String(writer.extract()), e); 
 						}
 						state = ParserState.beforePackage;
 						currentMacros = null;
@@ -1527,7 +1527,7 @@ class LineParser implements LineByLineProcessorCallback {
 		methodNameId = id;
 	}
 
-	private void processParameterDir(final long id, final char[] data, int start) throws ContentException {
+	private void processParameterDir(final long id, final char[] data, int start) throws ContentException, IOException {
 		start = extractClassWithPossibleArray(data,start, cdr, forClass);
 
 		if (methodNameId == classConstructorId) {
