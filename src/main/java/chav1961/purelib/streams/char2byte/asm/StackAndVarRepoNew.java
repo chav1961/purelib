@@ -7,14 +7,13 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.cdb.CompilerUtils;
 
-class StackAndVarRepo {
+class StackAndVarRepoNew {
 	static final int			SPECIAL_TYPE_TOP = -1;
 	static final int			SPECIAL_TYPE_UNPREPARED = -2;
-	static StackSnapshot		CATCH_SNAPSHOT = new StackSnapshot(new int[]{CompilerUtils.CLASSTYPE_REFERENCE},1);  
-	
-	private static final int	INITIAL_STACK_SIZE = 16;
-	private static final int	INITIAL_VARFRAME_SIZE = 16;
-	private static final int	INITIAL_VARFRAME_STACK_SIZE = 4;
+	private static final int	INTIAL_STACKMAP = 256; 
+	private static final int	INTIAL_STACK = 16;
+	private static final int[]	STACK_TOP_DESCRIPTOR = new int[] {SPECIAL_TYPE_TOP, 0};
+	private static final int[]	UNPREPARED_DESCRIPTOR = new int[] {SPECIAL_TYPE_UNPREPARED, 0};
 	
 	enum StackChanges {
 		none,
@@ -76,27 +75,24 @@ class StackAndVarRepo {
 
 	@FunctionalInterface
 	interface StackChangesCallback {
-		void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom);
+		void processChanges(final int displ, final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom);
 	}
 
 	private final StackChangesCallback	stackCallback;
-	private int[]						stackContent = new int[INITIAL_STACK_SIZE], stackShadow = new int[INITIAL_STACK_SIZE];
+	private StackMapItem[]				stackMap = new StackMapItem[INTIAL_STACKMAP];
+	private int[][]						stackContent = new int[INTIAL_STACK][];
 	private int							currentStackTop = -1, maxStackDepth = 0, shadowStackTop;
-	private int[]						varFrames = new int[INITIAL_VARFRAME_STACK_SIZE];
-	private int[]						varContent = new int[INITIAL_VARFRAME_SIZE];
-	private short[]						varClass = new short[INITIAL_VARFRAME_SIZE];
-	private boolean[]					varPrepared = new boolean[INITIAL_VARFRAME_SIZE];
 	private int							lastVarFrameDispl = -1, lastVarFrameStackDispl = -1;
 	private short						previousStackMapDispl = 0;
+	private short						varFrameCodeDispl = 0;
 	
-	StackAndVarRepo(final StackChangesCallback stackCallback) {
+	StackAndVarRepoNew(final StackChangesCallback stackCallback) {
 		this.stackCallback = stackCallback;
-		Arrays.fill(varContent,SPECIAL_TYPE_UNPREPARED);
 	}
 	
-	void startVarFrame() {
+	void startVarFrame(final short codeDispl) {
 		ensureVarFrameStackCapacity();
-		varFrames[++lastVarFrameStackDispl] = lastVarFrameDispl;
+		ensureStackMapCapacity(varFrameCodeDispl = codeDispl);
 	}
 	
 	void stopVarFrame() {
@@ -111,27 +107,12 @@ class StackAndVarRepo {
 	
 	void addVar(final int varDispl, final int varType, final short classRef, final boolean isPrepared) throws ContentException {
 		if (varType == CompilerUtils.CLASSTYPE_DOUBLE || varType == CompilerUtils.CLASSTYPE_LONG) {
-			ensureVarFrameCapacity(varDispl+1);
-			if (varContent[varDispl] == SPECIAL_TYPE_UNPREPARED && varContent[varDispl+1] == SPECIAL_TYPE_UNPREPARED) {
-				varContent[varDispl] = varType;
-				varPrepared[varDispl] = isPrepared;
-				varContent[varDispl+1] = SPECIAL_TYPE_TOP;
-				varPrepared[varDispl+1] = isPrepared;
-			}
-			else {
-				throw new ContentException("variable overlay redefinition were detected at frame location ["+varDispl+"]");
-			}
+			checkUnprepared(stackMap[varFrameCodeDispl], varDispl, 2);
+			stackMap[varFrameCodeDispl] = new StackMapItem(stackMap[varFrameCodeDispl], varFrameCodeDispl, 0, null, varDispl, new int[] {varType, classRef});
 		}
 		else {
-			ensureVarFrameCapacity(varDispl);
-			if (varContent[varDispl] == SPECIAL_TYPE_UNPREPARED) {
-				varContent[varDispl] = varType;
-				varClass[varDispl] = classRef;
-				varPrepared[varDispl] = isPrepared;
-			}
-			else {
-				throw new ContentException("variable overlay redefinition were detected at frame location ["+varDispl+"]");
-			}
+			checkUnprepared(stackMap[varFrameCodeDispl], varDispl, 1);
+			stackMap[varFrameCodeDispl] = new StackMapItem(stackMap[varFrameCodeDispl], varFrameCodeDispl, 0, null, varDispl, new int[] {varType, classRef});
 		}
 	}
 
@@ -149,20 +130,13 @@ class StackAndVarRepo {
 		}
 	}
 	
-	void begin() {
-		if (currentStackTop >= 0) {
-			System.arraycopy(stackContent,0,stackShadow,0,stackContent.length);
-		}
-		shadowStackTop = currentStackTop;
-	}
-
-	void clear() throws ContentException {
+	void clear(final short codeDispl) throws ContentException {
 		while (currentStackTop >= 0) {
-			pop();
+			pop(codeDispl);
 		}
 	}
 	
-	void pop() throws ContentException {
+	void pop(final short codeDispl) throws ContentException {
 		if (currentStackTop < 0) {
 			throw new ContentException("Illegal command usage: stack exhausted");
 		}
@@ -171,58 +145,26 @@ class StackAndVarRepo {
 		}
 	}
 
-	void pushInt() {
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_INT;
-	}
-	
-	void pushLong() {
-		ensureStackCapacity(2);
-		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_LONG;
-		stackContent[++currentStackTop] = SPECIAL_TYPE_TOP;
-	}
-	
-	void pushFloat() {
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_FLOAT;
-	}
-	
-	void pushDouble() {
-		ensureStackCapacity(2);
-		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_DOUBLE;
-		stackContent[++currentStackTop] = SPECIAL_TYPE_TOP;
-	}
-	
-	void pushReference() {
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = CompilerUtils.CLASSTYPE_REFERENCE;
-	}
-	
-	void pushUnprepared() {
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = SPECIAL_TYPE_UNPREPARED;
-	}
-	
-	void pop(final int size) throws ContentException {
+	void pop(final short codeDispl, final int size) throws ContentException {
 		for (int index = 0; index < size; index++) {
-			pop();
+			pop(codeDispl);
 		}
 	}
-	
-	void push(final int type) {
+
+	void push(final short codeDispl, final int type, final int refType) {
 		switch (type) {
-			case CompilerUtils.CLASSTYPE_REFERENCE	: pushReference();	break;
-			case CompilerUtils.CLASSTYPE_BYTE		: pushInt();		break;
-			case CompilerUtils.CLASSTYPE_SHORT		: pushInt(); 		break;
-			case CompilerUtils.CLASSTYPE_CHAR 		: pushInt();		break;
-			case CompilerUtils.CLASSTYPE_INT		: pushInt();		break;
-			case CompilerUtils.CLASSTYPE_FLOAT		: pushFloat();		break;	
-			case CompilerUtils.CLASSTYPE_BOOLEAN	: pushInt();		break;
-			case CompilerUtils.CLASSTYPE_LONG 		: pushLong();		break;
-			case CompilerUtils.CLASSTYPE_DOUBLE		: pushDouble();		break;
-			case SPECIAL_TYPE_UNPREPARED			: pushUnprepared();	break;
+			case CompilerUtils.CLASSTYPE_REFERENCE	: pushReference(codeDispl, refType); break;
+			case CompilerUtils.CLASSTYPE_BYTE		: pushInt(codeDispl); break;
+			case CompilerUtils.CLASSTYPE_SHORT		: pushInt(codeDispl); break;
+			case CompilerUtils.CLASSTYPE_CHAR 		: pushInt(codeDispl); break;
+			case CompilerUtils.CLASSTYPE_INT		: pushInt(codeDispl); break;
+			case CompilerUtils.CLASSTYPE_FLOAT		: pushFloat(codeDispl); break;	
+			case CompilerUtils.CLASSTYPE_BOOLEAN	: pushInt(codeDispl); break;
+			case CompilerUtils.CLASSTYPE_LONG 		: pushLong(codeDispl); break;
+			case CompilerUtils.CLASSTYPE_DOUBLE		: pushDouble(codeDispl); break;
+			case SPECIAL_TYPE_UNPREPARED			: pushUnprepared(codeDispl);	break;
 			default :
-				throw new UnsupportedOperationException(); 
+				throw new UnsupportedOperationException("Variable type ["+type+"] is not supported yet"); 
 		}
 	}
 	
@@ -231,7 +173,16 @@ class StackAndVarRepo {
 			throw new ContentException("Illegal command usage: not enought stack content. Stack content is "+prepareStackContent());
 		}
 		else {
-			return stackContent[currentStackTop + fromTop];
+			return stackContent[currentStackTop + fromTop][0];
+		}
+	}
+
+	int selectRefType(final int fromTop) throws ContentException {
+		if (currentStackTop + fromTop > currentStackTop || currentStackTop + fromTop < 0) {
+			throw new ContentException("Illegal command usage: not enought stack content. Stack content is "+prepareStackContent());
+		}
+		else {
+			return stackContent[currentStackTop + fromTop][1];
 		}
 	}
 	
@@ -240,7 +191,7 @@ class StackAndVarRepo {
 		int			index;
 		
 		for (index = 0; index < maxIndex; index++) {
-			if (!typesAreCompatible(stackContent[index],stackShadow[index])) {
+			if (!typesAreCompatible(stackContent[index], stackShadow[index])) {
 				break;
 			}
 		}
@@ -258,13 +209,12 @@ class StackAndVarRepo {
 		stackCallback.processChanges(stackContent,deletedFrom,insertedFrom,changedFrom);
 	}
 
-	void processChanges(final StackChanges changes) throws ContentException {
-		begin();
+	void processChanges(final short codeDispl, final StackChanges changes, final int refType) throws ContentException {
 		switch (changes) {
 			case changeDouble2Float:
 				if (select(0) == SPECIAL_TYPE_TOP && select(-1) == CompilerUtils.CLASSTYPE_DOUBLE) {
-					pop(2);
-					pushFloat();
+					pop(codeDispl, 2);
+					pushFloat(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain double value. Stack content is "+prepareStackContent());
@@ -272,8 +222,8 @@ class StackAndVarRepo {
 				break;
 			case changeDouble2Int:
 				if (select(0) == SPECIAL_TYPE_TOP && select(-1) == CompilerUtils.CLASSTYPE_DOUBLE) {
-					pop(2);
-					pushInt();
+					pop(codeDispl, 2);
+					pushInt(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain double value. Stack content is "+prepareStackContent());
@@ -281,8 +231,8 @@ class StackAndVarRepo {
 				break;
 			case changeDouble2Long:
 				if (select(0) == SPECIAL_TYPE_TOP && select(-1) == CompilerUtils.CLASSTYPE_DOUBLE) {
-					pop(2);
-					pushLong();
+					pop(codeDispl, 2);
+					pushLong(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain double value. Stack content is "+prepareStackContent());
@@ -290,8 +240,8 @@ class StackAndVarRepo {
 				break;
 			case changeFloat2Double:
 				if (select(0) == CompilerUtils.CLASSTYPE_FLOAT) {
-					pop();
-					pushDouble();
+					pop(codeDispl);
+					pushDouble(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
@@ -299,8 +249,8 @@ class StackAndVarRepo {
 				break;
 			case changeFloat2Int:
 				if (select(0) == CompilerUtils.CLASSTYPE_FLOAT) {
-					pop();
-					pushInt();
+					pop(codeDispl);
+					pushInt(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
@@ -308,8 +258,8 @@ class StackAndVarRepo {
 				break;
 			case changeFloat2Long:
 				if (select(0) == CompilerUtils.CLASSTYPE_FLOAT) {
-					pop();
-					pushLong();
+					pop(codeDispl);
+					pushLong(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
@@ -317,8 +267,8 @@ class StackAndVarRepo {
 				break;
 			case changeInt2Double:
 				if (select(0) == CompilerUtils.CLASSTYPE_INT || select(0) == CompilerUtils.CLASSTYPE_BYTE || select(0) == CompilerUtils.CLASSTYPE_SHORT || select(0) == CompilerUtils.CLASSTYPE_CHAR) {
-					pop();
-					pushDouble();
+					pop(codeDispl);
+					pushDouble(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
@@ -326,8 +276,8 @@ class StackAndVarRepo {
 				break;
 			case changeInt2Float:
 				if (select(0) == CompilerUtils.CLASSTYPE_INT || select(0) == CompilerUtils.CLASSTYPE_BYTE || select(0) == CompilerUtils.CLASSTYPE_SHORT || select(0) == CompilerUtils.CLASSTYPE_CHAR) {
-					pop();
-					pushFloat();
+					pop(codeDispl);
+					pushFloat(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
@@ -335,8 +285,8 @@ class StackAndVarRepo {
 				break;
 			case changeInt2Long:
 				if (select(0) == CompilerUtils.CLASSTYPE_INT || select(0) == CompilerUtils.CLASSTYPE_BYTE || select(0) == CompilerUtils.CLASSTYPE_SHORT || select(0) == CompilerUtils.CLASSTYPE_CHAR) {
-					pop();
-					pushLong();
+					pop(codeDispl);
+					pushLong(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain float value. Stack content is "+prepareStackContent());
@@ -344,8 +294,8 @@ class StackAndVarRepo {
 				break;
 			case changeLong2Double:
 				if (select(-1) == CompilerUtils.CLASSTYPE_LONG) {
-					pop(2);
-					pushDouble();
+					pop(codeDispl, 2);
+					pushDouble(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain long value. Stack content is "+prepareStackContent());
@@ -353,8 +303,8 @@ class StackAndVarRepo {
 				break;
 			case changeLong2Float:
 				if (select(0) == SPECIAL_TYPE_TOP && select(-1) == CompilerUtils.CLASSTYPE_LONG) {
-					pop(2);
-					pushFloat();
+					pop(codeDispl, 2);
+					pushFloat(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain long value. Stack content is "+prepareStackContent());
@@ -362,21 +312,21 @@ class StackAndVarRepo {
 				break;
 			case changeLong2Int:
 				if (select(-1) == CompilerUtils.CLASSTYPE_LONG) {
-					pop(2);
-					pushInt();
+					pop(codeDispl, 2);
+					pushInt(codeDispl);
 				}
 				else {
 					throw new ContentException("Illegal command usage: top of stack doesn't contain long value. Stack content is "+prepareStackContent());
 				}
 				break;
 			case clear:
-				clear();
+				clear(codeDispl);
 				break;
 			case dup:
-				final int	dup = select(0);
+				final int	dup = select(0), dupType = selectRefType(0);
 				
 				if (dup != SPECIAL_TYPE_TOP) {
-					push(dup);
+					push(codeDispl, dup, dupType);
 				}
 				else {
 					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
@@ -384,14 +334,15 @@ class StackAndVarRepo {
 				break;
 			case dup2:
 				final int	dup2V1 = select(0), dup2V2 = select(-1);
+				final int	dup2V1Type = selectRefType(0), dup2V2Type = selectRefType(-1);
 				
 				if (dup2V2 != SPECIAL_TYPE_TOP) {
 					if (dup2V2 == CompilerUtils.CLASSTYPE_LONG || dup2V2 == CompilerUtils.CLASSTYPE_DOUBLE) {
-						push(dup2V2);
+						push(codeDispl, dup2V2, dup2V2Type);
 					}
 					else {
-						push(dup2V2);
-						push(dup2V1);
+						push(codeDispl, dup2V2, dup2V2Type);
+						push(codeDispl, dup2V1, dup2V1Type);
 					}
 				}
 				else {
@@ -400,23 +351,24 @@ class StackAndVarRepo {
 				break;
 			case dup2_x1:
 				final int	dup2X1V1 = select(0), dup2X1V2 = select(-1), dup2X1V3 = select(-2);
+				final int	dup2X1V1Type = selectRefType(0), dup2X1V2Type = selectRefType(-1), dup2X1V3Type = selectRefType(-2);
 				
 				if (dup2X1V3 != SPECIAL_TYPE_TOP) {
-					pop(3);
+					pop(codeDispl, 3);
 					if (dup2X1V2 == CompilerUtils.CLASSTYPE_LONG || dup2X1V2 == CompilerUtils.CLASSTYPE_DOUBLE) {
-						push(dup2X1V2);
+						push(codeDispl, dup2X1V2, dup2X1V2Type);
 					}
 					else {
-						push(dup2X1V2);
-						push(dup2X1V1);
+						push(codeDispl, dup2X1V2, dup2X1V2Type);
+						push(codeDispl, dup2X1V1, dup2X1V1Type);
 					}
-					push(dup2X1V3);
+					push(codeDispl, dup2X1V3, dup2X1V3Type);
 					if (dup2X1V2 == CompilerUtils.CLASSTYPE_LONG || dup2X1V2 == CompilerUtils.CLASSTYPE_DOUBLE) {
-						push(dup2X1V2);
+						push(codeDispl, dup2X1V2, dup2X1V2Type);
 					}
 					else {
-						push(dup2X1V2);
-						push(dup2X1V1);
+						push(codeDispl, dup2X1V2, dup2X1V2Type);
+						push(codeDispl, dup2X1V1, dup2X1V1Type);
 					}
 				}
 				else {
@@ -425,24 +377,25 @@ class StackAndVarRepo {
 				break;
 			case dup2_x2:
 				final int	dup2X2V1 = select(0), dup2X2V2 = select(-1), dup2X2V3 = select(-2), dup2X2V4 = select(-3);
+				final int	dup2X2V1Type = selectRefType(0), dup2X2V2Type = selectRefType(-1), dup2X2V3Type = selectRefType(-2), dup2X2V4Type = selectRefType(-3);
 				
 				if (dup2X2V4 != SPECIAL_TYPE_TOP && dup2X2V3 != SPECIAL_TYPE_TOP && dup2X2V2 != SPECIAL_TYPE_TOP) {
-					pop(4);
+					pop(codeDispl, 4);
 					if (dup2X2V2 == CompilerUtils.CLASSTYPE_LONG || dup2X2V2 == CompilerUtils.CLASSTYPE_DOUBLE) {
-						push(dup2X2V2);
+						push(codeDispl, dup2X2V2, dup2X2V2Type);
 					}
 					else {
-						push(dup2X2V2);
-						push(dup2X2V1);
+						push(codeDispl, dup2X2V2, dup2X2V2Type);
+						push(codeDispl, dup2X2V1, dup2X2V1Type);
 					}
-					push(dup2X2V4);
-					push(dup2X2V3);
+					push(codeDispl, dup2X2V4, dup2X2V4Type);
+					push(codeDispl, dup2X2V3, dup2X2V3Type);
 					if (dup2X2V2 == CompilerUtils.CLASSTYPE_LONG || dup2X2V2 == CompilerUtils.CLASSTYPE_DOUBLE) {
-						push(dup2X2V2);
+						push(codeDispl, dup2X2V2, dup2X2V2Type);
 					}
 					else {
-						push(dup2X2V2);
-						push(dup2X2V1);
+						push(codeDispl, dup2X2V2, dup2X2V2Type);
+						push(codeDispl, dup2X2V1, dup2X2V1Type);
 					}
 				}
 				else {
@@ -451,12 +404,13 @@ class StackAndVarRepo {
 				break;
 			case dup_x1	:
 				final int	dupX1V1 = select(0), dupX1V2 = select(-1);
+				final int	dupX1V1Type = selectRefType(0), dupX1V2Type = selectRefType(-1);
 				
 				if (dupX1V1 != SPECIAL_TYPE_TOP && dupX1V2 != SPECIAL_TYPE_TOP) {
-					pop(2);
-					push(dupX1V1);
-					push(dupX1V2);
-					push(dupX1V1);
+					pop(codeDispl, 2);
+					push(codeDispl, dupX1V1, dupX1V1Type);
+					push(codeDispl, dupX1V2, dupX1V2Type);
+					push(codeDispl, dupX1V1, dupX1V1Type);
 				}
 				else {
 					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
@@ -464,13 +418,14 @@ class StackAndVarRepo {
 				break;
 			case dup_x2	:
 				final int	dupX2V1 = select(0), dupX2V2 = select(-1), dupX2V3 = select(-2);
+				final int	dupX2V1Type = selectRefType(0), dupX2V2Type = selectRefType(-1), dupX2V3Type = selectRefType(-2);
 				
 				if (dupX2V3 != SPECIAL_TYPE_TOP && dupX2V2 != SPECIAL_TYPE_TOP && dupX2V1 != SPECIAL_TYPE_TOP) {
-					pop(3);
-					push(dupX2V1);
-					push(dupX2V3);
-					push(dupX2V2);
-					push(dupX2V1);
+					pop(codeDispl, 3);
+					push(codeDispl, dupX2V1, dupX2V1Type);
+					push(codeDispl, dupX2V3, dupX2V3Type);
+					push(codeDispl, dupX2V2, dupX2V2Type);
+					push(codeDispl, dupX2V1, dupX2V1Type);
 				}
 				else {
 					throw new ContentException("Illegal command usage: attempt to duplicate half of long/double value. Stack content is "+prepareStackContent());
@@ -479,89 +434,90 @@ class StackAndVarRepo {
 			case none:
 				break;
 			case pop:
-				pop();
+				pop(codeDispl);
 				break;
 			case pop2:
-				pop(2);
+				pop(codeDispl, 2);
 				break;
 			case pop2AndPushDouble:
-				pop(2);
-				pushDouble();
+				pop(codeDispl, 2);
+				pushDouble(codeDispl);
 				break;
 			case pop2AndPushFloat:
-				pop(2);
-				pushFloat();
+				pop(codeDispl, 2);
+				pushFloat(codeDispl);
 				break;
 			case pop2AndPushInt:
-				pop(2);
-				pushInt();
+				pop(codeDispl, 2);
+				pushInt(codeDispl);
 				break;
 			case pop2AndPushLong:
-				pop(2);
-				pushLong();
+				pop(codeDispl, 2);
+				pushLong(codeDispl);
 				break;
 			case pop2AndPushReference:
-				pop(2);
-				pushReference();
+				pop(codeDispl, 2);
+				pushReference(codeDispl, refType);
 				break;
 			case pop3:
-				pop(3);
+				pop(codeDispl, 3);
 				break;
 			case pop4:
-				pop(4);
+				pop(codeDispl, 4);
 				break;
 			case pop4AndPushDouble:
-				pop(4);
-				pushDouble();
+				pop(codeDispl, 4);
+				pushDouble(codeDispl);
 				break;
 			case pop4AndPushInt:
-				pop(4);
-				pushInt();
+				pop(codeDispl, 4);
+				pushInt(codeDispl);
 				break;
 			case pop4AndPushLong:
-				pop(4);
-				pushLong();
+				pop(codeDispl, 4);
+				pushLong(codeDispl);
 				break;
 			case popAndPushInt:
-				pop();
-				pushInt();
+				pop(codeDispl);
+				pushInt(codeDispl);
 				break;
 			case popAndPushFloat:
-				pop();
-				pushFloat();
+				pop(codeDispl);
+				pushFloat(codeDispl);
 				break;
 			case popAndPushReference:
-				pop();
-				pushReference();
+				pop(codeDispl);
+				pushReference(codeDispl, refType);
 				break;
 			case pushDouble:
-				pushDouble();
+				pushDouble(codeDispl);
 				break;
 			case pushFloat:
-				pushFloat();
+				pushFloat(codeDispl);
 				break;
 			case pushInt:
-				pushInt();
+				pushInt(codeDispl);
 				break;
 			case pushLong:
-				pushLong();
+				pushLong(codeDispl);
 				break;
 			case pushReference:
-				pushReference();
+				pushReference(codeDispl, refType);
 				break;
 			case pushUnprepared:
-				pushUnprepared();
+				pushUnprepared(codeDispl);
 				break;
 			case swap :
 				final	int val1 = select(0), val2 = select(-1);
+				final	int val1Type = selectRefType(0), val2Type = selectRefType(-1);
 				
 				if (val2 == CompilerUtils.CLASSTYPE_DOUBLE || val2 == CompilerUtils.CLASSTYPE_LONG) {
 					throw new ContentException("Illegal command usage: double/long value at the top of stack. Stack content is "+prepareStackContent());
 				}
 				else {
-					pop(2);
-					push(val1);
-					push(val2);
+					pop(codeDispl, 2);
+					push(codeDispl, val1, val1Type);
+					push(codeDispl, val2, val2Type);
 				}
 				break;
 			default:
@@ -570,30 +526,29 @@ class StackAndVarRepo {
 		commit();
 	}
 
-	void processChanges(final StackChanges changes, final int signature) throws ContentException {
-		begin();
+	void processChanges(final short codeDispl, final StackChanges changes, final int type, final int refType) throws ContentException {
 		switch (changes) {
 			case multiarrayAndPushReference	:
-				for (int index = 0; index < signature; index++) {
+				for (int index = 0; index < type; index++) {
 					if (select(-index) != CompilerUtils.CLASSTYPE_INT) {
-						throw new ContentException("Illegal command usage: multianewarray command contains non-integer dimensions on stack at position ["+(index-signature)+"]. Stack content is "+prepareStackContent());
+						throw new ContentException("Illegal command usage: multianewarray command contains non-integer dimensions on stack at position ["+(index-type)+"]. Stack content is "+prepareStackContent());
 					}
 				}
-				pop(signature);
-				pushReference();
+				pop(codeDispl, type);
+				pushReference(codeDispl, refType);
 				break;
 			case popField	:
-				if (signature == CompilerUtils.CLASSTYPE_DOUBLE || signature == CompilerUtils.CLASSTYPE_LONG) {
-					if (select(0) == SPECIAL_TYPE_TOP && typesAreCompatible(select(-1),signature) && select(-2) == CompilerUtils.CLASSTYPE_REFERENCE) {
-						pop(3);
+				if (type == CompilerUtils.CLASSTYPE_DOUBLE || type == CompilerUtils.CLASSTYPE_LONG) {
+					if (select(0) == SPECIAL_TYPE_TOP && typesAreCompatible(select(-1), type) && select(-2) == CompilerUtils.CLASSTYPE_REFERENCE) {
+						pop(codeDispl, 3);
 					}
 					else {
 						throw new ContentException("Illegal command usage: illegal stack content (double/long and reference awaited). Stack content is "+prepareStackContent());
 					}
 				}
 				else {
-					if (typesAreCompatible(select(0),signature) && select(-1) == CompilerUtils.CLASSTYPE_REFERENCE) {
-						pop(2);
+					if (typesAreCompatible(select(0),type) && select(-1) == CompilerUtils.CLASSTYPE_REFERENCE) {
+						pop(codeDispl, 2);
 					}
 					else {
 						throw new ContentException("Illegal command usage: illegal stack content (non-double/-nonlong and reference awaited). Stack content is "+prepareStackContent());
@@ -601,17 +556,17 @@ class StackAndVarRepo {
 				}
 				break;
 			case popStatic	:
-				if (signature == CompilerUtils.CLASSTYPE_DOUBLE || signature == CompilerUtils.CLASSTYPE_LONG) {
-					if (select(0) == SPECIAL_TYPE_TOP && typesAreCompatible(select(-1),signature)) {
-						pop(2);
+				if (type == CompilerUtils.CLASSTYPE_DOUBLE || type == CompilerUtils.CLASSTYPE_LONG) {
+					if (select(0) == SPECIAL_TYPE_TOP && typesAreCompatible(select(-1), type)) {
+						pop(codeDispl, 2);
 					}
 					else {
 						throw new ContentException("Illegal command usage: attempt to save long/double from non-long/non-doube stack. Stack content is "+prepareStackContent());
 					}
 				}
 				else {
-					if (typesAreCompatible(select(0),signature)) {
-						pop();
+					if (typesAreCompatible(select(0), type)) {
+						pop(codeDispl);
 					}
 					else {
 						throw new ContentException("Illegal command usage: incompatible types on static fields and stack top. Stack content is "+prepareStackContent());
@@ -619,45 +574,44 @@ class StackAndVarRepo {
 				}
 				break;
 			case pushField	:
-				if (select(0) != CompilerUtils.CLASSTYPE_REFERENCE) {
-					throw new ContentException("Illegal command usage: any reference on the top of stack is missing. Stack content is "+prepareStackContent());
+				if (select(0) == CompilerUtils.CLASSTYPE_REFERENCE) {
+					pop(codeDispl);
+					push(codeDispl, type, refType);
 				}
 				else {
-					pop();
-					push(signature);
+					throw new ContentException("Illegal command usage: reference is missing at the top of stack. Stack content is "+prepareStackContent());
 				}
 				break;
 			case pushStatic	:
-				push(signature);
+				push(codeDispl, type, refType);
 				break;
 			default:
-				throw new UnsupportedOperationException(); 
+				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
 		commit();
 	}
 
-	void processChanges(final StackChanges changes, final int[] callSignature, final int signatureSize, final int retSignature) throws ContentException {
-		begin();
+	void processChanges(final short codeDispl, final StackChanges changes, final int[][] callSignature, final int signatureSize, final int[] retSignature) throws ContentException {
 		switch (changes) {
 			case callStaticAndPush	:
-				if (retSignature == CompilerUtils.CLASSTYPE_VOID) {
+				if (retSignature[0] == CompilerUtils.CLASSTYPE_VOID) {
 					compareStack(callSignature,signatureSize);
-					pop(signatureSize);
+					pop(codeDispl, signatureSize);
 				}
 				else {
 					compareStack(callSignature,signatureSize);
-					pop(signatureSize);
-					push(retSignature);
+					pop(codeDispl, signatureSize);
+					push(codeDispl, retSignature[0], retSignature[1]);
 				}
 				break;
 			case callAndPush	:
-				if (retSignature == CompilerUtils.CLASSTYPE_VOID) {
+				if (retSignature[0] == CompilerUtils.CLASSTYPE_VOID) {
 					compareStack(callSignature,signatureSize);
 					if (select(-signatureSize) != CompilerUtils.CLASSTYPE_REFERENCE) {
 						throw new ContentException("Illegal command usage: non-static invocation requires instance refrerence on the stack. Stack content is "+prepareStackContent());
 					}
 					else {
-						pop(signatureSize+1);
+						pop(codeDispl, signatureSize + 1);
 					}
 				}
 				else {
@@ -666,13 +620,13 @@ class StackAndVarRepo {
 						throw new ContentException("Illegal command usage: non-static invocation requires instance refrerence on the stack. Stack content is "+prepareStackContent());
 					}
 					else {
-						pop(signatureSize+1);
+						pop(codeDispl, signatureSize + 1);
 					}
-					push(retSignature);
+					push(codeDispl, retSignature[0], retSignature[1]);
 				}
 				break;
 			default:
-				throw new UnsupportedOperationException(); 
+				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
 		commit();
 	}
@@ -686,7 +640,7 @@ class StackAndVarRepo {
 	}
 
 	StackSnapshot makeStackSnapshot() {
-		return new StackSnapshot(stackContent,currentStackTop); 
+		return new StackSnapshot(stackContent, currentStackTop); 
 	}
 
 	VarSnapshot makeVarSnapshot() {
@@ -704,7 +658,6 @@ class StackAndVarRepo {
 		ensureStackCapacity(Math.max(0,snapshot.content.length-currentStackTop));
 		System.arraycopy(snapshot.content,0,stackContent,0,snapshot.content.length);
 		currentStackTop = snapshot.content.length - 1;
-		begin();
 	}
 	
 	boolean compareStack(final int[] content) throws ContentException {
@@ -716,10 +669,10 @@ class StackAndVarRepo {
 		return true;
 	}
 	
-	private void compareStack(final int[] callSignature, final int signatureSize) throws ContentException {
+	private void compareStack(final int[][] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
-			if (!typesAreCompatible(select(index-signatureSize+1),callSignature[index])) {
-				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. "+prepareStackMismatchMessage(stackContent,getCurrentStackDepth(),callSignature,signatureSize));
+			if (!typesAreCompatible(select(index-signatureSize+1),callSignature[index][0]) || !typeRefsAreCompatible(selectRefType(index-signatureSize+1),callSignature[index][1])) {
+				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. "+prepareStackMismatchMessage(stackContent, getCurrentStackDepth(), callSignature, signatureSize));
 			}
 		}
 	}
@@ -733,11 +686,20 @@ class StackAndVarRepo {
 		}
 	}
 
+	private boolean typeRefsAreCompatible(final int fromStack, final int fromSignature) {
+		if (fromStack != fromSignature) {
+			return fromStack == CompilerUtils.CLASSTYPE_INT && (fromSignature == CompilerUtils.CLASSTYPE_BYTE || fromSignature == CompilerUtils.CLASSTYPE_SHORT || fromSignature == CompilerUtils.CLASSTYPE_CHAR || fromSignature == CompilerUtils.CLASSTYPE_INT || fromSignature == CompilerUtils.CLASSTYPE_BOOLEAN);
+		}
+		else {
+			return true;
+		}
+	}
+	
 	private String prepareStackContent() {
 		return new StackSnapshot(stackContent,getCurrentStackDepth()).toString();
 	}
 	
-	private String prepareStackMismatchMessage(final int[] stackContent, final int stackSize, final int[] awaitedContent, final int awaitedContentSize) {
+	private String prepareStackMismatchMessage(final int[][] stackContent, final int stackSize, final int[][] awaitedContent, final int awaitedContentSize) {
 		final StackSnapshot	stack = new StackSnapshot(stackContent,stackSize), awaited = new StackSnapshot(awaitedContent,awaitedContentSize); 
 		
 		return "Current stack state is: "+stack.toString()+", awaited top of stace is: "+awaited.toString();
@@ -745,10 +707,9 @@ class StackAndVarRepo {
 
 	private void ensureStackCapacity(final int delta) {
 		if (currentStackTop + delta >= stackContent.length) {
-			stackContent = Arrays.copyOf(stackContent,2*stackContent.length);
-			stackShadow = Arrays.copyOf(stackShadow,2*stackShadow.length);
+			stackContent = Arrays.copyOf(stackContent, 2 * stackContent.length);
 		}
-		maxStackDepth = Math.max(maxStackDepth,currentStackTop + delta);
+		maxStackDepth = Math.max(maxStackDepth, currentStackTop + delta);
 	}
 
 	private void ensureVarFrameStackCapacity() {
@@ -757,20 +718,81 @@ class StackAndVarRepo {
 		}
 	}
 
-	private void ensureVarFrameCapacity(final int varLocation) {
-		lastVarFrameDispl = Math.max(lastVarFrameDispl,varLocation);
-		if (lastVarFrameDispl >= varContent.length-1) {
-			varContent = Arrays.copyOf(varContent, 2*varContent.length);
-			Arrays.fill(varContent, lastVarFrameDispl, varContent.length, SPECIAL_TYPE_UNPREPARED);
-			varClass = Arrays.copyOf(varClass, 2*varClass.length);
-			Arrays.fill(varClass, lastVarFrameDispl, varClass.length, (short)0);
+	private void ensureStackMapCapacity(final short codeDispl) {
+		while (codeDispl > stackMap.length) {
+			stackMap = Arrays.copyOf(stackMap, 2 * stackMap.length);
 		}
+	}
+
+	private void checkUnprepared(StackMapItem stackMapItem, int varDispl, int i) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void pushInt(final short codeDispl) {
+		final int[]	temp = new int[] {CompilerUtils.CLASSTYPE_INT, 0};
+		
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
+		ensureStackCapacity(1);
+		stackContent[++currentStackTop] = temp;
+	}
+	
+	private void pushLong(final short codeDispl) {
+		final int[]	temp = new int[] {CompilerUtils.CLASSTYPE_LONG, 0};
+		
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, STACK_TOP_DESCRIPTOR);
+		ensureStackCapacity(2);
+		stackContent[++currentStackTop] = temp;
+		stackContent[++currentStackTop] = STACK_TOP_DESCRIPTOR;
+	}
+	
+	private void pushFloat(final short codeDispl) {
+		final int[]	temp = new int[] {CompilerUtils.CLASSTYPE_FLOAT, 0};
+		
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
+		ensureStackCapacity(1);
+		stackContent[++currentStackTop] = temp;
+	}
+	
+	private void pushDouble(final short codeDispl) {
+		final int[]	temp = new int[] {CompilerUtils.CLASSTYPE_DOUBLE, 0};
+		
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, STACK_TOP_DESCRIPTOR);
+		ensureStackCapacity(2);
+		stackContent[++currentStackTop] = temp;
+		stackContent[++currentStackTop] = STACK_TOP_DESCRIPTOR;
+	}
+	
+	private void pushReference(final short codeDispl, final int refType) {
+		final int[]	temp = new int[] {CompilerUtils.CLASSTYPE_REFERENCE, refType};
+		
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
+		ensureStackCapacity(1);
+		stackContent[++currentStackTop] = temp;
+	}
+	
+	private void pushUnprepared(final short codeDispl) {
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, UNPREPARED_DESCRIPTOR);
+		ensureStackCapacity(1);
+		stackContent[++currentStackTop] = UNPREPARED_DESCRIPTOR;
+	}
+	
+	private void ensureVarFrameCapacity(final int varLocation) {
+		// TODO: 
 	}
 	
 	static class StackSnapshot {
-		private final int[]	content;
+		private final int[][]	content;
 		
-		StackSnapshot(final int[] stackContent, final int stackSize) {
+		StackSnapshot(final int[][] stackContent, final int stackSize) {
 			this.content = Arrays.copyOf(stackContent, stackSize + 1);
 		}
 
@@ -803,10 +825,10 @@ class StackAndVarRepo {
 			
 			sb.append("StackSnapshot [");
 			
-			for (int val : content) {
+			for (int[] val : content) {
 				sb.append(prefix);
-				switch (val) {
-					case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref"); break;
+				switch (val[0]) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref(").append(val[1]).append(")"); break;
 					case CompilerUtils.CLASSTYPE_BYTE		: sb.append("byte"); break;
 					case CompilerUtils.CLASSTYPE_SHORT		: sb.append("short"); break;
 					case CompilerUtils.CLASSTYPE_CHAR		: sb.append("char"); break;	
@@ -981,3 +1003,4 @@ class StackAndVarRepo {
 		}
 	}
 }
+
