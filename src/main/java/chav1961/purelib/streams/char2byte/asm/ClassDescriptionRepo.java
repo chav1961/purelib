@@ -1,7 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-
-
 import java.io.Writer;
 import java.lang.annotation.Annotation;
 import java.lang.invoke.CallSite;
@@ -24,7 +22,6 @@ import chav1961.purelib.basic.CharUtils.Prescription;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
-
 
 class ClassDescriptionRepo {
 	private static final String					KIND_CLASS = "class";
@@ -65,11 +62,11 @@ class ClassDescriptionRepo {
 	}
 	
 	void addClassReference(final String classReference, final String className) throws ContentException {
-		if (referenceNames.seekName(classReference) >= 0) {
+		if (referenceNames.seekName((CharSequence)classReference) >= 0) {
 			throw new ContentException("Duplicate class reference name ["+classReference+"]");
 		}
 		else {
-			referenceNames.placeName(classReference,className.toCharArray());
+			referenceNames.placeName((CharSequence)classReference,className.toCharArray());
 		}
 	}
 	
@@ -221,7 +218,7 @@ class ClassDescriptionRepo {
 	}
 
 	private static void walkFields(final Class<?> node, final WalkCallback<Field> callback, final boolean processPublicAndPrivate, final SyntaxTreeInterface<Keeper> longTree) throws ContentException {
-		if (node != null && longTree.seekName(node.getCanonicalName() != null ? node.getCanonicalName() : node.getName()) < 0) {
+		if (node != null && longTree.seekName((CharSequence)(node.getCanonicalName() != null ? node.getCanonicalName() : node.getName())) < 0) {
 			for (final Field f : node.getDeclaredFields()) {
 				if (Modifier.isPublic(f.getModifiers()) || processPublicAndPrivate) {
 					callback.processEntity(f);
@@ -239,7 +236,7 @@ class ClassDescriptionRepo {
 	}
 
 	private static void walkMethods(final Class<?> node, final WalkCallback<Method> callback, final boolean processPublicAndPrivate, final SyntaxTreeInterface<Keeper> longTree) throws ContentException {
-		if (node != null && longTree.seekName(node.getCanonicalName() != null ? node.getCanonicalName() : node.getName()) < 0) {
+		if (node != null && longTree.seekName((CharSequence)(node.getCanonicalName() != null ? node.getCanonicalName() : node.getName())) < 0) {
 			for (final Method m : node.getDeclaredMethods()) {
 				if (Modifier.isPublic(m.getModifiers()) || processPublicAndPrivate) {
 					callback.processEntity(m);
@@ -270,12 +267,12 @@ class ClassDescriptionRepo {
 	}
 
 	private static void addAnyDescription(final SyntaxTreeInterface<Keeper> longTree, final String entityType, final String qualifiedName, final String simpleName, final KeeperContent context, final Object entity) throws ContentException {
-		if (longTree.seekName(qualifiedName) >= 0) {
+		if (longTree.seekName((CharSequence)qualifiedName) >= 0) {
 		}
 		else {
 			final Keeper	newKeeper = new Keeper(entity,context);
 			
-			longTree.placeName(qualifiedName,newKeeper);
+			longTree.placeName((CharSequence)qualifiedName,newKeeper);
 		}
 	}
 

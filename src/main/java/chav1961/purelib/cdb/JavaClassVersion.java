@@ -63,7 +63,7 @@ public class JavaClassVersion implements Comparable<JavaClassVersion> {
 	
 	public String toHumanReadableString() {
 		switch (major) {
-			case JavaByteCodeConstants.MAJOR_1_1	:
+			case JavaByteCodeConstants.MAJOR_1_0_2	:
 				return "1.1";
 			case JavaByteCodeConstants.MAJOR_1_2	:
 				return "1.2";

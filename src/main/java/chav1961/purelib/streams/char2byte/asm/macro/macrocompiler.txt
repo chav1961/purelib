@@ -1,3 +1,4 @@
+				.version 1.7
 {start} ---------------
 				.package 		chav1961.purelib.streams.char2byte.asm
 				.import			chav1961.purelib.streams.char2byte.asm.Asm

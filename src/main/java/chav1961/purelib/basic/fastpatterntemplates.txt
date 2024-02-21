@@ -1,3 +1,4 @@
+				.version 1.7
 {subclass}	-------------------------
 			.package 	${package}
 			.import		chav1961.purelib.basic.FastPattern

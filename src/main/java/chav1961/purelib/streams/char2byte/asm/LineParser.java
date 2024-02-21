@@ -1689,37 +1689,37 @@ class LineParser implements LineByLineProcessorCallback {
 		int		parm[] = intArray, from = start, major = 0, minor = 0;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
-			start = UnsafedCharUtils.uncheckedParseInt(data,from,parm,true);
+			start = UnsafedCharUtils.uncheckedParseInt(data, from, parm, true);
 			major = parm[0];
 			if (data[start] == '.') {
-				UnsafedCharUtils.uncheckedParseInt(data,from = start + 1,parm,true);
+				UnsafedCharUtils.uncheckedParseInt(data, from = start + 1, parm, true);
 				minor = parm[0];
 			}
 			if (major == 1) {
 				switch (minor) {
 					case 1 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_1,JavaByteCodeConstants.MINOR_1_1);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_0_2, JavaByteCodeConstants.MINOR_1_0_2);
 						break;
 					case 2 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_2,JavaByteCodeConstants.MINOR_1_2);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_2, JavaByteCodeConstants.MINOR_1_2);
 						break;
 					case 3 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_3,JavaByteCodeConstants.MINOR_1_3);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_3, JavaByteCodeConstants.MINOR_1_3);
 						break;
 					case 4 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_4,JavaByteCodeConstants.MINOR_1_4);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_4, JavaByteCodeConstants.MINOR_1_4);
 						break;
 					case 5 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_5,JavaByteCodeConstants.MINOR_1_5);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_5, JavaByteCodeConstants.MINOR_1_5);
 						break;
 					case 6 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_6,JavaByteCodeConstants.MINOR_1_6);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_6, JavaByteCodeConstants.MINOR_1_6);
 						break;
 					case 7 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_7,JavaByteCodeConstants.MINOR_1_7);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_7, JavaByteCodeConstants.MINOR_1_7);
 						break;
 					case 8 	:	// backward compatibility...
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8,JavaByteCodeConstants.MINOR_8);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8, JavaByteCodeConstants.MINOR_8);
 						break;
 					default :
 						throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available now!");
@@ -1728,56 +1728,56 @@ class LineParser implements LineByLineProcessorCallback {
 			else {
 				switch (major) {
 					case 8 	:
-						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8,JavaByteCodeConstants.MINOR_8);
+						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8, JavaByteCodeConstants.MINOR_8);
 						break;
 					case 9 	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_9,JavaByteCodeConstants.MINOR_9);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_9, JavaByteCodeConstants.MINOR_9);
 //						break;						
 					case 10	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_10,JavaByteCodeConstants.MINOR_10);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_10, JavaByteCodeConstants.MINOR_10);
 //						break;						
 					case 11	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_11,JavaByteCodeConstants.MINOR_11);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_11, JavaByteCodeConstants.MINOR_11);
 //						break;						
 					case 12	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_12,JavaByteCodeConstants.MINOR_12);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_12, JavaByteCodeConstants.MINOR_12);
 //						break;						
 					case 13	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_13,JavaByteCodeConstants.MINOR_13);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_13, JavaByteCodeConstants.MINOR_13);
 //						break;						
 					case 14	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_14,JavaByteCodeConstants.MINOR_14);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_14, JavaByteCodeConstants.MINOR_14);
 //						break;						
 					case 15	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_15,JavaByteCodeConstants.MINOR_15);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_15, JavaByteCodeConstants.MINOR_15);
 //						break;						
 					case 16	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_16,JavaByteCodeConstants.MINOR_16);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_16, JavaByteCodeConstants.MINOR_16);
 //						break;						
 					case 17	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_17,JavaByteCodeConstants.MINOR_17);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_17, JavaByteCodeConstants.MINOR_17);
 //						break;						
 					case 18	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_18,JavaByteCodeConstants.MINOR_18);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_18, JavaByteCodeConstants.MINOR_18);
 //						break;						
 					case 19	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_19,JavaByteCodeConstants.MINOR_19);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_19, JavaByteCodeConstants.MINOR_19);
 //						break;						
 					case 20	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_20,JavaByteCodeConstants.MINOR_20);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_20, JavaByteCodeConstants.MINOR_20);
 //						break;						
 					case 21	:
-//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_21,JavaByteCodeConstants.MINOR_21);
+//						cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_21, JavaByteCodeConstants.MINOR_21);
 //						break;						
 					default :
-						throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available now!");
+						throw new ContentException("Version number "+major+" is not supported. Only 8 are available now!");
 				}
 			}
 			if (major == 1 && minor == 7) {
-				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_7,JavaByteCodeConstants.MINOR_1_7);
+				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_1_7, JavaByteCodeConstants.MINOR_1_7);
 			}
 			else if (major == 1 && minor == 8) {
-				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8,JavaByteCodeConstants.MINOR_8);
+				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8, JavaByteCodeConstants.MINOR_8);
 			}
 			else {
 				throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available now!");
