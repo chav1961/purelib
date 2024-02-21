@@ -18,6 +18,7 @@ abstract class AbstractMethodBody {
 	abstract void registerBrunch(int address, int placement, long labelId, boolean shortBranch, StackSnapshot snapshot) throws ContentException;
 	abstract short getStackSize();
 	abstract StackAndVarRepo getStackAndVarRepo();
+	abstract StackAndVarRepoNew getStackAndVarRepoNew();
 	abstract int getCodeSize();
 	abstract int dump(final InOutGrowableByteArray os) throws IOException, ContentException;
 }

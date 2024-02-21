@@ -35,6 +35,7 @@ class MethodDescriptor implements Closeable {
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
 	private final StackAndVarRepo				stackAndVar = new StackAndVarRepo((a,b,c,d)->{});
+	private final StackAndVarRepoNew			stackAndVarNew = new StackAndVarRepoNew();
 	private final long							classId, methodId, returnedTypeId;
 	private final long							longId, doubleId, thisId;
 	private final short							methodDispl;
@@ -123,7 +124,7 @@ class MethodDescriptor implements Closeable {
 	}
 	
 	void setStackSize(final short stackSize, final boolean needVarTable) {
-		body = new MethodBody(classId, methodId, getNameTree(),this.needVarsTable = needVarTable,stackSize,stackAndVar);
+		body = new MethodBody(classId, methodId, getNameTree(),this.needVarsTable = needVarTable,stackSize,stackAndVar,stackAndVarNew);
 	}
 	
 	void addParameterDeclaration(final short accessFlags, final long parameterId, final long typeId) throws ContentException, IOException {
@@ -188,7 +189,7 @@ class MethodDescriptor implements Closeable {
 		}
 		else {
 			markEndOfParameters();
-			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false, stackAndVar) : body;
+			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false, stackAndVar, stackAndVarNew) : body;
 		}
 	}
 	

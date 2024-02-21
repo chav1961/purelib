@@ -172,7 +172,6 @@ class ConstantNode extends ExpressionNode {
 			}
 		}
 		
-		
 		switch (valueType) {
 			case BOOLEAN_ARRAY	:
 				this.booleanArrayValue = new boolean[count];
@@ -2155,7 +2154,7 @@ class FuncToIntNode extends FuncNode {
 												private final long[]	temp = new long[1];
 												
 												@Override
-												public long calculate(ExpressionNode[] list) throws CalculationException {
+												public long calculate(final ExpressionNode... list) throws CalculationException {
 													switch (list[0].getValueType()) {
 														case INTEGER	: 
 															return list[0].getLong();
@@ -2185,7 +2184,7 @@ class FuncToRealNode extends FuncNode {
 												private final double[]	temp = new double[1];
 												
 												@Override
-												public double calculate(final ExpressionNode[] list) throws CalculationException {
+												public double calculate(final ExpressionNode... list) throws CalculationException {
 													switch (list[0].getValueType()) {
 														case INTEGER	: 
 															return list[0].getLong();
@@ -2216,7 +2215,7 @@ class FuncToStringNode extends FuncNode {
 	private static final char[]			PURE_TRUE = "true".toCharArray();
 	static final StringCallback			callback = new StringCallback() {
 													@Override
-													public char[] calculate(final ExpressionNode[] list) throws CalculationException {
+													public char[] calculate(final ExpressionNode... list) throws CalculationException {
 														switch (list[0].getValueType()) {
 															case INTEGER	: return String.valueOf(list[0].getLong()).toCharArray();
 															case REAL		: return String.valueOf(list[0].getDouble()).toCharArray(); 
@@ -2237,7 +2236,7 @@ class FuncToBooleanNode extends FuncNode {
 	private static final char[]			PURE_TRUE = "true".toCharArray();
 	static final BoolCallback			callback = new BoolCallback() {
 													@Override
-													public boolean calculate(final ExpressionNode[] list) throws CalculationException {
+													public boolean calculate(final ExpressionNode... list) throws CalculationException {
 														switch (list[0].getValueType()) {
 															case INTEGER	: 
 																throw new CalculationException("Integer value can't be converted to boolean!");
@@ -2269,7 +2268,7 @@ class FuncToBooleanNode extends FuncNode {
 class FuncExistsNode extends FuncNode {
 	private static final BoolCallback	callback = new BoolCallback() {
 													@Override
-													public boolean calculate(final ExpressionNode[] list) throws CalculationException {
+													public boolean calculate(final ExpressionNode... list) throws CalculationException {
 														if (list.length > 0) {
 															switch (list[0].getType()) {
 																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : 
@@ -2292,7 +2291,7 @@ class FuncExistsNode extends FuncNode {
 class FuncLenNode extends FuncNode {
 	private static final IntegerCallback	callback = new IntegerCallback() {
 													@Override
-													public long calculate(final ExpressionNode[] list) throws CalculationException {
+													public long calculate(final ExpressionNode... list) throws CalculationException {
 														if (list.length > 0) {
 															switch (list[0].getType()) {
 																case KEY_PARAMETER : case POSITIONAL_PARAMETER : case LOCAL_VARIABLE : 
@@ -2313,14 +2312,10 @@ class FuncLenNode extends FuncNode {
 }
 
 class FuncToListNode extends FuncNode {
-	private static final char[]			PURE_FALSE = "false".toCharArray();
-	private static final char[]			PURE_TRUE = "true".toCharArray();
 	private static final StringCallback	callback = new StringCallback() {
 													final GrowableCharArray<GrowableCharArray<?>> gca = new GrowableCharArray<GrowableCharArray<?>>(false);
 													@Override
-													public char[] calculate(final ExpressionNode[] list) throws CalculationException {
-														char	prefix = '{';
-														
+													public char[] calculate(final ExpressionNode... list) throws CalculationException {
 														gca.length(0);
 														switch (list[0].getValueType()) {
 															case INTEGER_ARRAY	: 
@@ -2345,7 +2340,7 @@ class FuncToListNode extends FuncNode {
 class FuncEnvironmentNode extends FuncNode {
 	private static final StringCallback	callback = new StringCallback() {
 													@Override
-													public char[] calculate(final ExpressionNode[] list) throws CalculationException {
+													public char[] calculate(final ExpressionNode... list) throws CalculationException {
 														if (list.length > 0) {
 															switch (list[0].getValueType()) {
 																case STRING : 

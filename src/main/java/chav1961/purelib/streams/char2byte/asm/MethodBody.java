@@ -27,29 +27,31 @@ class MethodBody extends AbstractMethodBody {
 										}; 
 
     private final SyntaxTreeInterface<?>		tree;
-    private final StackAndVarRepo	stackAndVar;
-    private final long				className, methodName;
-    private final boolean			needVarTable;
-	private final int				stackCalculationStrategy;
-	private List<ItemDescriptor>	labels = new ArrayList<>();
-	private List<ItemDescriptor>	brunches = new ArrayList<>(); 
-	private List<StackDescriptor>	stacks = new ArrayList<>();
-	private byte[]					body = new byte[0];
-	private short					pc = 0, stack, maxStack;
-	private long					uniqueLabel = 2;
-	private boolean					labelRequired = false;
+    private final StackAndVarRepo		stackAndVar;
+    private final StackAndVarRepoNew	stackAndVarNew;
+    private final long					className, methodName;
+    private final boolean				needVarTable;
+	private final int					stackCalculationStrategy;
+	private List<ItemDescriptor>		labels = new ArrayList<>();
+	private List<ItemDescriptor>		brunches = new ArrayList<>(); 
+	private List<StackDescriptor>		stacks = new ArrayList<>();
+	private byte[]						body = new byte[0];
+	private short						pc = 0, stack, maxStack;
+	private long						uniqueLabel = 2;
+	private boolean						labelRequired = false;
 	
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final StackAndVarRepo stackAndVar){
-		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC,stackAndVar);
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final StackAndVarRepo stackAndVar, final StackAndVarRepoNew stackAndVarNew){
+		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC,stackAndVar,stackAndVarNew);
 	}
 
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy, final StackAndVarRepo stackAndVar){
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy, final StackAndVarRepo stackAndVar, final StackAndVarRepoNew stackAndVarNew){
 		this.className = className;
 		this.methodName = methodName;
 		this.tree = tree;
 		this.needVarTable = needVarTable;
 		this.stackCalculationStrategy = stackCalculationStrategy;
 		this.stackAndVar = stackAndVar;
+		this.stackAndVarNew = stackAndVarNew;
 		if (stackCalculationStrategy >= 0) {
 			stack = maxStack = stackCalculationStrategy; 
 		}
@@ -172,6 +174,11 @@ class MethodBody extends AbstractMethodBody {
 	@Override
 	StackAndVarRepo getStackAndVarRepo() {
 		return stackAndVar;
+	}
+
+	@Override
+	StackAndVarRepoNew getStackAndVarRepoNew() {
+		return stackAndVarNew;
 	}
 	
 	@Override
