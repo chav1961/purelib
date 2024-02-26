@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.StackSnapshot;
 
 abstract class AbstractMethodBody {
 	abstract long getUniqueLabelId();
@@ -17,7 +17,6 @@ abstract class AbstractMethodBody {
 	abstract void registerBrunch(long labelId, boolean shortBranch, StackSnapshot snapshot) throws ContentException;
 	abstract void registerBrunch(int address, int placement, long labelId, boolean shortBranch, StackSnapshot snapshot) throws ContentException;
 	abstract short getStackSize();
-	abstract StackAndVarRepo getStackAndVarRepo();
 	abstract StackAndVarRepoNew getStackAndVarRepoNew();
 	abstract int getCodeSize();
 	abstract int dump(final InOutGrowableByteArray os) throws IOException, ContentException;

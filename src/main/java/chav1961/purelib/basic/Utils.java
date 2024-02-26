@@ -111,12 +111,12 @@ import chav1961.purelib.streams.interfaces.CharacterTarget;
 
 public class Utils {
 	private static final AtomicInteger		AI = new AtomicInteger();
-	private static final AsmWriter			ASM_WRITER;
+	private static final AsmWriter			ASM_WRITER = null;
 	private static final Map<String,String>	HARDCODED_MIMES = new HashMap<>();
 	private static final int				FILL_ARRAY_BOUND = 32; 
 	
 	static {
-		ASM_WRITER = prepareStatic();
+//		ASM_WRITER = prepareStatic();
 		HARDCODED_MIMES.put("djvu","image/vnd.djvu");
 	}
 

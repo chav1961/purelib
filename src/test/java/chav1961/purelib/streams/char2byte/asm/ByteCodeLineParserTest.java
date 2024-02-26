@@ -697,7 +697,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"val	.end\n"
 							+"Test	.end\n"
 							);
-			final Class<?>	clazz = ClassLineParserTest.checkClass(cc,this.getClass().getPackage().getName()+".Test");
+			final Class<?>	clazz = ClassLineParserTest.checkClass(cc, this.getClass().getPackage().getName()+".Test");
 			
 			Assert.assertEquals(clazz.getName(),this.getClass().getPackage().getName()+".Test");
 			Assert.assertEquals(clazz.getMethod("val",int.class,int.class).getReturnType(),int.class);
@@ -993,16 +993,16 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"p1		.parameter java.lang.Throwable\n"
 							+"			.stack 5\n"
 							+"			.try\n"
-							+"			aload_0\n"
-							+"			athrow\n"	
+							+"				aload_0\n"
+							+"				athrow\n"	
 							+"			.catch java.lang.Exception\n"
-							+"			pop\n"
-							+"			iconst_1\n"
-							+"			ireturn\n"
+							+"				pop\n"
+							+"				iconst_1\n"
+							+"				ireturn\n"
 							+"			.catch java.lang.Throwable\n"
-							+"			pop\n"
-							+"			iconst_2\n"
-							+"			ireturn\n"
+							+"				pop\n"
+							+"				iconst_2\n"
+							+"				ireturn\n"
 							+"			.endtry\n"		
 							+"call		.end\n"
 							+"Test		.end\n"

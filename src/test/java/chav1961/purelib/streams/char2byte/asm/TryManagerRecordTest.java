@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+
 import java.io.IOException;
 
 import org.junit.Assert;
@@ -8,7 +9,7 @@ import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.StackSnapshot;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 
@@ -59,14 +60,13 @@ class PseudoMethodBody4TryManager extends AbstractMethodBody {
 	@Override short getPC() {return pc;}
 	@Override void putCommand(int stackDelta, byte... data) {bytesCount += data.length; pc += data.length;}
 	@Override void alignPC() {}
-	@Override void putLabel(long labelId,final StackSnapshot snapshot) {label = labelId;}
+	@Override void putLabel(long labelId, final StackSnapshot snapshot) {label = labelId;}
 	@Override void registerBrunch(long labelId, boolean shortBranch,final StackSnapshot snapshot) {}
 	@Override void registerBrunch(int address, int placement, long labelId, boolean shortBranch,final StackSnapshot snapshot) {}
 	@Override short getStackSize() {return 0;}
 	@Override int getCodeSize() {return 0;}
 	@Override int dump(InOutGrowableByteArray os) throws IOException {return 0;}
 	@Override void markLabelRequired(boolean required) {}
-	@Override StackAndVarRepo getStackAndVarRepo() {return new StackAndVarRepo((a,b,c,d)->{});}
 	@Override StackAndVarRepoNew getStackAndVarRepoNew() {return new StackAndVarRepoNew();}
 	@Override boolean isLabelExists(long labelId) {return false;}
 }

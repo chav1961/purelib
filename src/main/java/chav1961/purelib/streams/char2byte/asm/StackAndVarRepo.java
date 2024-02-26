@@ -7,6 +7,7 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.cdb.CompilerUtils;
 
+@Deprecated
 class StackAndVarRepo {
 	static final int			SPECIAL_TYPE_TOP = -1;
 	static final int			SPECIAL_TYPE_UNPREPARED = -2;
@@ -16,64 +17,6 @@ class StackAndVarRepo {
 	private static final int	INITIAL_VARFRAME_SIZE = 16;
 	private static final int	INITIAL_VARFRAME_STACK_SIZE = 4;
 	
-	enum StackChanges {
-		none,
-		clear,
-		swap,	
-		
-		pop,
-		pop2,
-		pop3,
-		pop4,
-		pushInt,
-		pushLong,
-		pushDouble,
-		pushFloat,
-		pushReference,
-		pushUnprepared,
-		
-		dup,
-		dup_x1,
-		dup_x2,
-		dup2,
-		dup2_x1,
-		dup2_x2,
-		
-		changeDouble2Float,
-		changeDouble2Int,
-		changeDouble2Long,
-		changeFloat2Double,
-		changeFloat2Int,
-		changeFloat2Long,
-		changeLong2Double,
-		changeLong2Float,
-		changeLong2Int,
-		changeInt2Double,
-		changeInt2Float,
-		changeInt2Long,
-		
-		popAndPushFloat,
-		popAndPushInt,
-		popAndPushReference,
-		pop2AndPushInt,
-		pop2AndPushDouble,
-		pop2AndPushReference,
-		pop2AndPushFloat,
-		pop2AndPushLong,
-		pop4AndPushDouble,
-		pop4AndPushInt,
-		pop4AndPushLong,
-		
-		pushField,
-		pushStatic,
-		popField,
-		popStatic,
-		
-		callStaticAndPush,
-		callAndPush,
-		multiarrayAndPushReference,
-	}
-
 	@FunctionalInterface
 	interface StackChangesCallback {
 		void processChanges(final int[] stackContent, final int deletedFrom, final int insertedFrom, final int changedFrom);
@@ -678,7 +621,7 @@ class StackAndVarRepo {
 	}
 
 	int getCurrentStackDepth() {
-		return currentStackTop+1;
+		return currentStackTop + 1;
 	}
 	
 	int getMaxStackDepth() {
@@ -699,10 +642,10 @@ class StackAndVarRepo {
 		previousStackMapDispl = (short)(displ+1);
 		return result;
 	}
-	
+
 	void loadStackSnapshot(final StackSnapshot snapshot) {
-		ensureStackCapacity(Math.max(0,snapshot.content.length-currentStackTop));
-		System.arraycopy(snapshot.content,0,stackContent,0,snapshot.content.length);
+		ensureStackCapacity(Math.max(0, snapshot.content.length-currentStackTop));
+		System.arraycopy(snapshot.content, 0, stackContent, 0, snapshot.content.length);
 		currentStackTop = snapshot.content.length - 1;
 		begin();
 	}

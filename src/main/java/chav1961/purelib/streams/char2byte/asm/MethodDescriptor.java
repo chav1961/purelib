@@ -16,7 +16,7 @@ import chav1961.purelib.cdb.JavaByteCodeConstants;
 import chav1961.purelib.cdb.JavaClassVersion;
 import chav1961.purelib.cdb.JavaByteCodeConstants.JavaAttributeType;
 import chav1961.purelib.streams.char2byte.asm.LongIdTree.LongIdTreeNode;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackMapRecord;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.StackMapRecord;
 
 class MethodDescriptor implements Closeable {
 	private static final String					INIT_STRING = "<init>"; 
@@ -34,7 +34,6 @@ class MethodDescriptor implements Closeable {
 	private final List<StackMapRecord>			stackMaps = new ArrayList<>();
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
-	private final StackAndVarRepo				stackAndVar = new StackAndVarRepo((a,b,c,d)->{});
 	private final StackAndVarRepoNew			stackAndVarNew = new StackAndVarRepoNew();
 	private final long							classId, methodId, returnedTypeId;
 	private final long							longId, doubleId, thisId;
@@ -69,16 +68,17 @@ class MethodDescriptor implements Closeable {
 		
 		this.throwsDispl = new short[tLen];
 		for (int index = 0; index < tLen; index++) {
-			this.throwsDispl[index] = ccr.asClassDescription(tree.placeOrChangeName((CharSequence)tree.getName(throwsList[index]).replace('.','/'), new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+			this.throwsDispl[index] = ccr.asClassDescription(tree.placeOrChangeName((CharSequence)tree.getName(throwsList[index]).replace('.','/'), LineParser.VOID_DESCRIPTOR));
 		}
-		this.exceptionsWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_Exceptions, 0, JavaByteCodeConstants.ATTRIBUTE_Exceptions.length, new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.codeWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_Code, 0, JavaByteCodeConstants.ATTRIBUTE_Code.length, new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_LocalVariableTable, 0, JavaByteCodeConstants.ATTRIBUTE_LocalVariableTable.length, new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_LineNumberTable, 0, JavaByteCodeConstants.ATTRIBUTE_LineNumberTable.length, new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
-		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_StackMapTable, 0, JavaByteCodeConstants.ATTRIBUTE_StackMapTable.length, new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
+		this.exceptionsWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_Exceptions, 0, JavaByteCodeConstants.ATTRIBUTE_Exceptions.length, LineParser.VOID_DESCRIPTOR));
+		this.codeWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_Code, 0, JavaByteCodeConstants.ATTRIBUTE_Code.length, LineParser.VOID_DESCRIPTOR));
+		this.localVariableTableWord = ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_LocalVariableTable, 0, JavaByteCodeConstants.ATTRIBUTE_LocalVariableTable.length, LineParser.VOID_DESCRIPTOR));
+		this.lineNumberTableWord =  ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_LineNumberTable, 0, JavaByteCodeConstants.ATTRIBUTE_LineNumberTable.length, LineParser.VOID_DESCRIPTOR));
+		this.stackMapTableWord =  ccr.asUTF(tree.placeOrChangeName(JavaByteCodeConstants.ATTRIBUTE_StackMapTable, 0, JavaByteCodeConstants.ATTRIBUTE_StackMapTable.length, LineParser.VOID_DESCRIPTOR));
 		
 		this.methodBodyAwait = (accessFlags & (JavaByteCodeConstants.ACC_NATIVE | JavaByteCodeConstants.ACC_ABSTRACT)) == 0;
-		pushStack.add(0,new StackLevel(varDispl,(short)0));
+		stackAndVarNew.pushVarFrame((short)0);
+		pushStack.add(0, new StackLevel(varDispl,(short)0));
 		if ((accessFlags & JavaByteCodeConstants.ACC_STATIC) == 0) {
 			addParameterDeclaration((short)0, thisId, classId);
 		}
@@ -88,6 +88,7 @@ class MethodDescriptor implements Closeable {
 
 	@Override
 	public void close() throws IOException {
+		stackAndVarNew.popVarFrame();
 		parametersList.clear();
 		pushStack.clear();
 		tryTable.clear();	
@@ -124,7 +125,7 @@ class MethodDescriptor implements Closeable {
 	}
 	
 	void setStackSize(final short stackSize, final boolean needVarTable) {
-		body = new MethodBody(classId, methodId, getNameTree(),this.needVarsTable = needVarTable,stackSize,stackAndVar,stackAndVarNew);
+		body = new MethodBody(classId, methodId, getNameTree(), this.needVarsTable = needVarTable, stackSize, stackAndVarNew);
 	}
 	
 	void addParameterDeclaration(final short accessFlags, final long parameterId, final long typeId) throws ContentException, IOException {
@@ -188,8 +189,8 @@ class MethodDescriptor implements Closeable {
 			throw new ContentException("Attempt to define method body for abstract or native method");
 		}
 		else {
-			markEndOfParameters();
-			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false, stackAndVar, stackAndVarNew) : body;
+//			markEndOfParameters();
+			return body == null ? body = new MethodBody(classId, methodId, getNameTree(), false, stackAndVarNew) : body;
 		}
 	}
 	
@@ -206,7 +207,7 @@ class MethodDescriptor implements Closeable {
 	}
 
 	void addStackMapRecord() throws ContentException {
-		stackMaps.add(this.getBody().getStackAndVarRepo().createStackMapRecord(this.getBody().getPC()));
+		stackMaps.add(this.getBody().getStackAndVarRepoNew().createStackMapRecord(this.getBody().getPC()));
 	}
 	
 	void complete() throws IOException, ContentException {
@@ -325,7 +326,7 @@ class MethodDescriptor implements Closeable {
 				typeRef = ccr.asClassDescription(signatureId);
 			}
 			
-			pushStack.get(0).vars.addRef((short)(currentVarDispl+1/* +1 - problem with LongIdMap!*/),varId);
+			pushStack.get(0).vars.addRef((short)(currentVarDispl + 1/* +1 - problem with LongIdMap!*/), varId);
 			if (typeId == longId || typeId == doubleId) {	// these types occupy 2 cells in the local var table
 				varDispl++;
 			}
@@ -333,11 +334,11 @@ class MethodDescriptor implements Closeable {
 				maxVarDispl = varDispl;
 			}
 			
-			try{pushStack.get(0).vars.setCargo(new VarDesc(ccr.asUTF(varId),ccr.asUTF(signatureId)),varId);
+			try{pushStack.get(0).vars.setCargo(new VarDesc(ccr.asUTF(varId), ccr.asUTF(signatureId)), varId);
 			} catch (IOException e) {
 				throw new ContentException(e);
 			}
-			stackAndVar.addVar(currentVarDispl, currentVarType, typeRef, markAsPrepared);
+			stackAndVarNew.addVar(currentVarType, typeRef);
 		}
 	}
 

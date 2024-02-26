@@ -11,7 +11,7 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.StackSnapshot;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -41,8 +41,8 @@ public class MethodBodyTest {
 //	@Test
 	public void basicTest() throws IOException, ContentException {
 		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
-		final MethodBody	mb = new MethodBody(0,0,aot,false,new StackAndVarRepo((a,b,c,d)->{}),new StackAndVarRepoNew());
-		final StackSnapshot	ss = mb.getStackAndVarRepo().makeStackSnapshot();
+		final MethodBody	mb = new MethodBody(0, 0, aot, false, new StackAndVarRepoNew());
+		final StackSnapshot	ss = mb.getStackAndVarRepoNew().makeStackSnapshot();
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1, null);
 		aot.placeName("label2".toCharArray(), 0, 6, 2, null);
@@ -71,8 +71,8 @@ public class MethodBodyTest {
 	@Test
 	public void unresolvedLabelsTest() throws IOException, ContentException {
 		final SyntaxTreeInterface<Object>	aot = new AndOrTree<Object>(1,16);
-		final MethodBody	mb = new MethodBody(3,4,aot,false,new StackAndVarRepo((a,b,c,d)->{}),new StackAndVarRepoNew());
-		final StackSnapshot	ss = mb.getStackAndVarRepo().makeStackSnapshot();
+		final MethodBody	mb = new MethodBody(3,4,aot,false,new StackAndVarRepoNew());
+		final StackSnapshot	ss = mb.getStackAndVarRepoNew().makeStackSnapshot();
 		
 		aot.placeName("label1".toCharArray(), 0, 6, 1,null);
 		aot.placeName("label2".toCharArray(), 0, 6, 2,null);

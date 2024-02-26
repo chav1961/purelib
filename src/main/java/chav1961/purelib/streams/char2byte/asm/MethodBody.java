@@ -12,7 +12,7 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
-import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.StackSnapshot;
 
 class MethodBody extends AbstractMethodBody {
 	public static final short	STACK_CALCULATION_OPTIMISTIC = -1;
@@ -27,7 +27,6 @@ class MethodBody extends AbstractMethodBody {
 										}; 
 
     private final SyntaxTreeInterface<?>		tree;
-    private final StackAndVarRepo		stackAndVar;
     private final StackAndVarRepoNew	stackAndVarNew;
     private final long					className, methodName;
     private final boolean				needVarTable;
@@ -40,17 +39,16 @@ class MethodBody extends AbstractMethodBody {
 	private long						uniqueLabel = 2;
 	private boolean						labelRequired = false;
 	
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final StackAndVarRepo stackAndVar, final StackAndVarRepoNew stackAndVarNew){
-		this(className,methodName,tree,needVarTable,STACK_CALCULATION_PESSIMISTIC,stackAndVar,stackAndVarNew);
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final StackAndVarRepoNew stackAndVarNew){
+		this(className, methodName, tree, needVarTable, STACK_CALCULATION_PESSIMISTIC, stackAndVarNew);
 	}
 
-	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy, final StackAndVarRepo stackAndVar, final StackAndVarRepoNew stackAndVarNew){
+	MethodBody(final long className, final long methodName, final SyntaxTreeInterface<?> tree, final boolean needVarTable, final short stackCalculationStrategy, final StackAndVarRepoNew stackAndVarNew){
 		this.className = className;
 		this.methodName = methodName;
 		this.tree = tree;
 		this.needVarTable = needVarTable;
 		this.stackCalculationStrategy = stackCalculationStrategy;
-		this.stackAndVar = stackAndVar;
 		this.stackAndVarNew = stackAndVarNew;
 		if (stackCalculationStrategy >= 0) {
 			stack = maxStack = stackCalculationStrategy; 
@@ -129,7 +127,7 @@ class MethodBody extends AbstractMethodBody {
 				throw new ContentException("Unknown program stack state: no forward brunches to the given mandatory label ["+tree.getName(id)+"] were registered earlier");
 			}
 			else {
-				getStackAndVarRepo().loadStackSnapshot(currentSnapshot = stack.snapshot);
+				getStackAndVarRepoNew().loadStackSnapshot(currentSnapshot = stack.snapshot);
 			}
 		}
 		if (stack != null) {
@@ -147,7 +145,7 @@ class MethodBody extends AbstractMethodBody {
 
 	@Override
 	void registerBrunch(final long labelId, final boolean shortBranch, final StackSnapshot snapshot) throws ContentException {
-		registerBrunch(getPC(),getPC()+1,labelId,shortBranch,snapshot);			
+		registerBrunch(getPC(), getPC()+1, labelId, shortBranch, snapshot);			
 	}
 	
 	@Override
@@ -171,11 +169,6 @@ class MethodBody extends AbstractMethodBody {
 		return stack;
 	}
 	
-	@Override
-	StackAndVarRepo getStackAndVarRepo() {
-		return stackAndVar;
-	}
-
 	@Override
 	StackAndVarRepoNew getStackAndVarRepoNew() {
 		return stackAndVarNew;

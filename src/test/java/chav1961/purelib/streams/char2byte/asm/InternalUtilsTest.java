@@ -1,10 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -20,8 +15,10 @@ public class InternalUtilsTest {
 	@Test
 	public void softSignatures() throws NoSuchMethodException, SecurityException, NoSuchFieldException {
 		final SyntaxTreeInterface<String>	tree = new AndOrTree<String>(1,16);
-		final long					field1 = tree.placeName("java.lang.String",null), field2 = tree.placeName("java.lang.String[]",null), field3 = tree.placeName("int",null);
-		final long					returned =  tree.placeName("void",null);
+		final long					field1 = tree.placeName((CharSequence)"java.lang.String",null);
+		final long					field2 = tree.placeName((CharSequence)"java.lang.String[]",null);
+		final long					field3 = tree.placeName((CharSequence)"int",null);
+		final long					returned =  tree.placeName((CharSequence)"void",null);
 		
 		Assert.assertEquals(InternalUtils.buildFieldSignature(tree,field1),"Ljava/lang/String;");
 		Assert.assertEquals(InternalUtils.buildFieldSignature(tree,field2),"[Ljava/lang/String;");

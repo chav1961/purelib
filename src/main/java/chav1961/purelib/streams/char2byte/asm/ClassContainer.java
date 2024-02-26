@@ -121,7 +121,7 @@ class ClassContainer implements Closeable {
 			throw new IllegalStateException("Attempt to add abstract method to non-abstract class!");
 		}
 		else {
-			final MethodDescriptor	md = new MethodDescriptor(currentMajor,currentMinor,getNameTree(),getConstantPool(),modifiers,specialFlags,joinedClassName,methodId,typeId,throwsId);
+			final MethodDescriptor	md = new MethodDescriptor(currentMajor, currentMinor, getNameTree(), getConstantPool(), modifiers, specialFlags, joinedClassName, methodId, typeId, throwsId);
 
 			joinClassName(joinedClassName,methodId);
 			methods.add(md);

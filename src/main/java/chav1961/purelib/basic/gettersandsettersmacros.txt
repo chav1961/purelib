@@ -1,4 +1,3 @@
-				.version 1.7
 ; --------------------------------------------------------------------
 
 buildPrimitiveStaticBoolean 	.macro	className:str=,ownerClass:str=,fieldName:str=,valueClass:str=
