@@ -438,7 +438,7 @@ class StackAndVarRepoNew {
 				}
 				break;
 			default:
-				throw new UnsupportedOperationException(); 
+				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
 		commit();
 	}
@@ -561,7 +561,7 @@ class StackAndVarRepoNew {
 	}
 	
 	StackSnapshot makeStackSnapshot() {
-		return new StackSnapshot(stackContent,currentStackTop); 
+		return new StackSnapshot(stackContent, currentStackTop); 
 	}
 
 	StackMapRecord createStackMapRecord(final short displ) {

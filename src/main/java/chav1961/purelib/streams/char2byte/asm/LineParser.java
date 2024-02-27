@@ -166,6 +166,11 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final SyntaxTreeInterface<DirectiveDescriptor>	staticDirectiveTree = new AndOrTree<>(2,16);
 	private static final SyntaxTreeInterface<CommandDescriptor>		staticCommandTree = new AndOrTree<>(3,16);
 	
+	private static final byte						LDC_OPCODE;
+	private static final byte						LDC_W_OPCODE;
+	private static final byte						WIDE_OPCODE;
+	private static final byte						MULTIANEWARRAY_OPCODE;
+	
 	private enum EvalState {
 		term, unary, multiplicational, additional 
 	}
@@ -451,6 +456,11 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x5f,false,"swap",StackChanges.swap);
 		placeStaticCommand(0xaa,true,"tableswitch",CommandFormat.tableSwitch,StackChanges.pop,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0xc4,false,"wide",CommandFormat.restricted,StackChanges.none);
+		
+		LDC_OPCODE = (byte) staticCommandTree.seekName((CharSequence)"ldc");
+		LDC_W_OPCODE = (byte) staticCommandTree.seekName((CharSequence)"ldc_w");
+		WIDE_OPCODE = (byte) staticCommandTree.seekName((CharSequence)"wide");
+		MULTIANEWARRAY_OPCODE = (byte) staticCommandTree.seekName((CharSequence)"multianewarray");
 	}
 	
 	private final ClassDescriptionRepo					cdr;
@@ -465,6 +475,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private final long									constructorId, classConstructorId, voidId;
 	private final long									callSiteId, methodHandlesLookupId, stringId, methodTypeId;
 	private final long									longArray[] = new long[2];	// Temporary arrays to use in different calls
+	private final long									longArray2[] = new long[2];
 	private final int									intArray[] = new int[2];
 	private final short									shortArray[] = new short[2];
 	private final boolean								printAssembler;
@@ -1004,16 +1015,16 @@ class LineParser implements LineByLineProcessorCallback {
 								switch (desc.commandFormat) {
 									case single					: processSingleCommand(desc,data,start); break; 
 									case byteIndex				: processByteIndexCommand(desc,data,start,false); break;
-									case extendableByteIndex	: processByteIndexCommand(desc,data,start,true); break;
+									case extendableByteIndex	: processByteIndexCommand(desc, data, start, true); break;
 									case byteValue				: processByteValueCommand(desc,data,start,false); break;
 									case shortValue				: processShortValueCommand(desc,data,start,false); break;
 									case byteType				: processByteTypeCommand(desc,data,start); break;
 									case byteIndexAndByteValue	: processByteIndexAndByteValueCommand(desc,data,start,true); break;
 									case shortIndexAndByteValue	: processShortIndexAndByteValueCommand(desc,data,start); break;
 									case classShortIndex		: processClassShortIndexCommand(desc,data,start); break;
-									case valueByteIndex			: processValueByteIndexCommand(desc,data,start); break;
-									case valueShortIndex		: processValueShortIndexCommand(desc,data,start); break;
-									case valueShortIndex2		: processValueShortIndex2Command(desc,data,start); break;
+									case valueByteIndex			: processValueByteIndexCommand(desc, data, start); break;
+									case valueShortIndex		: processValueShortIndexCommand(desc, data, start); break;
+									case valueShortIndex2		: processValueShortIndex2Command(desc, data, start); break;
 									case shortBrunch			: processShortBrunchCommand(desc,data,start,end); break;
 									case longBrunch				: processLongBrunchCommand(desc,data,start,end); break;
 									case shortGlobalIndex		: processShortGlobalIndexCommand(desc,data,start,end); break;
@@ -1108,8 +1119,16 @@ class LineParser implements LineByLineProcessorCallback {
 		return methodDescriptor.getBody().getPC();
 	}
 
-	private void putCommand(final byte command, final short argument) throws ContentException, IOException {
-		methodDescriptor.getBody().putCommand(1, (byte)(command >> 8), (byte)(command & 0xFF));
+	private void putCommandShort(final byte command, final short argument) throws ContentException, IOException {
+		methodDescriptor.getBody().putCommand(1, command, (byte)(argument >> 8), (byte)(argument & 0xFF));
+	}
+
+	private void putCommandShortShort(final byte command, final short argument1, final short argument2) throws ContentException, IOException {
+		methodDescriptor.getBody().putCommand(1, command, (byte)(argument1 >> 8), (byte)(argument1 & 0xFF), (byte)(argument2 >> 8), (byte)(argument2 & 0xFF));
+	}
+	
+	private void putCommandInt(final byte command, final int argument) throws ContentException, IOException {
+		methodDescriptor.getBody().putCommand(1, command, (byte)(argument >> 24), (byte)(argument >> 16), (byte)(argument >> 8), (byte)(argument & 0xFF));
 	}
 	
 	private void putCommand(final byte... command) throws ContentException, IOException {
@@ -1977,7 +1996,7 @@ class LineParser implements LineByLineProcessorCallback {
 				throw new ContentException("Calculated address value ["+forResult[0]+"] occupies more than 1 byte");
 			}
 			else {
-				putCommand((byte)extractStaticCommand("wide").operation,(byte)desc.operation,(byte)(forResult[0] >> 8),(byte)forResult[0]);
+				putCommand(WIDE_OPCODE, desc.operation, (byte)(forResult[0] >> 8), (byte)forResult[0]);
 			}
 		}
 		else {
@@ -1997,7 +2016,7 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 			}
 			else {
-				putCommand((byte)desc.operation,(byte)forResult[0]);
+				putCommand((byte)desc.operation, (byte)forResult[0]);
 			}
 			if (desc.argumentType != DONT_CHECK_LOCAL_TYPES && getVarType((int)forResult[0]) != desc.argumentType) { 
 				throw new ContentException("Incompatible data types for given command and local variable referenced. Var displ is ["+forResult[0]+"]");
@@ -2016,15 +2035,15 @@ class LineParser implements LineByLineProcessorCallback {
 				throw new ContentException("Calculated value value ["+forResult[0]+"] occupies more than 1 byte!");
 			}
 			else {
-				putCommand((byte)desc.operation, (byte)(forResult[0] >> 8),(byte)forResult[0]);
+				putCommandShort(desc.operation, (short)forResult[0]);
 			}
 		}
 		else {
 			if (forResult[0] >= -1 && forResult[0] <= 5) {	// Replace bipush with the special commands
-				putCommand((byte)extractStaticCommand(BIPUSH_SPECIAL[(int) (forResult[0]+1)]).operation);
+				putCommand(extractStaticCommand(BIPUSH_SPECIAL[(int) (forResult[0]+1)]).operation);
 			}
 			else {
-				putCommand((byte)desc.operation,(byte)forResult[0]);
+				putCommand(desc.operation,(byte)forResult[0]);
 			}
 		}
 		changeStack(desc.stackChanges);
@@ -2032,12 +2051,12 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processByteIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException, ContentException {
-		final long[]	forIndex = longArray, forValue = new long[2];
+		final long[]	forIndex = longArray, forValue = longArray2;
 		boolean			needExpand = false;
 		
-		start = InternalUtils.skipBlank(data, calculateLocalAddress(data,start,forIndex));
+		start = InternalUtils.skipBlank(data, calculateLocalAddress(data, start, forIndex));
 		if (data[start] == ',') {
-			start = calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.additional,forValue);
+			start = calculateValue(data, InternalUtils.skipBlank(data,start + 1), EvalState.additional, forValue);
 		}
 		else {
 			throw new ContentException("Second mandatory parameter is missing");
@@ -2063,10 +2082,10 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (needExpand) {
-			putCommand((byte)extractStaticCommand("wide").operation,(byte)desc.operation,(byte)(forIndex[0]>>8),(byte)forIndex[0],(byte)(forValue[0]>>8),(byte)forValue[0]);
+			putCommand(WIDE_OPCODE, desc.operation, (byte)(forIndex[0]>>8),(byte)forIndex[0],(byte)(forValue[0]>>8),(byte)forValue[0]);
 		}
 		else {
-			putCommand((byte)desc.operation,(byte)forIndex[0],(byte)forValue[0]);
+			putCommand(desc.operation, (byte)forIndex[0], (byte)forValue[0]);
 		}
 		changeStack(desc.stackChanges);
 		skip2line(data,start);
@@ -2077,7 +2096,7 @@ class LineParser implements LineByLineProcessorCallback {
 		final long	typeId = staticDirectiveTree.seekName(data,startType,endType);
 
 		if (typeId >= T_BASE && typeId <= T_BASE_END) {
-			putCommand((byte)desc.operation,(byte)(typeId-T_BASE));
+			putCommand(desc.operation, (byte)(typeId-T_BASE));
 			changeStack(desc.stackChanges);
 			skip2line(data,start);
 		}
@@ -2098,7 +2117,7 @@ class LineParser implements LineByLineProcessorCallback {
 				final long		typeId = tree.placeOrChangeName((CharSequence)type.getName().replace('.','/'),new NameDescriptor(checkType));
 				final short		typeDispl = cc.getConstantPool().asClassDescription(typeId);
 		
-				putCommand((byte)desc.operation, typeDispl);
+				putCommandShort((byte)desc.operation, typeDispl);
 				skip2line(data,start);
 			} catch (ContentException exc) {
 				final long		typeId = cc.getNameTree().seekName(data,startName,endName);
@@ -2110,7 +2129,7 @@ class LineParser implements LineByLineProcessorCallback {
 						final short			typeDispl = nd.cpIds[JavaByteCodeConstants.CONSTANT_Class];
 					
 						if (typeDispl != Short.MAX_VALUE) {
-							putCommand((byte)desc.operation,(byte)((typeDispl >> 8) & 0xFF),(byte)(typeDispl & 0xFF));
+							putCommandShort(desc.operation, typeDispl);
 							skip2line(data,start);
 						}
 						else {
@@ -2133,18 +2152,18 @@ class LineParser implements LineByLineProcessorCallback {
 		final int	fromContent = start; 
 		short		displ[] = shortArray;
 		
-		start = processValueShortIndexCommand(data,start,displ);
+		start = processValueShortIndexCommand(data, start, displ);
 
-		if (displ[0] < 0 || displ[0] > 2*Byte.MAX_VALUE) {
-			if (desc.operation == staticCommandTree.seekName((CharSequence)"ldc")) {	// ldc can be replaced with ldc_w 
-				processValueShortIndexCommand(staticCommandTree.getCargo(staticCommandTree.seekName((CharSequence)"ldc_w")),data,fromContent);
+		if (displ[0] < 0 || displ[0] > 2 * Byte.MAX_VALUE) {
+			if (desc.operation == LDC_OPCODE) {	// ldc can be replaced with ldc_w 
+				processValueShortIndexCommand(staticCommandTree.getCargo(LDC_W_OPCODE), data, fromContent);
 			}
 			else {
 				throw new ContentException("Calculated value ["+displ[0]+"] is too long for byte index");
 			}
 		}
 		else {
-			putCommand((byte)desc.operation,(byte)(displ[0] & 0xFF));
+			putCommand(desc.operation, (byte)(displ[0] & 0xFF));
 			changeStack(dataTypeToStackChange(displ[1]));
 			skip2line(data,start);
 		}
@@ -2153,13 +2172,13 @@ class LineParser implements LineByLineProcessorCallback {
 	private void processValueShortIndexCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		short		displ[] = shortArray;
 		
-		start = processValueShortIndexCommand(data,start,displ);
+		start = processValueShortIndexCommand(data, start, displ);
 
-		if (displ[0] < 0 || displ[0] > 2*Short.MAX_VALUE) {
+		if (displ[0] < 0 || displ[0] > 2 * Short.MAX_VALUE) {
 			throw new ContentException("Calculated value ["+displ[0]+"] is too long for short index");
 		}
 		else {
-			putCommand((byte)desc.operation, displ[0]);
+			putCommandShort((byte)desc.operation, displ[0]);
 			changeStack(dataTypeToStackChange(displ[1]));
 			skip2line(data,start);
 		}
@@ -2185,21 +2204,28 @@ class LineParser implements LineByLineProcessorCallback {
 
 		try{switch (data[start]) {
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' : case '-' :
-					final long	forResult[] = new long[]{0,0};
-					int			sign = 1;
+					final long	forResult[] = longArray2;
+					final int	sign;
 					
 					if (data[start] == '-') {
 						sign = -1;
 						start++;
 					}
-					start = UnsafedCharUtils.uncheckedParseNumber(data,start,forResult,CharUtils.PREF_INT|CharUtils.PREF_FLOAT,true);
+					else if (data[start] == '+') {
+						sign = 1;
+						start++;
+					}
+					else {
+						sign = 1;
+					}
+					start = UnsafedCharUtils.uncheckedParseNumber(data, start, forResult, CharUtils.PREF_INT|CharUtils.PREF_FLOAT, true);
 					
 					if (forResult[1] == CharUtils.PREF_FLOAT) {
-						displ = cc.getConstantPool().asFloatDescription(sign*Float.intBitsToFloat((int) forResult[0]));
+						displ = cc.getConstantPool().asFloatDescription(sign * Float.intBitsToFloat((int) forResult[0]));
 						result[1] = CompilerUtils.CLASSTYPE_FLOAT;
 					}
 					else if (forResult[1] == CharUtils.PREF_INT) {
-						displ = cc.getConstantPool().asIntegerDescription((int)(sign*forResult[0]));
+						displ = cc.getConstantPool().asIntegerDescription((int)(sign * forResult[0]));
 						result[1] = CompilerUtils.CLASSTYPE_INT;
 					}
 					else {
@@ -2249,7 +2275,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case 'U' : case 'V' : case 'W' : case 'X' : case 'Y' : case 'Z' :
 					final int	startName = start, endName = start = skipQualifiedName(data,startName);
 					
-					if (UnsafedCharUtils.uncheckedCompare(data,endName-CLASS_SUFFIX.length,CLASS_SUFFIX,0,CLASS_SUFFIX.length)) {
+					if (UnsafedCharUtils.uncheckedCompare(data, endName-CLASS_SUFFIX.length, CLASS_SUFFIX, 0, CLASS_SUFFIX.length)) {
 						for (int index = startName; index <= endName; index++) {
 							if (data[index] == '.') {
 								data[index] = '/';
@@ -2275,30 +2301,37 @@ class LineParser implements LineByLineProcessorCallback {
 	private void processValueShortIndex2Command(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final long		forResult[] = longArray;
 		StackChanges	changes = null;
-		long			sign = 1;
+		final long		sign;
 		short			displ;
 
 		try{if (data[start] == '-') {
 				sign = -1;
 				start++;
 			}
+			else if (data[start] == '+') {
+				sign = 1;
+				start++;
+			}
+			else {
+				sign = 1;
+			}
 			start = UnsafedCharUtils.uncheckedParseNumber(data, start, forResult, CharUtils.PREF_LONG|CharUtils.PREF_DOUBLE,true);
 			if (forResult[1] == CharUtils.PREF_DOUBLE) {
-				displ = cc.getConstantPool().asDoubleDescription(sign*Double.longBitsToDouble(forResult[0]));
+				displ = cc.getConstantPool().asDoubleDescription(sign * Double.longBitsToDouble(forResult[0]));
 				changes = StackChanges.pushDouble;
 			}
 			else if (forResult[1] == CharUtils.PREF_LONG) {
-				displ = cc.getConstantPool().asLongDescription(sign*forResult[0]);
+				displ = cc.getConstantPool().asLongDescription(sign * forResult[0]);
 				changes = StackChanges.pushLong;
 			}
 			else {
 				throw new ContentException("Illegal numeric constant size (only long and double are available here). Add length modifier (nnnL, nnnD) to the constant if required");
 			}
-			if (displ < 0 || displ > 2*Short.MAX_VALUE) {
+			if (displ < 0 || displ > 2 * Short.MAX_VALUE) {
 				throw new ContentException("Calculated value ["+displ+"] is too long for short index");
 			}
 			else {
-				putCommand((byte)desc.operation, displ);
+				putCommandShort((byte)desc.operation, displ);
 				changeStack(changes);
 				skip2line(data,start);
 			}
@@ -2316,15 +2349,15 @@ class LineParser implements LineByLineProcessorCallback {
 				throw new ContentException("Calculated value value ["+forResult[0]+"] occupies more than 2 byte!");
 			}
 			else {
-				putCommand((byte)desc.operation,(byte)(forResult[0] >> 24),(byte)(forResult[0] >> 16),(byte)(forResult[0] >> 8),(byte)forResult[0]);
+				putCommandInt(desc.operation, (int)forResult[0]);
 			}
 		}
 		else {
 			if (forResult[0] >= -1 && forResult[0] <= 5) {	// Replace sipush with the special commands
-				putCommand((byte)extractStaticCommand(BIPUSH_SPECIAL[(int)(forResult[0]+1)]).operation);
+				putCommand(extractStaticCommand(BIPUSH_SPECIAL[(int)(forResult[0] + 1)]).operation);
 			}
 			else {
-				putCommand((byte)desc.operation,(byte)(forResult[0]>>8),(byte)forResult[0]);
+				putCommandShort(desc.operation, (short)forResult[0]);
 			}
 		}
 		changeStack(desc.stackChanges);
@@ -2346,9 +2379,9 @@ class LineParser implements LineByLineProcessorCallback {
 				throw new ContentException("Calculated value ["+forValue[0]+"] is too long for byte value");
 			}
 			else {
-				putCommand((byte)desc.operation,(byte)((typeDispl >> 8) & 0xFF),(byte)(typeDispl & 0xFF),(byte)forValue[0]);
-				if (desc.operation == 0xc5) { // multianewarray
-					changeStack(desc.stackChanges,(int)forValue[0]);
+				putCommand(desc.operation, (byte)((typeDispl >> 8) & 0xFF), (byte)(typeDispl & 0xFF), (byte)forValue[0]);
+				if (desc.operation == MULTIANEWARRAY_OPCODE) { // multianewarray
+					changeStack(desc.stackChanges, (int)forValue[0]);
 				}
 				else {
 					changeStack(desc.stackChanges);
@@ -2369,7 +2402,7 @@ class LineParser implements LineByLineProcessorCallback {
 			throw new ContentException("Calculated value ["+forResult[0]+"] is too long for short index");
 		}
 		else {
-			putCommand((byte)desc.operation, (short)forResult[0]);
+			putCommandShort((byte)desc.operation, (short)forResult[0]);
 			changeStack(desc.stackChanges,forResult[1]);
 			skip2line(data,start);
 		}
@@ -2388,7 +2421,7 @@ class LineParser implements LineByLineProcessorCallback {
 			changeStack(desc.stackChanges);
 			registerBranch(forResult[0],true);
 		}
-		putCommand((byte)desc.operation,(short)0);
+		putCommandShort((byte)desc.operation, (short)0);
 		if (desc.uncondBrunch) {
 			markLabelRequired(true);
 		}
@@ -2407,7 +2440,7 @@ class LineParser implements LineByLineProcessorCallback {
 			changeStack(desc.stackChanges);
 			registerBranch(forResult[0],false);
 		}
-		putCommand((byte)desc.operation,(byte)0,(byte)0,(byte)0,(byte)0);
+		putCommandInt(desc.operation, 0);
 		if (desc.uncondBrunch) {
 			markLabelRequired(true);
 		}
@@ -2422,7 +2455,7 @@ class LineParser implements LineByLineProcessorCallback {
 			throw new ContentException("Calculated value ["+forResult[0]+"] is too long for short index");
 		}
 		else {
-			putCommand((byte)desc.operation, (short)forResult[0]);
+			putCommandShort((byte)desc.operation, (short)forResult[0]);
 			changeStack(desc.stackChanges, forMethodTypes, forResult[1], forArgsAndSignatures);
 			skip2line(data,start);
 		}
@@ -2449,13 +2482,14 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private void processInterfaceCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final int	argsSize = processCallCommand(desc,data,start,end)+1;
+		final int	argsSize = processCallCommand(desc,data,start,end) + 1;
+		
 		putCommand((byte)(argsSize & 0xFF),(byte)((argsSize >> 8)& 0xFF));
 	}
 
 	private void prepareSwitchCommand(final byte opCode, final StackChanges stackChanges) throws ContentException, IOException {
 		switchAddress = getPC(); 
-		putCommand((byte)opCode);
+		putCommand(opCode);
 		changeStack(stackChanges);
 		alignPC(); 
 		jumps.clear(); 
@@ -2466,7 +2500,7 @@ class LineParser implements LineByLineProcessorCallback {
 		final long[]	forValue = new long[1];
 		
 		if (explicitValue) {
-			start = calculateValue(data,start,EvalState.additional,forValue);
+			start = calculateValue(data, start, EvalState.additional, forValue);
 			if (start < end && data[start] == ',') {
 				start = InternalUtils.skipBlank(data, calculateBranchAddress(data,UnsafedCharUtils.uncheckedSkipBlank(data,start+1,true),forLabel));
 			}
@@ -3253,7 +3287,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private static class CommandDescriptor {
-		public final int			operation;
+		public final byte			operation;
 		public final boolean		uncondBrunch;
 		public final CommandFormat	commandFormat;
 		public final int			argumentType;
@@ -3261,7 +3295,7 @@ class LineParser implements LineByLineProcessorCallback {
 		public final int[]			checkedTypes;
 		
 		public CommandDescriptor(final int operation, final boolean uncondBrunch, final CommandFormat commandFormat, final int argumentType, final StackChanges stackChanges, final int[] checkedTypes) {
-			this.operation = operation;
+			this.operation = (byte)operation;
 			this.uncondBrunch = uncondBrunch;
 			this.commandFormat = commandFormat;
 			this.argumentType = argumentType;

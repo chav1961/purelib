@@ -124,7 +124,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Integer);
 			iogba.writeInt(value);
-			integers.addRef(result = nextVal(),value);
+			integers.addRef(result = nextVal(), value);
 		}
 		return result;
 	}
