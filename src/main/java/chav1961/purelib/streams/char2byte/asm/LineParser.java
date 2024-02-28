@@ -1165,15 +1165,10 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private void changeStack(final StackChanges change, final int[][] signature, final int signatureSize, final int[] retSignature) throws ContentException, IOException {
 		methodDescriptor.getBody().getStackAndVarRepoNew().processChanges(methodDescriptor.getBody().getPC(), change, signature, signatureSize, retSignature);
-		changeStackRef(change, signature, signatureSize, retSignature);
 	}
 
-	private void changeStackRef(final StackChanges change, final int[][] signature, final int signatureSize, final int[] retSignature) throws ContentException, IOException {
-		methodDescriptor.getBody().getStackAndVarRepoNew().processChanges(methodDescriptor.getBody().getPC(), change, signature, signatureSize, retSignature);
-	}	
-	
 	private int getVarType(final int varDispl) throws ContentException, IOException {
-		return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(varDispl);
+		return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(varDispl)[0];
 	}
 	
 	private void prepareStackMapRecord() throws ContentException {
@@ -1543,9 +1538,6 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 				else {
 					methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,methodNameId,typeId);
-				}
-				if (!methodDescriptor.isAbstract()) {
-					methodDescriptor.getBody().getStackAndVarRepoNew().pushVarFrame((short)0);
 				}
 			}
 		}

@@ -38,6 +38,7 @@ class StackAndVarRepoNew {
 	}
 	
 	void popVarFrame() {
+		currentVarTop--;
 	}
 	
 	int addVar(final int varType, final short classRef) throws ContentException {
@@ -556,8 +557,15 @@ class StackAndVarRepoNew {
 		return maxStackDepth;
 	}
 
-	int getVarType(final int varDispl) throws ContentException {
-		throw new UnsupportedOperationException();
+	int[] getVarType(final int varDispl) throws ContentException {
+		for(int index = currentVarTop; index >= 0; index--) {
+			final VarDescriptors	desc = varContent[index]; 
+			
+			if (desc.initialVarNumber <= varDispl) {
+				return desc.content[varDispl - desc.initialVarNumber];
+			}
+		}
+		throw new IllegalArgumentException("Var displacement ["+varDispl+"] outside the range");
 	}
 	
 	StackSnapshot makeStackSnapshot() {
@@ -596,7 +604,7 @@ class StackAndVarRepoNew {
 	
 	private void compareStack(final int[][] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
-			if (!typesAreCompatible(selectStackItemType(index - signatureSize + 1), callSignature[index][0]) || !typeRefsAreCompatible(selectStackItemRefType(index-signatureSize + 1), callSignature[index][1])) {
+			if (!typesAreCompatible(selectStackItemType(index - signatureSize + 1), callSignature[index][0]) || !typeRefsAreCompatible(selectStackItemRefType(index - signatureSize + 1), callSignature[index][1])) {
 				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. "+prepareStackMismatchMessage(stackContent, getCurrentStackDepth(), callSignature, signatureSize));
 			}
 		}
@@ -720,20 +728,27 @@ class StackAndVarRepoNew {
 		}
 		
 		int addVar(final int[] desc) {
+			final int	index = currentVarNumber - initialVarNumber;
 			final int	ret = currentVarNumber;
 			
 			if (currentVarNumber - initialVarNumber >= content.length - 1) {
 				content = Arrays.copyOf(content, 2 * content.length);
 			}
-			content[ret] = desc.clone();
+			content[index] = desc.clone();
 			if (desc[0] == CompilerUtils.CLASSTYPE_DOUBLE || desc[0] == CompilerUtils.CLASSTYPE_LONG) {
-				content[ret + 1] = TOP_TYPE.clone();
+				content[index + 1] = TOP_TYPE.clone();
 				currentVarNumber += 2; 
 			}
 			else {
 				currentVarNumber++; 
 			}
 			return ret;
+		}
+
+		@Override
+		public String toString() {
+			return "VarDescriptors [codeDispl=" + codeDispl + ", initialVarNumber=" + initialVarNumber + ", currentVarNumber=" + currentVarNumber + ", content=" 
+					+ Arrays.toString(Arrays.copyOf(content, currentVarNumber - initialVarNumber)) + "]";
 		}
 	}
 	
@@ -754,11 +769,13 @@ class StackAndVarRepoNew {
 			return content.length;
 		}
 		
+		
+
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = 1;
-			result = prime * result + Arrays.hashCode(content);
+			result = prime * result + Arrays.deepHashCode(content);
 			return result;
 		}
 
@@ -768,7 +785,7 @@ class StackAndVarRepoNew {
 			if (obj == null) return false;
 			if (getClass() != obj.getClass()) return false;
 			StackSnapshot other = (StackSnapshot) obj;
-			if (!Arrays.equals(content, other.content)) return false;
+			if (!Arrays.deepEquals(content, other.content)) return false;
 			return true;
 		}
 
