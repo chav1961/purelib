@@ -55,15 +55,6 @@ public class StackAndVarRepoTest {
 		Assert.assertArrayEquals(new int[] {1,-1,-1},changes);
 		Assert.assertEquals(0,repo.getCurrentStackDepth());
 
-		repo.processChanges(StackChanges.pushUnprepared);
-		Assert.assertArrayEquals(new int[] {-1,1,-1},changes);
-		Assert.assertEquals(1,repo.getCurrentStackDepth());
-		Assert.assertEquals(-2,repo.select(0));
-
-		repo.processChanges(StackChanges.pop);
-		Assert.assertArrayEquals(new int[] {1,-1,-1},changes);
-		Assert.assertEquals(0,repo.getCurrentStackDepth());
-		
 		repo.processChanges(StackChanges.pushLong);
 		Assert.assertArrayEquals(new int[] {-1,2,-1},changes);
 		Assert.assertEquals(2,repo.getCurrentStackDepth());

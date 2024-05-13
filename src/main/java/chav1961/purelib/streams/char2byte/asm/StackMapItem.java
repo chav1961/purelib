@@ -1,6 +1,10 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-class StackMapItem {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+class StackMapItem implements Cloneable {
 	final StackMapItem	next;
 	final int			displ;
 	final int			stackDelta;
@@ -34,4 +38,12 @@ class StackMapItem {
 		this.varIndex = -1;
 		this.varChanges = null;
 	}
+
+	@Override
+	public String toString() {
+		return "StackMapItem [next=" + next + ", displ=" + displ + ", stackDelta=" + stackDelta + ", stackChanges="
+				+ Arrays.toString(stackChanges) + ", varIndex=" + varIndex + ", varChanges="
+				+ Arrays.toString(varChanges) + "]";
+	}
+	
 }

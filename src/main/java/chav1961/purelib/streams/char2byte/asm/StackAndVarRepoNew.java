@@ -1,7 +1,11 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
@@ -11,7 +15,6 @@ import chav1961.purelib.streams.char2byte.asm.StackAndVarRepo.StackSnapshot;
 
 class StackAndVarRepoNew {
 	static final int			SPECIAL_TYPE_TOP = -1;
-	static final int			SPECIAL_TYPE_UNPREPARED = -2;
 	static final int			STACK_AND_VAR_TYPE_INDEX = 0;
 	static final int			STACK_AND_VAR_REFTYPE_INDEX = 1;
 	
@@ -20,10 +23,11 @@ class StackAndVarRepoNew {
 	private static final int	INTIAL_VARS = 16;
 	private static final int	INTIAL_NESTING = 16;
 	private static final int[]	STACK_TOP_DESCRIPTOR = new int[] {SPECIAL_TYPE_TOP, 0};
-	private static final int[]	UNPREPARED_DESCRIPTOR = new int[] {SPECIAL_TYPE_UNPREPARED, 0};
-	
+
+	private Map<Long, StackSnapshot>	forwards = new HashMap<>(); 
 	private StackMapItem[]		stackMap = new StackMapItem[INTIAL_STACKMAP];
-	private int[][]				stackContent = new int[INTIAL_STACK][];
+	private int[][]				prevStackContent = new int[INTIAL_STACK][2];
+	private int[][]				stackContent = new int[INTIAL_STACK][2];
 	private VarDescriptors[]	varContent = new VarDescriptors[INTIAL_NESTING];
 	private int					currentStackTop = -1, maxStackDepth = 0;
 	private int					currentVarTop = -1, maxVarLength = 0;
@@ -56,11 +60,48 @@ class StackAndVarRepoNew {
 	}
 	
 	StackMapRecord calculateStackMap(final StackMapRecord initial, final short codeFrom, final short codeTo) {
-		for(int index = codeFrom; index < codeTo; index++) {
-			StackMapItem	item = stackMap[index];
+		final StackMapItem current = new StackMapItem(null, 0, 0);
+		final List<int[]> stack = new ArrayList<>();
+		final List<int[]> vars = new ArrayList<>();
+		
+		for(int displ = codeFrom; displ < codeTo; displ++) {
+			StackMapItem	item = stackMap[displ];
+			boolean 		changed = false;
 			
 			while (item != null) {
-				
+				if (item.stackDelta > current.stackDelta) {
+					stack.add(item.stackChanges);
+					changed = true;
+				}
+				else if (item.stackDelta < current.stackDelta) {
+					for(int index = item.stackDelta; index < current.stackDelta; index++) {
+						stack.remove(stack.size()-1);
+					}
+					changed = true;
+				}
+				else {
+					
+				}
+				if (item.varIndex > current.varIndex) {
+					vars.add(item.varChanges);
+					changed = true;
+				}
+				else if (item.varIndex < current.varIndex) {
+					for(int index = item.varIndex; index < current.varIndex; index++) {
+						vars.remove(vars.size()-1);
+					}
+					changed = true;
+				}
+				else {
+					
+				}
+				System.err.println("Displ="+displ+", item: "+item);
+				item = item.next;
+			}
+			if (changed) {
+				stackMap[displ] = null;
+				stack.clear();
+				vars.clear();
 			}
 		}
 		
@@ -99,7 +140,6 @@ class StackAndVarRepoNew {
 			case CompilerUtils.CLASSTYPE_BOOLEAN	: pushInt(codeDispl); break;
 			case CompilerUtils.CLASSTYPE_LONG 		: pushLong(codeDispl); break;
 			case CompilerUtils.CLASSTYPE_DOUBLE		: pushDouble(codeDispl); break;
-			case SPECIAL_TYPE_UNPREPARED			: pushUnprepared(codeDispl);	break;
 			default :
 				throw new UnsupportedOperationException("Variable type ["+type+"] is not supported yet"); 
 		}
@@ -124,10 +164,14 @@ class StackAndVarRepoNew {
 	}
 	
 	void commit() {
+		System.err.println("Stack: "+Arrays.deepToString(Arrays.copyOf(stackContent, currentStackTop+1)));
+		System.err.println("Vars: "+Arrays.toString(Arrays.copyOf(varContent, currentVarTop+1)));
+		calculateStackMap(null, (short)0, (short)stackMap.length);
 		// TODO:
 	}
 
 	void processChanges(final short codeDispl, final StackChanges changes, final int refType) throws ContentException {
+		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
 			case changeDouble2Float:
 				if (selectStackItemType(0) == SPECIAL_TYPE_TOP && selectStackItemType(-1) == CompilerUtils.CLASSTYPE_DOUBLE) {
@@ -422,9 +466,6 @@ class StackAndVarRepoNew {
 			case pushReference:
 				pushReference(codeDispl, refType);
 				break;
-			case pushUnprepared:
-				pushUnprepared(codeDispl);
-				break;
 			case swap :
 				final	int val1 = selectStackItemType(0), val2 = selectStackItemType(-1);
 				final	int val1Type = selectStackItemRefType(0), val2Type = selectStackItemRefType(-1);
@@ -445,6 +486,7 @@ class StackAndVarRepoNew {
 	}
 
 	void processChanges(final short codeDispl, final StackChanges changes, final int type, final int refType) throws ContentException {
+		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
 			case multiarrayAndPushReference	:
 				for (int index = 0; index < type; index++) {
@@ -549,6 +591,15 @@ class StackAndVarRepoNew {
 		commit();
 	}
 
+	void markForwardBrunch(final long labelId) {
+		System.err.println("markForwardBrunch "+labelId);
+		forwards.put(labelId, new StackSnapshot(stackContent, currentStackTop));
+	}
+	
+	void loadForwardSnapshot(final long labelId) {
+		System.err.println("loadForwardSnapshot "+labelId);
+	}
+	
 	int getCurrentStackDepth() {
 		return currentStackTop+1;
 	}
@@ -572,11 +623,22 @@ class StackAndVarRepoNew {
 		return new StackSnapshot(stackContent, currentStackTop); 
 	}
 
-	StackMapRecord createStackMapRecord(final short displ) {
-		final StackMapRecord	result = new StackMapRecord((short)(0), null, null);
+	StackMapRecord createStackMapRecord(final short displ, final long labelId) {
+		final List<int[]> vars = new ArrayList<>();
 		
-//		previousStackMapDispl = (short)(displ+1);
-		return result;
+		for(int index = 0; index <= currentVarTop; index++) {
+			final VarDescriptors 	desc = varContent[index];
+			
+			for(int descIndex = 0; descIndex < desc.currentVarNumber - desc.initialVarNumber; descIndex++) {
+				vars.add(desc.content[descIndex]);
+			}
+		}
+		
+		if (forwards.containsKey(labelId)) {
+			System.err.println("---Label found ("+labelId+")---");
+			loadStackSnapshot(forwards.get(labelId));
+		}
+		return new StackMapRecord(displ, new StackSnapshot(stackContent, currentStackTop), new VarSnapshot(vars.toArray(new int[vars.size()][]), vars.size()));
 	}
 
 	
@@ -629,11 +691,11 @@ class StackAndVarRepoNew {
 	}
 	
 	private String prepareStackContent() {
-		return new StackSnapshot(stackContent,getCurrentStackDepth()).toString();
+		return new StackSnapshot(stackContent, getCurrentStackDepth()).toString();
 	}
 	
 	private String prepareStackMismatchMessage(final int[][] stackContent, final int stackSize, final int[][] awaitedContent, final int awaitedContentSize) {
-		final StackSnapshot	stack = new StackSnapshot(stackContent,stackSize), awaited = new StackSnapshot(awaitedContent,awaitedContentSize); 
+		final StackSnapshot	stack = new StackSnapshot(stackContent, stackSize), awaited = new StackSnapshot(awaitedContent, awaitedContentSize); 
 		
 		return "Current stack state is: "+stack.toString()+", awaited top of stace is: "+awaited.toString();
 	}
@@ -641,6 +703,7 @@ class StackAndVarRepoNew {
 	private void ensureStackCapacity(final int delta) {
 		if (currentStackTop + delta >= stackContent.length) {
 			stackContent = Arrays.copyOf(stackContent, 2 * stackContent.length);
+			prevStackContent = Arrays.copyOf(prevStackContent, 2 * prevStackContent.length);
 		}
 		maxStackDepth = Math.max(maxStackDepth, currentStackTop + delta);
 	}
@@ -663,8 +726,7 @@ class StackAndVarRepoNew {
 		
 		ensureStackMapCapacity(codeDispl);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = temp;
+		pushStack(temp);
 	}
 	
 	private void pushLong(final short codeDispl) {
@@ -673,9 +735,7 @@ class StackAndVarRepoNew {
 		ensureStackMapCapacity(codeDispl);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, STACK_TOP_DESCRIPTOR);
-		ensureStackCapacity(2);
-		stackContent[++currentStackTop] = temp;
-		stackContent[++currentStackTop] = STACK_TOP_DESCRIPTOR;
+		pushStack2(temp);
 	}
 	
 	private void pushFloat(final short codeDispl) {
@@ -683,8 +743,7 @@ class StackAndVarRepoNew {
 		
 		ensureStackMapCapacity(codeDispl);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = temp;
+		pushStack(temp);
 	}
 	
 	private void pushDouble(final short codeDispl) {
@@ -693,9 +752,7 @@ class StackAndVarRepoNew {
 		ensureStackMapCapacity(codeDispl);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, STACK_TOP_DESCRIPTOR);
-		ensureStackCapacity(2);
-		stackContent[++currentStackTop] = temp;
-		stackContent[++currentStackTop] = STACK_TOP_DESCRIPTOR;
+		pushStack2(temp);
 	}
 	
 	private void pushReference(final short codeDispl, final int refType) {
@@ -703,17 +760,20 @@ class StackAndVarRepoNew {
 		
 		ensureStackMapCapacity(codeDispl);
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
-		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = temp;
+		pushStack(temp);
 	}
 	
-	private void pushUnprepared(final short codeDispl) {
-		ensureStackMapCapacity(codeDispl);
-		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, UNPREPARED_DESCRIPTOR);
+	private void pushStack(final int[] value) {
 		ensureStackCapacity(1);
-		stackContent[++currentStackTop] = UNPREPARED_DESCRIPTOR;
+		stackContent[++currentStackTop] = value;
 	}
 
+	private void pushStack2(final int[] value) {
+		ensureStackCapacity(2);
+		stackContent[++currentStackTop] = value;
+		stackContent[++currentStackTop] = STACK_TOP_DESCRIPTOR;
+	}
+	
 	static class VarDescriptors {
 		private static final int[]	TOP_TYPE = new int[] {SPECIAL_TYPE_TOP, 0};
 		
@@ -748,7 +808,7 @@ class StackAndVarRepoNew {
 		@Override
 		public String toString() {
 			return "VarDescriptors [codeDispl=" + codeDispl + ", initialVarNumber=" + initialVarNumber + ", currentVarNumber=" + currentVarNumber + ", content=" 
-					+ Arrays.toString(Arrays.copyOf(content, currentVarNumber - initialVarNumber)) + "]";
+					+ Arrays.deepToString(Arrays.copyOf(content, currentVarNumber - initialVarNumber)) + "]";
 		}
 	}
 	
@@ -769,8 +829,6 @@ class StackAndVarRepoNew {
 			return content.length;
 		}
 		
-		
-
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -798,20 +856,24 @@ class StackAndVarRepoNew {
 			
 			for (int[] val : content) {
 				sb.append(prefix);
-				switch (val[0]) {
-					case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref(").append(val[1]).append(")"); break;
-					case CompilerUtils.CLASSTYPE_BYTE		: sb.append("byte"); break;
-					case CompilerUtils.CLASSTYPE_SHORT		: sb.append("short"); break;
-					case CompilerUtils.CLASSTYPE_CHAR		: sb.append("char"); break;	
-					case CompilerUtils.CLASSTYPE_INT		: sb.append("int"); break;	
-					case CompilerUtils.CLASSTYPE_LONG		: sb.append("long"); break;
-					case CompilerUtils.CLASSTYPE_FLOAT		: sb.append("float"); break;
-					case CompilerUtils.CLASSTYPE_DOUBLE		: sb.append("double"); break;
-					case CompilerUtils.CLASSTYPE_BOOLEAN	: sb.append("boolean"); break;
-					case CompilerUtils.CLASSTYPE_VOID		: sb.append("void"); break;
-					case SPECIAL_TYPE_TOP 					: sb.append("top"); break;
-					case SPECIAL_TYPE_UNPREPARED			: sb.append("unprepared"); break;
-					default 								: sb.append(val); break;
+				if (val == null) {
+					sb.append("NULL");
+				}
+				else {
+					switch (val[0]) {
+						case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref(").append(val[1]).append(")"); break;
+						case CompilerUtils.CLASSTYPE_BYTE		: sb.append("byte"); break;
+						case CompilerUtils.CLASSTYPE_SHORT		: sb.append("short"); break;
+						case CompilerUtils.CLASSTYPE_CHAR		: sb.append("char"); break;	
+						case CompilerUtils.CLASSTYPE_INT		: sb.append("int"); break;	
+						case CompilerUtils.CLASSTYPE_LONG		: sb.append("long"); break;
+						case CompilerUtils.CLASSTYPE_FLOAT		: sb.append("float"); break;
+						case CompilerUtils.CLASSTYPE_DOUBLE		: sb.append("double"); break;
+						case CompilerUtils.CLASSTYPE_BOOLEAN	: sb.append("boolean"); break;
+						case CompilerUtils.CLASSTYPE_VOID		: sb.append("void"); break;
+						case SPECIAL_TYPE_TOP 					: sb.append("top"); break;
+						default 								: sb.append(val); break;
+					}
 				}
 				prefix = ",";
 			}
@@ -821,20 +883,16 @@ class StackAndVarRepoNew {
 	}
 	
 	static class VarSnapshot {
-		private static final int[]		EMPTY_CONTENT = new int[0];
-		private static final short[]	EMPTY_TYPES = new short[0];
+		private static final int[][]	EMPTY_CONTENT = new int[0][];
 		
-		private final int[]		content;
-		private final short[]	types;
+		private final int[][]	content;
 
 		VarSnapshot() {
 			this.content = EMPTY_CONTENT;
-			this.types = EMPTY_TYPES;
 		}		
 		
-		VarSnapshot(final int[] varContent, final short[] types, final int varSize) {
-			this.content = Arrays.copyOf(varContent, varSize + 1);
-			this.types = Arrays.copyOf(types, varSize + 1);
+		VarSnapshot(final int[][] varContent, final int varSize) {
+			this.content = Arrays.copyOf(varContent, varSize);
 		}
 
 		int getLength() {
@@ -866,9 +924,9 @@ class StackAndVarRepoNew {
 			
 			sb.append("VarSnapshot [");
 			
-			for (int val : content) {
+			for (int[] val : content) {
 				sb.append(prefix);
-				switch (val) {
+				switch (val[0]) {
 					case CompilerUtils.CLASSTYPE_REFERENCE	: sb.append("ref"); break;
 					case CompilerUtils.CLASSTYPE_BYTE		: sb.append("byte"); break;
 					case CompilerUtils.CLASSTYPE_SHORT		: sb.append("short"); break;
@@ -880,7 +938,6 @@ class StackAndVarRepoNew {
 					case CompilerUtils.CLASSTYPE_BOOLEAN	: sb.append("boolean"); break;
 					case CompilerUtils.CLASSTYPE_VOID		: sb.append("void"); break;
 					case SPECIAL_TYPE_TOP 					: sb.append("top"); break;
-					case SPECIAL_TYPE_UNPREPARED			: sb.append("unprepared"); break;
 					default 								: sb.append(val); break;
 				}
 				prefix = ",";
@@ -902,9 +959,17 @@ class StackAndVarRepoNew {
 		}		
 		
 		public StackMapRecord(final short displ, final StackSnapshot stack, final VarSnapshot vars) {
-			this.displ = displ;
-			this.stack = stack;
-			this.vars = vars;
+			if (stack == null) {
+				throw new NullPointerException("Stack snapshot can't be null");
+			}
+			else if (vars == null) {
+				throw new NullPointerException("Var snapshot can't be null");
+			}
+			else {
+				this.displ = displ;
+				this.stack = stack;
+				this.vars = vars;
+			}
 		}
 
 		public StackMapRecord calculateDelta(final StackMapRecord another) {
@@ -912,40 +977,41 @@ class StackAndVarRepoNew {
 		}
 		
 		public int getRecordSize() {
-			return 0;
-//			return    1	// 0xFF byte size 
-//					+ 2 // displ size
-//					+ 2 // stack content length size
-//					+ calculateTypeArraySize(stack.content, null)	// stack content
-//					+ 2	// var frame content length size
-//					+ calculateTypeArraySize(vars.content, vars.prepared)	// var frame content
-//					;
+			return    1	// 0xFF byte size 
+					+ 2 // displ size
+					+ 2 // stack content length size
+					+ calculateTypeArraySize(stack.content)	// stack content
+					+ 2	// var frame content length size
+					+ calculateTypeArraySize(vars.content)	// var frame content
+					;
 		}
 		
-		public void write(final InOutGrowableByteArray os) throws IOException {
-//			os.writeByte(0xFF);
-//			os.writeShort(displ);
+		public int write(final InOutGrowableByteArray os, final int delta) throws IOException {
+			os.writeByte(0xFF);
+			os.writeShort(displ - delta);
 //			os.writeShort(0);
-/*			
+			
 			os.writeShort(vars.content.length);
-//			os.writeShort(calculateTypeArraySize(vars.content));
+//			os.writeShort(calculateTypeArraySize(vars.content, null));
 			for (int index = 0; index < vars.content.length; index++) {
-				final int	verification = toStackFrameTypes(vars.content[index], vars.prepared[index]); 
+				final int	verification = toStackFrameTypes(vars.content[index]); 
 				
 				os.writeByte(verification);
-				if (verification == 7) {
-					os.writeShort(vars.types[index]);
+				if (verification == StackMap.ITEM_Object) {
+					os.writeShort(vars.content[index][1]);
 				}
 			}
-*/			
-//			os.writeShort(stack.content.length);
-//			os.writeShort(calculateTypeArraySize(stack.content));
-//			for (int index = 0; index < stack.content.length; index++) {
-//				os.writeByte(toStackFrameTypes(stack.content[index], true));	
-//				if (stack.content[index] == CompilerUtils.CLASSTYPE_REFERENCE) {
-//					os.writeShort(vars.types[index]);
-//				}
-//			}
+			
+			os.writeShort(stack.content.length);
+//				os.writeShort(calculateTypeArraySize(stack.content, null));
+			for (int index = 0; index < stack.content.length; index++) {
+				os.writeByte(toStackFrameTypes(stack.content[index]));	
+				if (stack.content[index][0] == CompilerUtils.CLASSTYPE_REFERENCE) {
+					os.writeShort(stack.content[index][1]);
+				}
+			}
+			
+			return displ + 1;
 		}
 		
 		@Override
@@ -953,41 +1019,37 @@ class StackAndVarRepoNew {
 			return "StackMapRecord [displ=" + displ + ", stack=" + stack + ", vars=" + vars + "]";
 		}
 		
-		private static int toStackFrameTypes(final int type, final boolean wasPrepared) {
-			if (wasPrepared) {
-				switch (type) {
-					case CompilerUtils.CLASSTYPE_REFERENCE	: 
-						return 7;
-					case CompilerUtils.CLASSTYPE_BOOLEAN : case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT :
-					case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
-						return 1;	
-					case CompilerUtils.CLASSTYPE_LONG		: 
-						return 4;	
-					case CompilerUtils.CLASSTYPE_FLOAT		: 
-						return 2;	
-					case CompilerUtils.CLASSTYPE_DOUBLE		: 
-						return 3;	
-					case SPECIAL_TYPE_TOP					: 
-						return 0;
-					default : throw new UnsupportedOperationException();
-				}
-			}
-			else {
-				return 0;
+		private static int toStackFrameTypes(final int[] type) {
+			switch (type[0]) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	: 
+					return StackMap.ITEM_Object;
+				case CompilerUtils.CLASSTYPE_BOOLEAN : case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT :
+				case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
+					return StackMap.ITEM_Integer;	
+				case CompilerUtils.CLASSTYPE_LONG		: 
+					return StackMap.ITEM_Long;	
+				case CompilerUtils.CLASSTYPE_FLOAT		: 
+					return StackMap.ITEM_Float;	
+				case CompilerUtils.CLASSTYPE_DOUBLE		: 
+					return StackMap.ITEM_Double;	
+				case SPECIAL_TYPE_TOP					: 
+					return StackMap.ITEM_Top;
+				default : 
+					throw new UnsupportedOperationException("Type ["+type[0]+"] is not supported yet");
 			}
 		}
 		
-		private static int calculateTypeArraySize(final int[] array, final boolean[] prepared) {
+		private static int calculateTypeArraySize(final int[][] array) {
 			int	result = array.length;
 			
 			for (int index = 0; index < array.length; index++) {
-				if (array[index] == CompilerUtils.CLASSTYPE_REFERENCE && (prepared == null || prepared[index])) {
+				if (array[index][0] == CompilerUtils.CLASSTYPE_REFERENCE) {
 					result += 2;
 				}
 			}
-//			return result;
-			return 0;
+			return result;
 		}
 	}
+
 }
 

@@ -492,9 +492,6 @@ class StackAndVarRepo {
 			case pushReference:
 				pushReference();
 				break;
-			case pushUnprepared:
-				pushUnprepared();
-				break;
 			case swap :
 				final	int val1 = select(0), val2 = select(-1);
 				
@@ -707,6 +704,8 @@ class StackAndVarRepo {
 			Arrays.fill(varContent, lastVarFrameDispl, varContent.length, SPECIAL_TYPE_UNPREPARED);
 			varClass = Arrays.copyOf(varClass, 2*varClass.length);
 			Arrays.fill(varClass, lastVarFrameDispl, varClass.length, (short)0);
+			varPrepared = Arrays.copyOf(varPrepared, 2*varPrepared.length);
+			Arrays.fill(varPrepared, lastVarFrameDispl, varPrepared.length, false);
 		}
 	}
 	

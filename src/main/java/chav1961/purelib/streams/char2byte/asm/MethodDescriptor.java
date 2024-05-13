@@ -206,8 +206,8 @@ class MethodDescriptor implements Closeable {
 		lineTable.add(new short[]{getBody().getPC(),(short)lineNo});
 	}
 
-	void addStackMapRecord() throws ContentException {
-		stackMaps.add(this.getBody().getStackAndVarRepoNew().createStackMapRecord(this.getBody().getPC()));
+	void addStackMapRecord(final long labelId) throws ContentException {
+		stackMaps.add(this.getBody().getStackAndVarRepoNew().createStackMapRecord(this.getBody().getPC(), labelId));
 	}
 	
 	void complete() throws IOException, ContentException {
@@ -299,8 +299,9 @@ class MethodDescriptor implements Closeable {
 				os.writeShort(stackMapTableWord);		// Stack map:
 				os.writeInt(2+stackMapSize);			// Struct size
 				os.writeShort(stackMaps.size());		// Amount of stack map entries
+				int offset = 0;
 				for (StackMapRecord item : stackMaps) {	// Stack map entries
-					item.write(os);
+					offset = item.write(os, offset);
 				}
 			}
 		}

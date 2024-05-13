@@ -1104,8 +1104,8 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	private void putLabel(final long labelId) throws ContentException, IOException {
 		if (!isLabelExists(labelId)) {
-			methodDescriptor.getBody().putLabel(labelId,methodDescriptor.getBody().getStackAndVarRepoNew().makeStackSnapshot());
-			prepareStackMapRecord();
+			prepareStackMapRecord(labelId);
+			methodDescriptor.getBody().putLabel(labelId, methodDescriptor.getBody().getStackAndVarRepoNew().makeStackSnapshot());
 			if (needStackMapRecord) {
 				needStackMapRecord = false;
 			}
@@ -1123,10 +1123,6 @@ class LineParser implements LineByLineProcessorCallback {
 		methodDescriptor.getBody().putCommand(1, command, (byte)(argument >> 8), (byte)(argument & 0xFF));
 	}
 
-	private void putCommandShortShort(final byte command, final short argument1, final short argument2) throws ContentException, IOException {
-		methodDescriptor.getBody().putCommand(1, command, (byte)(argument1 >> 8), (byte)(argument1 & 0xFF), (byte)(argument2 >> 8), (byte)(argument2 & 0xFF));
-	}
-	
 	private void putCommandInt(final byte command, final int argument) throws ContentException, IOException {
 		methodDescriptor.getBody().putCommand(1, command, (byte)(argument >> 24), (byte)(argument >> 16), (byte)(argument >> 8), (byte)(argument & 0xFF));
 	}
@@ -1171,8 +1167,8 @@ class LineParser implements LineByLineProcessorCallback {
 		return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(varDispl)[0];
 	}
 	
-	private void prepareStackMapRecord() throws ContentException {
-		methodDescriptor.addStackMapRecord();
+	private void prepareStackMapRecord(final long labelId) throws ContentException {
+		methodDescriptor.addStackMapRecord(labelId);
 	}
 	
 	/*
@@ -1936,9 +1932,10 @@ class LineParser implements LineByLineProcessorCallback {
 				do {final int		startException = from + 1, endException = skipQualifiedName(data, startException);
 					final Class<?>	exception = cdr.getClassDescription(data, startException, endException);
 					final long		exceptionId = tree.placeOrChangeName((CharSequence)exception.getName().replace('.', '/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+					final short		catchClassId = cc.getConstantPool().asClassDescription(exceptionId);
 
-					methodDescriptor.addExceptionRecord((short)tryList.get(0)[TRY_START_PC], (short)tryList.get(0)[TRY_END_PC], cc.getConstantPool().asClassDescription(exceptionId), (short)getPC());
-					methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], to);
+					methodDescriptor.addExceptionRecord((short)tryList.get(0)[TRY_START_PC], (short)tryList.get(0)[TRY_END_PC], catchClassId, (short)getPC());
+					methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], catchClassId);
 					from = InternalUtils.skipBlank(data,endException);
 				} while (data[from] == ',');
 			}
@@ -1947,7 +1944,7 @@ class LineParser implements LineByLineProcessorCallback {
 				methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], 0);
 			}
 			markLabelRequired(false);
-			prepareStackMapRecord();
+			prepareStackMapRecord(0);
 			skip2line(data, from);
 		}
 	}
@@ -2402,18 +2399,16 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void processShortBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		final long	forResult[] = longArray;
+		final short	displ = methodDescriptor.getBody().getPC();
 		
-		start = calculateBranchAddress(data,start,forResult);
+		start = calculateBranchAddress(data, start, forResult);
 		
-		if (!isLabelExists(forResult[0])) {
-			changeStack(desc.stackChanges);
-			registerBranch(forResult[0],true);
-		}
-		else {
-			changeStack(desc.stackChanges);
-			registerBranch(forResult[0],true);
-		}
+		changeStack(desc.stackChanges);
 		putCommandShort((byte)desc.operation, (short)0);
+		registerBranch(displ, displ + 1, forResult[0], true);
+		if (!isLabelExists(forResult[0])) {	// forward brunch
+			methodDescriptor.getBody().getStackAndVarRepoNew().markForwardBrunch(forResult[0]);
+		}
 		if (desc.uncondBrunch) {
 			markLabelRequired(true);
 		}
@@ -2422,17 +2417,15 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void processLongBrunchCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
 		final long	forResult[] = longArray;
+		final short	displ = methodDescriptor.getBody().getPC();
 		
-		start = calculateBranchAddress(data,start,forResult);
-		if (!isLabelExists(forResult[0])) {
-			changeStack(desc.stackChanges);
-			registerBranch(forResult[0],false);
-		}
-		else {
-			changeStack(desc.stackChanges);
-			registerBranch(forResult[0],false);
-		}
+		start = calculateBranchAddress(data, start, forResult);
+		changeStack(desc.stackChanges);
 		putCommandInt(desc.operation, 0);
+		registerBranch(displ, displ + 1, forResult[0], false);
+		if (!isLabelExists(forResult[0])) {	// forward brunch
+			methodDescriptor.getBody().getStackAndVarRepoNew().markForwardBrunch(forResult[0]);
+		}
 		if (desc.uncondBrunch) {
 			markLabelRequired(true);
 		}
