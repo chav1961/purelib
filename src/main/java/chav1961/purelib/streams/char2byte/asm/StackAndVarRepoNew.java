@@ -162,6 +162,34 @@ class StackAndVarRepoNew {
 			return stackContent[currentStackTop + fromTop][STACK_AND_VAR_REFTYPE_INDEX];
 		}
 	}
+
+	int selectVarType(final int varDispl) throws ContentException {
+		if (varDispl < 0 || varDispl > varContent[currentVarTop].currentVarNumber) {
+			throw new ContentException("Illegal command usage: var index ["+varDispl+"] out of range 0.."+varContent[currentVarTop].currentVarNumber);
+		}
+		else {
+			for(int index = 0; index < currentVarTop; index++) {
+				if (varDispl >= varContent[index].initialVarNumber && varDispl <= varContent[index].currentVarNumber) {
+					return varContent[index].content[varDispl - varContent[index].initialVarNumber][0];
+				}
+			}
+			throw new IllegalArgumentException();
+		}
+	}
+
+	int selectVarRefType(final int varDispl) throws ContentException {
+		if (varDispl < 0 || varDispl > varContent[currentVarTop].currentVarNumber) {
+			throw new ContentException("Illegal command usage: var index ["+varDispl+"] out of range 0.."+varContent[currentVarTop].currentVarNumber);
+		}
+		else {
+			for(int index = 0; index < currentVarTop; index++) {
+				if (varDispl >= varContent[index].initialVarNumber && varDispl <= varContent[index].currentVarNumber) {
+					return varContent[index].content[varDispl - varContent[index].initialVarNumber][1];
+				}
+			}
+			throw new IllegalArgumentException();
+		}
+	}
 	
 	void commit() {
 		System.err.println("Stack: "+Arrays.deepToString(Arrays.copyOf(stackContent, currentStackTop+1)));
