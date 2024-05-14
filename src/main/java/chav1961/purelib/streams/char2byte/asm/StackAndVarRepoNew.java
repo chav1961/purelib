@@ -573,6 +573,25 @@ class StackAndVarRepoNew {
 			case pushStatic	:
 				push(codeDispl, type, refType);
 				break;
+			case pushReference:
+				pushReference(codeDispl, refType);
+				break;
+			case popAndPushReference:
+				pop(codeDispl);
+				pushReference(codeDispl, refType);
+				break;
+			case pushInt	:
+				pushInt(codeDispl);
+				break;
+			case pushFloat	:
+				pushFloat(codeDispl);
+				break;
+			case pushLong	:
+				pushLong(codeDispl);
+				break;
+			case pushDouble	:
+				pushDouble(codeDispl);
+				break;
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}

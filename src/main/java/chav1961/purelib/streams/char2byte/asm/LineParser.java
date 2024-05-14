@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.tools.JavaCompiler;
+
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
@@ -170,6 +172,8 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final byte						LDC_W_OPCODE;
 	private static final byte						WIDE_OPCODE;
 	private static final byte						MULTIANEWARRAY_OPCODE;
+	
+	private static final int[]						ZERO_REF_TYPE = {0, 0};
 	
 	private enum EvalState {
 		term, unary, multiplicational, additional 
@@ -1971,7 +1975,7 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		putCommand(op);
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, 0);
+			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -1999,17 +2003,17 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		else {
 			if (forResult[0] <= 3) {	// Optimization to use short forms of the byte code command
-				switch (staticCommandTree.getName(desc.operation)) {
-					case "aload" 	: putCommand((byte)extractStaticCommand(ALOAD_SPECIAL[(int)forResult[0]]).operation); break;
-					case "astore"	: putCommand((byte)extractStaticCommand(ASTORE_SPECIAL[(int)forResult[0]]).operation); break;
-					case "dload"	: putCommand((byte)extractStaticCommand(DLOAD_SPECIAL[(int)forResult[0]]).operation); break;
-					case "dstore"	: putCommand((byte)extractStaticCommand(DSTORE_SPECIAL[(int)forResult[0]]).operation); break;
-					case "fload"	: putCommand((byte)extractStaticCommand(FLOAD_SPECIAL[(int)forResult[0]]).operation); break;
-					case "fstore"	: putCommand((byte)extractStaticCommand(FSTORE_SPECIAL[(int)forResult[0]]).operation); break;
-					case "iload"	: putCommand((byte)extractStaticCommand(ILOAD_SPECIAL[(int)forResult[0]]).operation); break;
-					case "istore"	: putCommand((byte)extractStaticCommand(ISTORE_SPECIAL[(int)forResult[0]]).operation); break;
-					case "lload"	: putCommand((byte)extractStaticCommand(LLOAD_SPECIAL[(int)forResult[0]]).operation); break;
-					case "lstore"	: putCommand((byte)extractStaticCommand(LSTORE_SPECIAL[(int)forResult[0]]).operation); break;
+				switch (desc.operation) {
+					case 0x19	: putCommand((byte)extractStaticCommand(ALOAD_SPECIAL[(int)forResult[0]]).operation); break;		// aload
+					case 0x3a	: putCommand((byte)extractStaticCommand(ASTORE_SPECIAL[(int)forResult[0]]).operation); break;		// astore	
+					case 0x18	: putCommand((byte)extractStaticCommand(DLOAD_SPECIAL[(int)forResult[0]]).operation); break;		// dload
+					case 0x39	: putCommand((byte)extractStaticCommand(DSTORE_SPECIAL[(int)forResult[0]]).operation); break;		// dstore
+					case 0x17	: putCommand((byte)extractStaticCommand(FLOAD_SPECIAL[(int)forResult[0]]).operation); break;		// fload	
+					case 0x38	: putCommand((byte)extractStaticCommand(FSTORE_SPECIAL[(int)forResult[0]]).operation); break;		// fstore
+					case 0x15	: putCommand((byte)extractStaticCommand(ILOAD_SPECIAL[(int)forResult[0]]).operation); break;		// iload
+					case 0x36	: putCommand((byte)extractStaticCommand(ISTORE_SPECIAL[(int)forResult[0]]).operation); break;		// istore
+					case 0x16	: putCommand((byte)extractStaticCommand(LLOAD_SPECIAL[(int)forResult[0]]).operation); break;		// lload
+					case 0x37	: putCommand((byte)extractStaticCommand(LSTORE_SPECIAL[(int)forResult[0]]).operation); break;		// lstore
 					default : throw new UnsupportedOperationException("Special command ["+staticCommandTree.getName(desc.operation)+"] is not supprted yet");
 				}
 			}
@@ -2021,7 +2025,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, 0);
+			changeStack(desc.stackChanges, calculateRefType(desc, (int)forResult[0])[1]);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2050,7 +2054,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, 0);
+			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2096,7 +2100,7 @@ class LineParser implements LineByLineProcessorCallback {
 			putCommand(desc.operation, (byte)forIndex[0], (byte)forValue[0]);
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, 0);
+			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2181,7 +2185,7 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			putCommand(desc.operation, (byte)(displ[0] & 0xFF));
 			if (desc.refTypeSource != RefTypeSource.none) {
-				changeStack(dataTypeToStackChange(displ[1]), 0);
+				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0])[1]);
 			}
 			else {
 				changeStack(dataTypeToStackChange(displ[1]));
@@ -2201,7 +2205,7 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			putCommandShort((byte)desc.operation, displ[0]);
 			if (desc.refTypeSource != RefTypeSource.none) {
-				changeStack(dataTypeToStackChange(displ[1]), 0);
+				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0])[1]);
 			}
 			else {
 				changeStack(dataTypeToStackChange(displ[1]));
@@ -2359,7 +2363,7 @@ class LineParser implements LineByLineProcessorCallback {
 			else {
 				putCommandShort((byte)desc.operation, displ);
 				if (desc.refTypeSource != RefTypeSource.none) {
-					changeStack(changes, 0);
+					changeStack(changes, calculateRefType(desc, displ)[1]);
 				}
 				else {
 					changeStack(changes);
@@ -2392,7 +2396,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, 0);
+			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2668,6 +2672,63 @@ class LineParser implements LineByLineProcessorCallback {
 	 * Evaluation methods
 	 */
 
+	private int[] calculateRefType(final CommandDescriptor desc, final int... parameters) throws ContentException {
+		// TODO Auto-generated method stub
+		switch (desc.refTypeSource) {
+			case command		:
+				switch (desc.operation) {
+					case (byte)0xbd :	// anewarray
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(parameters[0]);
+					case (byte)0xc0 :	// checkcast
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(0);
+					case 0x12 :	// ldc
+						return new int[] {CompilerUtils.CLASSTYPE_REFERENCE, parameters[0]};
+					case 0x13 :	// ldc_w
+						return new int[] {CompilerUtils.CLASSTYPE_REFERENCE, parameters[0]};
+					case 0x14 :	// ldc2_w
+						return new int[] {CompilerUtils.CLASSTYPE_REFERENCE, parameters[0]};
+					case (byte)0xc5 :	// multianewarray
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
+					case (byte)0xbb :	// new
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
+					case (byte)0xbc :	// newarray
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
+					default :
+						throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
+				}
+			case staticField	:
+				break;
+			case instanceField	:
+				break;
+			case locaVariable	:
+				switch (desc.operation) {
+					case 0x19 :	// aload N
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(parameters[0]);
+					case 0x2a :	// aload_0
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(0);
+					case 0x2b :	// aload_1
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(1);
+					case 0x2c :	// aload_2
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(2);
+					case 0x2d :	// aload_3
+						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
+					default :
+						throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
+				}
+			case returnedValue	:
+				break;
+			case stack2			:
+				break;
+			case none			:
+				return ZERO_REF_TYPE;
+			default:
+				throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
+		}
+		return ZERO_REF_TYPE;
+	}
+
+	
+	
 	private int calculateLocalAddress(final char[] data, int start, final long[] result) throws ContentException {
 		if (data[start] >= '0' && data[start] <= '9') {
 			return UnsafedCharUtils.uncheckedParseNumber(data,start,result,CharUtils.PREF_INT,true);
