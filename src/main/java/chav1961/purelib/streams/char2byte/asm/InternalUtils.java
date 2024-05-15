@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
 
 class InternalUtils {
 	static final char[]				FALSE = "false".toCharArray();
@@ -78,7 +79,7 @@ class InternalUtils {
 		}
 	}
 
-	static int methodSignature2Stack(final String methodSignature, int[][] result) {
+	static int methodSignature2Stack(final String methodSignature, final TypeDescriptor[] result) {
 		int		toStore = 0, currentType;
 		
 		for (int index = 1, maxIndex = methodSignature.length(); index < maxIndex; index++) {
@@ -100,23 +101,23 @@ class InternalUtils {
 				}
 				if (currentType == CompilerUtils.CLASSTYPE_DOUBLE || currentType == CompilerUtils.CLASSTYPE_LONG) {
 					if (toStore < result.length) {
-						result[toStore] = new int[] {currentType, 0};
+						result[toStore] = new TypeDescriptor(currentType, (short)0);
 					}
 					toStore++;
 					if (toStore < result.length) {
-						result[toStore] = new int[] {StackAndVarRepoNew.SPECIAL_TYPE_TOP, 0};
+						result[toStore] = new TypeDescriptor(StackAndVarRepoNew.SPECIAL_TYPE_TOP, (short)0);
 					}
 					toStore++;
 				}
 				else if (currentType == CompilerUtils.CLASSTYPE_REFERENCE) {
 					if (toStore < result.length) {
-						result[toStore] = new int[] {currentType, -1};
+						result[toStore] = new TypeDescriptor(currentType, (short)-1);
 					}
 					toStore++;
 				}
 				else {
 					if (toStore < result.length) {
-						result[toStore] = new int[] {currentType, 0};
+						result[toStore] = new TypeDescriptor(currentType, (short)0);
 					}
 					toStore++;
 				}
@@ -138,11 +139,11 @@ class InternalUtils {
 		return signatureByLetter(fieldSignature.charAt(0));
 	}	
 
-	static int methodSignature2Stack(final Method method, int[][] result) {
+	static int methodSignature2Stack(final Method method, final TypeDescriptor[] result) {
 		return methodSignature2Stack(CompilerUtils.buildMethodSignature(method), result);
 	}
 
-	static int constructorSignature2Stack(final Constructor<?> constructor, int[][] result) {
+	static int constructorSignature2Stack(final Constructor<?> constructor, final TypeDescriptor[] result) {
 		return methodSignature2Stack(CompilerUtils.buildConstructorSignature(constructor),result);
 	}
 	

@@ -43,6 +43,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.cdb.JavaByteCodeConstants;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroClassLoader;
 import chav1961.purelib.streams.char2byte.asm.macro.MacroCompiler;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
@@ -173,7 +174,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final byte						WIDE_OPCODE;
 	private static final byte						MULTIANEWARRAY_OPCODE;
 	
-	private static final int[]						ZERO_REF_TYPE = {0, 0};
+	private static final TypeDescriptor				ZERO_REF_TYPE = new TypeDescriptor(0, (short)0);
 	
 	private enum EvalState {
 		term, unary, multiplicational, additional 
@@ -505,7 +506,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private boolean										addLines2Class = true;
 	private boolean										addLines2ClassManually = false;
 	private boolean										addVarTable = false, addVarTableInMethod = false;
-	private int[][]										forMethodTypes = new int[16][];
+	private TypeDescriptor[]							forMethodTypes = new TypeDescriptor[16];
 	private boolean 									needStackMapRecord = false;
 	private short										stackSize4CurrentMethod = 0;
 	private int											methodLineNo;
@@ -1152,27 +1153,27 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private void changeStack(final StackChanges change) throws ContentException, IOException {
-		changeStackRef(change, 0);
+		changeStackRef(change, (short)0);
 	}
 
-	private void changeStackRef(final StackChanges change, final int refType) throws ContentException, IOException {
+	private void changeStackRef(final StackChanges change, final short refType) throws ContentException, IOException {
 		methodDescriptor.getBody().getStackAndVarRepoNew().processChanges(methodDescriptor.getBody().getPC(), change, refType);
 	}
 	
 	private void changeStack(final StackChanges change, final int signature) throws ContentException, IOException {
-		changeStackRef(change, signature, 0);
+		changeStackRef(change, signature, (short)0);
 	}
 
-	private void changeStackRef(final StackChanges change, final int signature, final int refType) throws ContentException, IOException {
+	private void changeStackRef(final StackChanges change, final int signature, final short refType) throws ContentException, IOException {
 		methodDescriptor.getBody().getStackAndVarRepoNew().processChanges(methodDescriptor.getBody().getPC(), change, signature, refType);
 	}
 	
-	private void changeStack(final StackChanges change, final int[][] signature, final int signatureSize, final int[] retSignature) throws ContentException, IOException {
+	private void changeStack(final StackChanges change, final TypeDescriptor[] signature, final int signatureSize, final TypeDescriptor retSignature) throws ContentException, IOException {
 		methodDescriptor.getBody().getStackAndVarRepoNew().processChanges(methodDescriptor.getBody().getPC(), change, signature, signatureSize, retSignature);
 	}
 
 	private int getVarType(final int varDispl) throws ContentException, IOException {
-		return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(varDispl)[0];
+		return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(varDispl).dataType;
 	}
 	
 	private void prepareStackMapRecord(final long labelId) throws ContentException {
@@ -1949,7 +1950,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 			else {
 				methodDescriptor.addExceptionRecord((short)tryList.get(0)[TRY_START_PC], (short)tryList.get(0)[TRY_END_PC], (short)0, (short)getPC());
-				methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], 0);
+				methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], (short)0);
 			}
 			markLabelRequired(false);
 			prepareStackMapRecord(0);
@@ -1975,7 +1976,7 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		putCommand(op);
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
+			changeStack(desc.stackChanges, calculateRefType(desc).reference);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2025,7 +2026,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc, (int)forResult[0])[1]);
+			changeStack(desc.stackChanges, calculateRefType(desc, (int)forResult[0]).reference);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2054,7 +2055,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
+			changeStack(desc.stackChanges, calculateRefType(desc).reference);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2100,7 +2101,7 @@ class LineParser implements LineByLineProcessorCallback {
 			putCommand(desc.operation, (byte)forIndex[0], (byte)forValue[0]);
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
+			changeStack(desc.stackChanges, calculateRefType(desc).reference);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2185,7 +2186,7 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			putCommand(desc.operation, (byte)(displ[0] & 0xFF));
 			if (desc.refTypeSource != RefTypeSource.none) {
-				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0])[1]);
+				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0]).reference);
 			}
 			else {
 				changeStack(dataTypeToStackChange(displ[1]));
@@ -2205,7 +2206,7 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			putCommandShort((byte)desc.operation, displ[0]);
 			if (desc.refTypeSource != RefTypeSource.none) {
-				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0])[1]);
+				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0]).reference);
 			}
 			else {
 				changeStack(dataTypeToStackChange(displ[1]));
@@ -2363,7 +2364,7 @@ class LineParser implements LineByLineProcessorCallback {
 			else {
 				putCommandShort((byte)desc.operation, displ);
 				if (desc.refTypeSource != RefTypeSource.none) {
-					changeStack(changes, calculateRefType(desc, displ)[1]);
+					changeStack(changes, calculateRefType(desc, displ).reference);
 				}
 				else {
 					changeStack(changes);
@@ -2396,7 +2397,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc)[1]);
+			changeStack(desc.stackChanges, calculateRefType(desc).reference);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2484,7 +2485,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private int processCallCommand(final CommandDescriptor desc, final char[] data, int start, final int end) throws IOException, ContentException {
-		final int	forResult[] = intArray, forArgsAndSignatures[] = new int[2];
+		final int				forResult[] = intArray, forArgsAndSignatures[] = new int[2];
 		
 		start = calculateMethodAddressAndSignature(data, start, end, forResult, forArgsAndSignatures);
 		if (forResult[0] <= 0 || forResult[0] > 2*Short.MAX_VALUE) {
@@ -2492,7 +2493,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		else {
 			putCommandShort((byte)desc.operation, (short)forResult[0]);
-			changeStack(desc.stackChanges, forMethodTypes, forResult[1], forArgsAndSignatures);
+			changeStack(desc.stackChanges, forMethodTypes, forResult[1], new TypeDescriptor(forArgsAndSignatures[0], (short)0));
 			skip2line(data,start);
 		}
 		return forArgsAndSignatures[0];
@@ -2672,7 +2673,7 @@ class LineParser implements LineByLineProcessorCallback {
 	 * Evaluation methods
 	 */
 
-	private int[] calculateRefType(final CommandDescriptor desc, final int... parameters) throws ContentException {
+	private TypeDescriptor calculateRefType(final CommandDescriptor desc, final int... parameters) throws ContentException {
 		// TODO Auto-generated method stub
 		switch (desc.refTypeSource) {
 			case command		:
@@ -2682,11 +2683,11 @@ class LineParser implements LineByLineProcessorCallback {
 					case (byte)0xc0 :	// checkcast
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(0);
 					case 0x12 :	// ldc
-						return new int[] {CompilerUtils.CLASSTYPE_REFERENCE, parameters[0]};
+						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
 					case 0x13 :	// ldc_w
-						return new int[] {CompilerUtils.CLASSTYPE_REFERENCE, parameters[0]};
+						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
 					case 0x14 :	// ldc2_w
-						return new int[] {CompilerUtils.CLASSTYPE_REFERENCE, parameters[0]};
+						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
 					case (byte)0xc5 :	// multianewarray
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
 					case (byte)0xbb :	// new
