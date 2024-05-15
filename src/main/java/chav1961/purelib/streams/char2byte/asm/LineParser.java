@@ -1016,7 +1016,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 								if (desc.checkedTypes != null && desc.checkedTypes.length > 0) {
 									if (!methodDescriptor.getBody().getStackAndVarRepoNew().compareStack(desc.checkedTypes)) {
-										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command!");
+										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command.");
 									}
 								}								
 								
@@ -1538,10 +1538,10 @@ class LineParser implements LineByLineProcessorCallback {
 					for (int index = 0; index < throwsList.length; index++) {
 						throwsList[index] = tree.placeOrChangeName((CharSequence)forEntity.throwsList.get(index).getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 					}
-					methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,methodNameId,typeId,throwsList);
+					methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, methodNameId, typeId, throwsList);
 				}
 				else {
-					methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,methodNameId,typeId);
+					methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, methodNameId, typeId);
 				}
 			}
 		}
@@ -1562,10 +1562,10 @@ class LineParser implements LineByLineProcessorCallback {
 			for (int index = 0; index < throwsList.length; index++) {
 				throwsList[index] = tree.placeOrChangeName((CharSequence)forEntity.throwsList.get(index).getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 			}
-			methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,id,typeId,throwsList);
+			methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, id, typeId, throwsList);
 		}
 		else {
-			methodDescriptor = cc.addMethodDescription(forEntity.options,forEntity.specialFlags,id,typeId);
+			methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, id, typeId);
 		}
 		methodNameId = id;
 	}
@@ -1975,7 +1975,9 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		putCommand(op);
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc).reference);
+			final TypeDescriptor typeDesc = calculateRefType(desc);
+			
+			changeStackRef(desc.stackChanges, typeDesc.dataType, typeDesc.reference);
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2492,7 +2494,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		else {
 			putCommandShort((byte)desc.operation, (short)forResult[0]);
-			changeStack(desc.stackChanges, forMethodTypes, forResult[1], new TypeDescriptor(forArgsAndSignatures[0], (short)0));
+			changeStack(desc.stackChanges, forMethodTypes, forResult[1], new TypeDescriptor(forArgsAndSignatures[1], (short)0));
 			skip2line(data,start);
 		}
 		return forArgsAndSignatures[0];
@@ -2674,6 +2676,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private TypeDescriptor calculateRefType(final CommandDescriptor desc, final int... parameters) throws ContentException {
 		// TODO Auto-generated method stub
+		System.err.println("CalculateRefType: "+desc+", p="+Arrays.toString(parameters));
 		switch (desc.refTypeSource) {
 			case command		:
 				switch (desc.operation) {
@@ -2768,14 +2771,14 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private int calculateMethodAddressAndSignature(final char[] data, int start, final int end, final int[] result, final int[] argsLengthAndRetSignature) throws IOException, ContentException {
-		int			startName = start, endName = start = skipSimpleName(data,start);
+		int			startName = start, endName = start = skipSimpleName(data, start);
 		
 		if (data[start] == '.') {
-			endName = start = skipQualifiedName(data,startName);
+			endName = start = skipQualifiedName(data, startName);
 			
 			if (data[start] == '(') {
 				final int			endSignature = start = skipSignature(data,start);
-				final long			possibleId = cc.getNameTree().seekName(data,startName,endSignature);
+				final long			possibleId = cc.getNameTree().seekName(data, startName, endSignature);
 				
 				if (possibleId >= 0) {
 					final String	classAndMethod = new String(data,startName,endName-startName);
@@ -2824,7 +2827,7 @@ class LineParser implements LineByLineProcessorCallback {
 						result[0] = cc.getConstantPool().asMethodRefDescription(
 								tree.placeOrChangeName((CharSequence)c.getDeclaringClass().getName().replace('.','/'),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
 								tree.placeOrChangeName((CharSequence)"<init>",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),
-								tree.placeOrChangeName((CharSequence)CompilerUtils.buildConstructorSignature(c),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+								tree.placeOrChangeName((CharSequence)CompilerUtils.buildConstructorSignature(c), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
 						);
 						argsLengthAndRetSignature[0] = 0;
 						for (Parameter item : c.getParameters()) {
@@ -2864,6 +2867,105 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 		return start;
 	}
+
+//	private int calculateMethodAddressAndSignature(final char[] data, int start, final int end, final MethodCallDescriptor desc) throws IOException, ContentException {
+//		int			startName = start, endName = start = skipSimpleName(data,start);
+//		
+//		if (data[start] == '.') {
+//			endName = start = skipQualifiedName(data,startName);
+//			
+//			if (data[start] == '(') {
+//				final int			endSignature = start = skipSignature(data,start);
+//				final long			possibleId = cc.getNameTree().seekName(data,startName,endSignature);
+//				
+//				if (possibleId >= 0) {
+//					final String	classAndMethod = new String(data, startName, endName - startName);
+//					final String	classOnly = classAndMethod.substring(0, classAndMethod.lastIndexOf('.'));
+//					final String	methodOnly = classAndMethod.substring(classAndMethod.lastIndexOf('.') + 1);
+//					final String	signature = new String(data, endName, endSignature - endName);
+//					
+//					desc.methodReference = cc.getConstantPool().asMethodRefDescription(
+//							tree.seekName((CharSequence)classOnly.replace('.','/')),
+//							tree.seekName((CharSequence)(classOnly.endsWith(methodOnly) ? "<init>" : methodOnly)),
+//							tree.seekName(data,endName,endSignature)
+//					);
+//					while ((result[1] = InternalUtils.methodSignature2Stack(signature, cc.getConstantPool(), forMethodTypes)) < 0) {
+//						forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
+//					}
+//				}
+//				else {
+//					try{final Method	m = cdr.getMethodDescription(data,startName,endSignature);
+//						final int		retType = CompilerUtils.defineClassType(m.getReturnType());
+//					
+//						if (m.getDeclaringClass().isInterface()) {
+//							desc.methodReference = cc.getConstantPool().asInterfaceMethodRefDescription(
+//									tree.placeOrChangeName((CharSequence)toCanonicalName(m.getDeclaringClass()).replace('.','/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
+//									tree.placeOrChangeName((CharSequence)m.getName(), new NameDescriptor(retType)),
+//									tree.placeOrChangeName((CharSequence)CompilerUtils.buildMethodSignature(m), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+//							);
+//						}
+//						else {
+//							desc.methodReference = cc.getConstantPool().asMethodRefDescription(
+//									tree.placeOrChangeName((CharSequence)toCanonicalName(m.getDeclaringClass()).replace('.','/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
+//									tree.placeOrChangeName((CharSequence)m.getName(), new NameDescriptor(retType)),
+//									tree.placeOrChangeName((CharSequence)CompilerUtils.buildMethodSignature(m), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+//							);
+//						}
+//						desc.argumentLength = 0;
+//						for (Parameter item : m.getParameters()) {
+//							desc.argumentLength += item.getType() == long.class || item.getType() == double.class ? 2 : 1;
+//						}
+//						argsLengthAndRetSignature[1] = InternalUtils.methodSignature2Type(m);
+//						while ((result[1] = InternalUtils.methodSignature2Stack(m, cc.getConstantPool(), forMethodTypes)) < 0) {
+//							forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
+//						}
+//					} catch (ContentException exc) {
+//						final Constructor<?>	c = cdr.getConstructorDescription(data,startName,endSignature);
+//						
+//						desc.methodReference = cc.getConstantPool().asMethodRefDescription(
+//								tree.placeOrChangeName((CharSequence)c.getDeclaringClass().getName().replace('.','/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)),
+//								tree.placeOrChangeName((CharSequence)"<init>", new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)),
+//								tree.placeOrChangeName((CharSequence)CompilerUtils.buildConstructorSignature(c), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))
+//						);
+//						desc.argumentLength = 0;
+//						for (Parameter item : c.getParameters()) {
+//							desc.argumentLength += item.getType() == long.class || item.getType() == double.class ? 2 : 1;
+//						}
+//						desc.returnedValueType = new TypeDescriptor(CompilerUtils.CLASSTYPE_VOID);
+//						
+//						while ((result[1] = InternalUtils.constructorSignature2Stack(c, cc.getConstantPool(), forMethodTypes)) < 0) {
+//							forMethodTypes = Arrays.copyOf(forMethodTypes, 2*forMethodTypes.length);
+//						}
+//					}
+//				}
+//			}
+//			else {
+//				throw new ContentException("Missing method signature!");
+//			}
+//		}
+//		else {
+//			if (data[start] == '(') {
+//				final int		startSignature = start, endSignature = start = skipSignature(data,start);
+//				final String	signature = new String(data,startSignature,endSignature-startSignature);
+//				final int		checkType = InternalUtils.methodSignature2Type(signature);
+//				
+//				desc.methodReference = cc.getConstantPool().asMethodRefDescription(
+//						joinedClassNameId,
+//						tree.placeOrChangeName(data,startName,endName, new NameDescriptor(checkType)),
+//						tree.placeOrChangeName(data,startSignature,endSignature, new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))						
+//				);
+//				while ((result[1] = InternalUtils.methodSignature2Stack(signature, cc.getConstantPool(), forMethodTypes)) < 0) {
+//					forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
+//				}
+//				argsLengthAndRetSignature[0] = result[1];
+//				argsLengthAndRetSignature[1] = checkType;
+//			}
+//			else {
+//				throw new ContentException("Missing method signature!");
+//			}
+//		}
+//		return start;
+//	}
 	
 	private int calculateValue(final char[] data, int start, final EvalState state, final long[] result) throws ContentException {
 		long		value[] = null;
@@ -3377,6 +3479,24 @@ class LineParser implements LineByLineProcessorCallback {
 			return from;
 		}
 	}
+
+	private static class MethodCallDescriptor {
+		long				methodId;
+		short				methodReference;
+		long				signatureId;
+		short				signatureReference;
+		int					argumentLength;
+		TypeDescriptor[]	parametersTypes;
+		TypeDescriptor		returnedValueType;
+		
+		@Override
+		public String toString() {
+			return "MethodCallDescriptor [methodId=" + methodId + ", methodReference=" + methodReference
+					+ ", signatureId=" + signatureId + ", signatureReference=" + signatureReference
+					+ ", argumentLength=" + argumentLength + ", parametersTypes=" + Arrays.toString(parametersTypes)
+					+ ", returnedValueType=" + returnedValueType + "]";
+		}
+	}
 	
 	private static class CommandDescriptor {
 		public final byte			operation;
@@ -3399,7 +3519,7 @@ class LineParser implements LineByLineProcessorCallback {
 
 		@Override
 		public String toString() {
-			return "CommandDescriptor [operation=" + operation + ", uncondBrunch=" + uncondBrunch + ", refTypeSource="
+			return "CommandDescriptor [operation=0x" + Integer.toHexString(operation) + ", uncondBrunch=" + uncondBrunch + ", refTypeSource="
 					+ refTypeSource + ", commandFormat=" + commandFormat + ", argumentType=" + argumentType
 					+ ", stackChanges=" + stackChanges + ", checkedTypes=" + Arrays.toString(checkedTypes) + "]";
 		}

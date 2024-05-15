@@ -9,6 +9,7 @@ import java.lang.reflect.Method;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.StackSnapshot;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
 
 class InternalUtils {
@@ -173,6 +174,12 @@ class InternalUtils {
 	
 	static int constructorSignature2Type(final Constructor<?> constructor) {
 		return methodSignature2Type(CompilerUtils.buildConstructorSignature(constructor));
+	}
+
+	static String prepareStackMismatchMessage(final TypeDescriptor[] stackContent, final int stackSize, final TypeDescriptor[] awaitedContent, final int awaitedContentSize) {
+		final StackSnapshot	stack = new StackSnapshot(stackContent, stackSize), awaited = new StackSnapshot(awaitedContent, awaitedContentSize); 
+		
+		return "Current stack state is: "+stack.toString()+", awaited top of stack is: "+awaited.toString();
 	}
 	
 	private static int signatureByLetter(final char letter) {

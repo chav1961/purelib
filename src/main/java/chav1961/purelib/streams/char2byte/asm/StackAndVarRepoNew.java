@@ -697,16 +697,7 @@ class StackAndVarRepoNew {
 	
 	StackMapRecord createStackMapRecord(final short displ, final long labelId) {
 		final TypeDescriptor[] varTypes = collectVarDescriptors();
-//		final List<TypeDescriptor> vars = new ArrayList<>();
-//		
-//		for(int index = 0; index <= currentVarTop; index++) {
-//			final VarDescriptors 	desc = varContent[index];
-//			
-//			for(int descIndex = 0; descIndex < desc.currentVarNumber - desc.initialVarNumber; descIndex++) {
-//				vars.add(desc.content[descIndex]);
-//			}
-//		}
-//		
+		
 		if (forwards.containsKey(labelId)) {
 			System.err.println("---Label found ("+labelId+")---");
 			loadStackSnapshot(forwards.get(labelId));
@@ -730,7 +721,7 @@ class StackAndVarRepoNew {
 	
 	boolean compareStack(final int[] content) throws ContentException {
 		for (int index = 0, signatureSize = content.length; index < signatureSize; index++) {
-			if (!typesAreCompatible(selectStackItemType(index-signatureSize+1),content[index])) {
+			if (!typesAreCompatible(selectStackItemType(index-signatureSize+1), content[index])) {
 				return false;
 			}
 		}
@@ -740,7 +731,9 @@ class StackAndVarRepoNew {
 	private void compareStack(final TypeDescriptor[] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
 			if (!typesAreCompatible(selectStackItemType(index - signatureSize + 1), callSignature[index].dataType) || !typeRefsAreCompatible(selectStackItemRefType(index - signatureSize + 1), callSignature[index].reference)) {
-				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. "+prepareStackMismatchMessage(stackContent, getCurrentStackDepth(), callSignature, signatureSize));
+				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. " 
+							+ InternalUtils.prepareStackMismatchMessage(stackContent, getCurrentStackDepth(), callSignature, signatureSize)
+						);
 			}
 		}
 	}
@@ -754,24 +747,19 @@ class StackAndVarRepoNew {
 		}
 	}
 
-	private boolean typeRefsAreCompatible(final int fromStack, final int fromSignature) {
-		if (fromStack != fromSignature) {
-			return fromStack == CompilerUtils.CLASSTYPE_INT && (fromSignature == CompilerUtils.CLASSTYPE_BYTE || fromSignature == CompilerUtils.CLASSTYPE_SHORT || fromSignature == CompilerUtils.CLASSTYPE_CHAR || fromSignature == CompilerUtils.CLASSTYPE_INT || fromSignature == CompilerUtils.CLASSTYPE_BOOLEAN);
-		}
-		else {
-			return true;
-		}
+	private boolean typeRefsAreCompatible(final short fromStack, final short fromSignature) {
+		return fromStack == fromSignature; 
 	}
 	
 	private String prepareStackContent() {
 		return new StackSnapshot(stackContent, getCurrentStackDepth()).toString();
 	}
 	
-	private String prepareStackMismatchMessage(final TypeDescriptor[] stackContent, final int stackSize, final TypeDescriptor[] awaitedContent, final int awaitedContentSize) {
-		final StackSnapshot	stack = new StackSnapshot(stackContent, stackSize), awaited = new StackSnapshot(awaitedContent, awaitedContentSize); 
-		
-		return "Current stack state is: "+stack.toString()+", awaited top of stace is: "+awaited.toString();
-	}
+//	private static String prepareStackMismatchMessage(final TypeDescriptor[] stackContent, final int stackSize, final TypeDescriptor[] awaitedContent, final int awaitedContentSize) {
+//		final StackSnapshot	stack = new StackSnapshot(stackContent, stackSize), awaited = new StackSnapshot(awaitedContent, awaitedContentSize); 
+//		
+//		return "Current stack state is: "+stack.toString()+", awaited top of stack is: "+awaited.toString();
+//	}
 
 	private void ensureStackCapacity(final int delta) {
 		if (currentStackTop + delta >= stackContent.length) {
