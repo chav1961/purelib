@@ -1,10 +1,12 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
@@ -79,7 +81,8 @@ class InternalUtils {
 		}
 	}
 
-	static int methodSignature2Stack(final String methodSignature, final TypeDescriptor[] result) {
+	static int methodSignature2Stack(final String methodSignature, final ClassConstantsRepo ccr, final TypeDescriptor[] result) throws ContentException, IOException {
+		final StringBuilder sb = new StringBuilder();
 		int		toStore = 0, currentType;
 		
 		for (int index = 1, maxIndex = methodSignature.length(); index < maxIndex; index++) {
@@ -91,35 +94,52 @@ class InternalUtils {
 			else {
 				currentType = signatureByLetter(currentChar);
 				
+				sb.setLength(0);				
+				sb.append(currentChar);
 				while (currentChar == '[') {
 					currentChar = methodSignature.charAt(++index);
+					sb.append(currentChar);
 				}
 				if (currentChar == 'L') {
+					sb.append(currentChar);
 					while (currentChar != ';') {
 						currentChar = methodSignature.charAt(++index);
+						sb.append(currentChar);
 					}
 				}
-				if (currentType == CompilerUtils.CLASSTYPE_DOUBLE || currentType == CompilerUtils.CLASSTYPE_LONG) {
-					if (toStore < result.length) {
-						result[toStore] = new TypeDescriptor(currentType, (short)0);
-					}
-					toStore++;
-					if (toStore < result.length) {
-						result[toStore] = new TypeDescriptor(StackAndVarRepoNew.SPECIAL_TYPE_TOP, (short)0);
-					}
-					toStore++;
-				}
-				else if (currentType == CompilerUtils.CLASSTYPE_REFERENCE) {
-					if (toStore < result.length) {
-						result[toStore] = new TypeDescriptor(currentType, (short)-1);
-					}
-					toStore++;
-				}
-				else {
-					if (toStore < result.length) {
-						result[toStore] = new TypeDescriptor(currentType, (short)0);
-					}
-					toStore++;
+				switch (currentType) {
+					case CompilerUtils.CLASSTYPE_BYTE		:
+					case CompilerUtils.CLASSTYPE_SHORT		:
+					case CompilerUtils.CLASSTYPE_CHAR		:	
+					case CompilerUtils.CLASSTYPE_INT		:	
+					case CompilerUtils.CLASSTYPE_FLOAT		:	
+					case CompilerUtils.CLASSTYPE_BOOLEAN	:
+						if (toStore < result.length) {
+							result[toStore] = new TypeDescriptor(currentType, (short)0);
+						}
+						toStore++;
+						break;
+					case CompilerUtils.CLASSTYPE_LONG		:	
+					case CompilerUtils.CLASSTYPE_DOUBLE		:	
+						if (toStore < result.length) {
+							result[toStore] = new TypeDescriptor(currentType, (short)0);
+						}
+						toStore++;
+						if (toStore < result.length) {
+							result[toStore] = new TypeDescriptor(StackAndVarRepoNew.SPECIAL_TYPE_TOP, (short)0);
+						}
+						toStore++;
+						break;
+					case CompilerUtils.CLASSTYPE_REFERENCE	:
+						if (toStore < result.length) {
+							final long	nameId = ccr.getNamesTree().placeOrChangeName(sb, new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							
+							result[toStore] = new TypeDescriptor(currentType, ccr.asClassDescription(nameId));
+						}
+						toStore++;
+						break;
+					case CompilerUtils.CLASSTYPE_VOID		:
+					default:
 				}
 			}
 		}
@@ -139,12 +159,12 @@ class InternalUtils {
 		return signatureByLetter(fieldSignature.charAt(0));
 	}	
 
-	static int methodSignature2Stack(final Method method, final TypeDescriptor[] result) {
-		return methodSignature2Stack(CompilerUtils.buildMethodSignature(method), result);
+	static int methodSignature2Stack(final Method method, final ClassConstantsRepo ccr, final TypeDescriptor[] result) throws ContentException, NullPointerException, IOException {
+		return methodSignature2Stack(CompilerUtils.buildMethodSignature(method), ccr, result);
 	}
 
-	static int constructorSignature2Stack(final Constructor<?> constructor, final TypeDescriptor[] result) {
-		return methodSignature2Stack(CompilerUtils.buildConstructorSignature(constructor),result);
+	static int constructorSignature2Stack(final Constructor<?> constructor, final ClassConstantsRepo ccr, final TypeDescriptor[] result) throws ContentException, NullPointerException, IOException {
+		return methodSignature2Stack(CompilerUtils.buildConstructorSignature(constructor), ccr, result);
 	}
 	
 	static int methodSignature2Type(final Method method) {

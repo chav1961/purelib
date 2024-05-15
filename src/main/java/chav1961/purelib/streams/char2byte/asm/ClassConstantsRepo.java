@@ -39,6 +39,10 @@ class ClassConstantsRepo implements Closeable {
 		utfs.clear();			fieldRefs.clear();
 	}
 
+	SyntaxTreeInterface<NameDescriptor> getNamesTree() {
+		return names;
+	}
+	
 	short getPoolSize() {
 		return sequence;
 	}

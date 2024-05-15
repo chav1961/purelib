@@ -762,7 +762,6 @@ class LineParser implements LineByLineProcessorCallback {
 										throw new SyntaxException(lineNo, 0, "Unclosed try blocks inside the method body ["+tree.getName(methodNameId)+"]");
 									}
 									else {
-										methodDescriptor.getBody().getStackAndVarRepoNew().popVarFrame();
 										methodDescriptor.complete();
 										addVarTableInMethod = false;
 										state = ParserState.insideClass;
@@ -2789,7 +2788,7 @@ class LineParser implements LineByLineProcessorCallback {
 							tree.seekName((CharSequence)(classOnly.endsWith(methodOnly) ? "<init>" : methodOnly)),
 							tree.seekName(data,endName,endSignature)
 					);
-					while ((result[1] = InternalUtils.methodSignature2Stack(signature, forMethodTypes)) < 0) {
+					while ((result[1] = InternalUtils.methodSignature2Stack(signature, cc.getConstantPool(), forMethodTypes)) < 0) {
 						forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
 					}
 				}
@@ -2816,7 +2815,7 @@ class LineParser implements LineByLineProcessorCallback {
 							argsLengthAndRetSignature[0] += item.getType() == long.class || item.getType() == double.class ? 2 : 1;
 						}
 						argsLengthAndRetSignature[1] = InternalUtils.methodSignature2Type(m);
-						while ((result[1] = InternalUtils.methodSignature2Stack(m, forMethodTypes)) < 0) {
+						while ((result[1] = InternalUtils.methodSignature2Stack(m, cc.getConstantPool(), forMethodTypes)) < 0) {
 							forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
 						}
 					} catch (ContentException exc) {
@@ -2832,7 +2831,7 @@ class LineParser implements LineByLineProcessorCallback {
 							argsLengthAndRetSignature[0] += item.getType() == long.class || item.getType() == double.class ? 2 : 1;
 						}
 						argsLengthAndRetSignature[1] = CompilerUtils.CLASSTYPE_VOID;
-						while ((result[1] = InternalUtils.constructorSignature2Stack(c, forMethodTypes)) < 0) {
+						while ((result[1] = InternalUtils.constructorSignature2Stack(c, cc.getConstantPool(), forMethodTypes)) < 0) {
 							forMethodTypes = Arrays.copyOf(forMethodTypes, 2*forMethodTypes.length);
 						}
 					}
@@ -2853,7 +2852,7 @@ class LineParser implements LineByLineProcessorCallback {
 						tree.placeOrChangeName(data,startName,endName,new NameDescriptor(checkType)),
 						tree.placeOrChangeName(data,startSignature,endSignature,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE))						
 				);
-				while ((result[1] = InternalUtils.methodSignature2Stack(signature,forMethodTypes)) < 0) {
+				while ((result[1] = InternalUtils.methodSignature2Stack(signature, cc.getConstantPool(), forMethodTypes)) < 0) {
 					forMethodTypes = Arrays.copyOf(forMethodTypes,2*forMethodTypes.length);
 				}
 				argsLengthAndRetSignature[0] = result[1];

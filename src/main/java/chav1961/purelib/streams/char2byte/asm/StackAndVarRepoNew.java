@@ -40,7 +40,12 @@ class StackAndVarRepoNew {
 	}
 	
 	void popVarFrame() {
-		currentVarTop--;
+		if (currentVarTop < 0) {
+			throw new IllegalStateException("Var frame stack exhausted");
+		}
+		else {
+			currentVarTop--;
+		}
 	}
 	
 	int addVar(final int varType, final short classRef) throws ContentException {
@@ -196,6 +201,10 @@ class StackAndVarRepoNew {
 		// TODO:
 	}
 
+	void processChanges(final short codeDispl, final StackChanges changes) throws ContentException {
+		processChanges(codeDispl, changes, (short)0);
+	}
+	
 	void processChanges(final short codeDispl, final StackChanges changes, final short refType) throws ContentException {
 		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
@@ -658,18 +667,22 @@ class StackAndVarRepoNew {
 		for(int index = currentVarTop; index >= 0; index--) {
 			final VarDescriptors	desc = varContent[index]; 
 			
-			if (desc.initialVarNumber <= varDispl) {
+			if (desc.initialVarNumber <= varDispl && desc.currentVarNumber > varDispl) {
 				return desc.content[varDispl - desc.initialVarNumber];
 			}
 		}
-		throw new IllegalArgumentException("Var displacement ["+varDispl+"] outside the range");
+		throw new ContentException("Var displacement ["+varDispl+"] outside the range");
 	}
 	
 	StackSnapshot makeStackSnapshot() {
 		return new StackSnapshot(stackContent, currentStackTop); 
 	}
 
-	StackMapRecord createStackMapRecord(final short displ, final long labelId) {
+	VarSnapshot makeVarSnapshot() {
+		return new VarSnapshot(collectVarDescriptors()); 
+	}
+
+	TypeDescriptor[] collectVarDescriptors() {
 		final List<TypeDescriptor> vars = new ArrayList<>();
 		
 		for(int index = 0; index <= currentVarTop; index++) {
@@ -679,12 +692,26 @@ class StackAndVarRepoNew {
 				vars.add(desc.content[descIndex]);
 			}
 		}
-		
+		return vars.toArray(new TypeDescriptor[vars.size()]);
+	}
+	
+	StackMapRecord createStackMapRecord(final short displ, final long labelId) {
+		final TypeDescriptor[] varTypes = collectVarDescriptors();
+//		final List<TypeDescriptor> vars = new ArrayList<>();
+//		
+//		for(int index = 0; index <= currentVarTop; index++) {
+//			final VarDescriptors 	desc = varContent[index];
+//			
+//			for(int descIndex = 0; descIndex < desc.currentVarNumber - desc.initialVarNumber; descIndex++) {
+//				vars.add(desc.content[descIndex]);
+//			}
+//		}
+//		
 		if (forwards.containsKey(labelId)) {
 			System.err.println("---Label found ("+labelId+")---");
 			loadStackSnapshot(forwards.get(labelId));
 		}
-		return new StackMapRecord(displ, new StackSnapshot(stackContent, currentStackTop), new VarSnapshot(vars.toArray(new TypeDescriptor[vars.size()]), vars.size()));
+		return new StackMapRecord(displ, new StackSnapshot(stackContent, currentStackTop), new VarSnapshot(varTypes));
 	}
 
 	
@@ -767,7 +794,7 @@ class StackAndVarRepoNew {
 		}
 	}
 
-	private void pushInt(final short codeDispl) {
+	void pushInt(final short codeDispl) {
 		final TypeDescriptor	temp = new TypeDescriptor(CompilerUtils.CLASSTYPE_INT, (short)0);
 		
 		ensureStackMapCapacity(codeDispl);
@@ -775,7 +802,7 @@ class StackAndVarRepoNew {
 		pushStack(temp);
 	}
 	
-	private void pushLong(final short codeDispl) {
+	void pushLong(final short codeDispl) {
 		final TypeDescriptor	temp = new TypeDescriptor(CompilerUtils.CLASSTYPE_LONG, (short)0);
 		
 		ensureStackMapCapacity(codeDispl);
@@ -784,7 +811,7 @@ class StackAndVarRepoNew {
 		pushStack2(temp);
 	}
 	
-	private void pushFloat(final short codeDispl) {
+	void pushFloat(final short codeDispl) {
 		final TypeDescriptor	temp = new TypeDescriptor(CompilerUtils.CLASSTYPE_FLOAT, (short)0);
 		
 		ensureStackMapCapacity(codeDispl);
@@ -792,7 +819,7 @@ class StackAndVarRepoNew {
 		pushStack(temp);
 	}
 	
-	private void pushDouble(final short codeDispl) {
+	void pushDouble(final short codeDispl) {
 		final TypeDescriptor	temp = new TypeDescriptor(CompilerUtils.CLASSTYPE_DOUBLE, (short)0);
 		
 		ensureStackMapCapacity(codeDispl);
@@ -801,7 +828,7 @@ class StackAndVarRepoNew {
 		pushStack2(temp);
 	}
 	
-	private void pushReference(final short codeDispl, final short refType) {
+	void pushReference(final short codeDispl, final short refType) {
 		final TypeDescriptor	temp = new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, refType);
 		
 		ensureStackMapCapacity(codeDispl);
@@ -965,6 +992,11 @@ class StackAndVarRepoNew {
 		VarSnapshot() {
 			this.content = EMPTY_CONTENT;
 		}		
+
+		VarSnapshot(final TypeDescriptor[] varContent) {
+			this.content = varContent.clone();
+		}
+		
 		
 		VarSnapshot(final TypeDescriptor[] varContent, final int varSize) {
 			this.content = Arrays.copyOf(varContent, varSize);
