@@ -63,7 +63,7 @@ class ClassDescriptionRepo {
 	
 	void addClassReference(final String classReference, final String className) throws ContentException {
 		if (referenceNames.seekName((CharSequence)classReference) >= 0) {
-			throw new ContentException("Duplicate class reference name ["+classReference+"]");
+			throw CompilerErrors.ERR_DUPLICATE_CLASS_REFERENCE_NAME.error(classReference);
 		}
 		else {
 			referenceNames.placeName((CharSequence)classReference,className.toCharArray());
@@ -76,6 +76,25 @@ class ClassDescriptionRepo {
 		}
 		else {
 			addClassDescription(stack.get(0).repoLong,clazz,protectedAndPrrivate);
+		}
+	}
+
+	boolean hasClassDescription(final char[] data, final int from, final int to) throws ContentException {
+		if (data == null || data.length == 0) {
+			throw new IllegalArgumentException("Data char array can't be null or zero length");
+		}
+		else if (to <= data.length && data[to-1] == ']') {	// Dynamic building classes for the array type
+			int		index, depth = 0;
+			
+			for (index = to-1; index > from && (data[index] == '[' || data[index] == ']'); index--) {
+				if (data[index] == '[') {
+					depth++;
+				}
+			}
+			return hasDescription(data,from,index+1,KIND_CLASS,KeeperContent.IsClass,Class.class);
+		}
+		else {
+			return hasDescription(data,from,to,KIND_CLASS,KeeperContent.IsClass,Class.class);
 		}
 	}
 	
@@ -100,14 +119,26 @@ class ClassDescriptionRepo {
 		}
 	}
 
+	boolean hasFieldDescription(final char[] data, final int from, final int to) throws ContentException {
+		return hasDescription(data,from,to,KIND_FIELD,KeeperContent.IsField,Field.class);
+	}
+	
 	Field getFieldDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_FIELD,KeeperContent.IsField,Field.class);
 	}
 
+	boolean hasMethodDescription(final char[] data, final int from, final int to) throws ContentException {
+		return hasDescription(data,from,to,KIND_METHOD,KeeperContent.IsMethod,Method.class);
+	}
+	
 	Method getMethodDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_METHOD,KeeperContent.IsMethod,Method.class);
 	}
 
+	boolean hasConstructorDescription(final char[] data, final int from, final int to) throws ContentException {
+		return hasDescription(data,from,to,KIND_CONSTRUCTOR,KeeperContent.isConstructor,Constructor.class);
+	}
+	
 	Constructor<?> getConstructorDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_CONSTRUCTOR,KeeperContent.isConstructor,Constructor.class);
 	}
@@ -124,6 +155,30 @@ class ClassDescriptionRepo {
 			final RepoStack	item = stack.remove(0);
 			
 			item.repoLong.clear();
+		}
+	}
+
+	private <T> boolean hasDescription(final char[] data, final int from, final int to, final String content, final KeeperContent type, final Class<T> result) throws ContentException {
+		if (data == null || data.length == 0) {
+			throw new IllegalArgumentException("Data char array cant be null or zero length");
+		}
+		else if (from < 0 || from >= data.length) {
+			throw new IllegalArgumentException("From location ["+from+"] outside the bounds 0.."+data.length);
+		}
+		else if (to < 0 || to > data.length) {
+			throw new IllegalArgumentException("To location ["+to+"] outside the bounds 0.."+data.length);
+		}
+		else {
+			long	id;
+
+			for (int index = stack.size()-1; index >= 0; index--) {
+				if ((id = stack.get(index).repoLong.seekName(data,from,to)) >= 0) {
+					if (stack.get(index).repoLong.getCargo(id).content == type) {
+						return true;
+					}
+				}
+			}
+			return false;
 		}
 	}
 	
@@ -147,18 +202,18 @@ class ClassDescriptionRepo {
 						return (T) stack.get(index).repoLong.getCargo(id).data;
 					}
 					else {
-						throw new ContentException("Qualified name ["+new String(data,from,to-from)+"] is not a "+content+", but ["+stack.get(index).repoLong.getCargo(id).content+"]");
+						throw CompilerErrors.ERR_QUALIFIED_NAME_DIFFERENT_TYPE.error(new String(data,from,to-from), content, stack.get(index).repoLong.getCargo(id).content); 
 					}
 				}
 			}
 			
 			// Search the most similar name in the list and throw exception
 			final List<NameAndPrescription>	allMethods = new ArrayList<>();	
-			final char[]					methodNameArray = Arrays.copyOfRange(data,from,to);
-			final String					methodName = new String(methodNameArray);
+			final char[]					entityNameArray = Arrays.copyOfRange(data,from,to);
+			final String					entityName = new String(entityNameArray);
 			
 			for (int index = stack.size()-1; index >= 0; index--) {
-				stack.get(index).repoLong.walk((name,len,nodeId,cargo)->{allMethods.add(new NameAndPrescription(new String(name,0,len),CharUtils.calcLevenstain(methodNameArray,Arrays.copyOfRange(name,0,len)))); return true;});
+				stack.get(index).repoLong.walk((name,len,nodeId,cargo)->{allMethods.add(new NameAndPrescription(new String(name,0,len),CharUtils.calcLevenstain(entityNameArray,Arrays.copyOfRange(name,0,len)))); return true;});
 			}				
 			final NameAndPrescription[]		list = allMethods.toArray(new NameAndPrescription[allMethods.size()]);
 
@@ -170,7 +225,7 @@ class ClassDescriptionRepo {
 											});
 			allMethods.clear();
 			
-			throw new ContentException(" Name ["+methodName+"] is unknown or illegal, use import directive to load it's description.\nPossibly, ["+list[0].name+"] you need?");
+			throw CompilerErrors.ERR_ENTITY_NOT_DECLARED.error(entityName, list[0].name);
 		}
 	}
 

@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.tools.JavaCompiler;
-
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.LineByLineProcessor;
@@ -562,23 +560,19 @@ class LineParser implements LineByLineProcessorCallback {
 					final String	macroName = new String(currentMacros.getName());
 					
 					if (macros.seekName((CharSequence)macroName) >= 0) {
-						throw new SyntaxException(lineNo, 0, "Duplicate macros ["+macroName+"] in the input stream");
+						throw CompilerErrors.ERR_DUPLICATE_MACROS.syntaxError(lineNo, macroName);
 					}
 					else {
 						final GrowableCharArray<?>	writer = new GrowableCharArray<>(true), stringRepo = new GrowableCharArray<>(false);
 						final String				className = this.getClass().getPackage().getName()+'.'+new String(currentMacros.getName()); 
 						
-						if ("chav1961.purelib.streams.char2byte.asm.printProxyImportClass".equals(className)) {
-							int x = 10;						
-						}
-						
 						try{MacroCompiler.compile(className, currentMacros.getRoot(), writer, stringRepo);
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
 							macros.placeOrChangeName((CharSequence)macroName,currentMacros);
 						} catch (CalculationException | InstantiationException | RuntimeException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
-							throw new SyntaxException(lineNo, 0, e.getLocalizedMessage(),e); 
+							throw CompilerErrors.ERR_MACROS_INVOCATION_ERROR.syntaxError(lineNo, className, e.getLocalizedMessage()); 
 						} catch (VerifyError | ClassFormatError e) {
-							throw new ContentException(e.getClass().getSimpleName()+": "+e.getLocalizedMessage()+"\nClass content:\n"+new String(writer.extract()), e); 
+							throw CompilerErrors.ERR_MACROS_CODE_CORRUPTED.error(className, e.getLocalizedMessage(), new String(writer.extract())); 
 						}
 						state = ParserState.beforePackage;
 						currentMacros = null;
@@ -595,7 +589,7 @@ class LineParser implements LineByLineProcessorCallback {
 				startName = start;
 				endName = start = skipSimpleName(data,start);
 				if (endName == startName) {
-					throw new SyntaxException(lineNo, 0, "Illegal label/entity name");
+					throw CompilerErrors.ERR_ILLEGAL_LABEL_ENTRY_NAME.syntaxError(lineNo);
 				}
 				
 				id = tree.placeOrChangeName(data,startName,endName,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
@@ -605,10 +599,10 @@ class LineParser implements LineByLineProcessorCallback {
 					switch (state) {
 						case insideClassBody :
 						case insideBegin :
-							putLabel(id);
+							putLabel(lineNo, id);
 							break;
 						default :
-							throw new SyntaxException(lineNo, 0, "Branch label outside the method body!");
+							throw CompilerErrors.ERR_BRANCH_LABEL_OUTSIDE_METHOD_BODY.syntaxError(lineNo);
 					}
 					start++;
 					id = -1;
@@ -623,90 +617,90 @@ class LineParser implements LineByLineProcessorCallback {
 	
 					switch ((int)staticDirectiveTree.seekName(data,startDir,endDir)) {
 						case DIR_CLASS	:
-							checkLabel(id,true);
+							checkLabel(lineNo, id, true);
 							switch (state) {
 								case beforePackage :
 								case beforeImport :
-									processClassDir(id,data,InternalUtils.skipBlank(data,start));
+									processClassDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									state = ParserState.insideClass;
 									break;
 								case afterClass :
-									throw new SyntaxException(lineNo, 0, "Second class directive in the same stream. Use separate streams for each class/interface!");
+									throw CompilerErrors.ERR_DUPLICATE_CLASS_DIRECTIVE.syntaxError(lineNo);
 								default :
-									throw new SyntaxException(lineNo, 0, "Nested class directive!");
+									throw CompilerErrors.ERR_NESTED_CLASS_DIRECTIVE.syntaxError(lineNo);
 							}						
 							break;
 						case DIR_INTERFACE:
-							checkLabel(id,true);
+							checkLabel(lineNo, id, true);
 							switch (state) {
 								case beforePackage :
 								case beforeImport :
-									processInterfaceDir(id,data,InternalUtils.skipBlank(data,start));
+									processInterfaceDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									state = ParserState.insideInterface;
 									break;
 								case afterClass :
-									throw new SyntaxException(lineNo, 0, "Second interface directive in the same stream. Use separate streams for each class/interface!");
+									throw CompilerErrors.ERR_DUPLICATE_CLASS_DIRECTIVE.syntaxError(lineNo);
 								default :
-									throw new SyntaxException(lineNo, 0, "Nested interface directive!");
+									throw CompilerErrors.ERR_NESTED_CLASS_DIRECTIVE.syntaxError(lineNo);
 							}						
 							break;
 						case DIR_FIELD	:
-							checkLabel(id,true);
+							checkLabel(lineNo, id, true);
 							switch (state) {
 								case insideClass :
-									processClassFieldDir(id,data,InternalUtils.skipBlank(data,start));
+									processClassFieldDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									break;
 								case insideInterface :
-									processInterfaceFieldDir(id,data,InternalUtils.skipBlank(data,start));
+									processInterfaceFieldDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									break;
 								case beforePackage :
 								case beforeImport :
 								case afterClass :
-									throw new SyntaxException(lineNo, 0, "Field directive outside the class/interface!");
+									throw CompilerErrors.ERR_FIELD_DIRECTIVE_OUTSIDE_CLASS.syntaxError(lineNo);
 								default :
-									throw new SyntaxException(lineNo, 0, "Field directive inside the method!");
+									throw CompilerErrors.ERR_FIELD_DIRECTIVE_INSIDE_METHOD.syntaxError(lineNo);
 							}
 							break;
 						case DIR_METHOD	:
-							checkLabel(id,true);
+							checkLabel(lineNo, id, true);
 							switch (state) {
 								case insideClass :
-									processClassMethodDir(id,data,InternalUtils.skipBlank(data,start));
+									processClassMethodDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									state = methodDescriptor.isAbstract() ? ParserState.insideClassAbstractMethod : ParserState.insideClassMethod;
 									break;
 								case insideInterface :
-									processInterfaceMethodDir(id,data,InternalUtils.skipBlank(data,start));
+									processInterfaceMethodDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									state = ParserState.insideInterfaceAbstractMethod;
 									break;
 								case beforePackage :
 								case beforeImport :
 								case afterClass :
-									throw new SyntaxException(lineNo, 0, "Method directive outside the class/interface!");
+									throw CompilerErrors.ERR_METHOD_DIRECTIVE_OUTSIDE_CLASS.syntaxError(lineNo);
 								default :
-									throw new SyntaxException(lineNo, 0, "Nested method directive!");
+									throw CompilerErrors.ERR_NESTED_METHOD_DIRECTIVE.syntaxError(lineNo);
 							}
 							break;
 						case DIR_PARAMETER	:
-							checkLabel(id,true);
+							checkLabel(lineNo, id, true);
 							switch (state) {
 								case insideClassAbstractMethod :
 								case insideInterfaceAbstractMethod :
 								case insideClassMethod :
-									processParameterDir(id, data, InternalUtils.skipBlank(data, start));
+									processParameterDir(lineNo, id, data, InternalUtils.skipBlank(data, start));
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Parameter directive is used outside the method description!");
+									throw CompilerErrors.ERR_PARAMETER_DIRECTIVE_OUTSIDE_METHOD.syntaxError(lineNo);
 							}
 							break;
 						case DIR_VAR	:
-							checkLabel(id,true);
+							checkLabel(lineNo, id, true);
 							switch (state) {
 								case insideClassBody :
 								case insideBegin :
-									processVarDir(id,data,InternalUtils.skipBlank(data,start));
+									processVarDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Var directive is used outside the method description!");
+									throw CompilerErrors.ERR_VAR_DIRECTIVE_OUTSIDE_METHOD.syntaxError(lineNo);
 							}
 							break;
 						case DIR_BEGIN	:
@@ -725,14 +719,14 @@ class LineParser implements LineByLineProcessorCallback {
 									methodDescriptor.getBody().getStackAndVarRepoNew().pushVarFrame((short)getPC());
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Begin directive is valid in the method body only!");
+									throw CompilerErrors.ERR_BEGIN_DIRECTIVE_OUTSIDE_METHOD.syntaxError(lineNo);
 							}
 							break;
 						case DIR_END	:
 							switch (state) {
 								case insideClass :
 								case insideInterface :
-									checkLabel(id,true);
+									checkLabel(lineNo, id, true);
 									if (id != classNameId) {
 										throw new SyntaxException(lineNo, 0, "End directive closes class description, but it's label ["+tree.getName(id)+"] is differ from class name ["+tree.getName(classNameId)+"]");
 									}
@@ -741,7 +735,7 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									break;
 								case insideClassAbstractMethod :
-									checkLabel(id,true);
+									checkLabel(lineNo, id, true);
 									if (id != methodNameId) {
 										throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 									}
@@ -754,7 +748,7 @@ class LineParser implements LineByLineProcessorCallback {
 								case insideClassMethod :
 									throw new SyntaxException(lineNo, 0, "Class method body is not defined!");
 								case insideClassBody :
-									checkLabel(id,true);
+									checkLabel(lineNo, id, true);
 									if (id != methodNameId && id != classNameId) {
 										throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 									}
@@ -768,7 +762,7 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									break;
 								case insideInterfaceAbstractMethod :
-									checkLabel(id,true);
+									checkLabel(lineNo, id, true);
 									if (id != methodNameId) {
 										throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 									}
@@ -788,7 +782,7 @@ class LineParser implements LineByLineProcessorCallback {
 									}
 									else {
 										state = beforeBegin;
-										checkLabel(id,true);
+										checkLabel(lineNo, id, true);
 										if (id != methodNameId) {
 											throw new SyntaxException(lineNo, 0, "End directive closes method description, but it's label ["+tree.getName(id)+"] is differ from method name ["+tree.getName(methodNameId)+"]");
 										}
@@ -815,47 +809,47 @@ class LineParser implements LineByLineProcessorCallback {
 							skip2line(data,start);
 							break;
 						case DIR_STACK	:
-							checkLabel(id,false);
+							checkLabel(lineNo, id, false);
 							switch (state) {
 								case insideClassMethod :
-									processStackDir(data,InternalUtils.skipBlank(data,start));
+									processStackDir(lineNo, data, InternalUtils.skipBlank(data,start));
 									state = ParserState.insideClassBody;
 									methodLineNo = 0;
 									break;
 								case insideClassBody :
 								case insideBegin :
-									throw new SyntaxException(lineNo, 0, "Duplicate Stack directive detected!");
+									throw CompilerErrors.ERR_DUPLICATE_STACK_DIRECTIVE.syntaxError(lineNo);
 								default :
-									throw new SyntaxException(lineNo, 0, "Stack directive is used outside the method description!");
+									throw CompilerErrors.ERR_STACK_DIRECTIVE_OUTSIDE_METHOD.syntaxError(lineNo);
 							}
 							break;
 						case DIR_PACKAGE:
-							checkLabel(id,false);
+							checkLabel(lineNo, id, false);
 							switch (state) {
 								case beforePackage :
-									processPackageDir(data,InternalUtils.skipBlank(data,start));
+									processPackageDir(lineNo, data, InternalUtils.skipBlank(data,start));
 									state = ParserState.beforeImport;
 									break;
 								case beforeImport :
-									throw new SyntaxException(lineNo, 0, "Duplicate package directive!");
+									throw CompilerErrors.ERR_DUPLICATE_PACKAGE_DIRECTIVE.syntaxError(lineNo);
 								default :
-									throw new SyntaxException(lineNo, 0, "Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
+									throw CompilerErrors.ERR_PACKAGE_DIRECTIVE_INSIDE_CLASS.syntaxError(lineNo);
 							}
 							break;
 						case DIR_IMPORT:
-							checkLabel(id,false);
+							checkLabel(lineNo, id, false);
 							switch (state) {
 								case beforePackage :
 								case beforeImport :
-									processImportDir(data,InternalUtils.skipBlank(data,start));
+									processImportDir(lineNo, data, InternalUtils.skipBlank(data,start));
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Package directive is used inside the class or interface description! Use import before the class/interface directive only!");
+									throw CompilerErrors.ERR_IMPORT_DIRECTIVE_INSIDE_CLASS.syntaxError(lineNo);
 							}
 							break;
 						case DIR_INCLUDE:
-							checkLabel(id,false);
-							processIncludeDir(data,InternalUtils.skipBlank(data,start),end);
+							checkLabel(lineNo, id, false);
+							processIncludeDir(lineNo, data, InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_TRY	:
 							switch (state) {
@@ -864,7 +858,7 @@ class LineParser implements LineByLineProcessorCallback {
 									pushTryBlock();
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+									throw CompilerErrors.ERR_DIRECTIVE_OUTSIDE_METHOD_BODY.syntaxError(lineNo, new String(data,startDir-1,endDir-startDir+1));
 							}
 							break;
 						case DIR_CATCH	:
@@ -874,7 +868,7 @@ class LineParser implements LineByLineProcessorCallback {
 									processCatch(data, InternalUtils.skipBlank(data, start), end);
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+									throw CompilerErrors.ERR_DIRECTIVE_OUTSIDE_METHOD_BODY.syntaxError(lineNo, new String(data,startDir-1,endDir-startDir+1));
 							}
 							break;
 						case DIR_END_TRY	:
@@ -884,7 +878,7 @@ class LineParser implements LineByLineProcessorCallback {
 									popTryBlock(lineNo);
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside method body only");
+									throw CompilerErrors.ERR_DIRECTIVE_OUTSIDE_METHOD_BODY.syntaxError(lineNo, new String(data,startDir-1,endDir-startDir+1));
 							}
 							break;
 						case DIR_MACRO	:
@@ -895,7 +889,7 @@ class LineParser implements LineByLineProcessorCallback {
 									currentMacros.processLine(displacement,lineNo,data,from,len);
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used before package description only");
+									throw CompilerErrors.ERR_MACROS_DIRECTIVE_AFTER_PACKAGE.syntaxError(lineNo);
 							}
 							break;
 						case DIR_DEFAULT:
@@ -905,31 +899,31 @@ class LineParser implements LineByLineProcessorCallback {
 									processJumps(data,InternalUtils.skipBlank(data,start),end,false);
 									break;
 								default :
-									throw new SyntaxException(lineNo, 0, "Directive : "+new String(data,startDir-1,endDir-startDir+1)+" can be used inside loowkuswitch/tableswitch command body only");
+									throw CompilerErrors.ERR_DIRECTIVE_OUTSIDE_SWITCH.syntaxError(lineNo);
 							}
 							break;
 						case DIR_VERSION	:
-							checkLabel(id,false);
-							processVersionDir(data,InternalUtils.skipBlank(data,start),end);
+							checkLabel(lineNo, id, false);
+							processVersionDir(lineNo, data, InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_LINE	:
-							checkLabel(id,false);
-							processLineDir(lineNo,data,InternalUtils.skipBlank(data,start),end);
+							checkLabel(lineNo, id, false);
+							processLineDir(lineNo, data, InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_VARTABLE	:
-							checkLabel(id,false);
-							processVarTableDir(lineNo,data,InternalUtils.skipBlank(data,start),end);
+							checkLabel(lineNo, id, false);
+							processVarTableDir(lineNo, data, InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_FORWARD	:
-							checkLabel(id,true);
-							processForwardDir(lineNo,id,data,InternalUtils.skipBlank(data,start),end);
+							checkLabel(lineNo, id, true);
+							processForwardDir(lineNo, id, data,InternalUtils.skipBlank(data,start),end);
 							break;
 						case DIR_SOURCE	:
-							checkLabel(id,false);
+							checkLabel(lineNo, id, false);
 							processSourceDir(data,InternalUtils.skipBlank(data,start),end);
 							break;
 						default :
-							throw new SyntaxException(lineNo, 0, "Unknown directive : "+new String(data,startDir-1,endDir-startDir+1));
+							throw CompilerErrors.ERR_UNKNOWN_DIRECTIVE.syntaxError(lineNo, new String(data,startDir-1,endDir-startDir+1));
 					}
 					break;
 				case '*' :
@@ -943,11 +937,11 @@ class LineParser implements LineByLineProcessorCallback {
 								case CMD_STORE	: processStoreAuto(data,InternalUtils.skipBlank(data,start)); break;
 								case CMD_EVAL	: processEvalAuto(data,InternalUtils.skipBlank(data,start)); break;
 								case CMD_CALL	: processCallAuto(data,InternalUtils.skipBlank(data,start)); break;
-								default : throw new SyntaxException(lineNo, 0, "Unknown automation : "+new String(data,startDir-1,endDir-startDir+1));
+								default : throw CompilerErrors.ERR_UNKNOWN_DIRECTIVE.syntaxError(lineNo, new String(data,startDir-1,endDir-startDir+1));
 							}
 							break;
 						default :
-							throw new SyntaxException(lineNo, 0, "Automation can be used on the method body only!");
+							throw CompilerErrors.ERR_AUTOMATION_OUTSIDE_METHOD_BODY.syntaxError(lineNo);
 					}
 					break;
 				case '\r' : case '\n':
@@ -1002,7 +996,7 @@ class LineParser implements LineByLineProcessorCallback {
 							endDir = start = skipSimpleName(data,start);
 							
 							if (startDir == endDir) {
-								throw new SyntaxException(lineNo, 0, "Unknown command");
+								throw CompilerErrors.ERR_COMMAND_MNEMONICS_MISSING.syntaxError(lineNo);
 							}
 							final long	opCode = staticCommandTree.seekName(data,startDir,endDir);
 		
@@ -1048,13 +1042,13 @@ class LineParser implements LineByLineProcessorCallback {
 										state = ParserState.insideMethodTable; 
 										break;
 									case restricted				: 
-										throw new SyntaxException(lineNo, 0, "Restricted command in the input stream!");
+										throw CompilerErrors.ERR_RESTRICTED_COMMAND.syntaxError(lineNo);
 									default : 
 										throw new UnsupportedOperationException("Command format ["+desc.commandFormat+"] is not supported yet");
 								}
 							}
 							else {
-								throw new SyntaxException(lineNo, 0, "Unknown command : "+new String(data,startDir,endDir-startDir));
+								throw CompilerErrors.ERR_UNKNOWN_COMMAND_MNEMONICS.syntaxError(lineNo, new String(data,startDir,endDir-startDir));
 							}
 							break;
 						case insideMethodLookup : 
@@ -1066,14 +1060,14 @@ class LineParser implements LineByLineProcessorCallback {
 								endDir = skipSimpleName(data,start);
 
 								if (endDir == start) {
-									throw new SyntaxException(lineNo,0,"Unparsed line in the input: ["+new String(data,from,len-1)+"] is unknown or illegal for the ["+state+"]"); 
+									throw CompilerErrors.ERR_UNPARSED_LINE_IN_CONTEXT.syntaxError(lineNo, new String(data,from,len-1), state);
 								}
 								else {
 									if (staticCommandTree.seekName(data,start,endDir) >= 0) {
-										throw new SyntaxException(lineNo,0,"Valid command outside context. Check that .stack or .begin directive was typed earlier"); 
+										throw CompilerErrors.ERR_COMMAND_OUTSIDE_METHOD_BODY.syntaxError(lineNo);
 									}
 									else {
-										throw new SyntaxException(lineNo,0,"Unparsed line in the input: ["+new String(data,from,len-1)+"] is unknown or illegal for the ["+state+"] context"); 
+										throw CompilerErrors.ERR_UNPARSED_LINE_IN_CONTEXT.syntaxError(lineNo, new String(data,from,len-1), state);
 									}
 								}
 							}
@@ -1088,15 +1082,15 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void checkLabel(final long labelId, final boolean present) throws ContentException {
+	private void checkLabel(final int lineNo, final long labelId, final boolean present) throws ContentException {
 		if (present) {
 			if (labelId == -1) {
-				throw new ContentException("Missing mandatory name before directive!");
+				throw CompilerErrors.ERR_MANDATORY_NAME_IS_MISSING.syntaxError(lineNo);
 			}
 		}
 		else {
 			if (labelId != -1) {
-				throw new ContentException("Name before this directive is not supported!");
+				throw CompilerErrors.ERR_NAME_IS_NOT_SUPPORTED_HERE.syntaxError(lineNo);
 			}
 		}
 	}
@@ -1110,7 +1104,7 @@ class LineParser implements LineByLineProcessorCallback {
 		needStackMapRecord = required;
 	}
 	
-	private void putLabel(final long labelId) throws ContentException, IOException {
+	private void putLabel(final int lineNo, final long labelId) throws ContentException, IOException {
 		if (!isLabelExists(labelId)) {
 			prepareStackMapRecord(labelId);
 			methodDescriptor.getBody().putLabel(labelId, methodDescriptor.getBody().getStackAndVarRepoNew().makeStackSnapshot());
@@ -1119,7 +1113,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		else {
-			throw new ContentException("Duplicate label in the method body!");
+			throw CompilerErrors.ERR_DUPLICATE_LABEL_IN_METHOD_BODY.syntaxError(lineNo);
 		}
 	}
 
@@ -1182,7 +1176,7 @@ class LineParser implements LineByLineProcessorCallback {
 	/*
 	 * Process directives
 	 */
-	private void processClassDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processClassDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		int				startOption = start, endOption;
 		long			extendsId = -1;
 		List<Long>		implementsNames = null;
@@ -1196,24 +1190,29 @@ class LineParser implements LineByLineProcessorCallback {
 				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_SYNTHETIC,"class"); break;
 				case OPTION_EXTENDS		:
 					if (extendsId != -1) {
-						throw new ContentException("Duplicate option 'extends' in the 'class' directive!");
+						throw CompilerErrors.ERR_DUPLICATE_EXTENDS_OPTION.syntaxError(lineNo);
 					}
 					else {
-						int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedName(data,start);
+						int				startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedName(data,start);
 						
-						final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
-
-						if ((parent.getModifiers() & JavaByteCodeConstants.ACC_FINAL) != 0 || (parent.getModifiers() & JavaByteCodeConstants.ACC_PRIVATE) != 0) {
-							throw new ContentException("Attempt to extends final or  private class ["+new String(data,startName,endName-startName)+"]!"); 
+						if (cdr.hasClassDescription(data,startName,endName)) {
+							final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
+	
+							if ((parent.getModifiers() & JavaByteCodeConstants.ACC_FINAL) != 0 || (parent.getModifiers() & JavaByteCodeConstants.ACC_PRIVATE) != 0) {
+								throw CompilerErrors.ERR_DUPLICATE_EXTENDS_OPTION.syntaxError(lineNo, new String(data,startName,endName-startName));
+							}
+							else {
+								extendsId = tree.placeOrChangeName((CharSequence)parent.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							}
 						}
 						else {
-							extendsId = tree.placeOrChangeName((CharSequence)parent.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 						}
 					}
 					break;
 				case OPTION_IMPLEMENTS	:
 					if (implementsNames != null) {
-						throw new ContentException("Duplicate option 'implements' in the 'class' directive!");
+						throw CompilerErrors.ERR_DUPLICATE_IMPLEMENTS_OPTION.syntaxError(lineNo);
 					}
 					else {
 						implementsNames = new ArrayList<>();
@@ -1221,29 +1220,34 @@ class LineParser implements LineByLineProcessorCallback {
 						do {start++;
 							int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedName(data,start);
 
-							final Class<?>	member = cdr.getClassDescription(data,startName,endName);
+							if (cdr.hasClassDescription(data,startName,endName)) {
+								final Class<?>	member = cdr.getClassDescription(data,startName,endName);
 
-							if ((member.getModifiers() & JavaByteCodeConstants.ACC_INTERFACE) == 0) {
-								throw new ContentException("Implements item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
+								if ((member.getModifiers() & JavaByteCodeConstants.ACC_INTERFACE) == 0) {
+									throw CompilerErrors.ERR_CLASS_INSTEAD_OF_INTERFACE.syntaxError(lineNo, new String(data,startName,endName-startName));
+								}
+								else {
+									implementsNames.add(tree.placeOrChangeName((CharSequence)member.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+								}
+								start = InternalUtils.skipBlank(data,start);
 							}
 							else {
-								implementsNames.add(tree.placeOrChangeName((CharSequence)member.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+								throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 							}
-							start = InternalUtils.skipBlank(data,start);
 						} while(data[start] == ',');
 					}
 					break;
 				default :
-					throw new ContentException("'Class' definition contains unknown or unsupported option ["+new String(data,startOption,endOption)+"]!");
+					throw CompilerErrors.ERR_UNSUPPORTED_CLASS_OPTION.syntaxError(lineNo, new String(data,startOption,endOption));
 			}
 			startOption = start = InternalUtils.skipBlank(data,start);
 		}
 		
 		if  (checkMutualPrivateProtectedPublic(classFlags)) {
-			throw new ContentException("Mutually exclusive options (public/protected/private) in the 'class' directive!");
+			throw CompilerErrors.ERR_MUTUALLY_EXCLUDED_OPTIONS.syntaxError(lineNo, "public/protected/private");
 		}
 		else if (checkMutualAbstractFinal(classFlags)) {
-			throw new ContentException("Mutually exclusive options (abstract/final) in the 'class' directive!");
+			throw CompilerErrors.ERR_MUTUALLY_EXCLUDED_OPTIONS.syntaxError(lineNo, "abstract/final");
 		}
 		else {
 			classNameId = id;
@@ -1259,7 +1263,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processInterfaceDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processInterfaceDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		int				startOption = start, endOption;
 		List<Long>		implementsNames = null;
 
@@ -1271,7 +1275,7 @@ class LineParser implements LineByLineProcessorCallback {
 				case OPTION_SYNTHETIC	: classFlags = addAndCheckDuplicates(classFlags,JavaByteCodeConstants.ACC_SYNTHETIC,"class"); break;
 				case OPTION_EXTENDS	:
 					if (implementsNames != null) {
-						throw new ContentException("Duplicate option 'implements' in the 'class' directive!");
+						throw CompilerErrors.ERR_DUPLICATE_EXTENDS_OPTION.syntaxError(lineNo);
 					}
 					else {
 						implementsNames = new ArrayList<>();
@@ -1279,20 +1283,25 @@ class LineParser implements LineByLineProcessorCallback {
 						do {start++;
 							int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedName(data,start);
 
-							final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
+							if (cdr.hasClassDescription(data,startName,endName)) {
+								final Class<?>	parent = cdr.getClassDescription(data,startName,endName);
 
-							if ((parent.getModifiers() & JavaByteCodeConstants.ACC_INTERFACE) == 0) {
-								throw new ContentException("Extends item ["+new String(data,startName,endName-startName)+"] references to the class, not interface!"); 
+								if ((parent.getModifiers() & JavaByteCodeConstants.ACC_INTERFACE) == 0) {
+									throw CompilerErrors.ERR_CLASS_INSTEAD_OF_INTERFACE.syntaxError(lineNo, new String(data,startName,endName-startName));
+								}
+								else {
+									implementsNames.add(tree.placeOrChangeName((CharSequence)parent.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+								}
+								start = InternalUtils.skipBlank(data,start);
 							}
 							else {
-								implementsNames.add(tree.placeOrChangeName((CharSequence)parent.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+								throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 							}
-							start = InternalUtils.skipBlank(data,start);
 						} while(data[start] == ',');
 					}
 					break;
 				default :
-					throw new ContentException("'Interface' definition contains unknown or unsupported option ["+new String(data,startOption,endOption-startOption)+"]!");
+					throw CompilerErrors.ERR_UNSUPPORTED_CLASS_OPTION.syntaxError(lineNo, new String(data,startOption,endOption));
 			}
 			startOption = start = InternalUtils.skipBlank(data,start);
 		}
@@ -1306,201 +1315,216 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processClassFieldDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processClassFieldDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		final int			startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
-		final Class<?>		type = cdr.getClassDescription(data,startName,endName);
-		final int			checkType = CompilerUtils.defineClassType(type);
 		
-		if (type == void.class) {
-			throw new ContentException("Type 'void' is invalid for using with fields"); 
-		}
-		else {
-			final long		typeId = tree.placeOrChangeName((CharSequence)InternalUtils.buildFieldSignature(tree,tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(checkType))),new NameDescriptor(checkType));
+		if (cdr.hasClassDescription(data,startName,endName)) {
+			final Class<?>	type = cdr.getClassDescription(data,startName,endName);
+			final int		checkType = CompilerUtils.defineClassType(type);
 			
-			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_VOLATILE,OPTION_TRANSIENT,OPTION_SYNTHETIC);
-			start = InternalUtils.skipBlank(data,start);
-			
-			if (data[start] == '=') {	// Initial values. 
-				if ((forEntity.options & OPTION_STATIC) == 0) {
-					throw new ContentException("Initial values can be typed for static fields only!"); 
-				}
-				else if (!type.isPrimitive() && type != String.class) {
-					throw new ContentException("Initial values can be typed for primitive types or strings only!"); 
-				}
-				else {
-					final short		valueId;
-					
-					start = InternalUtils.skipBlank(data,start+1);
-					switch (CompilerUtils.defineClassType(type)) {
-						case CompilerUtils.CLASSTYPE_REFERENCE	:
-							if (data[start] != '\"') {
-								throw new ContentException("Illegal initial value for String!"); 
-							}
-							else {
-								final int[]		places = intArray;
-								
-								if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
-									final StringBuilder	sb = new StringBuilder();
-									
-									UnsafedCharUtils.uncheckedParseStringExtended(data,start+1,'\"',sb);
-									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb,new NameDescriptor(checkType)));
-								}
-								else {
-									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]+1,new NameDescriptor(checkType)));
-								}
-							}							
-							break;
-						case CompilerUtils.CLASSTYPE_BOOLEAN :
-							if (UnsafedCharUtils.uncheckedCompare(data,start,TRUE,0,TRUE.length)) {
-								valueId = cc.getConstantPool().asIntegerDescription(1); 
-							}
-							else if (UnsafedCharUtils.uncheckedCompare(data,start,FALSE,0,FALSE.length)) {
-								valueId = cc.getConstantPool().asIntegerDescription(0); 
-							}
-							else {
-								throw new ContentException("Illegal initial value for boolean!"); 
-							}
-							break;
-						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
-							final int[]		intValues = intArray;
-							
-							UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
-							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
-							break;
-						case CompilerUtils.CLASSTYPE_FLOAT	:
-							final float[]		floatValues = new float[1];
-							
-							CharUtils.parseSignedFloat(data,start,floatValues,true);
-							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
-							break;
-						case CompilerUtils.CLASSTYPE_LONG	:
-							final long[]		longValues = longArray;
-							
-							UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
-							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
-							break;
-						case CompilerUtils.CLASSTYPE_DOUBLE	:
-							final double[]		doubleValues = new double[1];
-							
-							UnsafedCharUtils.uncheckedParseSignedDouble(data,start,doubleValues,true);
-							valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
-							break;
-						default :
-							throw new UnsupportedOperationException();
-					}
-					cc.addFieldDescription(forEntity.options,id,typeId,valueId);
-				}
+			if (type == void.class) {
+				throw CompilerErrors.ERR_VOID_NOT_APPLICABLE.syntaxError(lineNo);
 			}
 			else {
-				cc.addFieldDescription(forEntity.options,id,typeId);
-			}
-			cc.getConstantPool().asFieldRefDescription(joinedClassNameId,id,typeId);
-			tree.getCargo(id).nameType = checkType;
+				final long	typeId = tree.placeOrChangeName((CharSequence)InternalUtils.buildFieldSignature(tree,tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(checkType))),new NameDescriptor(checkType));
+				
+				start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_VOLATILE,OPTION_TRANSIENT,OPTION_SYNTHETIC);
+				start = InternalUtils.skipBlank(data,start);
+				
+				if (data[start] == '=') {	// Initial values. 
+					if ((forEntity.options & OPTION_STATIC) == 0) {
+						throw CompilerErrors.ERR_INITIAL_VALUES_FOR_NON_STATIC_FIELD.syntaxError(lineNo);
+					}
+					else if (!type.isPrimitive() && type != String.class) {
+						throw CompilerErrors.ERR_INITIAL_VALUES_FOR_ILLEGAL_FIELD_TYPE.syntaxError(lineNo);
+					}
+					else {
+						final short		valueId;
+						
+						start = InternalUtils.skipBlank(data,start+1);
+						switch (CompilerUtils.defineClassType(type)) {
+							case CompilerUtils.CLASSTYPE_REFERENCE	:
+								if (data[start] != '\"') {
+									throw CompilerErrors.ERR_ILLEGAL_INITIAL_VALUE.syntaxError(lineNo, "java.lang.String");
+								}
+								else {
+									final int[]		places = intArray;
+									
+									if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
+										final StringBuilder	sb = new StringBuilder();
+										
+										UnsafedCharUtils.uncheckedParseStringExtended(data,start+1,'\"',sb);
+										valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb,new NameDescriptor(checkType)));
+									}
+									else {
+										valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]+1,new NameDescriptor(checkType)));
+									}
+								}							
+								break;
+							case CompilerUtils.CLASSTYPE_BOOLEAN :
+								if (UnsafedCharUtils.uncheckedCompare(data,start,TRUE,0,TRUE.length)) {
+									valueId = cc.getConstantPool().asIntegerDescription(1); 
+								}
+								else if (UnsafedCharUtils.uncheckedCompare(data,start,FALSE,0,FALSE.length)) {
+									valueId = cc.getConstantPool().asIntegerDescription(0); 
+								}
+								else {
+									throw CompilerErrors.ERR_ILLEGAL_INITIAL_VALUE.syntaxError(lineNo, "boolean");
+								}
+								break;
+							case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
+								final int[]		intValues = intArray;
+								
+								UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
+								valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
+								break;
+							case CompilerUtils.CLASSTYPE_FLOAT	:
+								final float[]		floatValues = new float[1];
+								
+								CharUtils.parseSignedFloat(data,start,floatValues,true);
+								valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
+								break;
+							case CompilerUtils.CLASSTYPE_LONG	:
+								final long[]		longValues = longArray;
+								
+								UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
+								valueId = cc.getConstantPool().asLongDescription(longValues[0]);
+								break;
+							case CompilerUtils.CLASSTYPE_DOUBLE	:
+								final double[]		doubleValues = new double[1];
+								
+								UnsafedCharUtils.uncheckedParseSignedDouble(data,start,doubleValues,true);
+								valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
+								break;
+							default :
+								throw new UnsupportedOperationException();
+						}
+						cc.addFieldDescription(forEntity.options,id,typeId,valueId);
+					}
+				}
+				else {
+					cc.addFieldDescription(forEntity.options,id,typeId);
+				}
+				cc.getConstantPool().asFieldRefDescription(joinedClassNameId,id,typeId);
+				tree.getCargo(id).nameType = checkType;
 
-			final int		classNameLen = tree.getNameLength(joinedClassNameId), fieldLen = tree.getNameLength(id);
-			final char[]	forLongName = new char[classNameLen+1+fieldLen];
-			
-			tree.getName(joinedClassNameId,forLongName,0);
-			forLongName[classNameLen] = '.';
-			tree.getName(id,forLongName,classNameLen+1);
-			tree.placeName(forLongName,0,forLongName.length,new NameDescriptor(checkType));
+				final int		classNameLen = tree.getNameLength(joinedClassNameId), fieldLen = tree.getNameLength(id);
+				final char[]	forLongName = new char[classNameLen+1+fieldLen];
+				
+				tree.getName(joinedClassNameId,forLongName,0);
+				forLongName[classNameLen] = '.';
+				tree.getName(id,forLongName,classNameLen+1);
+				tree.placeName(forLongName,0,forLongName.length,new NameDescriptor(checkType));
+			}
+		}
+		else {
+			throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 		}
 	}
 
-	private void processInterfaceFieldDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processInterfaceFieldDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		final int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
-		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
-		final int		checkType = CompilerUtils.defineClassType(type);
 		
-		if (type == void.class) {
-			throw new ContentException("Type 'void' is invalid for using with fields"); 
-		}
-		else {
-			final long	typeId = tree.placeOrChangeName((CharSequence)cdr.getClassDescription(data,startName,endName).getName(),new NameDescriptor(checkType));
+		if (cdr.hasClassDescription(data,startName,endName)) {
+			final Class<?>	type = cdr.getClassDescription(data,startName,endName);
+			final int		checkType = CompilerUtils.defineClassType(type);
 			
-			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_STATIC,OPTION_FINAL);
-			start = InternalUtils.skipBlank(data,start);
-			
-			if (data[start] == '=') {	// Initial values.
-				if (!type.isPrimitive() && type != String.class) {
-					throw new ContentException("Initial values can be typed for primitive types and string only!"); 
-				}
-				else {
-					final short		valueId;
-					
-					start = InternalUtils.skipBlank(data,start+1);
-					switch (CompilerUtils.defineClassType(type)) {
-						case CompilerUtils.CLASSTYPE_REFERENCE	:
-							if (data[start] != '\"') {
-								throw new ContentException("Illegal initial value for String!"); 
-							}
-							else {
-								final int[]		places = intArray;
-								
-								if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
-									final StringBuilder	sb = new StringBuilder();
-									
-									UnsafedCharUtils.uncheckedParseStringExtended(data,start+1,'\"',sb);
-									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb,new NameDescriptor(checkType)));
-								}
-								else {
-									valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]-places[0],new NameDescriptor(checkType)));
-								}
-							}							
-							break;
-						case CompilerUtils.CLASSTYPE_BOOLEAN :
-							if (UnsafedCharUtils.uncheckedCompare(data,start,TRUE,0,TRUE.length)) {
-								valueId = cc.getConstantPool().asIntegerDescription(1); 
-							}
-							else if (UnsafedCharUtils.uncheckedCompare(data,start,FALSE,0,FALSE.length)) {
-								valueId = cc.getConstantPool().asIntegerDescription(0); 
-							}
-							else {
-								throw new ContentException("Illegal initial value for boolean!"); 
-							}
-							break;
-						case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
-							final int[]		intValues = intArray;
-							
-							UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
-							valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
-							break;
-						case CompilerUtils.CLASSTYPE_FLOAT	:
-							final float[]		floatValues = new float[1];
-							
-							CharUtils.parseSignedFloat(data,start,floatValues,true);
-							valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
-							break;
-						case CompilerUtils.CLASSTYPE_LONG	:
-							final long[]		longValues = new long[1];
-							
-							UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
-							valueId = cc.getConstantPool().asLongDescription(longValues[0]);
-							break;
-						case CompilerUtils.CLASSTYPE_DOUBLE	:
-							final double[]		doubleValues = new double[1];
-							
-							UnsafedCharUtils.uncheckedParseSignedDouble(data,start,doubleValues,true);
-							valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
-							break;
-						default :
-							throw new UnsupportedOperationException();
-					}
-					cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId,valueId);
-				}
+			if (type == void.class) {
+				throw CompilerErrors.ERR_VOID_NOT_APPLICABLE.syntaxError(lineNo);
 			}
 			else {
-				cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId);
+				final long	typeId = tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(checkType));
+				
+				start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"field",cdr,false,OPTION_PUBLIC,OPTION_STATIC,OPTION_FINAL);
+				start = InternalUtils.skipBlank(data,start);
+				
+				if (data[start] == '=') {	// Initial values.
+					if (!type.isPrimitive() && type != String.class) {
+						throw CompilerErrors.ERR_INITIAL_VALUES_FOR_ILLEGAL_FIELD_TYPE.syntaxError(lineNo);
+					}
+					else {
+						final short		valueId;
+						
+						start = InternalUtils.skipBlank(data,start+1);
+						switch (CompilerUtils.defineClassType(type)) {
+							case CompilerUtils.CLASSTYPE_REFERENCE	:
+								if (data[start] != '\"') {
+									throw CompilerErrors.ERR_ILLEGAL_INITIAL_VALUE.syntaxError(lineNo, "java.lang.String");
+								}
+								else {
+									final int[]		places = intArray;
+									
+									if ((UnsafedCharUtils.uncheckedParseUnescapedString(data,start+1,'\"',true,places)) < 0) {
+										final StringBuilder	sb = new StringBuilder();
+										
+										UnsafedCharUtils.uncheckedParseStringExtended(data,start+1,'\"',sb);
+										valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(sb,new NameDescriptor(checkType)));
+									}
+									else {
+										valueId = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,places[0],places[1]-places[0],new NameDescriptor(checkType)));
+									}
+								}							
+								break;
+							case CompilerUtils.CLASSTYPE_BOOLEAN :
+								if (UnsafedCharUtils.uncheckedCompare(data,start,TRUE,0,TRUE.length)) {
+									valueId = cc.getConstantPool().asIntegerDescription(1); 
+								}
+								else if (UnsafedCharUtils.uncheckedCompare(data,start,FALSE,0,FALSE.length)) {
+									valueId = cc.getConstantPool().asIntegerDescription(0); 
+								}
+								else {
+									throw CompilerErrors.ERR_ILLEGAL_INITIAL_VALUE.syntaxError(lineNo, "boolean");
+								}
+								break;
+							case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
+								final int[]		intValues = intArray;
+								
+								UnsafedCharUtils.uncheckedParseSignedInt(data,start,intValues,true);
+								valueId = cc.getConstantPool().asIntegerDescription(intValues[0]);
+								break;
+							case CompilerUtils.CLASSTYPE_FLOAT	:
+								final float[]		floatValues = new float[1];
+								
+								CharUtils.parseSignedFloat(data,start,floatValues,true);
+								valueId = cc.getConstantPool().asFloatDescription(floatValues[0]);
+								break;
+							case CompilerUtils.CLASSTYPE_LONG	:
+								final long[]		longValues = new long[1];
+								
+								UnsafedCharUtils.uncheckedParseSignedLong(data,start,longValues,true);
+								valueId = cc.getConstantPool().asLongDescription(longValues[0]);
+								break;
+							case CompilerUtils.CLASSTYPE_DOUBLE	:
+								final double[]		doubleValues = new double[1];
+								
+								UnsafedCharUtils.uncheckedParseSignedDouble(data,start,doubleValues,true);
+								valueId = cc.getConstantPool().asDoubleDescription(doubleValues[0]);
+								break;
+							default :
+								throw new UnsupportedOperationException();
+						}
+						cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId,valueId);
+					}
+				}
+				else {
+					cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId);
+				}
+				tree.getCargo(id).nameType = checkType;
 			}
-			tree.getCargo(id).nameType = checkType;
+		}
+		else {
+			throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 		}
 	}
 	
-	private void processClassMethodDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processClassMethodDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		final int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
 		
 		if (startName == endName) {
-			throw new ContentException("Required return type for the method/constructor is missing!");
+			throw CompilerErrors.ERR_RETURN_TYPE_IS_MISSING.syntaxError(lineNo);
+		}
+		else if (!cdr.hasClassDescription(data,startName,endName)) {
+			throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 		}
 		else {
 			final Class<?>	type = cdr.getClassDescription(data,startName,endName);
@@ -1509,12 +1533,12 @@ class LineParser implements LineByLineProcessorCallback {
 			
 			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_PROTECTED,OPTION_PRIVATE,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS,OPTION_BOOTSTRAP);
 			if ((classFlags & JavaByteCodeConstants.ACC_ABSTRACT) == 0 && (forEntity.options & JavaByteCodeConstants.ACC_ABSTRACT) != 0) {
-				throw new ContentException("Attempt to add abstract method to the non-abstract class!");
+				throw CompilerErrors.ERR_ABSTRACT_METHOD_INSIDE_NON_ABSTRACT_CLASS.syntaxError(lineNo);
 			}
 			else {
 				if (id == classNameId) {	// This is a constructor!
 					if (typeId != voidId) {
-						throw new ContentException("Constructor method need return void type!");
+						throw CompilerErrors.ERR_RETURN_TYPE_MUST_BE_VOID.syntaxError(lineNo);
 					}
 					else if ((forEntity.options & JavaByteCodeConstants.ACC_STATIC) != 0) {	// This is a <clinit>
 						if (classConstructorCount == 0) {
@@ -1522,7 +1546,7 @@ class LineParser implements LineByLineProcessorCallback {
 							classConstructorCount++;
 						}
 						else {
-							throw new ContentException("Class can't have more than one <clinit> methods!");
+							throw CompilerErrors.ERR_DUPLICATE_CLINIT_METHOD.syntaxError(lineNo);
 						}
 					}
 					else {
@@ -1547,37 +1571,43 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processInterfaceMethodDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processInterfaceMethodDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		final int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
-		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
-		final int		retType = CompilerUtils.defineClassType(type);
-		final long		typeId = tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(retType));
 		
-		start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS);
-		
-		forEntity.options |= JavaByteCodeConstants.ACC_ABSTRACT | JavaByteCodeConstants.ACC_PUBLIC; 
-		if (forEntity.throwsList.size() > 0) {
-			final long[] 	throwsList = new long[forEntity.throwsList.size()];
+		if (cdr.hasClassDescription(data,startName,endName)) {
+			final Class<?>	type = cdr.getClassDescription(data,startName,endName);
+			final int		retType = CompilerUtils.defineClassType(type);
+			final long		typeId = tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(retType));
 			
-			for (int index = 0; index < throwsList.length; index++) {
-				throwsList[index] = tree.placeOrChangeName((CharSequence)forEntity.throwsList.get(index).getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+			start = processOptions(data,InternalUtils.skipBlank(data,start),forEntity,"method",cdr,false,OPTION_PUBLIC,OPTION_STATIC,OPTION_FINAL,OPTION_SYNCHRONIZED,OPTION_BRIDGE,OPTION_VARARGS,OPTION_NATIVE,OPTION_ABSTRACT,OPTION_SYNTHETIC,OPTION_THROWS);
+			
+			forEntity.options |= JavaByteCodeConstants.ACC_ABSTRACT | JavaByteCodeConstants.ACC_PUBLIC; 
+			if (forEntity.throwsList.size() > 0) {
+				final long[] 	throwsList = new long[forEntity.throwsList.size()];
+				
+				for (int index = 0; index < throwsList.length; index++) {
+					throwsList[index] = tree.placeOrChangeName((CharSequence)forEntity.throwsList.get(index).getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+				}
+				methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, id, typeId, throwsList);
 			}
-			methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, id, typeId, throwsList);
+			else {
+				methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, id, typeId);
+			}
+			methodNameId = id;
 		}
 		else {
-			methodDescriptor = cc.addMethodDescription(forEntity.options, forEntity.specialFlags, id, typeId);
+			throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 		}
-		methodNameId = id;
 	}
 
-	private void processParameterDir(final long id, final char[] data, int start) throws ContentException, IOException {
+	private void processParameterDir(final int lineNo, final long id, final char[] data, int start) throws ContentException, IOException {
 		start = extractClassWithPossibleArray(data, start, cdr, forClass);
 
 		if (methodNameId == classConstructorId) {
-			throw new ContentException("Class initialization method <clinit> should not have any parameters!"); 
+			throw CompilerErrors.ERR_PARAMETERS_INSIDE_CLINIT.syntaxError(lineNo);
 		}
 		else if (forClass[0] == void.class) {
-			throw new ContentException("Type 'void' is invalid for using with parameters"); 
+			throw CompilerErrors.ERR_VOID_NOT_APPLICABLE.syntaxError(lineNo);
 		}
 		else {
 			final long	typeId = tree.placeOrChangeName((CharSequence)toCanonicalName(forClass[0]),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
@@ -1587,11 +1617,11 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processVarDir(final long id, final char[] data, int start) throws IOException, ContentException {
+	private void processVarDir(final int lineNo, final long id, final char[] data, int start) throws IOException, ContentException {
 		start = extractClassWithPossibleArray(data,start, cdr, forClass);
 		
 		if (forClass[0] == void.class) {
-			throw new ContentException("Type 'void' is invalid for using with parameters"); 
+			throw CompilerErrors.ERR_VOID_NOT_APPLICABLE.syntaxError(lineNo);
 		}
 		else {
 			final long	typeId = tree.placeOrChangeName((CharSequence)toCanonicalName(forClass[0]),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
@@ -1601,7 +1631,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processStackDir(final char[] data, int start) throws ContentException {
+	private void processStackDir(final int lineNo, final char[] data, int start) throws ContentException {
 		final  int	startName = start, endName = start = skipSimpleName(data, start);
 		
 		switch ((int)staticDirectiveTree.seekName(data,startName,endName)) {
@@ -1619,10 +1649,10 @@ class LineParser implements LineByLineProcessorCallback {
 						methodDescriptor.setStackSize(stackSize4CurrentMethod = (short)size[0],addVarTable || addVarTableInMethod);
 					}
 					else {
-						throw new ContentException("Stack size is neither integer constant nor 'optimistic'/'pessimistic' (possibly it's size is long, float or double)");
+						throw CompilerErrors.ERR_ILLEGAL_STACK_DIRECTIVE_PARAMETER.syntaxError(lineNo);
 					}
 				} catch (NumberFormatException exc) {
-					throw new ContentException("Stack size is neither integer constant nor 'optimistic'/'pessimistic' (possibly it's size is long, float or double)");
+					throw CompilerErrors.ERR_ILLEGAL_STACK_DIRECTIVE_PARAMETER.syntaxError(lineNo);
 				}
 				break;
 		}
@@ -1649,11 +1679,11 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 	
-	private void processPackageDir(final char[] data, int start) throws ContentException {
+	private void processPackageDir(final int lineNo, final char[] data, int start) throws ContentException {
 		final int	endPackage = skipQualifiedName(data,start);
 			
 		if (start == endPackage) {
-			throw new ContentException("Package name is missing!");
+			throw CompilerErrors.ERR_PACKAGE_NAME_MISSING.syntaxError(lineNo);
 		}
 		else {
 			packageId = tree.placeOrChangeName(data,start,endPackage,new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
@@ -1661,7 +1691,7 @@ class LineParser implements LineByLineProcessorCallback {
 		}
 	}
 
-	private void processImportDir(final char[] data, int start) throws ContentException {
+	private void processImportDir(final int lineNo, final char[] data, int start) throws ContentException {
 		final int		endName = skipQualifiedName(data,start);
 		final String	className = new String(data,start,endName - start);  
 
@@ -1677,7 +1707,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 			skip2line(data,start);
 		} catch (ClassNotFoundException e) {
-			throw new ContentException("Class description ["+className+"] is unknown in the actual class loader. Test the class name you want to import and/or make it aacessible for the class loader",e);
+			throw CompilerErrors.ERR_CLASS_NOT_FOUND.syntaxError(lineNo, className);
 		}				
 	}
 	
@@ -1692,7 +1722,7 @@ class LineParser implements LineByLineProcessorCallback {
 		return Class.forName(className); 
 	}
 
-	private void processIncludeDir(final char[] data, int start, final int end) throws ContentException {
+	private void processIncludeDir(final int lineNo, final char[] data, int start, final int end) throws ContentException {
 		if (start < end && data[start] == '\"') {
 			int	startQuoted = start + 1;
 			
@@ -1707,10 +1737,10 @@ class LineParser implements LineByLineProcessorCallback {
 				refUrl = this.getClass().getResource(ref);
 			}
 			if (refUrl == null) {
-				throw new ContentException("Resource URL ["+ref+"] is missing or malformed!");
+				throw CompilerErrors.ERR_INVALID_RESOURCE_URL.syntaxError(lineNo, ref);
 			}
 			else {
-				int lineNo = 0;
+				int innerLineNo = 0;
 				
 				try(final LineByLineProcessor	lbl = new LineByLineProcessor(this);
 					final InputStream		is = refUrl.openStream();
@@ -1719,16 +1749,16 @@ class LineParser implements LineByLineProcessorCallback {
 					lbl.write(rdr);
 				}
 				catch (IOException | SyntaxException exc) {
-					throw new ContentException("Source ["+refUrl+"], line "+lineNo+": I/O error reading data ("+exc.getMessage()+")");
+					throw CompilerErrors.ERR_RESOURCE_URL_ERROR.syntaxError(lineNo, refUrl, innerLineNo, exc.getLocalizedMessage());
 				}
 			}
 		}
 		else {
-			throw new ContentException("Missing quota!");
+			throw CompilerErrors.ERR_RESOURCE_URL_IS_MISSING.syntaxError(lineNo);
 		}
 	}
 
-	private void processVersionDir(final char[] data, int start, final int end) throws ContentException {
+	private void processVersionDir(final int lineNo, final char[] data, int start, final int end) throws ContentException {
 		int		parm[] = intArray, from = start, major = 0, minor = 0;
 		
 		if (start < end && data[start] >= '0' && data[start] <= '9') {
@@ -1823,11 +1853,11 @@ class LineParser implements LineByLineProcessorCallback {
 				cc.changeClassFormatVersion(JavaByteCodeConstants.MAJOR_8, JavaByteCodeConstants.MINOR_8);
 			}
 			else {
-				throw new ContentException("Version number "+major+"."+minor+" is not supported. Only 1.7 and 1.8 are available now!");
+				throw CompilerErrors.ERR_UNSUPPORTED_VERSION_NUMBER.syntaxError(lineNo, major, minor);
 			}
 		}
 		else {
-			throw new ContentException("Missing version number!");
+			throw CompilerErrors.ERR_VERSION_NUMBER_IS_MISSING.syntaxError(lineNo);
 		}
 	}
 	
@@ -1938,13 +1968,19 @@ class LineParser implements LineByLineProcessorCallback {
 			if (Character.isJavaIdentifierStart(data[from])) {
 				from--;
 				do {final int		startException = from + 1, endException = skipQualifiedName(data, startException);
-					final Class<?>	exception = cdr.getClassDescription(data, startException, endException);
-					final long		exceptionId = tree.placeOrChangeName((CharSequence)exception.getName().replace('.', '/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
-					final short		catchClassId = cc.getConstantPool().asClassDescription(exceptionId);
+				
+					if (cdr.hasClassDescription(data, startException, endException)) {
+						final Class<?>	exception = cdr.getClassDescription(data, startException, endException);
+						final long		exceptionId = tree.placeOrChangeName((CharSequence)exception.getName().replace('.', '/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+						final short		catchClassId = cc.getConstantPool().asClassDescription(exceptionId);
 
-					methodDescriptor.addExceptionRecord((short)tryList.get(0)[TRY_START_PC], (short)tryList.get(0)[TRY_END_PC], catchClassId, (short)getPC());
-					methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], catchClassId);
-					from = InternalUtils.skipBlank(data,endException);
+						methodDescriptor.addExceptionRecord((short)tryList.get(0)[TRY_START_PC], (short)tryList.get(0)[TRY_END_PC], catchClassId, (short)getPC());
+						methodDescriptor.getBody().getStackAndVarRepoNew().prepareCatch(currentPC, (int)tryList.get(0)[TRY_STACK_DEPTH], (int)tryList.get(0)[TRY_VARFRAME_LENGTH], catchClassId);
+						from = InternalUtils.skipBlank(data,endException);
+					}
+					else {
+						throw new ContentException("Exception data type ["+new String(data,startException,endException-startException)+"] is not declared! Use .import directive to load its description!"); 
+					}
 				} while (data[from] == ',');
 			}
 			else {
@@ -2133,7 +2169,8 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			short		typeDispl;
 			
-			try{final Class<?>	type = cdr.getClassDescription(data,startName,endName);
+			if (cdr.hasClassDescription(data,startName,endName)) {
+				final Class<?>	type = cdr.getClassDescription(data,startName,endName);
 				final int		checkType = CompilerUtils.defineClassType(type);
 				final long		typeId = tree.placeOrChangeName((CharSequence)type.getName().replace('.','/'),new NameDescriptor(checkType));
 				
@@ -2141,7 +2178,8 @@ class LineParser implements LineByLineProcessorCallback {
 		
 				putCommandShort((byte)desc.operation, typeDispl);
 				skip2line(data,start);
-			} catch (ContentException exc) {
+			}
+			else {
 				final long		typeId = cc.getNameTree().seekName(data,startName,endName);
 				
 				if (typeId >= 0) {
@@ -2155,15 +2193,15 @@ class LineParser implements LineByLineProcessorCallback {
 							skip2line(data,start);
 						}
 						else {
-							throw exc;
+							throw new ContentException("Required class ["+new String(data,startName,endName-startName)+"] is not declared! Use .import directive to load it's description");
 						}
 					}
 					else {
-						throw exc;
+						throw new ContentException("Required class ["+new String(data,startName,endName-startName)+"] is not declared! Use .import directive to load it's description");
 					}
 				}
 				else {
-					throw exc;
+					throw new ContentException("Required class ["+new String(data,startName,endName-startName)+"] is not declared! Use .import directive to load it's description");
 				}
 			}
 			changeStack(desc.stackChanges, typeDispl);
@@ -2408,31 +2446,37 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private void processShortIndexAndByteValueCommand(final CommandDescriptor desc, final char[] data, int start) throws IOException, ContentException {
 		final int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedNameWithArray(data,start);
-		final Class<?>	type = cdr.getClassDescription(data,startName,endName);
-		final int		checkType = CompilerUtils.defineClassType(type);
-		final long		typeId = tree.placeOrChangeName((CharSequence)type.getName().replace('.','/'),new NameDescriptor(checkType));
-		final short		typeDispl = cc.getConstantPool().asClassDescription(typeId);
-		final long[]	forValue = longArray;
 		
-		start = InternalUtils.skipBlank(data,endName);
-		if (data[start] == ',') {
-			start = calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.additional,forValue);
-	 		if (forValue[0] <= 0 || forValue[0] >= 2 * Byte.MAX_VALUE) {
-				throw new ContentException("Calculated value ["+forValue[0]+"] is too long for byte value");
-			}
-			else {
-				putCommand(desc.operation, (byte)((typeDispl >> 8) & 0xFF), (byte)(typeDispl & 0xFF), (byte)forValue[0]);
-				if (desc.operation == MULTIANEWARRAY_OPCODE) { // multianewarray
-					changeStack(desc.stackChanges, (int)forValue[0]);
+		if (cdr.hasClassDescription(data,startName,endName)) {
+			final Class<?>	type = cdr.getClassDescription(data,startName,endName);
+			final int		checkType = CompilerUtils.defineClassType(type);
+			final long		typeId = tree.placeOrChangeName((CharSequence)type.getName().replace('.','/'),new NameDescriptor(checkType));
+			final short		typeDispl = cc.getConstantPool().asClassDescription(typeId);
+			final long[]	forValue = longArray;
+			
+			start = InternalUtils.skipBlank(data,endName);
+			if (data[start] == ',') {
+				start = calculateValue(data,InternalUtils.skipBlank(data,start+1),EvalState.additional,forValue);
+		 		if (forValue[0] <= 0 || forValue[0] >= 2 * Byte.MAX_VALUE) {
+					throw new ContentException("Calculated value ["+forValue[0]+"] is too long for byte value");
 				}
 				else {
-					changeStack(desc.stackChanges);
+					putCommand(desc.operation, (byte)((typeDispl >> 8) & 0xFF), (byte)(typeDispl & 0xFF), (byte)forValue[0]);
+					if (desc.operation == MULTIANEWARRAY_OPCODE) { // multianewarray
+						changeStack(desc.stackChanges, (int)forValue[0]);
+					}
+					else {
+						changeStack(desc.stackChanges);
+					}
+					skip2line(data,start);
 				}
-				skip2line(data,start);
+			}
+			else {
+				throw new ContentException("Missing comma and dimension parameter");
 			}
 		}
 		else {
-			throw new ContentException("Missing comma and dimension parameter");
+			throw new ContentException("Required class ["+new String(data,startName,endName-startName)+"] is not declared! Use .import directive to load it's description");
 		}
 	}
 
@@ -3064,8 +3108,13 @@ class LineParser implements LineByLineProcessorCallback {
 	private static int extractClass(final char[] data, int start, final ClassDescriptionRepo cdr, final Class<?>[] result) throws ContentException {
 		final int		startName = start = InternalUtils.skipBlank(data,start), endName = start = skipQualifiedName(data,start);
 		
-		result[0] = cdr.getClassDescription(data,startName,endName);
-		return InternalUtils.skipBlank(data,start);
+		if (cdr.hasClassDescription(data,startName,endName)) {
+			result[0] = cdr.getClassDescription(data,startName,endName);
+			return InternalUtils.skipBlank(data,start);
+		}
+		else {
+			throw new ContentException("Required class ["+new String(data,startName,endName-startName)+"] is not declared!");
+		}
 	}
 	
 	private static int extractClassWithPossibleArray(final char[] data, int start, final ClassDescriptionRepo cdr, final Class<?>[] result) throws ContentException {

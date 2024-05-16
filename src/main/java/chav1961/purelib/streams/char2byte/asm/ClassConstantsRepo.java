@@ -204,7 +204,7 @@ class ClassConstantsRepo implements Closeable {
 	
 	private short nextVal() throws ContentException {
 		if (sequence == -1) {
-			throw new ContentException("Class file restrictoin: constant pool is greater than 65536 items. Simplify your class code!");
+			throw CompilerErrors.ERR_CONSTANT_POOL_TOO_LONG.error();
 		}
 		else {
 			return sequence++;
