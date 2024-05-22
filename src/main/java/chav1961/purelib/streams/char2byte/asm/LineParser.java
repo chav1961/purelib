@@ -172,7 +172,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final byte						WIDE_OPCODE;
 	private static final byte						MULTIANEWARRAY_OPCODE;
 	
-	private static final TypeDescriptor				ZERO_REF_TYPE = new TypeDescriptor(0, (short)0);
+	private static final TypeDescriptor				ZERO_REF_TYPE = new TypeDescriptor();
 	
 	private enum EvalState {
 		term, unary, multiplicational, additional 
@@ -2067,7 +2067,15 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 		}
 		if (desc.refTypeSource != RefTypeSource.none) {
-			changeStack(desc.stackChanges, calculateRefType(desc, (int)forResult[0]).reference);
+			TypeDescriptor type = calculateRefType(desc, (int)forResult[0]);
+			
+			if (type.dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
+				changeStackRef(desc.stackChanges, type.dataType, (short)type.reference);
+			}
+			else {
+				changeStack(desc.stackChanges, type.dataType);
+			}
+			
 		}
 		else {
 			changeStack(desc.stackChanges);
@@ -2155,8 +2163,40 @@ class LineParser implements LineByLineProcessorCallback {
 		final long	typeId = staticDirectiveTree.seekName(data,startType,endType);
 
 		if (typeId >= T_BASE && typeId <= T_BASE_END) {
+			final String		dataType;
+			
 			putCommand(desc.operation, (byte)(typeId-T_BASE));
-			changeStack(desc.stackChanges);
+			switch ((int)typeId) {
+				case T_BOOLEAN	: 
+					dataType = "[Z"; 
+					break;
+				case T_CHAR		: 
+					dataType = "[C"; 
+					break;
+				case T_FLOAT	: 
+					dataType = "[F"; 
+					break;
+				case T_DOUBLE	: 
+					dataType = "[D"; 
+					break;
+				case T_BYTE		: 
+					dataType = "[B"; 
+					break;
+				case T_SHORT	: 
+					dataType = "[S"; 
+					break;
+				case T_INT		: 
+					dataType = "[I"; 
+					break;
+				case T_LONG		: 
+					dataType = "[J"; 
+					break;
+				default : throw new UnsupportedOperationException();
+			}
+			final long	classNameId = tree.placeOrChangeName((CharSequence)dataType, VOID_DESCRIPTOR);
+			final short	classDispl = cc.getConstantPool().asClassDescription(classNameId); 
+			
+			changeStackRef(desc.stackChanges, CompilerUtils.CLASSTYPE_REFERENCE, classDispl);
 			skip2line(lineNo, data, start);
 		}
 		else {
@@ -2181,6 +2221,12 @@ class LineParser implements LineByLineProcessorCallback {
 				typeDispl = cc.getConstantPool().asClassDescription(typeId);
 		
 				putCommandShort((byte)desc.operation, typeDispl);
+				if (desc.refTypeSource != RefTypeSource.none) {
+					changeStackRef(desc.stackChanges, typeDispl);
+				}
+				else {
+					changeStack(desc.stackChanges);
+				}
 				skip2line(lineNo, data, start);
 			}
 			else {
@@ -2207,8 +2253,8 @@ class LineParser implements LineByLineProcessorCallback {
 				else {
 					throw CompilerErrors.ERR_CLASS_IS_NOT_DECLARED.syntaxError(lineNo, new String(data,startName,endName-startName));
 				}
+				changeStack(desc.stackChanges, typeDispl);
 			}
-			changeStack(desc.stackChanges, typeDispl);
 		}
 	}
 
@@ -2229,7 +2275,14 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			putCommand(desc.operation, (byte)(displ[0] & 0xFF));
 			if (desc.refTypeSource != RefTypeSource.none) {
-				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0]).reference);
+				final TypeDescriptor 	dataType = calculateRefType(desc, displ[0]);
+				
+				if (dataType.dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
+					changeStackRef(dataTypeToStackChange(displ[1]), dataType.dataType, dataType.reference);
+				}
+				else {
+					changeStack(dataTypeToStackChange(displ[1]), dataType.dataType);
+				}
 			}
 			else {
 				changeStack(dataTypeToStackChange(displ[1]));
@@ -2249,7 +2302,14 @@ class LineParser implements LineByLineProcessorCallback {
 		else {
 			putCommandShort((byte)desc.operation, displ[0]);
 			if (desc.refTypeSource != RefTypeSource.none) {
-				changeStack(dataTypeToStackChange(displ[1]), calculateRefType(desc, displ[0]).reference);
+				final TypeDescriptor	type = calculateRefType(desc, displ[0]);
+				
+				if (type.dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
+					changeStackRef(dataTypeToStackChange(displ[1]), type.dataType, type.reference);
+				}
+				else {
+					changeStack(dataTypeToStackChange(displ[1]), type.dataType);
+				}
 			}
 			else {
 				changeStack(dataTypeToStackChange(displ[1]));
@@ -2467,7 +2527,7 @@ class LineParser implements LineByLineProcessorCallback {
 				else {
 					putCommand(desc.operation, (byte)((typeDispl >> 8) & 0xFF), (byte)(typeDispl & 0xFF), (byte)forValue[0]);
 					if (desc.operation == MULTIANEWARRAY_OPCODE) { // multianewarray
-						changeStack(desc.stackChanges, (int)forValue[0]);
+						changeStackRef(desc.stackChanges, CompilerUtils.CLASSTYPE_REFERENCE, (short)forValue[0]);
 					}
 					else {
 						changeStack(desc.stackChanges);
@@ -2808,10 +2868,14 @@ class LineParser implements LineByLineProcessorCallback {
 				final String	className = InternalUtils.displ2String(cc, (short)parameters[1]);
 				
 				if (className.length() > 2) {	// Referenced type
-					final long		classDescr = cc.getNameTree().placeOrChangeName((CharSequence)className.substring(1), VOID_DESCRIPTOR);
+					final String	loadedClassName = className.charAt(1) == '[' ? className.substring(1) : InternalUtils.classSignature2ClassName(className.substring(1)).replace('.', '/');
+					final long		classDescr = cc.getNameTree().placeOrChangeName((CharSequence)loadedClassName, VOID_DESCRIPTOR);
 					final short		classDispl = cc.getConstantPool().asClassDescription(classDescr);
 					
 					return new TypeDescriptor(parameters[0], classDispl);
+				}
+				else if (className.length() <= 1) {
+					int x = 10;
 				}
 				else {
 					return new TypeDescriptor(className.isEmpty() ? InternalUtils.fieldSignature2Type(className.substring(1)) : CompilerUtils.CLASSTYPE_VOID);
@@ -2897,7 +2961,7 @@ class LineParser implements LineByLineProcessorCallback {
 						);
 		
 		if (classType ==  CompilerUtils.CLASSTYPE_REFERENCE) {
-			final long	classNameId = tree.placeOrChangeName((CharSequence)f.getDeclaringClass().getName().replace('.', '/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)); 
+			final long	classNameId = tree.placeOrChangeName((CharSequence)f.getType().getName().replace('.', '/'), new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)); 
 			final short	displ = cc.getConstantPool().asClassDescription(classNameId);
 			
 			desc.valueType = new TypeDescriptor(classType, displ);
@@ -3071,7 +3135,7 @@ class LineParser implements LineByLineProcessorCallback {
 							desc.argumentLength += item.getType() == long.class || item.getType() == double.class ? 2 : 1;
 						}
 						if (returnedType == CompilerUtils.CLASSTYPE_REFERENCE) {
-							final String	retClass = m.getReturnType().getName();
+							final String	retClass = m.getReturnType().getName().replace('.', '/');
 							final long		typeName = tree.placeOrChangeName((CharSequence)retClass, VOID_DESCRIPTOR);
 							final short		displ = cc.getConstantPool().asClassDescription(typeName);
 							

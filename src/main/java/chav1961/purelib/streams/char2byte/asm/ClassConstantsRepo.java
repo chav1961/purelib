@@ -58,6 +58,9 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeShort(utfId);
 			classes.addRef(result = nextVal(), classId);
 			names.getCargo(classId).cpIds[JavaByteCodeConstants.CONSTANT_Class] = result;
+			if (result == 51) {
+				int x = 10;
+			}
 		}
 		
 		return result;

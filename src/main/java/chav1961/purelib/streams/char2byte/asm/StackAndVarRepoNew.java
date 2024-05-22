@@ -53,7 +53,7 @@ class StackAndVarRepoNew {
 	int addVar(final int varType, final short classRef, final boolean unassigned) throws ContentException {
 		final short				codeDispl = varContent[currentVarTop].codeDispl;
 		final int 				varDispl = varContent[currentVarTop].currentVarNumber;
-		final TypeDescriptor	varDesc = new TypeDescriptor(varType, classRef, unassigned);
+		final TypeDescriptor	varDesc = new TypeDescriptor(varType, varType == CompilerUtils.CLASSTYPE_REFERENCE ?  classRef : 0, unassigned);
 		
 		if (varType == CompilerUtils.CLASSTYPE_DOUBLE || varType == CompilerUtils.CLASSTYPE_LONG) {
 			stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, varDispl, varDesc);
@@ -763,17 +763,31 @@ class StackAndVarRepoNew {
 			return false;
 		}
 		else {
-			final String	stackClass = InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromStack));
-			final String	signatureClass = InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromSignature));
-			
-			if (cc.getDescriptionRepo().hasClassDescription(stackClass) && cc.getDescriptionRepo().hasClassDescription(signatureClass)) {
-				return cc.getDescriptionRepo().getClassDescription(signatureClass).isAssignableFrom(cc.getDescriptionRepo().getClassDescription(stackClass));
-			}
-			else {
-				return false;
-			}
+			return typeRefsAreCompatible(InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromStack)), InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromSignature)));
 		}
 	}
+
+	private boolean typeRefsAreCompatible(final String fromStack, final String fromSignature) throws ContentException {
+		if (fromStack.charAt(0) == '[' && fromSignature.charAt(0) == '[') {
+			return typeRefsAreCompatible(fromStack.substring(1), fromSignature.substring(1));
+		}
+		else {
+			final boolean	arrayInStack = fromStack.charAt(0) == '[', arrayInSignature = fromSignature.charAt(0) == '[';
+			
+			if (!arrayInStack && !arrayInSignature) {
+				if (cc.getDescriptionRepo().hasClassDescription(fromStack) && cc.getDescriptionRepo().hasClassDescription(fromSignature)) {
+					return cc.getDescriptionRepo().getClassDescription(fromSignature).isAssignableFrom(cc.getDescriptionRepo().getClassDescription(fromStack));
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				return Object.class.getName().equals(fromSignature);
+			}
+		}
+		
+	}	
 	
 	private String prepareStackContent() {
 		return new StackSnapshot(stackContent, getCurrentStackDepth()).toString();
@@ -801,7 +815,7 @@ class StackAndVarRepoNew {
 	}
 
 	private void ensureStackMapCapacity(final short codeDispl) {
-		while (codeDispl > stackMap.length) {
+		while (codeDispl >= stackMap.length) {
 			stackMap = Arrays.copyOf(stackMap, 2 * stackMap.length);
 		}
 	}
@@ -864,22 +878,49 @@ class StackAndVarRepoNew {
 		short	reference;
 		boolean	unassigned = false;
 
-		public TypeDescriptor(final int dataType) {
-			this.dataType = dataType;
+		TypeDescriptor() {
+			this.dataType = 0;
 			this.reference = 0;
 			this.unassigned = false;
 		}
 		
+		public TypeDescriptor(final int dataType) {
+			if (dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
+				throw new IllegalArgumentException("Referenced data type must contain reference id. Use another constructor here");
+			}
+			else {
+				this.dataType = dataType;
+				this.reference = 0;
+				this.unassigned = false;
+			}
+		}
+		
 		public TypeDescriptor(final int dataType, final short reference) {
-			this.dataType = dataType;
-			this.reference = reference;
-			this.unassigned = false;
+			if (dataType == CompilerUtils.CLASSTYPE_REFERENCE && reference == 0) {
+				throw new IllegalArgumentException("Referenced data type must contain reference id");
+			}
+			else if (dataType != CompilerUtils.CLASSTYPE_REFERENCE && reference != 0) {
+				throw new IllegalArgumentException("Primitive data type can't contain non-zero reference id");
+			}
+			else {
+				this.dataType = dataType;
+				this.reference = reference;
+				this.unassigned = false;
+			}
 		}
 
 		public TypeDescriptor(final int dataType, final short reference, final boolean unassigned) {
-			this.dataType = dataType;
-			this.reference = reference;
-			this.unassigned = unassigned;
+			if (dataType == CompilerUtils.CLASSTYPE_REFERENCE && reference == 0) {
+				throw new IllegalArgumentException("Referenced data type must contain reference id");
+			}
+			else if (dataType != CompilerUtils.CLASSTYPE_REFERENCE && reference != 0) {
+				throw new IllegalArgumentException("Primitive data type can't contain non-zero reference id");
+			}
+			else {
+				this.dataType = dataType;
+				this.reference = reference;
+				this.unassigned = unassigned;
+			}
 		}
 		
 		@Override

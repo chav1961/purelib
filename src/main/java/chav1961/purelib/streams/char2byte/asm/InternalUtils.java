@@ -280,7 +280,12 @@ class InternalUtils {
 	}
 	
 	static String classSignature2ClassName(final String signature) {
-		return signature.replace('/', '.').substring(1).replace(";", "");
+		if (signature.charAt(0) == 'L' && signature.charAt(signature.length()-1) == ';') {
+			return signature.substring(1,signature.length()-1).replace('/', '.');
+		}
+		else {
+			return signature.replace('/', '.');
+		}
 	}
 	
 	static int skipBlank(final char[] data, int from) {
