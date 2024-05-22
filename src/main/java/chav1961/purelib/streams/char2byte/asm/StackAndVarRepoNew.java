@@ -733,6 +733,28 @@ class StackAndVarRepoNew {
 		}
 		return true;
 	}
+
+	boolean typesAreCompatible(final int fromStack, final int fromSignature) {
+		if (fromStack != fromSignature) {
+			return fromStack == CompilerUtils.CLASSTYPE_INT && (fromSignature == CompilerUtils.CLASSTYPE_BYTE || fromSignature == CompilerUtils.CLASSTYPE_SHORT || fromSignature == CompilerUtils.CLASSTYPE_CHAR || fromSignature == CompilerUtils.CLASSTYPE_INT || fromSignature == CompilerUtils.CLASSTYPE_BOOLEAN);
+		}
+		else {
+			return true;
+		}
+	}
+
+	boolean typeRefsAreCompatible(final short fromStack, final short fromSignature) throws ContentException {
+		if (fromStack == fromSignature) {
+			return true;
+		}
+		else if (fromStack == 0 || fromSignature == 0) {
+			return false;
+		}
+		else {
+			return typeRefsAreCompatible(InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromStack)), InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromSignature)));
+		}
+	}
+
 	
 	private void compareStack(final TypeDescriptor[] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
@@ -743,27 +765,6 @@ class StackAndVarRepoNew {
 							+ InternalUtils.prepareStackMismatchMessage(stackContent, getCurrentStackDepth(), callSignature, signatureSize)
 						);
 			}
-		}
-	}
-
-	private boolean typesAreCompatible(final int fromStack, final int fromSignature) {
-		if (fromStack != fromSignature) {
-			return fromStack == CompilerUtils.CLASSTYPE_INT && (fromSignature == CompilerUtils.CLASSTYPE_BYTE || fromSignature == CompilerUtils.CLASSTYPE_SHORT || fromSignature == CompilerUtils.CLASSTYPE_CHAR || fromSignature == CompilerUtils.CLASSTYPE_INT || fromSignature == CompilerUtils.CLASSTYPE_BOOLEAN);
-		}
-		else {
-			return true;
-		}
-	}
-
-	private boolean typeRefsAreCompatible(final short fromStack, final short fromSignature) throws ContentException {
-		if (fromStack == fromSignature) {
-			return true;
-		}
-		else if (fromStack == 0 || fromSignature == 0) {
-			return false;
-		}
-		else {
-			return typeRefsAreCompatible(InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromStack)), InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromSignature)));
 		}
 	}
 
@@ -979,7 +980,7 @@ class StackAndVarRepoNew {
 	static class StackSnapshot {
 		private static final TypeDescriptor[]	EMPTY_CONTENT = new TypeDescriptor[0];
 		
-		private final TypeDescriptor[]	content;
+		final TypeDescriptor[]	content;
 
 		StackSnapshot() {
 			this.content = EMPTY_CONTENT;

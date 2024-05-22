@@ -167,6 +167,11 @@ class LineParser implements LineByLineProcessorCallback {
 	private static final SyntaxTreeInterface<DirectiveDescriptor>	staticDirectiveTree = new AndOrTree<>(2,16);
 	private static final SyntaxTreeInterface<CommandDescriptor>		staticCommandTree = new AndOrTree<>(3,16);
 	
+	private static final TypeDescriptor				INT_DESC = new TypeDescriptor(CompilerUtils.CLASSTYPE_INT);
+	private static final TypeDescriptor				LONG_DESC = new TypeDescriptor(CompilerUtils.CLASSTYPE_LONG);
+	private static final TypeDescriptor				FLOAT_DESC = new TypeDescriptor(CompilerUtils.CLASSTYPE_FLOAT);
+	private static final TypeDescriptor				DOUBLE_DESC = new TypeDescriptor(CompilerUtils.CLASSTYPE_DOUBLE);
+	
 	private static final byte						LDC_OPCODE;
 	private static final byte						LDC_W_OPCODE;
 	private static final byte						WIDE_OPCODE;
@@ -2031,7 +2036,7 @@ class LineParser implements LineByLineProcessorCallback {
 	private void processByteIndexCommand(final int lineNo, final CommandDescriptor desc, final char[] data, int start, final boolean expandAddress) throws IOException, ContentException {
 		final long	forResult[] = longArray;
 		
-		start = calculateLocalAddress(data,start,forResult);
+		start = calculateLocalAddress(data, start, forResult);
 		if (forResult[0] < 0 || forResult[0] > methodDescriptor.getLocalFrameSize()) {
 			throw CompilerErrors.ERR_CALCULATED_ADDRESS_OUTSIZE_FRAME.syntaxError(lineNo, forResult[0], methodDescriptor.getLocalFrameSize());
 		}
@@ -2066,21 +2071,120 @@ class LineParser implements LineByLineProcessorCallback {
 				throw CompilerErrors.ERR_INCOMPATIBLE_DATATYPE_FOR_COMMAND.syntaxError(lineNo, forResult[0]);
 			}
 		}
+		final TypeDescriptor 		type = calculateRefType(desc, (int)forResult[0]);
+		final StackAndVarRepoNew	svr = methodDescriptor.getBody().getStackAndVarRepoNew();
+		final TypeDescriptor 		stackType = svr.getCurrentStackDepth() > 0 ? svr.makeStackSnapshot().content[svr.getCurrentStackDepth()-1] : null;
+		
 		if (desc.refTypeSource != RefTypeSource.none) {
-			TypeDescriptor type = calculateRefType(desc, (int)forResult[0]);
-			
 			if (type.dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
 				changeStackRef(desc.stackChanges, type.dataType, (short)type.reference);
 			}
 			else {
 				changeStack(desc.stackChanges, type.dataType);
 			}
-			
 		}
 		else {
 			changeStack(desc.stackChanges);
 		}
+		if (desc.stackChanges == StackChanges.pop || desc.stackChanges == StackChanges.pop2) {
+			try {
+				switch (desc.operation) {
+					case 0x3a	: // astore
+						markAssigned(lineNo, (int)forResult[0], stackType);
+						break;
+					case 0x39	: // dstore
+						markAssigned(lineNo, (int)forResult[0], (TypeDescriptor)DOUBLE_DESC.clone());
+						break;
+					case 0x38	: // fstore
+						markAssigned(lineNo, (int)forResult[0], (TypeDescriptor)FLOAT_DESC.clone());
+						break;
+					case 0x36	: // istore
+						markAssigned(lineNo, (int)forResult[0], (TypeDescriptor)INT_DESC.clone());
+						break;
+					case 0x37	: // lstore
+						markAssigned(lineNo, (int)forResult[0], (TypeDescriptor)LONG_DESC.clone());
+						break;
+					case 0x4b	: // astore_0
+						markAssigned(lineNo, 0, stackType);
+						break;
+					case 0x47	: // dstore_0
+						markAssigned(lineNo, 0, (TypeDescriptor)DOUBLE_DESC.clone());
+						break;
+					case 0x43	: // fstore_0
+						markAssigned(lineNo, 0, (TypeDescriptor)FLOAT_DESC.clone());
+						break;
+					case 0x3b	: // istore_0
+						markAssigned(lineNo, 0, (TypeDescriptor)INT_DESC.clone());
+						break;
+					case 0x3f	: // lstore_0
+						markAssigned(lineNo, 0, (TypeDescriptor)LONG_DESC.clone());
+						break;
+					case 0x4c	: // astore_1
+						markAssigned(lineNo, 1, stackType);
+						break;
+					case 0x48	: // dstore_1
+						markAssigned(lineNo, 1, (TypeDescriptor)DOUBLE_DESC.clone());
+						break;
+					case 0x44	: // fstore_1
+						markAssigned(lineNo, 1, (TypeDescriptor)FLOAT_DESC.clone());
+						break;
+					case 0x3c	: // istore_1
+						markAssigned(lineNo, 1, (TypeDescriptor)INT_DESC.clone());
+						break;
+					case 0x40	: // lstore_1
+						markAssigned(lineNo, 1, (TypeDescriptor)LONG_DESC.clone());
+						break;
+					case 0x4d	: // astore_2
+						markAssigned(lineNo, 2, stackType);
+						break;
+					case 0x49	: // dstore_2
+						markAssigned(lineNo, 2, (TypeDescriptor)DOUBLE_DESC.clone());
+						break;
+					case 0x45	: // fstore_2
+						markAssigned(lineNo, 2, (TypeDescriptor)FLOAT_DESC.clone());
+						break;
+					case 0x3d	: // istore_2
+						markAssigned(lineNo, 2, (TypeDescriptor)INT_DESC.clone());
+						break;
+					case 0x41	: // lstore_2
+						markAssigned(lineNo, 2, (TypeDescriptor)LONG_DESC.clone());
+						break;
+					case 0x4e	: // astore_3
+						markAssigned(lineNo, 3, stackType);
+						break;
+					case 0x4a	: // dstore_3
+						markAssigned(lineNo, 3, (TypeDescriptor)DOUBLE_DESC.clone());
+						break;
+					case 0x46	: // fstore_3
+						markAssigned(lineNo, 3, (TypeDescriptor)FLOAT_DESC.clone());
+						break;
+					case 0x3e	: // istore_3
+						markAssigned(lineNo, 3, (TypeDescriptor)INT_DESC.clone());
+						break;
+					case 0x42	: // lstore_3
+						markAssigned(lineNo, 3, (TypeDescriptor)LONG_DESC.clone());
+						break;
+					default : throw new UnsupportedOperationException("Special command ["+staticCommandTree.getName(desc.operation)+"] is not supprted yet");
+				}
+			} catch (CloneNotSupportedException e) {
+				throw new ContentException(e);
+			}
+		}
 		skip2line(lineNo, data, start);
+	}
+
+	private void markAssigned(final int lineNo, final int varIndex, final TypeDescriptor type) throws ContentException {
+		final StackAndVarRepoNew	svr = methodDescriptor.getBody().getStackAndVarRepoNew();
+		final TypeDescriptor		declared = svr.getVarType(varIndex);
+		
+		if (svr.typesAreCompatible(type.dataType, declared.dataType) && svr.typeRefsAreCompatible(type.reference, declared.reference)) {
+			declared.unassigned = false;
+		}
+		else {
+			svr.typesAreCompatible(type.dataType, declared.dataType);
+			svr.typeRefsAreCompatible(type.reference, declared.reference);
+			throw CompilerErrors.ERR_TYPE_MUST_BE_COMPATIBLE.syntaxError(lineNo);
+		}
 	}
 
 	private void processByteValueCommand(final int lineNo, final CommandDescriptor desc, final char[] data, int start, final boolean expandValue) throws IOException, ContentException {

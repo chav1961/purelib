@@ -112,6 +112,7 @@ enum CompilerErrors {
 	ERR_MUST_BE_INTERFACE("Class referenced [%1$s] must be interface!"),
 	ERR_MUST_NOT_BE_INTERFACE("Class referenced [%1$s] must not be interface!"),
 	ERR_MUST_BE_COMPATIBLE("Class referenced [%1$s] must be compatible with [%2$s] class!"),
+	ERR_TYPE_MUST_BE_COMPATIBLE("Variable type is not compatible with stack content!"),
 	ERR_CONSTANT_POOL_TOO_LONG("Class file restriction: constant pool is greater than 65536 items. Simplify your class code!");
 	
 	private final String	format;
