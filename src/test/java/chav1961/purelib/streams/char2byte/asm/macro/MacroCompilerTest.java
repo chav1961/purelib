@@ -1,8 +1,11 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -624,7 +627,15 @@ public class MacroCompilerTest {
 			}
 			ps.println("\n----------");
 			
-			final Class<?>	result = clw.createClass(className,baos.toByteArray()); 
+			
+			final byte[]	content = baos.toByteArray();
+
+			try(final OutputStream os = new FileOutputStream("c:/tmp/"+className+".class")) {
+				os.write(content);
+				os.flush();
+			}
+			
+			final Class<?>	result = clw.createClass(className, content); 
 			
 			Assert.assertNotNull(result);
 			return result;

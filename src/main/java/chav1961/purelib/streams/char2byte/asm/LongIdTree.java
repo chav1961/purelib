@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 class LongIdTree <T> {
 	private static final int[]	SCALES = new int[]{1,3,5,7,11};
@@ -10,7 +11,7 @@ class LongIdTree <T> {
 	
 	LongIdTree(final int idSize) {
 		if (idSize <= 0 || idSize > SCALES.length) {
-			throw new IllegalArgumentException("Declaredparameters size ["+idSize+"] is outside the range 1.."+SCALES.length);
+			throw new IllegalArgumentException("Declared parameters size ["+idSize+"] is outside the range 1.."+SCALES.length);
 		}
 		else {
 			this.idSize = idSize;
@@ -209,13 +210,18 @@ class LongIdTree <T> {
 		final long		hash;
 		final long[]	keys;
 		final short		ref;
-		LongIdTreeNode<T>		left = null, right = null;
+		LongIdTreeNode<T>	left = null, right = null;
 		T				cargo = null;
 		
-		public LongIdTreeNode(short ref, final long... keys) {
+		public LongIdTreeNode(final short ref, final long... keys) {
 			this.hash = getHash(keys);
 			this.keys = keys;
 			this.ref = ref;
+		}
+
+		@Override
+		public String toString() {
+			return "LongIdTreeNode [hash=" + hash + ", keys=" + Arrays.toString(keys) + ", ref=" + ref + ", cargo=" + cargo + "]";
 		}
 	}
 }

@@ -21,7 +21,7 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 	private final ClassLoader			owner;
 	private final OutputStream			os;
 	private final Writer				diagnostics;
-	private final ClassContainer		cc = new ClassContainer();
+	private final ClassContainer		cc;
 	private final ClassDescriptionRepo	cdr;
 	private final SyntaxTreeInterface<Macros>	macros;	
 	private final LineParser			lp;
@@ -34,8 +34,11 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 		this.wasCloned = false;
 		this.os = os;
 		this.diagnostics = null;
-		this.macros = new AndOrTree<>();	
-		try{this.cdr = new ClassDescriptionRepo();
+		this.macros = new AndOrTree<>();
+		
+		try{
+			this.cdr = new ClassDescriptionRepo();
+			this.cc = new ClassContainer(cdr);
 			this.asmLoader = createLoader();
 			this.lp = new LineParser(owner,cc,cdr,macros,asmLoader);
 		} catch (ContentException e) {
@@ -49,7 +52,10 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 		this.os = os;
 		this.diagnostics = diagnostics;
 		this.macros = new AndOrTree<>();	
-		try{this.cdr = new ClassDescriptionRepo(diagnostics);
+		
+		try{
+			this.cdr = new ClassDescriptionRepo(diagnostics);
+			this.cc = new ClassContainer(cdr);
 			this.asmLoader = createLoader();
 			this.lp = new LineParser(owner,cc,cdr,macros,asmLoader,diagnostics);
 		} catch (ContentException e) {
@@ -63,6 +69,7 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 		this.os = os;
 		this.diagnostics = asm.diagnostics;
 		this.cdr = asm.cdr;
+		this.cc = new ClassContainer(cdr);
 		this.asmLoader = asm.asmLoader;
 		this.macros = asm.macros;	
 		try{this.lp = diagnostics != null ? new LineParser(owner,cc,cdr,macros,asmLoader,diagnostics) : new LineParser(owner,cc,cdr,macros,asmLoader);

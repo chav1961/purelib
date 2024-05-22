@@ -13,17 +13,18 @@ class ClassConstantsRepo implements Closeable {
 	public static final int					CPIDS_SIZE = 19; 
 
 	private final InOutGrowableByteArray	iogba = new InOutGrowableByteArray(false); 
-	private SyntaxTreeInterface<NameDescriptor>	names;
-	private LongIdTree<Short>				classes = new LongIdTree<>(1);
-	private LongIdTree<Short>				entityRefs = new LongIdTree<>(3);
-	private LongIdTree<Short>				fieldRefs = new LongIdTree<>(2);
-	private LongIdTree<Short>				strings = new LongIdTree<>(1);
-	private LongIdTree<Short>				integers = new LongIdTree<>(1);
-	private LongIdTree<Short>				longs = new LongIdTree<>(1);
-	private LongIdTree<Short>				floats = new LongIdTree<>(1);
-	private LongIdTree<Short>				doubles = new LongIdTree<>(1);
-	private LongIdTree<Short>				nameAndType = new LongIdTree<>(2);
-	private LongIdTree<Short>				utfs = new LongIdTree<>(1);
+	private final SyntaxTreeInterface<NameDescriptor>	names;
+	private final LongIdTree<Short>			classes = new LongIdTree<>(1);
+	private final LongIdTree<Short>			entityRefs = new LongIdTree<>(3);
+	private final LongIdTree<Short>			fieldRefs = new LongIdTree<>(2);
+	private final LongIdTree<Short>			strings = new LongIdTree<>(1);
+	private final LongIdTree<Short>			integers = new LongIdTree<>(1);
+	private final LongIdTree<Short>			longs = new LongIdTree<>(1);
+	private final LongIdTree<Short>			floats = new LongIdTree<>(1);
+	private final LongIdTree<Short>			doubles = new LongIdTree<>(1);
+	private final LongIdTree<Short>			nameAndType = new LongIdTree<>(2);
+	private final LongIdTree<Short>			utfs = new LongIdTree<>(1);
+	private final LongIdTree[]				content = {classes, entityRefs, fieldRefs, strings, integers, longs, floats, doubles, nameAndType, utfs};
 	private short							sequence = 1;
 	
 	ClassConstantsRepo(final SyntaxTreeInterface<NameDescriptor> names) {
@@ -55,7 +56,7 @@ class ClassConstantsRepo implements Closeable {
 			
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Class);
 			iogba.writeShort(utfId);
-			classes.addRef(result = nextVal(),classId);
+			classes.addRef(result = nextVal(), classId);
 			names.getCargo(classId).cpIds[JavaByteCodeConstants.CONSTANT_Class] = result;
 		}
 		
@@ -63,7 +64,7 @@ class ClassConstantsRepo implements Closeable {
 	}
 
 	short asFieldRefDescription(final long classId, final long fieldId, final long typeId) throws IOException, ContentException {
-		short	result = entityRefs.getRef(classId,fieldId,typeId);
+		short	result = entityRefs.getRef(classId, fieldId, typeId);
 		
 		if (result == 0) {
 			final short	forClass = asClassDescription(classId), forField = asNameAndTypeDescription(fieldId,typeId);  
@@ -71,14 +72,14 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Fieldref);
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
-			entityRefs.addRef(result = nextVal(),classId,fieldId,typeId);
-			fieldRefs.addRef(result,classId,fieldId);
+			entityRefs.addRef(result = nextVal(), classId, fieldId, typeId);
+			fieldRefs.addRef(result, classId, fieldId);
 		}
 		return result;
 	}
 
 	short asFieldRefDescription(final long classId, final long fieldId) throws IOException, ContentException {
-		return fieldRefs.getRef(classId,fieldId);
+		return fieldRefs.getRef(classId, fieldId);
 	}
 
 	short asMethodRefDescription(final long classId, final long methodId, final long signatureId) throws IOException, ContentException {
@@ -90,13 +91,13 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Methodref);
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
-			entityRefs.addRef(result = nextVal(),classId,methodId,signatureId);
+			entityRefs.addRef(result = nextVal(), classId, methodId, signatureId);
 		}
 		return result;
 	}
 
 	short asInterfaceMethodRefDescription(final long classId, final long methodId, final long signatureId) throws IOException, ContentException {
-		short	result = entityRefs.getRef(classId,methodId,signatureId);
+		short	result = entityRefs.getRef(classId, methodId, signatureId);
 		
 		if (result == 0) {
 			final short	forClass = asClassDescription(classId), forField = asNameAndTypeDescription(methodId,signatureId);  
@@ -104,7 +105,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_InterfaceMethodref);
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
-			entityRefs.addRef(result = nextVal(),classId,methodId,signatureId);
+			entityRefs.addRef(result = nextVal(), classId, methodId, signatureId);
 		}
 		return result;
 	}
@@ -117,7 +118,7 @@ class ClassConstantsRepo implements Closeable {
 			
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_String);
 			iogba.writeShort(utf);
-			strings.addRef(result = nextVal(),stringId);
+			strings.addRef(result = nextVal(), stringId);
 		}
 		return result;
 	}		
@@ -139,7 +140,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Long);
 			iogba.writeLong(value);
-			longs.addRef(result = nextVal(),value);
+			longs.addRef(result = nextVal(), value);
 			nextVal();	// Placed 2 slots!
 		}
 		return result;
@@ -152,7 +153,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Float);
 			iogba.writeInt(bytes);
-			floats.addRef(result = nextVal(),bytes);
+			floats.addRef(result = nextVal(), bytes);
 		}
 		return result;
 	}
@@ -164,7 +165,7 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Double);
 			iogba.writeLong(bytes);
-			doubles.addRef(result = nextVal(),bytes);
+			doubles.addRef(result = nextVal(), bytes);
 			nextVal();	// Placed 2 slots!
 		}
 		return result;
@@ -179,7 +180,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_NameAndType);
 			iogba.writeShort(forName);
 			iogba.writeShort(forType);
-			nameAndType.addRef(result = nextVal(),fieldId,typeId);
+			nameAndType.addRef(result = nextVal(), fieldId, typeId);
 		}
 		return result;
 	}
@@ -190,11 +191,26 @@ class ClassConstantsRepo implements Closeable {
 		if (result == 0) {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Utf8);
 			iogba.writeUTF(names.getName(stringId));
-			utfs.addRef(result = nextVal(),stringId);
+			utfs.addRef(result = nextVal(), stringId);
 		}
 		return result;
 	}
 
+	<T> void walk(LongIdTreeWalker<T> walker) {
+		if (walker == null) {
+			throw new NullPointerException("Walker callback can't be null");
+		}
+		else {
+			for(LongIdTree<T> item : content) {
+				try{
+					item.walk(walker);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
 	int dump(final InOutGrowableByteArray os) throws IOException {
 		final byte[] content = iogba.extract();
 		

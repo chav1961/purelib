@@ -17,7 +17,7 @@ public class StackAndVarRepoNewTest {
 	
 	@Test
 	public void basicTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 		
 		repo.processChanges(ZERO, StackChanges.none);
 		Assert.assertEquals(0,repo.getCurrentStackDepth());
@@ -88,7 +88,7 @@ public class StackAndVarRepoNewTest {
 
 	@Test
 	public void duplicatesTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		repo.processChanges(ZERO, StackChanges.dup);
@@ -375,7 +375,7 @@ public class StackAndVarRepoNewTest {
 
 	@Test
 	public void changesTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 		
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		
@@ -481,7 +481,7 @@ public class StackAndVarRepoNewTest {
 
 	@Test
 	public void popAndPushTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		repo.processChanges(ZERO, StackChanges.popAndPushInt);
@@ -570,7 +570,7 @@ public class StackAndVarRepoNewTest {
 
 	@Test
 	public void fieldsAndMultiArrayTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 
 		repo.processChanges(ZERO, StackChanges.pushStatic,CompilerUtils.CLASSTYPE_INT, ZERO);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
@@ -758,7 +758,7 @@ public class StackAndVarRepoNewTest {
 
 	@Test
 	public void callTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 
 		repo.pushReference(ZERO, ZERO);
 		repo.pushInt(ZERO);
@@ -781,11 +781,11 @@ public class StackAndVarRepoNewTest {
 
 	@Test
 	public void varFrameTest() throws ContentException {
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 
 		repo.pushVarFrame(ZERO);
-		repo.addVar(CompilerUtils.CLASSTYPE_INT, ZERO);
-		repo.addVar(CompilerUtils.CLASSTYPE_LONG, ZERO);
+		repo.addVar(CompilerUtils.CLASSTYPE_INT, ZERO, false);
+		repo.addVar(CompilerUtils.CLASSTYPE_LONG, ZERO, false);
 		
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.getVarType(0).dataType);
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG,repo.getVarType(1).dataType);
@@ -809,7 +809,7 @@ public class StackAndVarRepoNewTest {
 	@Test
 	public void ensuresTest() throws ContentException {
 		final int[]					changes = new int[3];		
-		final StackAndVarRepoNew	repo = new StackAndVarRepoNew();
+		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 		
 		for (int index = 0; index <= 20; index++) {	// see private fields of StackVarRepo!
 			repo.processChanges(ZERO, StackChanges.pushInt);
@@ -821,7 +821,7 @@ public class StackAndVarRepoNewTest {
 		
 		repo.pushVarFrame(ZERO);
 		for (int index = 0; index <= 20; index++) {
-			repo.addVar(CompilerUtils.CLASSTYPE_INT, ZERO);
+			repo.addVar(CompilerUtils.CLASSTYPE_INT, ZERO, false);
 		}
 		for (int index = 0; index <= 20; index++) {
 			Assert.assertEquals(CompilerUtils.CLASSTYPE_INT, repo.getVarType(index).dataType);
@@ -830,7 +830,7 @@ public class StackAndVarRepoNewTest {
 
 		for (int index = 0; index <= 5; index++) {
 			repo.pushVarFrame(ZERO);
-			repo.addVar(CompilerUtils.CLASSTYPE_INT, ZERO);
+			repo.addVar(CompilerUtils.CLASSTYPE_INT, ZERO, false);
 		}
 
 		for (int index = 5; index >= 0; index--) {

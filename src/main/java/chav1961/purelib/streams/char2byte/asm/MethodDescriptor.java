@@ -34,7 +34,7 @@ class MethodDescriptor implements Closeable {
 	private final List<StackMapRecord>			stackMaps = new ArrayList<>();
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
-	private final StackAndVarRepoNew			stackAndVarNew = new StackAndVarRepoNew();
+	private final StackAndVarRepoNew			stackAndVarNew;
 	private final long							classId, methodId, returnedTypeId;
 	private final long							longId, doubleId, thisId;
 	private final short							methodDispl;
@@ -48,12 +48,13 @@ class MethodDescriptor implements Closeable {
 	private short								signatureDispl;
 	private boolean								parametersEnded = false, needVarsTable = false, needStackMapTable = false;
 	
-	MethodDescriptor(final short majorVersion, final short minorVersion, final SyntaxTreeInterface<NameDescriptor> tree, final ClassConstantsRepo ccr, final short accessFlags, final short specialFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
+	MethodDescriptor(final short majorVersion, final short minorVersion, final ClassContainer cc, final short accessFlags, final short specialFlags, final long classId, final long methodId, final long returnTypeId, final long... throwsList) throws IOException, ContentException {
 		final int	tLen = throwsList.length;
 		
 		this.version = new JavaClassVersion(majorVersion, minorVersion);
-		this.tree = tree;						
-		this.ccr = ccr;	
+		this.tree = cc.getNameTree();						
+		this.ccr = cc.getConstantPool();	
+		this.stackAndVarNew = new StackAndVarRepoNew(cc);
 		this.accessFlags = accessFlags;
 		this.specialFlags = specialFlags;
 		this.classId = classId;
@@ -133,7 +134,7 @@ class MethodDescriptor implements Closeable {
 			throw new ContentException("Parameters declaration need be before any other declarations");
 		}
 		else {
-			addVar(accessFlags, parameterId, typeId, true);
+			addVar(accessFlags, parameterId, typeId, false);
 			parametersList.add(typeId);
 		}
 	}
@@ -145,7 +146,7 @@ class MethodDescriptor implements Closeable {
 
 	void addVarDeclaration(final short accessFlags, final long varId, final long typeId) throws ContentException, IOException {
 		markEndOfParameters();
-		addVar(accessFlags, varId, typeId, false);
+		addVar(accessFlags, varId, typeId, true);
 	}
 
 	short getVarDispl(final long varId) throws ContentException {
@@ -307,7 +308,7 @@ class MethodDescriptor implements Closeable {
 		}
 	}
 	
-	private void addVar(final short accessFlags, final long varId, final long typeId, final boolean markAsPrepared) throws ContentException, IOException {
+	private void addVar(final short accessFlags, final long varId, final long typeId, final boolean unassigned) throws ContentException, IOException {
 		if (pushStack.get(0).vars.getRef(varId) != 0) {
 			throw new ContentException("Duplicate variable name ["+tree.getName(varId)+"] in this block");
 		}
@@ -339,7 +340,7 @@ class MethodDescriptor implements Closeable {
 			} catch (IOException e) {
 				throw new ContentException(e);
 			}
-			stackAndVarNew.addVar(currentVarType, typeRef);
+			stackAndVarNew.addVar(currentVarType, typeRef, unassigned);
 		}
 	}
 

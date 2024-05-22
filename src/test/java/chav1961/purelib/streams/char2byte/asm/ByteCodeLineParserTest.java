@@ -41,7 +41,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -66,7 +66,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class,int.class).invoke(null,2,3),Integer.valueOf(5));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -90,7 +90,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class,int.class).invoke(null,2,3),Integer.valueOf(5));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -110,7 +110,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.fail("Mandatory exception was not detected (too big index for frame size)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -137,7 +137,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -160,7 +160,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class).invoke(null,2),Integer.valueOf(12));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -183,7 +183,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class).invoke(null,2),Integer.valueOf(12));
 		}
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -206,7 +206,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class).invoke(null,2),Integer.valueOf(12));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -229,7 +229,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class).invoke(null,2),Integer.valueOf(12));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -252,7 +252,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class).invoke(null,2),Integer.valueOf(12));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -275,7 +275,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("add",int.class).invoke(null,2),Integer.valueOf(12));
 		}
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -294,7 +294,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.fail("Mandatory exception was not detected (too big value for frame size)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -320,7 +320,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -341,7 +341,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(((int[])clazz.getMethod("getInt").invoke(null)).length,4);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -365,7 +365,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -386,7 +386,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(((String[])clazz.getMethod("get").invoke(null)).length,4);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -404,7 +404,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		} catch (IOException exc) {
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -432,7 +432,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -460,7 +460,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -480,7 +480,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("get").invoke(null),Integer.valueOf(10));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -500,7 +500,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("get").invoke(null),Float.valueOf(10));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -520,7 +520,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("get").invoke(null),Long.valueOf(10));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -540,7 +540,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("get").invoke(null),Double.valueOf(10));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -560,7 +560,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("get").invoke(null),"mzinana");
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -576,7 +576,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -592,7 +592,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -615,7 +615,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -640,7 +640,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("abs",int.class).invoke(null,-10),Integer.valueOf(10));
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -675,7 +675,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -711,7 +711,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -745,7 +745,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -777,7 +777,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(((Integer)clazz.getMethod("get").invoke(null)).intValue(),666);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -824,7 +824,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -907,7 +907,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -941,7 +941,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(((Integer)clazz.getMethod("call",int.class).invoke(null,12)).intValue(),2);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -981,7 +981,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -1021,7 +1021,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -1055,7 +1055,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -1090,7 +1090,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("callInt",Throwable.class).getReturnType(),int.class);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,
@@ -1127,7 +1127,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 			Assert.assertEquals(clazz.getMethod("callInt",this.getClass()).getReturnType(),int.class);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			ClassLineParserTest.processString(lp,

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +19,7 @@ import chav1961.purelib.cdb.JavaByteCodeConstants;
 
 class ClassContainer implements Closeable {
 	
+	private final ClassDescriptionRepo			cdr;
 	private final SyntaxTreeInterface<NameDescriptor>	tree = new AndOrTree<>(1,16);
 	private final ClassConstantsRepo			ccr = new ClassConstantsRepo(tree);
 	private final InOutGrowableByteArray		interfGba = new InOutGrowableByteArray(false); 
@@ -33,7 +33,8 @@ class ClassContainer implements Closeable {
 	private boolean methodBodyAwait = false;
 	private URI		sourceRef = null;
 	
-	public ClassContainer() {
+	public ClassContainer(final ClassDescriptionRepo cdr) {
+		this.cdr = cdr;
 		tree.placeName((CharSequence)"long",null);			// To use in LocalVarTable descriptors
 		tree.placeName((CharSequence)"double",null);
 		constantValueId = tree.placeName(JavaByteCodeConstants.ATTRIBUTE_ConstantValue,0,JavaByteCodeConstants.ATTRIBUTE_ConstantValue.length,null);	// To use in initials
@@ -121,7 +122,7 @@ class ClassContainer implements Closeable {
 			throw new IllegalStateException("Attempt to add abstract method to non-abstract class!");
 		}
 		else {
-			final MethodDescriptor	md = new MethodDescriptor(currentMajor, currentMinor, getNameTree(), getConstantPool(), modifiers, specialFlags, joinedClassName, methodId, typeId, throwsId);
+			final MethodDescriptor	md = new MethodDescriptor(currentMajor, currentMinor, this, modifiers, specialFlags, joinedClassName, methodId, typeId, throwsId);
 
 			joinClassName(joinedClassName,methodId);
 			methods.add(md);
@@ -202,6 +203,10 @@ class ClassContainer implements Closeable {
 	
 	ClassConstantsRepo getConstantPool() {
 		return ccr;
+	}
+	
+	ClassDescriptionRepo getDescriptionRepo() {
+		return cdr;
 	}
 
 	private long joinClassName(final long packageId, final long classId) {

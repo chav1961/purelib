@@ -83,7 +83,8 @@ class InternalUtils {
 	}
 
 	static int methodSignature2Stack(final String methodSignature, final ClassConstantsRepo ccr, final TypeDescriptor[] result) throws ContentException, IOException {
-		final StringBuilder sb = new StringBuilder();
+		final StringBuilder 	sbSignature = new StringBuilder();
+		final StringBuilder 	sbClass = new StringBuilder();
 		int		toStore = 0, currentType;
 		
 		for (int index = 1, maxIndex = methodSignature.length(); index < maxIndex; index++) {
@@ -93,54 +94,71 @@ class InternalUtils {
 				break;
 			}
 			else {
+				int	arrayDimension = 0;
+				
+				sbSignature.setLength(0);				
+				sbClass.setLength(0);				
+				while (currentChar == '[') {
+					sbSignature.append(currentChar);
+					currentChar = methodSignature.charAt(++index);
+					arrayDimension++;
+				}
 				currentType = signatureByLetter(currentChar);
 				
-				sb.setLength(0);				
-				sb.append(currentChar);
-				while (currentChar == '[') {
-					currentChar = methodSignature.charAt(++index);
-					sb.append(currentChar);
-				}
+				sbSignature.append(currentChar);
 				if (currentChar == 'L') {
-					sb.append(currentChar);
+					sbSignature.append(currentChar);
 					while (currentChar != ';') {
 						currentChar = methodSignature.charAt(++index);
-						sb.append(currentChar);
+						sbSignature.append(currentChar);
+						if (currentChar != ';') {
+							sbClass.append(currentChar);
+						}
 					}
 				}
-				switch (currentType) {
-					case CompilerUtils.CLASSTYPE_BYTE		:
-					case CompilerUtils.CLASSTYPE_SHORT		:
-					case CompilerUtils.CLASSTYPE_CHAR		:	
-					case CompilerUtils.CLASSTYPE_INT		:	
-					case CompilerUtils.CLASSTYPE_FLOAT		:	
-					case CompilerUtils.CLASSTYPE_BOOLEAN	:
-						if (toStore < result.length) {
-							result[toStore] = new TypeDescriptor(currentType, (short)0);
-						}
-						toStore++;
-						break;
-					case CompilerUtils.CLASSTYPE_LONG		:	
-					case CompilerUtils.CLASSTYPE_DOUBLE		:	
-						if (toStore < result.length) {
-							result[toStore] = new TypeDescriptor(currentType, (short)0);
-						}
-						toStore++;
-						if (toStore < result.length) {
-							result[toStore] = new TypeDescriptor(StackAndVarRepoNew.SPECIAL_TYPE_TOP, (short)0);
-						}
-						toStore++;
-						break;
-					case CompilerUtils.CLASSTYPE_REFERENCE	:
-						if (toStore < result.length) {
-							final long	nameId = ccr.getNamesTree().placeOrChangeName(sb, new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
-							
-							result[toStore] = new TypeDescriptor(currentType, ccr.asClassDescription(nameId));
-						}
-						toStore++;
-						break;
-					case CompilerUtils.CLASSTYPE_VOID		:
-					default:
+				if (arrayDimension > 0) {
+					if (toStore < result.length) {
+						final long	nameId = ccr.getNamesTree().placeOrChangeName(sbSignature, new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+						
+						result[toStore] = new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, ccr.asClassDescription(nameId));
+					}
+					toStore++;
+				}
+				else {
+					switch (currentType) {
+						case CompilerUtils.CLASSTYPE_BYTE		:
+						case CompilerUtils.CLASSTYPE_SHORT		:
+						case CompilerUtils.CLASSTYPE_CHAR		:	
+						case CompilerUtils.CLASSTYPE_INT		:	
+						case CompilerUtils.CLASSTYPE_FLOAT		:	
+						case CompilerUtils.CLASSTYPE_BOOLEAN	:
+							if (toStore < result.length) {
+								result[toStore] = new TypeDescriptor(currentType, (short)0);
+							}
+							toStore++;
+							break;
+						case CompilerUtils.CLASSTYPE_LONG		:	
+						case CompilerUtils.CLASSTYPE_DOUBLE		:	
+							if (toStore < result.length) {
+								result[toStore] = new TypeDescriptor(currentType, (short)0);
+							}
+							toStore++;
+							if (toStore < result.length) {
+								result[toStore] = new TypeDescriptor(StackAndVarRepoNew.SPECIAL_TYPE_TOP, (short)0);
+							}
+							toStore++;
+							break;
+						case CompilerUtils.CLASSTYPE_REFERENCE	:
+							if (toStore < result.length) {
+								final long		nameId = ccr.getNamesTree().placeOrChangeName(sbClass, new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+								
+								result[toStore] = new TypeDescriptor(currentType, ccr.asClassDescription(nameId));
+							}
+							toStore++;
+							break;
+						case CompilerUtils.CLASSTYPE_VOID		:
+						default:
+					}
 				}
 			}
 		}
@@ -180,6 +198,14 @@ class InternalUtils {
 		final StackSnapshot	stack = new StackSnapshot(stackContent, stackSize), awaited = new StackSnapshot(awaitedContent, awaitedContentSize); 
 		
 		return "Current stack state is: "+stack.toString()+", awaited top of stack is: "+awaited.toString();
+	}
+	
+	static String signatureByClassName(final String className) {
+		return fieldSignature(className);
+	}
+	
+	static String classNameBySignature(final String signature) {
+		return "";
 	}
 	
 	private static int signatureByLetter(final char letter) {
@@ -237,6 +263,26 @@ class InternalUtils {
 		}
 	}
 
+	static String displ2String(final ClassContainer cc, final short displ) {
+		final long 	classId[] = new long[1]; 
+		
+		cc.getConstantPool().<Short>walk((n)->{
+			if (n.ref == displ) {
+				classId[0] = n.keys[0];
+			}
+		});
+		if (classId[0] != 0) {
+			return cc.getNameTree().getName(classId[0]);
+		}
+		else {
+			return "";
+		}
+	}
+	
+	static String classSignature2ClassName(final String signature) {
+		return signature.replace('/', '.').substring(1).replace(";", "");
+	}
+	
 	static int skipBlank(final char[] data, int from) {
 		char	symbol;
 		

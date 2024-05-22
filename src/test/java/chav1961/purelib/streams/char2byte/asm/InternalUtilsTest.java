@@ -1,11 +1,18 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
 import chav1961.purelib.testing.OrdinalTestCategory;
 
 @Category(OrdinalTestCategory.class)
@@ -56,6 +63,27 @@ public class InternalUtilsTest {
 		
 		Assert.assertEquals(0,InternalUtils.skipNonBlank(" \n".toCharArray(),0));
 		Assert.assertEquals(1,InternalUtils.skipNonBlank("a \n".toCharArray(),0));
+	}
+
+	@Test
+	public void methodSignature2StackTest() throws ContentException, IOException {
+		final TypeDescriptor[]						result = new TypeDescriptor[16];
+		final SyntaxTreeInterface<NameDescriptor>	names=  new AndOrTree<>();
+		final ClassConstantsRepo					ccr = new ClassConstantsRepo(names);
+		
+		Assert.assertEquals(3, InternalUtils.methodSignature2Stack("(IJ)V", ccr, result));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT, result[0].dataType);
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_LONG, result[1].dataType);
+		Assert.assertEquals(StackAndVarRepoNew.SPECIAL_TYPE_TOP, result[2].dataType);
+		Assert.assertEquals(1, InternalUtils.methodSignature2Stack("([C)V", ccr, result));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE, result[0].dataType);
+		Assert.assertTrue(result[0].reference != 0);
+		Assert.assertEquals(1, InternalUtils.methodSignature2Stack("(Ljava/lang/String;)V", ccr, result));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE, result[0].dataType);
+		Assert.assertTrue(result[0].reference != 0);
+		Assert.assertEquals(1, InternalUtils.methodSignature2Stack("([Ljava/lang/String;)V", ccr, result));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE, result[0].dataType);
+		Assert.assertTrue(result[0].reference != 0);
 	}
 	
 	public static void testMethod(boolean value1,byte value2,char value3,double val4,float val5,int val6,long val7,String val8,short[][] val9) {}

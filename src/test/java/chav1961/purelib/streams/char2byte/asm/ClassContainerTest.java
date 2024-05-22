@@ -25,7 +25,7 @@ public class ClassContainerTest {
 	@Test
 	public void emptyClassTest() throws IOException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 
 			try{cc.getClassName();
 				Assert.fail("Mandatory exception was not detected (call getClassName() before setClassName())");
@@ -42,7 +42,7 @@ public class ClassContainerTest {
 		}
 
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 			
 			cc.setClassName((short) 0x0001,cc.getNameTree().placeName((CharSequence)this.getClass().getPackage().getName(),null),cc.getNameTree().placeName("Test",null));
 			cc.dump(baos);
@@ -58,7 +58,7 @@ public class ClassContainerTest {
 	@Test
 	public void extendsAndImplementsClassTest() throws IOException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 
 			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName((CharSequence)"Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			cc.setExtendsClassName(cc.getNameTree().placeName((CharSequence)this.getClass().getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
@@ -72,7 +72,7 @@ public class ClassContainerTest {
 		}
 
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 
 			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName((CharSequence)"Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			cc.addInterfaceName(cc.getNameTree().placeName((CharSequence)Serializable.class.getName(),new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
@@ -93,7 +93,7 @@ public class ClassContainerTest {
 //	@Test
 	public void fieldClassTest() throws IOException, NoSuchFieldException, SecurityException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 
 			cc.setClassName((short) 0x0001,-1,cc.getNameTree().placeName((CharSequence)"Test",null));
 			cc.addFieldDescription((short) 0x0001, cc.getNameTree().placeName((CharSequence)"byteField",null)
@@ -135,7 +135,7 @@ public class ClassContainerTest {
 	@Test
 	public void methodClassTest() throws IOException, SecurityException, NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ContentException {
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 
 			cc.getNameTree().placeName((CharSequence)"double",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
 			cc.getNameTree().placeName((CharSequence)"long",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID));
@@ -173,7 +173,7 @@ public class ClassContainerTest {
 		}
 
 		try(final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
-			final ClassContainer		cc = new ClassContainer()) {
+			final ClassContainer		cc = new ClassContainer(null)) {
 
 			cc.setClassName((short) 0x0001,0,cc.getNameTree().placeName((CharSequence)"Test",new NameDescriptor(CompilerUtils.CLASSTYPE_VOID)));
 			

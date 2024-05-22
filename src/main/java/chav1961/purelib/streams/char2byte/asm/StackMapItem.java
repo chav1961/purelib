@@ -1,9 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
 
 class StackMapItem implements Cloneable {

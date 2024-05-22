@@ -22,6 +22,7 @@ class StackAndVarRepoNew {
 	private static final int	INTIAL_NESTING = 16;
 	private static final TypeDescriptor	STACK_TOP_DESCRIPTOR = new TypeDescriptor(SPECIAL_TYPE_TOP, (short)0);
 
+	private final ClassContainer		cc;
 	private Map<Long, StackSnapshot>	forwards = new HashMap<>(); 
 	private StackMapItem[]		stackMap = new StackMapItem[INTIAL_STACKMAP];
 	private TypeDescriptor[]	prevStackContent = new TypeDescriptor[INTIAL_STACK];
@@ -30,7 +31,8 @@ class StackAndVarRepoNew {
 	private int					currentStackTop = -1, maxStackDepth = 0;
 	private int					currentVarTop = -1, maxVarLength = 0;
 	
-	StackAndVarRepoNew() {
+	StackAndVarRepoNew(final ClassContainer cc) {
+		this.cc = cc;
 	}
 	
 	void pushVarFrame(final short codeDispl) {
@@ -48,10 +50,10 @@ class StackAndVarRepoNew {
 		}
 	}
 	
-	int addVar(final int varType, final short classRef) throws ContentException {
+	int addVar(final int varType, final short classRef, final boolean unassigned) throws ContentException {
 		final short				codeDispl = varContent[currentVarTop].codeDispl;
 		final int 				varDispl = varContent[currentVarTop].currentVarNumber;
-		final TypeDescriptor	varDesc = new TypeDescriptor(varType, classRef);
+		final TypeDescriptor	varDesc = new TypeDescriptor(varType, classRef, unassigned);
 		
 		if (varType == CompilerUtils.CLASSTYPE_DOUBLE || varType == CompilerUtils.CLASSTYPE_LONG) {
 			stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, varDispl, varDesc);
@@ -600,6 +602,10 @@ class StackAndVarRepoNew {
 			case pushDouble	:
 				pushDouble(codeDispl);
 				break;
+			case pop2AndPushReference:
+				pop(codeDispl, 2);
+				pushReference(codeDispl, refType);
+				break;
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
@@ -731,7 +737,9 @@ class StackAndVarRepoNew {
 	private void compareStack(final TypeDescriptor[] callSignature, final int signatureSize) throws ContentException {
 		for (int index = 0; index < signatureSize; index++) {
 			if (!typesAreCompatible(selectStackItemType(index - signatureSize + 1), callSignature[index].dataType) || !typeRefsAreCompatible(selectStackItemRefType(index - signatureSize + 1), callSignature[index].reference)) {
-				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position [-"+index+"]. " 
+				typesAreCompatible(selectStackItemType(index - signatureSize + 1), callSignature[index].dataType);
+				typeRefsAreCompatible(selectStackItemRefType(index - signatureSize + 1), callSignature[index].reference);
+				throw new ContentException("Illegal command usage: uncompatible data types on the stack at position ["+index+"]. " 
 							+ InternalUtils.prepareStackMismatchMessage(stackContent, getCurrentStackDepth(), callSignature, signatureSize)
 						);
 			}
@@ -747,8 +755,24 @@ class StackAndVarRepoNew {
 		}
 	}
 
-	private boolean typeRefsAreCompatible(final short fromStack, final short fromSignature) {
-		return fromStack == fromSignature; 
+	private boolean typeRefsAreCompatible(final short fromStack, final short fromSignature) throws ContentException {
+		if (fromStack == fromSignature) {
+			return true;
+		}
+		else if (fromStack == 0 || fromSignature == 0) {
+			return false;
+		}
+		else {
+			final String	stackClass = InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromStack));
+			final String	signatureClass = InternalUtils.classSignature2ClassName(InternalUtils.displ2String(cc, fromSignature));
+			
+			if (cc.getDescriptionRepo().hasClassDescription(stackClass) && cc.getDescriptionRepo().hasClassDescription(signatureClass)) {
+				return cc.getDescriptionRepo().getClassDescription(signatureClass).isAssignableFrom(cc.getDescriptionRepo().getClassDescription(stackClass));
+			}
+			else {
+				return false;
+			}
+		}
 	}
 	
 	private String prepareStackContent() {
@@ -838,15 +862,24 @@ class StackAndVarRepoNew {
 	static class TypeDescriptor implements Cloneable {
 		int		dataType;
 		short	reference;
+		boolean	unassigned = false;
 
 		public TypeDescriptor(final int dataType) {
 			this.dataType = dataType;
 			this.reference = 0;
+			this.unassigned = false;
 		}
 		
 		public TypeDescriptor(final int dataType, final short reference) {
 			this.dataType = dataType;
 			this.reference = reference;
+			this.unassigned = false;
+		}
+
+		public TypeDescriptor(final int dataType, final short reference, final boolean unassigned) {
+			this.dataType = dataType;
+			this.reference = reference;
+			this.unassigned = unassigned;
 		}
 		
 		@Override
@@ -856,7 +889,7 @@ class StackAndVarRepoNew {
 
 		@Override
 		public String toString() {
-			return "TypeDescriptor [dataType=" + dataType + ", reference=" + reference + "]";
+			return "TypeDescriptor [dataType=" + dataType + ", reference=" + reference + ", unassigned=" + unassigned + "]";
 		}
 	}
 	
@@ -971,6 +1004,7 @@ class StackAndVarRepoNew {
 			return  sb.append("]").toString();
 		}
 	}
+		
 	
 	static class VarSnapshot {
 		private static final TypeDescriptor[]	EMPTY_CONTENT = new TypeDescriptor[0];
@@ -1089,7 +1123,7 @@ class StackAndVarRepoNew {
 			os.writeShort(vars.content.length);
 //			os.writeShort(calculateTypeArraySize(vars.content, null));
 			for (int index = 0; index < vars.content.length; index++) {
-				final int	verification = toStackFrameTypes(vars.content[index]); 
+				final int	verification = toVarFrameTypes(vars.content[index]); 
 				
 				os.writeByte(verification);
 				if (verification == StackMap.ITEM_Object) {
@@ -1133,12 +1167,37 @@ class StackAndVarRepoNew {
 					throw new UnsupportedOperationException("Type ["+type.dataType+"] is not supported yet");
 			}
 		}
+
+		private static int toVarFrameTypes(final TypeDescriptor type) {
+			if (type.unassigned) {
+				return StackMap.ITEM_Top;
+			}
+			else {
+				switch (type.dataType) {
+					case CompilerUtils.CLASSTYPE_REFERENCE	: 
+						return StackMap.ITEM_Object;
+					case CompilerUtils.CLASSTYPE_BOOLEAN : case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT :
+					case CompilerUtils.CLASSTYPE_CHAR : case CompilerUtils.CLASSTYPE_INT :
+						return StackMap.ITEM_Integer;	
+					case CompilerUtils.CLASSTYPE_LONG		: 
+						return StackMap.ITEM_Long;	
+					case CompilerUtils.CLASSTYPE_FLOAT		: 
+						return StackMap.ITEM_Float;	
+					case CompilerUtils.CLASSTYPE_DOUBLE		: 
+						return StackMap.ITEM_Double;	
+					case SPECIAL_TYPE_TOP					: 
+						return StackMap.ITEM_Top;
+					default : 
+						throw new UnsupportedOperationException("Type ["+type.dataType+"] is not supported yet");
+				}
+			}
+		}
 		
 		private static int calculateTypeArraySize(final TypeDescriptor[] array) {
 			int	result = array.length;
 			
 			for (int index = 0; index < array.length; index++) {
-				if (array[index].dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
+				if (array[index].dataType == CompilerUtils.CLASSTYPE_REFERENCE && !array[index].unassigned) {
 					result += 2;
 				}
 			}

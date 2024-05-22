@@ -19,6 +19,7 @@ import java.util.List;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.Prescription;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
@@ -79,6 +80,17 @@ class ClassDescriptionRepo {
 		}
 	}
 
+	boolean hasClassDescription(final String className) throws ContentException {
+		if (Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Class name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return hasClassDescription(name, 0, name.length);
+		}
+	}
+	
 	boolean hasClassDescription(final char[] data, final int from, final int to) throws ContentException {
 		if (data == null || data.length == 0) {
 			throw new IllegalArgumentException("Data char array can't be null or zero length");
@@ -95,6 +107,17 @@ class ClassDescriptionRepo {
 		}
 		else {
 			return hasDescription(data,from,to,KIND_CLASS,KeeperContent.IsClass,Class.class);
+		}
+	}
+
+	Class<?> getClassDescription(final String className) throws ContentException {
+		if (Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Class name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return getClassDescription(name, 0, name.length);
 		}
 	}
 	
@@ -119,25 +142,92 @@ class ClassDescriptionRepo {
 		}
 	}
 
+	boolean hasFieldDescription(final String className) throws ContentException {
+		if (Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Field name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return hasFieldDescription(name, 0, name.length);
+		}
+	}
+	
 	boolean hasFieldDescription(final char[] data, final int from, final int to) throws ContentException {
 		return hasDescription(data,from,to,KIND_FIELD,KeeperContent.IsField,Field.class);
+	}
+
+	Field getFieldDescription(final String className) throws ContentException {
+		if (Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Field name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return getFieldDescription(name, 0, name.length);
+		}
 	}
 	
 	Field getFieldDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_FIELD,KeeperContent.IsField,Field.class);
 	}
 
+	boolean hasMethodDescription(final String className) throws ContentException {
+		if (!Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Method name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return hasMethodDescription(name, 0, name.length);
+		}
+	}
+	
 	boolean hasMethodDescription(final char[] data, final int from, final int to) throws ContentException {
 		return hasDescription(data,from,to,KIND_METHOD,KeeperContent.IsMethod,Method.class);
+	}
+
+	Method getMethodDescription(final String className) throws ContentException {
+		if (Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Field name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return getMethodDescription(name, 0, name.length);
+		}
 	}
 	
 	Method getMethodDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_METHOD,KeeperContent.IsMethod,Method.class);
 	}
 
+	boolean hasConstructorDescription(final String className) throws ContentException {
+		if (Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Method name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return hasConstructorDescription(name, 0, name.length);
+		}
+	}
+	
 	boolean hasConstructorDescription(final char[] data, final int from, final int to) throws ContentException {
 		return hasDescription(data,from,to,KIND_CONSTRUCTOR,KeeperContent.isConstructor,Constructor.class);
 	}
+
+	Constructor<?> getConstructorDescription(final String className) throws ContentException {
+		if (!Utils.checkEmptyOrNullString(className)) {
+			throw new IllegalArgumentException("Field name can't be null or empty");
+		}
+		else {
+			final char[]	name = className.toCharArray();
+			
+			return getConstructorDescription(name, 0, name.length);
+		}
+	}
+	
 	
 	Constructor<?> getConstructorDescription(final char[] data, final int from, final int to) throws ContentException {
 		return getDescription(data,from,to,KIND_CONSTRUCTOR,KeeperContent.isConstructor,Constructor.class);

@@ -27,7 +27,7 @@ public class ClassLineParserTest {
 	public void emptyClassTest() throws IOException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -41,7 +41,7 @@ public class ClassLineParserTest {
 			Assert.assertFalse(clazz.isInterface());
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -51,7 +51,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public & private)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -61,7 +61,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public & protected)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -71,7 +71,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (mutually exclusive abstract & final)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -83,7 +83,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (nested classes)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -99,7 +99,7 @@ public class ClassLineParserTest {
 	public void emptyExtendedClassTest() throws IOException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -113,7 +113,7 @@ public class ClassLineParserTest {
 			Assert.assertEquals(clazz.getSuperclass(),Throwable.class);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -130,7 +130,7 @@ public class ClassLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -147,7 +147,7 @@ public class ClassLineParserTest {
 			Assert.assertArrayEquals(clazz.getInterfaces(),new Class<?>[]{AutoCloseable.class,Cloneable.class});
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -158,7 +158,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (unknown class to import)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -168,7 +168,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (unknown class to implements)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -185,7 +185,7 @@ public class ClassLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -207,7 +207,7 @@ public class ClassLineParserTest {
 			Assert.assertEquals(clazz.getFields().length,9);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -218,7 +218,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public/protected/private)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -236,7 +236,7 @@ public class ClassLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -253,7 +253,7 @@ public class ClassLineParserTest {
 			Assert.assertEquals(clazz.getMethod("m1",String.class,long.class).getReturnType(),byte.class);
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -265,7 +265,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (attempt to add abstract method to the non-abstract class)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -277,7 +277,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (mutually exclusive public/protected/private)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -289,7 +289,7 @@ public class ClassLineParserTest {
 			Assert.fail("Mandatory exception was not detected (mutually exclusive abstract/final)");
 		} catch (IOException exc) {
 		}
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -308,7 +308,7 @@ public class ClassLineParserTest {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		final SyntaxTreeInterface<Macros>	macros = new AndOrTree<>();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
 
 			processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"

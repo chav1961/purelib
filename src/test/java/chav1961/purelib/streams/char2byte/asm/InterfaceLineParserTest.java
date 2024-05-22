@@ -16,7 +16,7 @@ public class InterfaceLineParserTest {
 	public void emptyInterfaceTest() throws IOException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
@@ -31,7 +31,7 @@ public class InterfaceLineParserTest {
 			Assert.assertTrue(clazz.isInterface());
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
@@ -50,7 +50,7 @@ public class InterfaceLineParserTest {
 	public void emptyEntendedAndImportInterfaceTest() throws IOException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
@@ -68,7 +68,7 @@ public class InterfaceLineParserTest {
 			Assert.assertArrayEquals(clazz.getInterfaces(),new Class<?>[]{AutoCloseable.class,Cloneable.class});
 		}
 
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp," 		.package "+this.getClass().getPackage().getName()+"\n"
@@ -86,7 +86,7 @@ public class InterfaceLineParserTest {
 	public void interfaceWithFieldsTest() throws IOException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,
@@ -106,7 +106,7 @@ public class InterfaceLineParserTest {
 	public void classWithMethodTest() throws IOException, NoSuchMethodException, SecurityException, ContentException {
 		final ClassDescriptionRepo	cdr = new ClassDescriptionRepo();
 		
-		try(final ClassContainer	cc = new ClassContainer();) {
+		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,null,null);
 
 			ClassLineParserTest.processString(lp,

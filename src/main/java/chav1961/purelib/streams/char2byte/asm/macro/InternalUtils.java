@@ -47,15 +47,15 @@ class InternalUtils {
 	private static final int		FUNC_ENVIRONMENT = 8;
 	
 	static {
-		FUNCTIONS.placeName("uniqueL",FUNC_UNIQUEL,new FuncDecription(ExpressionNodeOperator.F_UL,0,ExpressionNodeValue.INTEGER));
-		FUNCTIONS.placeName("uniqueG",FUNC_UNIQUEG,new FuncDecription(ExpressionNodeOperator.F_UG,0,ExpressionNodeValue.INTEGER));
-		FUNCTIONS.placeName("exists",FUNC_EXISTS,new FuncDecription(ExpressionNodeOperator.F_EXISTS,1,ExpressionNodeValue.BOOLEAN));
-		FUNCTIONS.placeName("int",FUNC_INT,new FuncDecription(ExpressionNodeOperator.F_TO_INT,1,ExpressionNodeValue.INTEGER));
-		FUNCTIONS.placeName("real",FUNC_REAL,new FuncDecription(ExpressionNodeOperator.F_TO_REAL,1,ExpressionNodeValue.REAL));
-		FUNCTIONS.placeName("str",FUNC_STR,new FuncDecription(ExpressionNodeOperator.F_TO_STR,1,ExpressionNodeValue.STRING));
-		FUNCTIONS.placeName("bool",FUNC_BOOL,new FuncDecription(ExpressionNodeOperator.F_TO_BOOL,1,ExpressionNodeValue.BOOLEAN));
-		FUNCTIONS.placeName("len",FUNC_LEN,new FuncDecription(ExpressionNodeOperator.F_LEN,1,ExpressionNodeValue.INTEGER));
-		FUNCTIONS.placeName("environment",FUNC_ENVIRONMENT,new FuncDecription(ExpressionNodeOperator.F_ENVIRONMENT,1,ExpressionNodeValue.STRING));
+		FUNCTIONS.placeName((CharSequence)"uniqueL", FUNC_UNIQUEL, new FuncDecription(ExpressionNodeOperator.F_UL, 0, ExpressionNodeValue.INTEGER));
+		FUNCTIONS.placeName((CharSequence)"uniqueG", FUNC_UNIQUEG, new FuncDecription(ExpressionNodeOperator.F_UG, 0, ExpressionNodeValue.INTEGER));
+		FUNCTIONS.placeName((CharSequence)"exists", FUNC_EXISTS, new FuncDecription(ExpressionNodeOperator.F_EXISTS, 1, ExpressionNodeValue.BOOLEAN));
+		FUNCTIONS.placeName((CharSequence)"int", FUNC_INT, new FuncDecription(ExpressionNodeOperator.F_TO_INT, 1, ExpressionNodeValue.INTEGER));
+		FUNCTIONS.placeName((CharSequence)"real", FUNC_REAL, new FuncDecription(ExpressionNodeOperator.F_TO_REAL, 1, ExpressionNodeValue.REAL));
+		FUNCTIONS.placeName((CharSequence)"str", FUNC_STR, new FuncDecription(ExpressionNodeOperator.F_TO_STR, 1, ExpressionNodeValue.STRING));
+		FUNCTIONS.placeName((CharSequence)"bool", FUNC_BOOL, new FuncDecription(ExpressionNodeOperator.F_TO_BOOL, 1, ExpressionNodeValue.BOOLEAN));
+		FUNCTIONS.placeName((CharSequence)"len", FUNC_LEN, new FuncDecription(ExpressionNodeOperator.F_LEN, 1, ExpressionNodeValue.INTEGER));
+		FUNCTIONS.placeName((CharSequence)"environment", FUNC_ENVIRONMENT, new FuncDecription(ExpressionNodeOperator.F_ENVIRONMENT, 1, ExpressionNodeValue.STRING));
 	}
 	
 	static int skipBlank(final char[] data, int from) {
@@ -797,7 +797,7 @@ class InternalUtils {
 					case F_UG 	: 
 						return new FuncNode(desc.operator,desc.returned,new FuncNode.IntegerCallback() {
 								@Override
-								public long calculate(final ExpressionNode[] list) {
+								public long calculate(final ExpressionNode... list) {
 									return macro.uniqueG;
 								}
 							}
@@ -805,7 +805,7 @@ class InternalUtils {
 					case F_UL 	:
 						return new FuncNode(desc.operator,desc.returned,new FuncNode.IntegerCallback() {
 								@Override
-								public long calculate(final ExpressionNode[] list) {
+								public long calculate(final ExpressionNode... list) {
 									return ++macro.uniqueL;
 								}
 							}
@@ -891,7 +891,8 @@ class InternalUtils {
 		
 		while (from < end && data[from] != '\r' && data[from] != '\n') {
 			if (data[from] == '\"') {
-				try{bounds[1] = from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',new StringBuilder());
+				try{
+					bounds[1] = from = UnsafedCharUtils.uncheckedParseString(data,from+1,'\"',new StringBuilder());
 				} catch (IOException e) {
 					throw new IllegalArgumentException(e.getLocalizedMessage());
 				}
@@ -905,6 +906,7 @@ class InternalUtils {
 			}
 		}
 		for (;bounds[1] > start && data[bounds[1]] <= ' '; bounds[1]--);	// Trunc trailing blanks
+		
 		return from;
 	}
 }
