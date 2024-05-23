@@ -551,7 +551,7 @@ class LineParser implements LineByLineProcessorCallback {
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
-		System.err.println("Line="+new String(data, from, len));
+//		System.err.println("Line="+new String(data, from, len));
 		
 		if (printAssembler) {
 			printDiagnostics('\t'+new String(data,from,len));
@@ -2918,10 +2918,10 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private TypeDescriptor calculateRefType(final CommandDescriptor desc, final int... parameters) throws ContentException, IOException {
 		// TODO Auto-generated method stub
-		System.err.println("CalculateRefType: "+desc+", p="+Arrays.toString(parameters));
+//		System.err.println("CalculateRefType: "+desc+", p="+Arrays.toString(parameters));
 		switch (desc.refTypeSource) {
 			case command		:
-				System.err.println("Command");
+//				System.err.println("Command");
 				switch (desc.operation) {
 					case (byte)0xbd :	// anewarray
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(parameters[0]);
@@ -2943,13 +2943,13 @@ class LineParser implements LineByLineProcessorCallback {
 						throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
 				}
 			case staticField	:
-				System.err.println("Static field");
+//				System.err.println("Static field");
 				break;
 			case instanceField	:
-				System.err.println("Instance field");
+//				System.err.println("Instance field");
 				break;
 			case locaVariable	:
-				System.err.println("Local variable");
+//				System.err.println("Local variable");
 				switch (desc.operation) {
 					case 0x19 :	// aload N
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(parameters[0]);
@@ -2965,10 +2965,10 @@ class LineParser implements LineByLineProcessorCallback {
 						throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
 				}
 			case returnedValue	:
-				System.err.println("Returned value");
+//				System.err.println("Returned value");
 				break;
 			case stack2			:
-				System.err.println("Stack 2");
+//				System.err.println("Stack 2");
 				final String	className = InternalUtils.displ2String(cc, (short)parameters[1]);
 				
 				if (className.length() > 2) {	// Referenced type
@@ -2977,9 +2977,6 @@ class LineParser implements LineByLineProcessorCallback {
 					final short		classDispl = cc.getConstantPool().asClassDescription(classDescr);
 					
 					return new TypeDescriptor(parameters[0], classDispl);
-				}
-				else if (className.length() <= 1) {
-					int x = 10;
 				}
 				else {
 					return new TypeDescriptor(className.isEmpty() ? InternalUtils.fieldSignature2Type(className.substring(1)) : CompilerUtils.CLASSTYPE_VOID);

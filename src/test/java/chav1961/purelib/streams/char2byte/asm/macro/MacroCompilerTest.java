@@ -630,10 +630,10 @@ public class MacroCompilerTest {
 			
 			final byte[]	content = baos.toByteArray();
 
-			try(final OutputStream os = new FileOutputStream("c:/tmp/"+className+".class")) {
-				os.write(content);
-				os.flush();
-			}
+//			try(final OutputStream os = new FileOutputStream("c:/tmp/"+className+".class")) {
+//				os.write(content);
+//				os.flush();
+//			}
 			
 			final Class<?>	result = clw.createClass(className, content); 
 			

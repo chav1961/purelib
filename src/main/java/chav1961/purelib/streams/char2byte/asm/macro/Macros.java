@@ -943,7 +943,7 @@ loop:		do {if ((from = InternalUtils.skipCallEntity(data,InternalUtils.skipBlank
 				from = InternalUtils.skipBlank(data,from);
 			} while (from < data.length && data[from] == ',');
 		} catch (CalculationException | IllegalArgumentException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			throw new SyntaxException(lineNo,from,exc.getLocalizedMessage(),exc); 
 		}
 		

@@ -196,19 +196,19 @@ class StackAndVarRepoNew {
 		}
 	}
 	
-	void commit() {
-		System.err.println("Stack: "+Arrays.deepToString(Arrays.copyOf(stackContent, currentStackTop+1)));
-		System.err.println("Vars: "+Arrays.toString(Arrays.copyOf(varContent, currentVarTop+1)));
-		calculateStackMap(null, (short)0, (short)stackMap.length);
-		// TODO:
-	}
+//	void commit() {
+//		System.err.println("Stack: "+Arrays.deepToString(Arrays.copyOf(stackContent, currentStackTop+1)));
+//		System.err.println("Vars: "+Arrays.toString(Arrays.copyOf(varContent, currentVarTop+1)));
+//		calculateStackMap(null, (short)0, (short)stackMap.length);
+//		// TODO:
+//	}
 
 	void processChanges(final short codeDispl, final StackChanges changes) throws ContentException {
 		processChanges(codeDispl, changes, (short)0);
 	}
 	
 	void processChanges(final short codeDispl, final StackChanges changes, final short refType) throws ContentException {
-		System.err.println("Code displacement: "+codeDispl);
+//		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
 			case changeDouble2Float:
 				if (selectStackItemType(0) == SPECIAL_TYPE_TOP && selectStackItemType(-1) == CompilerUtils.CLASSTYPE_DOUBLE) {
@@ -520,11 +520,11 @@ class StackAndVarRepoNew {
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
-		commit();
+//		commit();
 	}
 
 	void processChanges(final short codeDispl, final StackChanges changes, final int type, final short refType) throws ContentException {
-		System.err.println("Code displacement: "+codeDispl);
+//		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
 			case multiarrayAndPushReference	:
 				for (int index = 0; index < type; index++) {
@@ -609,7 +609,7 @@ class StackAndVarRepoNew {
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
-		commit();
+//		commit();
 	}
 
 	void processChanges(final short codeDispl, final StackChanges changes, final TypeDescriptor[] callSignature, final int signatureSize, final TypeDescriptor retSignature) throws ContentException {
@@ -649,16 +649,16 @@ class StackAndVarRepoNew {
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
-		commit();
+//		commit();
 	}
 
 	void markForwardBrunch(final long labelId) {
-		System.err.println("markForwardBrunch "+labelId);
+//		System.err.println("markForwardBrunch "+labelId);
 		forwards.put(labelId, new StackSnapshot(stackContent, currentStackTop));
 	}
 	
 	void loadForwardSnapshot(final long labelId) {
-		System.err.println("loadForwardSnapshot "+labelId);
+//		System.err.println("loadForwardSnapshot "+labelId);
 	}
 	
 	int getCurrentStackDepth() {
@@ -705,7 +705,7 @@ class StackAndVarRepoNew {
 		final TypeDescriptor[] varTypes = collectVarDescriptors();
 		
 		if (forwards.containsKey(labelId)) {
-			System.err.println("---Label found ("+labelId+")---");
+//			System.err.println("---Label found ("+labelId+")---");
 			loadStackSnapshot(forwards.get(labelId));
 		}
 		return new StackMapRecord(displ, new StackSnapshot(stackContent, currentStackTop), new VarSnapshot(varTypes));
@@ -931,7 +931,44 @@ class StackAndVarRepoNew {
 
 		@Override
 		public String toString() {
-			return "TypeDescriptor [dataType=" + dataType + ", reference=" + reference + ", unassigned=" + unassigned + "]";
+			final String	dataTypeName;
+			
+			switch (dataType) {
+				case CompilerUtils.CLASSTYPE_REFERENCE	:
+					dataTypeName = "reference";
+					break;
+				case CompilerUtils.CLASSTYPE_BYTE		:
+					dataTypeName = "byte";
+					break;
+				case CompilerUtils.CLASSTYPE_SHORT		:
+					dataTypeName = "short";
+					break;
+				case CompilerUtils.CLASSTYPE_CHAR		:	
+					dataTypeName = "char";
+					break;
+				case CompilerUtils.CLASSTYPE_INT		:	
+					dataTypeName = "int";
+					break;
+				case CompilerUtils.CLASSTYPE_LONG		:	
+					dataTypeName = "long";
+					break;
+				case CompilerUtils.CLASSTYPE_FLOAT		:	
+					dataTypeName = "float";
+					break;
+				case CompilerUtils.CLASSTYPE_DOUBLE		:	
+					dataTypeName = "double";
+					break;
+				case CompilerUtils.CLASSTYPE_BOOLEAN	:	
+					dataTypeName = "boolean";
+					break;
+				case CompilerUtils.CLASSTYPE_VOID		:	
+					dataTypeName = "void";
+					break;
+				default :
+					dataTypeName = ""+dataType;
+					break;
+			}
+			return "TypeDescriptor [dataType=" + dataTypeName + ", reference=" + reference + ", unassigned=" + unassigned + "]";
 		}
 	}
 	
@@ -1143,17 +1180,13 @@ class StackAndVarRepoNew {
 			}
 		}
 
-		public StackMapRecord calculateDelta(final StackMapRecord another) {
-			return null;
-		}
-		
 		public int getRecordSize() {
 			return    1	// 0xFF byte size 
 					+ 2 // displ size
 					+ 2 // stack content length size
-					+ calculateTypeArraySize(stack.content)	// stack content
+					+ calculateStackTypeArraySize(stack.content)	// stack content (type TOP excluded)
 					+ 2	// var frame content length size
-					+ calculateTypeArraySize(vars.content)	// var frame content
+					+ calculateVarTypeArraySize(vars.content)		// var frame content
 					;
 		}
 		
@@ -1173,12 +1206,15 @@ class StackAndVarRepoNew {
 				}
 			}
 			
-			os.writeShort(stack.content.length);
+			os.writeShort(calculateStackTypeCount(stack.content));			// Exclude TOP type from stack items amount
+//			os.writeShort(stack.content.length);			
 //				os.writeShort(calculateTypeArraySize(stack.content, null));
 			for (int index = 0; index < stack.content.length; index++) {
-				os.writeByte(toStackFrameTypes(stack.content[index]));	
-				if (stack.content[index].dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
-					os.writeShort(stack.content[index].reference);
+				if (stack.content[index].dataType != SPECIAL_TYPE_TOP) {	// Skip TOP type to print stack content
+					os.writeByte(toStackFrameTypes(stack.content[index]));	
+					if (stack.content[index].dataType == CompilerUtils.CLASSTYPE_REFERENCE) {
+						os.writeShort(stack.content[index].reference);
+					}
 				}
 			}
 			
@@ -1235,7 +1271,32 @@ class StackAndVarRepoNew {
 			}
 		}
 		
-		private static int calculateTypeArraySize(final TypeDescriptor[] array) {
+		private static int calculateStackTypeArraySize(final TypeDescriptor[] array) {
+			int	result = array.length;
+			
+			for (int index = 0; index < array.length; index++) {
+				if (array[index].dataType == CompilerUtils.CLASSTYPE_REFERENCE && !array[index].unassigned) {
+					result += 2;
+				}
+				else if (array[index].dataType == SPECIAL_TYPE_TOP) {
+					result--;
+				}
+			}
+			return result;
+		}
+
+		private static int calculateStackTypeCount(final TypeDescriptor[] array) {
+			int	result = array.length;
+			
+			for (int index = 0; index < array.length; index++) {
+				if (array[index].dataType == SPECIAL_TYPE_TOP) {
+					result--;
+				}
+			}
+			return result;
+		}
+		
+		private static int calculateVarTypeArraySize(final TypeDescriptor[] array) {
 			int	result = array.length;
 			
 			for (int index = 0; index < array.length; index++) {

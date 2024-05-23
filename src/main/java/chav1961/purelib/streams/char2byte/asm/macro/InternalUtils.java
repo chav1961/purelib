@@ -357,7 +357,8 @@ class InternalUtils {
 					throw new IllegalArgumentException("Missing '}' in the array list");
 				}
 				return from;
-			default : throw new IllegalArgumentException("Invalid constant value (constant can't be started with ["+data[from]+"])");
+			default : 
+				throw new IllegalArgumentException("Invalid constant value (constant can't be started with ["+data[from]+"])");
 		}
 	}
 
@@ -400,7 +401,7 @@ class InternalUtils {
 		try{result[0] = parseExpression(order,data,pos,macro); 
 			return pos[0];
 		} catch (IllegalArgumentException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			throw new SyntaxException(lineNo,pos[0]-begin,exc.getLocalizedMessage()); 
 		}
 	}
