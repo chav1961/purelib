@@ -18,6 +18,17 @@ import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.ui.swing.useful.interfaces.SelectionFrameListener;
 import chav1961.purelib.ui.swing.useful.interfaces.SelectionFrameListener.SelectionStyle;
 
+
+/**
+ * <p>This class implements dotted frame for selection any content inside swing graphic windows. Frame can have a number of forms (line, rectangle etc).
+ * Available forms are described by {@linkplain SelectionFrameListener.SelectionStyle} enumeration. This class supports {@linkplain SelectionFrameListener}
+ * listeners to process frame selection.</p>
+ * <p>This class is not thread-safe</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ * @last.update 0.0.7
+ * @see SelectionFrameListener
+ */
 public class SelectionFrameManager {
 	private static final int	STATE_INITIAL = 0;
 	private static final int	STATE_SELECTION_IN_PROGRESS = 1;
@@ -48,7 +59,13 @@ public class SelectionFrameManager {
 	private final SelectionStateKeeper			ssk = new SelectionStateKeeper();
 	private boolean				isSelectedNow = false;
 	
-	public SelectionFrameManager(final JComponent component, final boolean keepSelectionOnMouseExit) {
+	/**
+	 * <p>Constructor if the class</p>
+	 * @param component graphic component to support dotted frame in. Can't be null 
+	 * @param keepSelectionOnMouseExit keep frame visible when mouse cursor exited from the graphic component
+	 * @throws NullPointerException when component is null
+	 */
+	public SelectionFrameManager(final JComponent component, final boolean keepSelectionOnMouseExit) throws NullPointerException {
 		if (component == null) {
 			throw new NullPointerException("Component can't be null"); 
 		}
@@ -72,11 +89,20 @@ public class SelectionFrameManager {
 		}
 	}
 
+	/**
+	 * <p>Get current selection style</p>
+	 * @return current selection style. Can't be null
+	 */
 	public SelectionStyle getSelectionStyle() {
 		return ssk.currentStyle;
 	}
 	
-	public void setSelectionStyle(final SelectionStyle style) {
+	/**
+	 * <p>Set current selection style</p>
+	 * @param style style to set. Can't be null
+	 * @throws NullPointerException when style to set is null
+	 */
+	public void setSelectionStyle(final SelectionStyle style) throws NullPointerException {
 		if (style == null) {
 			throw new NullPointerException("Style to set can't be null"); 
 		}
@@ -86,7 +112,13 @@ public class SelectionFrameManager {
 		}
 	}
 	
-	public void pushSelectionStyle(final SelectionStyle style) {
+	/**
+	 * <p>Push current selection style and set new selection style instead of</p> 
+	 * @param style style to set. Can't be null
+	 * @throws NullPointerException when style to set is null
+	 * @see #popSelectionStyle()
+	 */
+	public void pushSelectionStyle(final SelectionStyle style) throws NullPointerException {
 		if (style == null) {
 			throw new NullPointerException("Style to push can't be null"); 
 		}
@@ -98,7 +130,12 @@ public class SelectionFrameManager {
 		}
 	}
 
-	public void popSelectionStyle() {
+	/**
+	 * <p>Restore previously pushed selection style</p>
+	 * @throws IllegalStateException when {@linkplain #pushSelectionStyle(SelectionStyle)} was not called earlier
+	 * @see #pushSelectionStyle(SelectionStyle)
+	 */
+	public void popSelectionStyle() throws IllegalStateException {
 		if (stateKeepers.isEmpty()) {
 			throw new IllegalStateException("Push stack is empty"); 
 		}
@@ -108,34 +145,62 @@ public class SelectionFrameManager {
 		}
 	}
 	
+	/**
+	 * <p>Enable selection</p>
+	 * @param enable true to allow selection, false otherwise
+	 */
 	public void enableSelection(final boolean enable) {
 		this.ssk.enabled = enable;
 		background.repaint();
 	}
 	
+	/**
+	 * <p>Is selection enabled</p>
+	 * @return true if selection is enabled
+	 */
 	public boolean isSelectionEnabled() {
 		return ssk.enabled;
 	}
 	
+	/**
+	 * <p>Set selection frame visibility</p>
+	 * @param visible true if frame must be visible, false otherwise
+	 */
 	public void setVisible(final boolean visible) {
 		this.ssk.visible = visible;
 		background.repaint();
 	}
 	
+	/**
+	 * <p>Is selection frame visible now</p>
+	 * @return true if selection frame is visible
+	 */
 	public boolean isVisible() {
 		return ssk.visible;
 	}
 
+	/**
+	 * <p>Has any selection in the frame</p>
+	 * @return true if has
+	 */
 	public boolean hasSelectionNow() {
 		return isSelectedNow;
 	}
 	
+	/**
+	 * <p>Reset current selection</p>
+	 */
 	public void resetCurrentSelection() {
 		ultimateAutomat(TERM_RESET, null);
 		background.repaint();
 	}
 	
-	public void addSelectionFrameListener(final SelectionFrameListener l) {
+	/**
+	 * <p>Add frame selection listener</p>
+	 * @param l listener to add. Can't be null
+	 * @throws NullPointerException if listener to add is null
+	 */
+	public void addSelectionFrameListener(final SelectionFrameListener l) throws NullPointerException {
 		if (l == null) {
 			throw new NullPointerException("Listener to add can't be null"); 
 		}
@@ -144,7 +209,12 @@ public class SelectionFrameManager {
 		}
 	}
 
-	public void removeSelectionFrameListener(final SelectionFrameListener l) {
+	/**
+	 * <p>Remove frame selection listener</p>
+	 * @param l listener to remove. Can't be null
+	 * @throws NullPointerException if listener to remove is null
+	 */
+	public void removeSelectionFrameListener(final SelectionFrameListener l) throws NullPointerException {
 		if (l == null) {
 			throw new NullPointerException("Listener to remove can't be null"); 
 		}
@@ -153,30 +223,39 @@ public class SelectionFrameManager {
 		}
 	}
 
-	public void paintSelection(final Graphics2D g2d) {
-		final Stroke	oldStroke = g2d.getStroke();
-		
-		g2d.setStroke(STROKE);
-		switch (ssk.currentStyle) {
-			case NONE		:
-				break;
-			case PATH		:
-				g2d.draw(ssk.path);
-				break;
-			case POINT		:
-				g2d.drawLine(0, ssk.currentP.y, background.getWidth(), ssk.currentP.y);
-				g2d.drawLine(ssk.currentP.x, 0, ssk.currentP.x, background.getHeight());
-				break;
-			case LINE		:
-				g2d.drawLine(ssk.startP.x, ssk.startP.y, ssk.currentP.x, ssk.currentP.y);
-				break;
-			case RECTANGLE	:
-				g2d.drawRect(ssk.currentFrame.x, ssk.currentFrame.y, ssk.currentFrame.width, ssk.currentFrame.height);
-				break;
-			default :
-				throw new UnsupportedOperationException("Current selection style ["+ssk.currentStyle+"] is not supported yet");
+	/**
+	 * <p>Paint selection. Component, that uses the class, must call this method from it's {@linkplain JComponent#paintComponents(java.awt.Graphics)} method</p> 
+	 * @param g2d graphic environment to paint frame in. Can't be null
+	 */
+	public void paintSelection(final Graphics2D g2d) throws NullPointerException {
+		if (g2d == null) {
+			throw new NullPointerException("Graphics environment to paint can't be null");
 		}
-		g2d.setStroke(oldStroke);
+		else {
+			final Stroke	oldStroke = g2d.getStroke();
+			
+			g2d.setStroke(STROKE);
+			switch (ssk.currentStyle) {
+				case NONE		:
+					break;
+				case PATH		:
+					g2d.draw(ssk.path);
+					break;
+				case POINT		:
+					g2d.drawLine(0, ssk.currentP.y, background.getWidth(), ssk.currentP.y);
+					g2d.drawLine(ssk.currentP.x, 0, ssk.currentP.x, background.getHeight());
+					break;
+				case LINE		:
+					g2d.drawLine(ssk.startP.x, ssk.startP.y, ssk.currentP.x, ssk.currentP.y);
+					break;
+				case RECTANGLE	:
+					g2d.drawRect(ssk.currentFrame.x, ssk.currentFrame.y, ssk.currentFrame.width, ssk.currentFrame.height);
+					break;
+				default :
+					throw new UnsupportedOperationException("Current selection style ["+ssk.currentStyle+"] is not supported yet");
+			}
+			g2d.setStroke(oldStroke);
+		}
 	}
 	
 	private void automat(final int terminal, final Point pt) {
