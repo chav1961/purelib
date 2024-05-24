@@ -71,8 +71,24 @@ public final class LocalizerFactory {
 	 * @throws LocalizationException if any I/O errors were detected during getting localizer
 	 */
 	public static Localizer getLocalizer(final URI localizerUri) throws NullPointerException, LocalizationException {
+		return getLocalizer(localizerUri, Thread.currentThread().getContextClassLoader());
+	}
+
+	/**
+	 * <p>Get localizer for the given localizer URI. Any localizers were registered thru SPI can be used. SPI service name is the name of {@linkplain Localizer} class</p>
+	 * @param localizerUri resource to get localizer for. Must be any URI with the {@linkplain Localizer#LOCALIZER_SCHEME} scheme
+	 * @param loader class loader to seek service in. Can't be null
+	 * @return localizer built
+	 * @throws NullPointerException when localizer URI or class loader is null
+	 * @throws LocalizationException if any I/O errors were detected during getting localizer
+	 * @since 0.0.7
+	 */
+	public static Localizer getLocalizer(final URI localizerUri, final ClassLoader loader) throws NullPointerException, LocalizationException {
 		if (localizerUri == null) {
 			throw new NullPointerException("Localizer URI can't be null"); 
+		}
+		else if (loader == null) {
+			throw new NullPointerException("Class loader can't be null"); 
 		}
 		else {
 			Localizer			localizer;
@@ -86,7 +102,7 @@ public final class LocalizerFactory {
 				return localizerItem.localizer;
 			}
 			else {
-				for (Localizer item : ServiceLoader.load(Localizer.class)) {
+				for (Localizer item : ServiceLoader.load(Localizer.class, loader)) {
 					if (item.canServe(localizerUri)) {
 						synchronized(cache) {
 							if ((localizerItem = cache.get(localizerUri)) != null) {
