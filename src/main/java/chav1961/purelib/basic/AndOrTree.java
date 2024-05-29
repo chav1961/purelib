@@ -185,7 +185,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {
-			final TermNode	node = (TermNode) seekNameInternal(root,name,0,name.length(),forPosition);
+			final TermNode	node = (TermNode) seekNameInternal(root, name, 0, name.length(), forPosition);
 
 			return node == null ? -forPosition[0]-1 : node.id;
 		}
@@ -202,7 +202,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("Name to seek can't be null or empty");
 		}
 		else {
-			final TermNode	node = (TermNode) seekNameInternalIgnoreCase(root,name,0,name.length(),forPosition);
+			final TermNode	node = (TermNode) seekNameInternalIgnoreCase(root, name, 0, name.length(), forPosition);
 
 			return node == null ? -forPosition[0]-1 : node.id;
 		}
@@ -225,7 +225,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
 		}
 		else {
-			final TermNode	node = (TermNode) seekNameInternal(root,source,from,to,forPosition);
+			final TermNode	node = (TermNode) seekNameInternal(root, source, from, to, forPosition);
 
 			return node == null ? -forPosition[0]-1 : node.id;
 		}
@@ -248,7 +248,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
 		}
 		else {
-			final TermNode	node = (TermNode) seekNameInternalIgnoreCase(root,source,from,to,forPosition);
+			final TermNode	node = (TermNode) seekNameInternalIgnoreCase(root, source, from, to, forPosition);
 
 			return node == null ? -forPosition[0]-1 : node.id;
 		}
@@ -295,7 +295,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			else {
 				final char[]	result = new char[((TermNode)node).nameLen];
 				
-				getName(id,result,0);
+				getName(id, result, 0);
 				return new String(result);
 			}
 		}
@@ -327,7 +327,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 					return -nameLen;
 				}
 				else {
-					fillName(node,where,from+nameLen);
+					fillName(node, where, from + nameLen);
 					return from+nameLen;
 				}
 			}
@@ -518,9 +518,15 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	 * <p>Print tree content in human-readable format.</p>
 	 * @param ps print writer to print content to. Can't be null
 	 * @since 0.0.6
+	 * @last.update 0.0.7
 	 */
-	public void print(final PrintWriter ps) {
-		print(root, ps, "");
+	public void print(final PrintWriter ps) throws NullPointerException {
+		if (ps == null) {
+			throw new NullPointerException("Print writer can't be null");
+		}
+		else {
+			print(root, ps, "");
+		}
 	}
 	
 	/**
