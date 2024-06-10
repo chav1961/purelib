@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.math.BigDecimal;
+import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -2880,6 +2881,35 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	public static CharSequence toCharSequence(final char content) {
 		return new OrdinalCharSequence(content);
 	}
+
+	/**
+	 * <p>Create {@linkplain CharSequence} wrapper for the given piece of char array</p>
+	 * @param content char buffer to make wrapper for
+	 * @param from start index inside char array to make sequence
+	 * @param to end index inside char array to make sequence
+	 * @return wrapper created. Can't be null
+	 * @throws NullPointerException if char buffer reference is null
+	 * @throws IllegalArgumentException from or to indices out of range
+	 * @since 0.0.7
+	 */
+	public static CharSequence toCharSequence(final CharBuffer content, final int from, final int to) throws NullPointerException, IllegalArgumentException {
+		if (content == null) {
+			throw new NullPointerException("Content to make sequence for can't be null"); 
+		}
+		else if (from < 0 || from >= content.capacity()) {
+			throw new IllegalArgumentException("From index ["+from+"] out of range 0.."+(content.capacity()-1)); 
+		}
+		else if (to < 0 || to >= content.capacity()) {
+			throw new IllegalArgumentException("To index ["+to+"] out of range 0.."+(content.capacity()-1)); 
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To index ["+to+"] less than from index ["+from+"]"); 
+		}
+		else {
+			return new OrdinalBufferCharSequence(content, from, to);
+		}
+	}
+	
 	
 	/**
 	 * <p>Create {@linkplain CharSequence} wrapper for the given piece of char array. Differ to {@linkplain #toCharSequence(char[], int, int)}, makes weak reference for wrapper content</p>
@@ -4215,6 +4245,81 @@ loop:		for(;;) {
 		}
     }
 
+    private static class OrdinalBufferCharSequence implements CharSequence {
+    	private final CharBuffer	content;
+    	private final int			from;
+    	private final int 			to;
+
+		private OrdinalBufferCharSequence(final CharBuffer content, final int from, final int to) {
+			this.content = content;
+			this.from = from;
+			this.to = to;
+		}
+
+		@Override
+		public int length() {
+			return to-from+1;
+		}
+
+		@Override
+		public char charAt(final int index) throws StringIndexOutOfBoundsException {
+			if (index < 0 || index >= length()) {
+				throw new StringIndexOutOfBoundsException("Char index ["+index+"] out of range 0.."+(length()-1)); 
+			}
+			else {
+				return content.get(index-from);
+			}
+		}
+
+		@Override
+		public CharSequence subSequence(final int start, final int end) {
+			if (start < 0 || start >= length()) {
+				throw new StringIndexOutOfBoundsException("Start index ["+start+"] out of range 0.."+(length()-1)); 
+			}
+			else if (end < 0 || end >= length()) {
+				throw new StringIndexOutOfBoundsException("End index ["+end+"] out of range 0.."+(length()-1)); 
+			}
+			else if (end < start) {
+				throw new StringIndexOutOfBoundsException("End index ["+end+"] less than start index ["+start+"]"); 
+			}
+			else {
+				return new OrdinalBufferCharSequence(content, from+start, from+end);
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((content == null) ? 0 : content.hashCode());
+			result = prime * result + from;
+			result = prime * result + to;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			OrdinalBufferCharSequence other = (OrdinalBufferCharSequence) obj;
+			if (content == null) {
+				if (other.content != null) return false;
+			} else if (!content.equals(other.content)) return false;
+			if (from != other.from) return false;
+			if (to != other.to) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			final char[]	result = new char[length()];
+			
+			content.get(from, result);
+			return new String(result);
+		}
+    }
+    
     private static class WeakCharSequence implements CharSequence {
     	private final WeakReference<char[]>	content;
     	private final int		from;

@@ -3,6 +3,7 @@ package chav1961.purelib.basic;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.CharBuffer;
 import java.util.Arrays;
 
 import org.junit.Assert;
@@ -1361,14 +1362,21 @@ public class CharUtilsTest {
 	@Test
 	public void charSequenceWrappersTest() {
 		final char[]		content = "test string".toCharArray();
+		final CharBuffer	buffer = CharBuffer.wrap(content);
 		
-		innerTest(CharUtils.toCharSequence(content,0,content.length-1));
-		innerTest(CharUtils.toWeakCharSequence(content,0,content.length-1));
+		innerTest(CharUtils.toCharSequence(content, 0, content.length-1));
+		innerTest(CharUtils.toCharSequence(buffer, 0, buffer.capacity()-1));
+		innerTest(CharUtils.toWeakCharSequence(content, 0, content.length-1));
 		
-		try{CharUtils.toCharSequence(null,0,content.length-1);
+		try{CharUtils.toCharSequence((char[])null,0,content.length-1);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
+		try{CharUtils.toCharSequence((CharBuffer)null,0,content.length-1);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
 		try{CharUtils.toCharSequence(content,-1,content.length-1);
 			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 		} catch (IllegalArgumentException exc) {
@@ -1377,6 +1385,16 @@ public class CharUtilsTest {
 		Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
+		
+		try{CharUtils.toCharSequence(buffer,-1,buffer.capacity()-1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(buffer,buffer.capacity(),buffer.capacity()-1);
+			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 		try{CharUtils.toCharSequence(content,0,-1);
 			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
 		} catch (IllegalArgumentException exc) {
@@ -1386,6 +1404,19 @@ public class CharUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		try{CharUtils.toCharSequence(content,1,0);
+			Assert.fail("Mandatory exception was not detected (3-rd argument less than 2-nd one)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
+		try{CharUtils.toCharSequence(buffer,0,-1);
+			Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(buffer,0,buffer.capacity());
+		Assert.fail("Mandatory exception was not detected (3-rd argument out of range)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try{CharUtils.toCharSequence(buffer,1,0);
 			Assert.fail("Mandatory exception was not detected (3-rd argument less than 2-nd one)");
 		} catch (IllegalArgumentException exc) {
 		}
