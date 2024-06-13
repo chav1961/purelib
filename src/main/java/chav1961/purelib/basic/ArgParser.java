@@ -342,7 +342,7 @@ public class ArgParser {
 	/**
 	 * <p>Method to implement more complex argument checking. If the method returns neither null nor empty string, {@linkplain CommandLineParametersException} will 
 	 * be thrown. To check arguments inside the method, use only argument passed, because <b>this</b> variable doesn't get you access to really parsed command string
-	 * arguments</p> 
+	 * arguments now</p> 
 	 * @param parser parser item to check it's arguments. Can't be null</p>
 	 * @return null or empty string on success, any error message otherwise.
 	 * @since 0.0.7
@@ -401,12 +401,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 				
 				if (found == null) {
 					if (!ignoreUnknown) {
-						throw new CommandLineParametersException("Key parameter [-"+key+"] is not supported for the parser");
+						throw new CommandLineParametersException("Key parameter ["+keyPrefix+key+"] is not supported for the parser");
 					}
 				}
 				else if (found.hasValue()) {
 					if (index == args.length-1) {
-						throw new CommandLineParametersException("Key parameter [-"+key+"] has no value awaited");
+						throw new CommandLineParametersException("Key parameter ["+keyPrefix+key+"] has no value awaited");
 					}
 					else if (found.isList()) {
 						final List<String>	collection = new ArrayList<>();
