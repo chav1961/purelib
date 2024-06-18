@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -551,10 +552,8 @@ class LineParser implements LineByLineProcessorCallback {
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
-//		System.err.println("Line="+new String(data, from, len));
-		
 		if (printAssembler) {
-			printDiagnostics('\t'+new String(data,from,len));
+			printDiagnostics(lineNo, data, from, len);
 		}
 		
 		try{
@@ -3675,9 +3674,43 @@ class LineParser implements LineByLineProcessorCallback {
 		return new String(result);
 	}
 
-	protected synchronized void printDiagnostics(final String text) throws IOException {
+	protected synchronized void printDiagnostics(final int lineNo, final char[] content, final int from, final int len) throws IOException {
 		if (diagnostics != null && printAssembler) {
-			diagnostics.write(text);
+			final StringBuilder	sb = new StringBuilder();
+			
+			switch (state) {
+				case afterClass					:
+				case beforeImport				:
+				case beforePackage				:
+					sb.append(content, from, len).append('\n');
+					break;
+				case insideBegin				:
+				case insideClassBody			:
+				case insideClassMethod			:
+					try{final int	pc = methodDescriptor.getBody().getPC();
+					
+						sb.append(pc).append(":\t").append(content, from, len).append('\n');
+					} catch (ContentException e) {
+						sb.append('\t').append(content, from, len).append('\n');
+					}
+					break;
+				case insideClass				:
+				case insideClassAbstractMethod	:
+				case insideInterface			:
+				case insideInterfaceAbstractMethod	:
+					sb.append('\t').append('\t').append(content, from, len).append('\n');
+					break;
+				case insideMacros				:
+					sb.append('\t').append(content, from, len).append('\n');
+					break;
+				case insideMethodLookup			:
+				case insideMethodTable			:
+					sb.append('\t').append('\t').append('\t').append(content, from, len).append('\n');
+					break;
+				default:
+					throw new UnsupportedOperationException("State ["+state+"] is not supported yet");
+			}
+			diagnostics.write(sb.toString());
 			diagnostics.flush();
 		}
 	}

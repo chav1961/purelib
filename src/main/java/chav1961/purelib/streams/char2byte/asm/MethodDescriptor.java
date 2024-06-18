@@ -4,7 +4,9 @@ package chav1961.purelib.streams.char2byte.asm;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -32,6 +34,7 @@ class MethodDescriptor implements Closeable {
 	private final List<short[]>					varTable = new ArrayList<>();	
 	private final List<short[]>					lineTable = new ArrayList<>();	
 	private final List<StackMapRecord>			stackMaps = new ArrayList<>();
+	private final Set<Short>					stackMapsDisplacement = new HashSet<>();
 	private final SyntaxTreeInterface<NameDescriptor>	tree;
 	private final ClassConstantsRepo			ccr;
 	private final StackAndVarRepoNew			stackAndVarNew;
@@ -208,7 +211,12 @@ class MethodDescriptor implements Closeable {
 	}
 
 	void addStackMapRecord(final long labelId) throws ContentException {
-		stackMaps.add(this.getBody().getStackAndVarRepoNew().createStackMapRecord(this.getBody().getPC(), labelId));
+		final short	displ = this.getBody().getPC();
+		
+		if (!stackMapsDisplacement.contains(displ)) {
+			stackMapsDisplacement.add(displ);
+			stackMaps.add(this.getBody().getStackAndVarRepoNew().createStackMapRecord(displ, labelId));
+		}
 	}
 	
 	void complete() throws IOException, ContentException {

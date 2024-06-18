@@ -196,13 +196,6 @@ class StackAndVarRepoNew {
 		}
 	}
 	
-//	void commit() {
-//		System.err.println("Stack: "+Arrays.deepToString(Arrays.copyOf(stackContent, currentStackTop+1)));
-//		System.err.println("Vars: "+Arrays.toString(Arrays.copyOf(varContent, currentVarTop+1)));
-//		calculateStackMap(null, (short)0, (short)stackMap.length);
-//		// TODO:
-//	}
-
 	void processChanges(final short codeDispl, final StackChanges changes) throws ContentException {
 		processChanges(codeDispl, changes, (short)0);
 	}
@@ -1193,10 +1186,8 @@ class StackAndVarRepoNew {
 		public int write(final InOutGrowableByteArray os, final int delta) throws IOException {
 			os.writeByte(0xFF);
 			os.writeShort(displ - delta);
-//			os.writeShort(0);
-			
+
 			os.writeShort(vars.content.length);
-//			os.writeShort(calculateTypeArraySize(vars.content, null));
 			for (int index = 0; index < vars.content.length; index++) {
 				final int	verification = toVarFrameTypes(vars.content[index]); 
 				
@@ -1207,8 +1198,6 @@ class StackAndVarRepoNew {
 			}
 			
 			os.writeShort(calculateStackTypeCount(stack.content));			// Exclude TOP type from stack items amount
-//			os.writeShort(stack.content.length);			
-//				os.writeShort(calculateTypeArraySize(stack.content, null));
 			for (int index = 0; index < stack.content.length; index++) {
 				if (stack.content[index].dataType != SPECIAL_TYPE_TOP) {	// Skip TOP type to print stack content
 					os.writeByte(toStackFrameTypes(stack.content[index]));	
