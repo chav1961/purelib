@@ -140,7 +140,7 @@ public class SVGParser {
 			throw new NullPointerException("Instrument getter can't be null");
 		}
 		else {
-			final Document			doc = XMLUtils.validateAndLoadXML(svgXml, XMLUtils.getPurelibXSDURL(XSDCollection.SVG_full), logger);
+			final Document			doc = XMLUtils.validateAndLoadXML(svgXml, XMLUtils.getPurelibXSDURL(XSDCollection.SVG_full), XMLUtils.ValidationSeverity.FATAL, logger);
 			
 			doc.normalizeDocument();
 			XMLUtils.walkDownXML(doc.getDocumentElement(),(mode,node)->{	// Extract all styles from the content

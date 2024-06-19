@@ -46,6 +46,28 @@ import chav1961.purelib.enumerations.XSDCollection;
  */
 public class XMLUtils {
 	private static final String 	W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
+
+	/**
+	 * <p>This enumeration describes max severity for validation messages, that must me thrown</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
+	public static enum ValidationSeverity {
+		WARNING(1),
+		ERROR(2),
+		FATAL(3);
+		
+		private final int	level;
+		
+		private ValidationSeverity(final int level) {
+			this.level = level;
+		}
+		
+		public int getLevel() {
+			return level;
+		}
+	}
+	
 	
 	/**
 	 * <p>Validate XML content by it's XSD</p>
@@ -68,11 +90,28 @@ public class XMLUtils {
 	 * @since 0.0.2
 	 */
 	public static boolean validateXMLByXSD(final InputStream xml, final InputStream xsd, final LoggerFacade logger) throws NullPointerException {
+		return validateXMLByXSD(xml, xsd, ValidationSeverity.ERROR, logger);
+	}	
+	
+	/**
+	 * <p>Validate XML content by it's XSD</p>
+	 * @param xml XML content to validate. Can't be null
+	 * @param xsd XSD to check validation. Can't be null
+	 * @param maxSeverity max severity to accept validation. Can't be null
+	 * @param logger logger facade to print error messages. Can't be null
+	 * @return true is the XML content is valid
+	 * @throws NullPointerException if any parameters are null
+	 * @since 0.0.7
+	 */
+	public static boolean validateXMLByXSD(final InputStream xml, final InputStream xsd, final ValidationSeverity maxSeverity, final LoggerFacade logger) throws NullPointerException {
 		if (xml == null) {
 			throw new NullPointerException("XML input stream can't be null");
 		}
 		else if (xsd == null) {
 			throw new NullPointerException("XSD input stream can't be null");
+		}
+		else if (maxSeverity == null) {
+			throw new NullPointerException("Max validation severity can't be null");
 		}
 		else if (logger == null) {
 			throw new NullPointerException("Logger facade can't be null");
@@ -87,12 +126,7 @@ public class XMLUtils {
 				
 			    final DocumentBuilder 			db = dbf.newDocumentBuilder();
 			    
-			    db.setErrorHandler(new ErrorHandler() {
-					@Override public void warning(SAXParseException exception) throws SAXException {logger.message(Severity.warning,exception.toString());}
-					@Override public void error(SAXParseException exception) throws SAXException {logger.message(Severity.error,exception.toString()); throw exception;}
-					@Override public void fatalError(SAXParseException exception) throws SAXException {logger.message(Severity.severe,exception.toString()); throw exception;}
-					}
-			    );
+			    db.setErrorHandler(new XMLValidationErrorHandler(maxSeverity, logger));
 			    db.parse(new InputSource(xml));
 			    
 	            return true;
@@ -113,11 +147,29 @@ public class XMLUtils {
 	 * @since 0.0.3
 	 */
 	public static Document validateAndLoadXML(final InputStream xml, final InputStream xsd, final LoggerFacade logger) throws NullPointerException, ContentException {
+		return validateAndLoadXML(xml, xsd, ValidationSeverity.ERROR, logger);
+	}
+	
+	/**
+	 * <p>Validate XML content by it's XSD and load DOM</p>
+	 * @param xml XML content to validate and load
+	 * @param xsd XSD to check validation
+	 * @param maxSeverity max severity to accept validation. Can't be null
+	 * @param logger logger facade to print error messages
+	 * @return DOM if the XML content is valid
+	 * @throws NullPointerException if any parameters are null
+	 * @throws ContentException on any validation problems
+	 * @since 0.0.7
+	 */
+	public static Document validateAndLoadXML(final InputStream xml, final InputStream xsd, final ValidationSeverity maxSeverity, final LoggerFacade logger) throws NullPointerException, ContentException {
 		if (xml == null) {
 			throw new NullPointerException("XML input stream can't be null");
 		}
 		else if (xsd == null) {
 			throw new NullPointerException("XSD input stream can't be null");
+		}
+		else if (maxSeverity == null) {
+			throw new NullPointerException("Max validation severity can't be null");
 		}
 		else if (logger == null) {
 			throw new NullPointerException("Logger facade can't be null");
@@ -133,12 +185,7 @@ public class XMLUtils {
 				
 			    final DocumentBuilder 			db = dbf.newDocumentBuilder();
 			    
-			    db.setErrorHandler(new ErrorHandler() {
-					@Override public void warning(SAXParseException exception) throws SAXException {logger.message(Severity.warning,exception.toString());}
-					@Override public void error(SAXParseException exception) throws SAXException {logger.message(Severity.error,exception.toString()); throw exception;}
-					@Override public void fatalError(SAXParseException exception) throws SAXException {logger.message(Severity.severe,exception.toString()); throw exception;}
-					}
-			    );
+			    db.setErrorHandler(new XMLValidationErrorHandler(maxSeverity, logger));
 			    final Document	doc = db.parse(new InputSource(xml));
 			    
 			    tran.rollback();
@@ -160,11 +207,29 @@ public class XMLUtils {
 	 * @since 0.0.7
 	 */
 	public static Document validateAndLoadXML(final InputStream xml, final URL xsd, final LoggerFacade logger) throws NullPointerException, ContentException {
+		return validateAndLoadXML(xml, xsd, ValidationSeverity.ERROR, logger);
+	}	
+	
+	/**
+	 * <p>Validate XML content by it's XSD and load DOM</p>
+	 * @param xml XML content to validate and load
+	 * @param xsd XSD to check validation
+	 * @param maxSeverity max severity to accept validation. Can't be null
+	 * @param logger logger facade to print error messages
+	 * @return DOM if the XML content is valid
+	 * @throws NullPointerException if any parameters are null
+	 * @throws ContentException on any validation problems
+	 * @since 0.0.7
+	 */
+	public static Document validateAndLoadXML(final InputStream xml, final URL xsd, final ValidationSeverity maxSeverity, final LoggerFacade logger) throws NullPointerException, ContentException {
 		if (xml == null) {
 			throw new NullPointerException("XML input stream can't be null");
 		}
 		else if (xsd == null) {
 			throw new NullPointerException("XSD input stream can't be null");
+		}
+		else if (maxSeverity == null) {
+			throw new NullPointerException("Max validation severity can't be null");
 		}
 		else if (logger == null) {
 			throw new NullPointerException("Logger facade can't be null");
@@ -180,12 +245,7 @@ public class XMLUtils {
 				
 			    final DocumentBuilder 			db = dbf.newDocumentBuilder();
 			    
-			    db.setErrorHandler(new ErrorHandler() {
-					@Override public void warning(SAXParseException exception) throws SAXException {logger.message(Severity.warning,exception.toString());}
-					@Override public void error(SAXParseException exception) throws SAXException {logger.message(Severity.error,exception.toString()); throw exception;}
-					@Override public void fatalError(SAXParseException exception) throws SAXException {logger.message(Severity.severe,exception.toString()); throw exception;}
-					}
-			    );
+			    db.setErrorHandler(new XMLValidationErrorHandler(maxSeverity, logger));
 			    final Document	doc = db.parse(new InputSource(xml));
 			    
 			    tran.rollback();
@@ -491,5 +551,39 @@ public class XMLUtils {
 	    		doc.appendChild(el);
 	    	}
 	    }
+	}
+	
+	private static class XMLValidationErrorHandler implements ErrorHandler {
+		private final ValidationSeverity	severity;
+		private final LoggerFacade 			logger;
+		
+		private XMLValidationErrorHandler(final ValidationSeverity severity, final LoggerFacade logger) {
+			this.severity = severity;
+			this.logger = logger;
+		}
+
+		@Override
+		public void warning(SAXParseException exception) throws SAXException {
+			logger.message(Severity.warning, exception.toString());
+			if (severity.getLevel() <= 1) {
+				throw exception;
+			}
+		}
+
+		@Override
+		public void error(SAXParseException exception) throws SAXException {
+			logger.message(Severity.error, exception.toString());
+			if (severity.getLevel() <= 2) {
+				throw exception;
+			}
+		}
+
+		@Override
+		public void fatalError(SAXParseException exception) throws SAXException {
+			logger.message(Severity.severe, exception.toString());
+			if (severity.getLevel() <= 3) {
+				throw exception;
+			}
+		}
 	}
 }
