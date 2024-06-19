@@ -27,7 +27,7 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMet
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.6
  */
-class SubstitutableWriter extends Writer {
+public class SubstitutableWriter extends Writer {
 	public static final String		DEFAULT_START_KEY = "${";
 	public static final String		DEFAULT_END_KEY = "}";
 	public static final char[]		DEFAULT_START_CHAR_KEY = DEFAULT_START_KEY.toCharArray();
