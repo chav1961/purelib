@@ -3,12 +3,11 @@ package chav1961.purelib.basic.growablearrays;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
-import java.util.Spliterator;
 import java.util.PrimitiveIterator.OfDouble;
+import java.util.Spliterator;
 
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfDouble;
-import chav1961.purelib.basic.growablearrays.GrowableDoubleArray.PlainSpliterator;
-import chav1961.purelib.basic.growablearrays.GrowableDoubleArray.SlicedSpliterator;
+import chav1961.purelib.basic.interfaces.AnyGrowableArray;
 
 /**
  * <p>This class implements functionality for the growable float arrays.</p>
@@ -17,10 +16,10 @@ import chav1961.purelib.basic.growablearrays.GrowableDoubleArray.SlicedSpliterat
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
-public class GrowableFloatArray {
+public class GrowableFloatArray implements AnyGrowableArray {
 	public static final int			MINIMUM_SPLIT_SIZE = 256;
 	private static final float[]	NULL_FLOAT = new float[0];
 	
@@ -57,6 +56,11 @@ public class GrowableFloatArray {
 		this.usePlain = usePlain;
 		this.aacm = usePlain ? new PlainManager(initialPow) : new SlicedManager(initialPow); 
 		this.initialSize = 1 << (this.initialPow = initialPow);
+	}
+	
+	@Override
+	public Class<?> getComponentType() {
+		return float.class;
 	}
 	
 	/**

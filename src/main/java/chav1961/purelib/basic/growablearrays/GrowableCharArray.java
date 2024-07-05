@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.ReusableInstances;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
+import chav1961.purelib.basic.interfaces.AnyGrowableArray;
 import chav1961.purelib.basic.interfaces.RichAppendable;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
@@ -25,7 +26,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @last.update 0.0.7
  * @param <T> type of this or child class to support chain operations with children
  */
-public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence, RichAppendable {
+public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSequence, RichAppendable, AnyGrowableArray {
 	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final char[]	NULL_CHAR = new char[0];
 	private static final char[]	TRUE_CHAR = "true".toCharArray();
@@ -65,6 +66,11 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 		this.usePlain = usePlain;
 		this.aacm = usePlain ? new PlainManager(initialPow) : new SlicedManager(initialPow); 
 		this.initialSize = 1 << (this.initialPow = initialPow);
+	}
+
+	@Override
+	public Class<?> getComponentType() {
+		return char.class;
 	}
 	
 	/**

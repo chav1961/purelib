@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
 import chav1961.purelib.basic.growablearrays.GrowableIntArray.PlainSpliterator;
 import chav1961.purelib.basic.growablearrays.GrowableIntArray.SlicedSpliterator;
+import chav1961.purelib.basic.interfaces.AnyGrowableArray;
 
 /**
  * <p>This class implements functionality for the growable byte arrays.</p>
@@ -19,10 +20,10 @@ import chav1961.purelib.basic.growablearrays.GrowableIntArray.SlicedSpliterator;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
-public class GrowableByteArray {
+public class GrowableByteArray implements AnyGrowableArray {
 	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final byte[]	NULL_BYTE = new byte[0];
 	
@@ -59,6 +60,11 @@ public class GrowableByteArray {
 		this.usePlain = usePlain;
 		this.aacm = usePlain ? new PlainManager(initialPow) : new SlicedManager(initialPow); 
 		this.initialSize = 1 << (this.initialPow = initialPow);
+	}
+	
+	@Override
+	public Class<?> getComponentType() {
+		return byte.class;
 	}
 	
 	/**

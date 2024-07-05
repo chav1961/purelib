@@ -3,6 +3,8 @@ package chav1961.purelib.basic.growablearrays;
 import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
+import chav1961.purelib.basic.interfaces.AnyGrowableArray;
+
 /**
  * <p>This class implements functionality for the growable boolean arrays.</p>
  * <p>This class is not thread-safe.</p>
@@ -10,10 +12,10 @@ import java.util.Arrays;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 
-public class GrowableBooleanArray {
+public class GrowableBooleanArray implements AnyGrowableArray {
 	private static final boolean[]	NULL_BOOLEAN = new boolean[0];
 	
 	private final boolean		usePlain;
@@ -69,6 +71,11 @@ public class GrowableBooleanArray {
 		return this;
 	}
 
+	@Override
+	public Class<?> getComponentType() {
+		return boolean.class;
+	}
+	
 	/**
 	 * <p>Append data to the end of array
 	 * @param data data to append

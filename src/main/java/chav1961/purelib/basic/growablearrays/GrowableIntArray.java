@@ -8,6 +8,7 @@ import java.util.Spliterator;
 import java.util.stream.IntStream;
 
 import chav1961.purelib.basic.growablearrays.ArrayUtils.SpliteratorOfInt;
+import chav1961.purelib.basic.interfaces.AnyGrowableArray;
 
 import java.util.PrimitiveIterator.OfInt;
 
@@ -18,10 +19,10 @@ import java.util.PrimitiveIterator.OfInt;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.5
+ * @last.update 0.0.7
  */
 
-public class GrowableIntArray {
+public class GrowableIntArray implements AnyGrowableArray {
 	public static final int		MINIMUM_SPLIT_SIZE = 256;
 	private static final int[]	NULL_INT = new int[0];
 	
@@ -58,6 +59,11 @@ public class GrowableIntArray {
 		this.usePlain = usePlain;
 		this.aacm = usePlain ? new PlainManager(initialPow) : new SlicedManager(initialPow); 
 		this.initialSize = 1 << (this.initialPow = initialPow);
+	}
+	
+	@Override
+	public Class<?> getComponentType() {
+		return int.class;
 	}
 	
 	/**
