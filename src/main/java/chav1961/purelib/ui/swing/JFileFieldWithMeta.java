@@ -60,7 +60,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	private final ContentNodeMetadata	metadata;
 	private final JButton				callSelect = new JButton(InternalConstants.ICON_FOLDER);
 	private final Class<?>				contentClass;
-	private final FileWizardOptions			options;
+	private final FileWizardOptions		options;
 	private Object						currentValue, newValue;
 	private boolean						invalid = false;	
 	
@@ -333,6 +333,7 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 		final boolean old = isVisible();
 		
 		super.setVisible(aFlag);
+		callSelect.setVisible(aFlag);
 		if (repo != null && aFlag != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.VISIBILE, aFlag);
 		}
@@ -349,10 +350,11 @@ public class JFileFieldWithMeta extends JTextField implements NodeMetadataOwner,
 	}
 	
 	@Override
-	public void setEnabled(boolean b) {
+	public void setEnabled(final boolean b) {
 		final boolean old = isEnabled();
 		
 		super.setEnabled(b);
+		callSelect.setEnabled(b);
 		if (repo != null && b != old) {
 			repo.fireBooleanPropChange(this, EventChangeType.ENABLED, b);
 		}
