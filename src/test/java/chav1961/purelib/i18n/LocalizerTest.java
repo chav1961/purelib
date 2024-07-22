@@ -1,6 +1,7 @@
 package chav1961.purelib.i18n;
 
 import java.io.IOException;
+
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -11,8 +12,8 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -20,9 +21,8 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class LocalizerTest {
 
 	@Test

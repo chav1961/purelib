@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.util.concurrent.Semaphore;
 
 import javax.swing.text.AttributeSet;
@@ -11,18 +12,17 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.HighlightItem;
 
+@Tag("OrdinalTestCategory")
 public class JTextPaneHighlighterTest {
 	enum TestEnum {
 		ORDINAL, STYLE, PARAGRAPH
 	}
 	
-	@Category(OrdinalTestCategory.class)
 	@Test
 	public void test() throws InterruptedException {
 		final SimpleAttributeSet 				sasStyle = new SimpleAttributeSet();

@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.HeadlessException;
@@ -18,12 +19,13 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -39,11 +41,9 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.TestingUtils;
-import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
@@ -56,7 +56,7 @@ public class VisualControlsTest implements JComponentMonitor {
 
 	volatile boolean	focusGained = false, focusLost = false, action = false, loading = false, validation = false, saving = false;
 	
-	@Before
+	@BeforeEach
 	public void prepare() {
 		root.getContentPane().setLayout(new GridLayout(2,1));
 		text.setName("TEXT");
@@ -64,7 +64,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		SwingUtils.centerMainWindow(root,0.1f);
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		root.dispose();
 	}
@@ -101,7 +101,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		return true;
 	} 
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJButtonWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -130,7 +130,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJButtonWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -155,7 +155,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		Assert.assertTrue(focusLost);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJCheckBoxWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -191,7 +191,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJCheckBoxWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -218,7 +218,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJColorPairPickerWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -254,7 +254,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 //	@Test
 	public void uiJColorPairPickerWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -291,7 +291,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJColorPickerWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -327,7 +327,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 //	@Test
 	public void uiJColorPickerWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -363,7 +363,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJDateFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -401,7 +401,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJDateFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -430,7 +430,7 @@ public class VisualControlsTest implements JComponentMonitor {
 	}
 
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJEnumFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -462,7 +462,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJEnumFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -491,7 +491,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJFileFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -524,7 +524,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJFileFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -560,7 +560,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJFormattedTextFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface		metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -592,7 +592,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJFormattedTextFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface		metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -621,9 +621,9 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
-	@Ignore
+	@Disabled
 	public void basicJIntegerFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
 		final ContentNodeMetadata		itemMeta = metadata.byApplicationPath(URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/"+PseudoData.class.getCanonicalName()+"/intValue"))[0];
@@ -657,7 +657,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	@Ignore
 	public void uiJIntegerFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
@@ -687,7 +687,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	@Ignore
 	public void basicJNumericFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
@@ -725,7 +725,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	@Ignore
 	public void uiJNumericFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
@@ -761,7 +761,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJTextFieldWithMetaTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -793,7 +793,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJTextFieldWithMetaTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -823,7 +823,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		root.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJDateSelectionDialogTest() throws SyntaxException, LocalizationException,ContentException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -856,7 +856,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiJDateSelectionDialogTest() throws SyntaxException, ContentException, EnvironmentException, DebuggingException, InterruptedException {
 		final ContentMetadataInterface	metadata = ContentModelFactory.forAnnotatedClass(PseudoData.class);

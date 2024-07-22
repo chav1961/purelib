@@ -1,11 +1,11 @@
 package chav1961.purelib.i18n;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ LocalizerFactoryTest.class, LocalizerTest.class, LocaleSpecificTextWrapperTest.class, MutableLocalizerTest.class })
+@Suite
+@SelectClasses({ LocaleSpecificTextWrapperTest.class, LocalizerFactoryTest.class, LocalizerTest.class,
+		MutableLocalizerTest.class })
 public class AllTests {
 
 }

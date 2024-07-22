@@ -1,17 +1,20 @@
 package chav1961.purelib.ui.html;
 
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 
+@Tag("OrdinalTestCategory")
 public class SimpleNavigatorTreeTest {
 
 	@Test

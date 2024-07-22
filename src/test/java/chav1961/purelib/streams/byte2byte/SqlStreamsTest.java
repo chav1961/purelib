@@ -1,6 +1,8 @@
 package chav1961.purelib.streams.byte2byte;
 
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -28,6 +30,7 @@ import java.util.List;
 
 import org.junit.Assert;
 
+@Tag("OrdinalTestCategory")
 public class SqlStreamsTest {
 	
 	@Test

@@ -1,12 +1,8 @@
 package chav1961.purelib.testing;
 
-import java.awt.Dimension;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridLayout;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JFrame;
@@ -17,14 +13,14 @@ import javax.swing.KeyStroke;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
-import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.ui.swing.SwingUtils;
 
+@Tag("OrdinalTestCategory")
 public class SwingUnitTestTest {
 	final JFrame		root = new JFrame();
 	final JTextField	field1 = new JTextField(), field2 = new JTextField();
@@ -50,7 +46,7 @@ public class SwingUnitTestTest {
 		root.dispose();
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiBasicTest() throws EnvironmentException, DebuggingException, InterruptedException {
 		final SwingUnitTest	sut = new SwingUnitTest(root);
@@ -132,7 +128,7 @@ public class SwingUnitTestTest {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiMouseTest() throws EnvironmentException, DebuggingException, InterruptedException {
 		final SwingUnitTest	sut = new SwingUnitTest(root);

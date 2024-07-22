@@ -1,5 +1,6 @@
 package chav1961.purelib.sql;
 
+
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.sql.ResultSet;
@@ -9,15 +10,14 @@ import java.sql.Types;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.FilterTree;
 import chav1961.purelib.sql.FilteredReadOnlyResultSet.Lexema;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ResultSetTests {
 	@FunctionalInterface
 	interface ExceptionTest {

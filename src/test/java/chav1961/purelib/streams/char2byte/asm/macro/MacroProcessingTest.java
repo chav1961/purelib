@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,17 +12,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 import chav1961.purelib.streams.char2byte.asm.TestInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class MacroProcessingTest {
 //	@Test
 	public void simpleTest() throws ContentException, IOException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {

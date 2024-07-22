@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -8,12 +9,10 @@ import java.net.URISyntaxException;
 import java.util.Hashtable;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class URIUtilsTest {
 
 	@Test

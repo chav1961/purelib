@@ -1,14 +1,14 @@
 package chav1961.purelib.i18n;
 
+
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
-import java.util.Locale;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.i18n.interfaces.LocalizedString;
@@ -16,6 +16,7 @@ import chav1961.purelib.i18n.interfaces.MutableLocalizedString;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.streams.JsonStaxPrinter;
 
+@Tag("OrdinalTestCategory")
 public class MutableLocalizerTest {
 	@Test
 	public void basicTest() {

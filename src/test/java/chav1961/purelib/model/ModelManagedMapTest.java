@@ -1,10 +1,11 @@
 package chav1961.purelib.model;
 
+
 import java.io.PrintStream;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -14,12 +15,11 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ModelManagedMapTest {
 	private final PrintStream	ps = TestingUtils.err();
 	

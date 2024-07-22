@@ -1,5 +1,6 @@
 package chav1961.purelib.sql.model;
 
+
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -9,15 +10,14 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.DebuggingException;
-import chav1961.purelib.testing.DatabaseTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
-@Category(DatabaseTestCategory.class)
+@Tag("DatabaseTestCategory")
 public class SQLResultSetTest {
 	private static SimpleURLClassLoader	loader;
 	private static Connection			conn;

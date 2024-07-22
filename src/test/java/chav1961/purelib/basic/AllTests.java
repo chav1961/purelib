@@ -1,24 +1,17 @@
 package chav1961.purelib.basic;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepoTest;
-
-@RunWith(Suite.class)
-@SuiteClasses({ SyntaxTreeTest.class, BitCharSetTest.class, CharUtilsTest.class,
-		ConsoleCommandManagerTest.class, InternalUtilsTest.class,
-		LineByLineProcessorTest.class, LoggerFacadeTest.class,
-		PluggableClassLoaderTest.class, SequenceIteratorTest.class,  
-		UtilsTest.class , XMLBasedParserText.class,
-		AssemblerTemplateRepoTest.class,
-		LongIdMapTest.class, ReusableInstancesTest.class,
-		PureLibSettingsTest.class, TemporaryStoreTest.class,
-		SubstitutablePropertiesTest.class, XMLUtilsTest.class,
-		UnsafedUtilsTest.class, URIUtilsTest.class, CSSUtilsTest.class,
-		MimeTypeTest.class, DirectoryListenerTest.class, 
-		BKTreeTest.class})
+@Suite
+@SelectClasses({ ArgParserTest.class, AsmScriptEngineTest.class, BitCharSetTest.class, BKTreeTest.class,
+		CharArrayPieceTest.class, CharUtilsTest.class, ColorUtilsTest.class, ConsoleCommandManagerTest.class,
+		CSSUtilsTest.class, DirectoryListenerTest.class, FSMTest.class, GettersAndSettersFactoryTest.class,
+		InternalUtilsTest.class, LineByLineProcessorTest.class, LoggerFacadeTest.class, LongIdMapTest.class,
+		MimeTypeTest.class, PluggableClassLoaderTest.class, PureLibSettingsTest.class, ReusableInstancesTest.class,
+		ScriptEngineTest.class, SequenceIteratorTest.class, SubstitutablePropertiesTest.class, SyntaxTreeTest.class,
+		TemporaryStoreTest.class, UnsafedUtilsTest.class, URIUtilsTest.class, UtilsTest.class, XMLBasedParserText.class,
+		XMLUtilsTest.class })
 public class AllTests {
 
 }

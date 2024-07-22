@@ -1,6 +1,7 @@
 package chav1961.purelib.nanoservice;
 
 
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -21,8 +22,8 @@ import java.util.Properties;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import com.sun.net.httpserver.Authenticator;
 import com.sun.net.httpserver.Filter;
@@ -49,10 +50,9 @@ import chav1961.purelib.nanoservice.NanoServiceFactory.QueryParser;
 import chav1961.purelib.nanoservice.NanoServiceFactory.RequestHeadParser;
 import chav1961.purelib.nanoservice.interfaces.MethodExecutor;
 import chav1961.purelib.nanoservice.interfaces.QueryType;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
 @SuppressWarnings("restriction")
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class NanoServiceFactoryTest {
 	private static final String			LOOPBACK_RESPONSE =
 											"<html>\n" + 

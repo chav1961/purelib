@@ -1,21 +1,19 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import org.junit.jupiter.api.Assertions;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.StackAndVarRepoNew.TypeDescriptor;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class InternalUtilsTest {
 	public InternalUtilsTest(){}
 

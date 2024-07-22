@@ -1,14 +1,14 @@
 package chav1961.purelib.concurrent;
 
-
-
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.concurrent.interfaces.ResourceDispatcherLock;
 
+@Tag("OrdinalTestCategory")
 public class SimpleBitmapResourceDispatcherTest {
 	@Test
 	public void basicTest() {

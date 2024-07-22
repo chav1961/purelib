@@ -1,17 +1,16 @@
 package chav1961.purelib.streams;
 
+
 import org.junit.Assert;
 
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class JsonStaxPrinterTest {
 	@FunctionalInterface
 	private interface Callback {

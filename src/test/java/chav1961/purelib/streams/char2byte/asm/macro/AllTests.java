@@ -1,12 +1,11 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ CommandTest.class, ExpressionNodeTest.class, InternalUtilsTest.class, MacroClassLoaderTest.class,
-		MacroCompilerTest.class, MacroProcessingTest.class, MacrosTest.class, AssemblerTemplateRepoTest.class })
+@Suite
+@SelectClasses({ AssemblerTemplateRepoTest.class, CommandTest.class, ExpressionNodeTest.class, InternalUtilsTest.class,
+		MacroClassLoaderTest.class, MacroCompilerTest.class, MacroProcessingTest.class, MacrosTest.class })
 public class AllTests {
 
 }

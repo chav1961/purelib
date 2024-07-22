@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.Dimension;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -11,12 +12,10 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class LabelledLayoutTest {
 	@Test
 	public void basicTest() {

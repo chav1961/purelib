@@ -5,9 +5,9 @@ import java.lang.reflect.Method;
 import java.net.URI;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.BooleanGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
@@ -21,15 +21,13 @@ import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.Serializer;
 import chav1961.purelib.basic.GettersAndSettersFactory.ShortGetterAndSetter;
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class GettersAndSettersFactoryTest {
-	@Before
+	@BeforeEach
 	public void prepare() {
 		GettersAndSettersFactory.clearCache();
 	}

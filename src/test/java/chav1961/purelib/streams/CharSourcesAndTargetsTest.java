@@ -1,6 +1,7 @@
 package chav1961.purelib.streams;
 
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,8 +12,8 @@ import java.io.StringWriter;
 import java.io.Writer;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -24,9 +25,8 @@ import chav1961.purelib.streams.chartarget.StringBuilderCharTarget;
 import chav1961.purelib.streams.chartarget.WriterCharTarget;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class CharSourcesAndTargetsTest {
 	public static final String		CHAR_SOURCE_STRING = "test string";
 

@@ -1,20 +1,20 @@
 package chav1961.purelib.nanoservice;
 
 
+
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.nanoservice.InternalUtils;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class InternalUtilsTest {
 	@Test
 	public void mimesTest() throws MimeParseException, IOException {

@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -9,8 +10,8 @@ import java.util.Locale;
 import javax.swing.JFrame;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -26,15 +27,13 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
-import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
 public class MarkupBuildFormTest {
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicTest() throws LocalizationException, ContentException, IOException {
 		final PseudoData						pd = new PseudoData();
@@ -62,7 +61,7 @@ public class MarkupBuildFormTest {
 		}		
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiTest() throws ContentException, EnvironmentException, InterruptedException, DebuggingException, IOException {		
 		final PseudoData						pd = new PseudoData();

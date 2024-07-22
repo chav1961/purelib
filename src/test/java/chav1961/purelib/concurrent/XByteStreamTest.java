@@ -1,6 +1,7 @@
 package chav1961.purelib.concurrent;
 
 import java.io.BufferedReader;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,14 +13,13 @@ import java.io.Reader;
 import java.io.Writer;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class XByteStreamTest {
 	final PrintStream	ps = TestingUtils.err();
 	

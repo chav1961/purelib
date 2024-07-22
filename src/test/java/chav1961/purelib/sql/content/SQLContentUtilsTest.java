@@ -1,19 +1,19 @@
 package chav1961.purelib.sql.content;
 
+
 import java.sql.Types;
 import java.util.Hashtable;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.RsMetaDataElement;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class SQLContentUtilsTest {
 	@Test
 	public void staticTest() throws SyntaxException {

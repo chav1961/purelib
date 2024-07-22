@@ -1,8 +1,8 @@
 package chav1961.purelib.basic;
 
 
-
 import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
@@ -27,9 +27,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-import org.junit.runner.notification.RunListener.ThreadSafe;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -44,9 +43,8 @@ import chav1961.purelib.streams.charsource.StringCharSource;
 import chav1961.purelib.streams.chartarget.StringBuilderCharTarget;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class UtilsTest {
 	@Test
 	public void copyStreamTest() throws IOException, PrintingException, ContentException {

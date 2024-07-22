@@ -1,5 +1,6 @@
 package chav1961.purelib.model;
 
+
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -9,16 +10,15 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.model.FieldFormat.Alignment;
 import chav1961.purelib.model.FieldFormat.ContentType;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FieldFormatTest {
 	@Test
 	public void staticTest() throws SyntaxException {

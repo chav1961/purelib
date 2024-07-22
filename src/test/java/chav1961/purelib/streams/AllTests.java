@@ -1,15 +1,11 @@
 package chav1961.purelib.streams;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-import chav1961.purelib.json.JsonSaxHandlerFactoryTest;
-
-@RunWith(Suite.class)
-@SuiteClasses({ CharSourcesAndTargetsTest.class
-		, JsonSaxHandlerFactoryTest.class, JsonSaxParserTest.class
-		, JsonStaxParserTest.class, JsonStaxPrinterTest.class })
+@Suite
+@SelectClasses({ CharSourcesAndTargetsTest.class, CsvSaxParserTest.class, CsvStaxParserTest.class,
+		JsonSaxParserTest.class, JsonStaxParserTest.class, JsonStaxPrinterTest.class, StreamsUtilTest.class })
 public class AllTests {
 
 }

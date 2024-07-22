@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful.svg;
 
+
 import org.junit.Assert;
 
 import java.awt.Dimension;
@@ -11,13 +12,12 @@ import java.io.InputStream;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class SVGParserTest {
 
 	@Test

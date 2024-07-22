@@ -1,19 +1,20 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
 interface ByteCodeTestInterface {
@@ -21,7 +22,7 @@ interface ByteCodeTestInterface {
 	int callInterfaceInt(long parameter);
 }
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 	private final PrintStream	ps = TestingUtils.err();
 	

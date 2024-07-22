@@ -1,22 +1,22 @@
 package chav1961.purelib.basic;
 
 import java.io.InputStream;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import chav1961.purelib.basic.ArgParser.ArgDescription;
 import chav1961.purelib.basic.exceptions.CommandLineParametersException;
 import chav1961.purelib.basic.exceptions.ConsoleCommandException;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ArgParserTest {
 	@Test
 	public void basicTest() throws ConsoleCommandException, ContentException {

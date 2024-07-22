@@ -1,12 +1,14 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.Dimension;
 import java.net.URI;
 
 import javax.swing.JOptionPane;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -17,6 +19,7 @@ import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
+@Tag("OrdinalTestCategory")
 public class JContentMetadataEditorTest {
 
 	@Test

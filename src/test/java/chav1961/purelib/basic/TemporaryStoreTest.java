@@ -1,24 +1,24 @@
 package chav1961.purelib.basic;
 
 import java.io.IOException;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.TemporaryStore.InputOutputPair;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class TemporaryStoreTest {
 	public byte[]	content, piece;
 	
-	@Before
+	@BeforeEach
 	public void prepare() {
 		content = new byte[1 << 22];
 		piece = new byte[1 << 18];
@@ -181,7 +181,7 @@ public class TemporaryStoreTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		content = null;
 		piece = null;

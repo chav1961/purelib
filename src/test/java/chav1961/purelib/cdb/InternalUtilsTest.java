@@ -1,6 +1,7 @@
 package chav1961.purelib.cdb;
 
 import java.io.IOException;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -8,12 +9,12 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
@@ -24,6 +25,7 @@ import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 import chav1961.purelib.cdb.intern.EntityType;
 import chav1961.purelib.cdb.intern.Predefines;
 
+@Tag("OrdinalTestCategory")
 public class InternalUtilsTest {
 	private static final SyntaxTreeInterface<TestType>	tt = new AndOrTree<>(1,1);
 	

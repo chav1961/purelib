@@ -2,6 +2,7 @@ package chav1961.purelib.fsys;
 
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -23,15 +24,14 @@ import java.util.jar.JarOutputStream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FileSystemTest {
 	@Before
 	public void prepare() throws ClassNotFoundException, IOException {

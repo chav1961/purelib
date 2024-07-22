@@ -1,13 +1,14 @@
 package chav1961.purelib.model;
 
 import java.io.IOException;
+
 import java.io.InputStream;
 import java.net.URI;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -16,9 +17,8 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ContentFilterTest {
 	@Test
 	public void basicTest() throws IOException, EnvironmentException {

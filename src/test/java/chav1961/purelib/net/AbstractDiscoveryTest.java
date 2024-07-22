@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.Assert;
 
 import chav1961.purelib.net.interfaces.DiscoveryEventType;
@@ -16,6 +17,7 @@ import chav1961.purelib.net.interfaces.MediaAdapter;
 import chav1961.purelib.net.interfaces.MediaDescriptor;
 import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 
+@Tag("OrdinalTestCategory")
 public class AbstractDiscoveryTest {
 	private final PseudoAbstractMediaDescriptor mediaDesc = new PseudoAbstractMediaDescriptor(new PseudoAbstractMediaItemDescriptor(0), new PseudoAbstractMediaItemDescriptor(1), new PseudoAbstractMediaItemDescriptor(2));
 

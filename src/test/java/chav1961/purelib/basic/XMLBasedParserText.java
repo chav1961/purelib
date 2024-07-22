@@ -2,7 +2,7 @@ package chav1961.purelib.basic;
 
 import java.io.IOException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 //import org.junit.Assert;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;

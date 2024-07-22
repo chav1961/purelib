@@ -1,20 +1,20 @@
 package chav1961.purelib.fsys;
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FileSystemClassLoaderTest {
 	@Test
 	public void test() throws IOException, ClassNotFoundException, IllegalAccessException, InvocationTargetException, NoSuchMethodException, SecurityException {

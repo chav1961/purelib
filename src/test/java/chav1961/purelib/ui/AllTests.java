@@ -1,11 +1,11 @@
 package chav1961.purelib.ui;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ AbstractInMemoryFormModelTest.class, ColorPairTest.class, ConstraintCheckerFactoryTest.class})
+@Suite
+@SelectClasses({ AbstractInMemoryFormModelTest.class, ColorPairTest.class, ConstraintCheckerFactoryTest.class,
+		FormMonitorTest.class })
 public class AllTests {
 
 }

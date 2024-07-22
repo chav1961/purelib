@@ -1,6 +1,6 @@
 package chav1961.purelib.streams.char2char;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.experimental.categories.Category;
 import chav1961.purelib.testing.OrdinalTestCategory;
 

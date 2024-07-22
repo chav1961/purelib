@@ -1,21 +1,21 @@
 package chav1961.purelib.basic;
 
 import java.awt.Color;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.CharUtils.ArgumentType;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class CharUtilsTest {
 	public static final float		EPSILON_FLOAT = 0.00001f;
 	public static final double		EPSILON = 0.000000001;

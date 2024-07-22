@@ -1,5 +1,6 @@
 package chav1961.purelib.nanoservice;
 
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,8 +17,8 @@ import java.util.jar.JarOutputStream;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.SystemErrLoggerFacade;
@@ -32,9 +33,8 @@ import chav1961.purelib.nanoservice.NanoServiceManager.DeploymentDesc;
 import chav1961.purelib.nanoservice.NanoServiceManager.DeploymentMode;
 import chav1961.purelib.nanoservice.interfaces.NanoService;
 import chav1961.purelib.nanoservice.internal.PseudoPlugin2;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class NanoServiceManagerTest {
 	final File	rootDir = new File("./src/test/resources/chav1961/purelib/nanoservice/deploy/");
 	

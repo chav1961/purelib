@@ -1,19 +1,19 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.asm.macro.AssemblerTemplateRepo.NameKeeper;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class AssemblerTemplateRepoTest {
 	private static final byte[]		content = "{PART1}\nline1\n${subst1}\nline3\n${subst2}\nline5\n{PART2}\nLINE1\n${subst1}\nLINE3\n${subst2}\nLINE5".getBytes(); 
 	

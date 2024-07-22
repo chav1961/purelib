@@ -1,5 +1,6 @@
 package chav1961.purelib.streams;
 
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -7,13 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class JsonStaxParserTest {
 	@Test
 	public void basicTest() throws IOException {

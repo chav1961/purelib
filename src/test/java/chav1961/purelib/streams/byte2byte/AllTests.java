@@ -1,11 +1,11 @@
 package chav1961.purelib.streams.byte2byte;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ ZLibStreamTest.class , PseudoRandomInputStreamTest.class, SqlStreamsTest.class, FragmentedStreamTest.class, MultipartStreamsTest.class })
+@Suite
+@SelectClasses({ FragmentedStreamTest.class, MultipartStreamsTest.class, PseudoRandomInputStreamTest.class,
+		SqlStreamsTest.class, ZLibStreamTest.class })
 public class AllTests {
 
 }

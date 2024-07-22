@@ -7,7 +7,7 @@ import java.util.Set;import org.hamcrest.core.IsSame;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import chav1961.purelib.basic.DirectoryListener.DirectoryWatchDescriptor;
 

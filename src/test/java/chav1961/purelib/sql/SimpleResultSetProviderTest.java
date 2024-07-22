@@ -1,5 +1,6 @@
 package chav1961.purelib.sql;
 
+
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Connection;
@@ -8,17 +9,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.DebuggingException;
-import chav1961.purelib.testing.DatabaseTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
 public class SimpleResultSetProviderTest {
-	@Category(DatabaseTestCategory.class)
+	@Tag("DatabaseTestCategory")
 	@Test
 	public void readOnlyTest() throws DebuggingException, SQLException, IOException, ContentException {
 		TestingUtils.prepareDatabase("drop table public.test");
@@ -78,7 +79,7 @@ public class SimpleResultSetProviderTest {
 		}
 	}
 
-	@Category(DatabaseTestCategory.class)
+	@Tag("DatabaseTestCategory")
 	@Test
 	public void mutableTest() throws DebuggingException, SQLException, IOException, ContentException {
 		TestingUtils.prepareDatabase("drop table public.test");

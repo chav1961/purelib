@@ -1,14 +1,13 @@
 package chav1961.purelib.sql;
 
+
 import java.sql.Types;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class RsMetaDataElementTest {
 	@Test
 	public void basicTest() {

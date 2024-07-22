@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.event.MouseEvent;
 import java.util.Locale;
 
@@ -10,23 +11,21 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
-import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.swing.useful.JPaginator.PageMoving;
 import chav1961.purelib.ui.swing.useful.JPaginator.PageSelectCallback;
 
 public class JPaginatorTest {
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicTest() throws LocalizationException {
 		final int[]					pages = new int[3];
@@ -120,7 +119,7 @@ public class JPaginatorTest {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiTest() throws EnvironmentException, InterruptedException, DebuggingException {
 		final int[]					pages = new int[3];

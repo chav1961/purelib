@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -24,13 +25,12 @@ import javax.script.ScriptEngineFactory;
 import javax.script.ScriptException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.MimeParseException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ScriptEngineTest {
 	@Test
 	public void basicFactoryTest() throws MimeParseException {

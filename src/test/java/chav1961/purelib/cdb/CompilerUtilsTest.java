@@ -1,5 +1,6 @@
 package chav1961.purelib.cdb;
 
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -7,10 +8,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 
+@Tag("OrdinalTestCategory")
 public class CompilerUtilsTest {
 	public static final int		testStatic = 0;
 	static final int			testNonPublicStatic = 0;

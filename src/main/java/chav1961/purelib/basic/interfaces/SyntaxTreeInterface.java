@@ -3,6 +3,7 @@ package chav1961.purelib.basic.interfaces;
 import java.util.Comparator;
 
 import chav1961.purelib.basic.AndOrTree;
+import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.OrdinalSyntaxTree;
 
 /**
@@ -121,7 +122,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @since 0.0.6
 	 */
 	default long placeName(final CharSequence name, final T cargo) {
-		return placeName(new StringBuilder().append(name).toString(), cargo);
+		return placeName(CharUtils.toCharArray(name), 0, name.length(), cargo);
 	}
 	
 	/**
@@ -132,7 +133,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @since 0.0.6
 	 */
 	default long placeOrChangeName(final CharSequence name, final T cargo) {
-		return placeOrChangeName(new StringBuilder().append(name).toString(), cargo);
+		return placeOrChangeName(CharUtils.toCharArray(name), 0, name.length(), cargo);
 	}
 	
 	/**
@@ -189,7 +190,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @since 0.0.6
 	 */
 	default long placeName(final CharSequence name, long id, T cargo) {
-		return placeName(new StringBuilder().append(name).toString(), id, cargo);
+		return placeName(CharUtils.toCharArray(name), 0, name.length(), id, cargo);
 	}
 
 	/**
@@ -201,7 +202,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @since 0.0.6
 	 */
 	default long placeOrChangeName(final CharSequence name, long id, T cargo) {
-		return placeOrChangeName(new StringBuilder().append(name).toString(), id, cargo);
+		return placeOrChangeName(CharUtils.toCharArray(name), 0, name.length(), id, cargo);
 	}
 	
 	/**
@@ -251,7 +252,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @since 0.0.6 
 	 */
 	default long seekName(CharSequence name) {
-		return seekName(new StringBuilder().append(name).toString());
+		return seekName(CharUtils.toCharArray(name), 0, name.length());
 	}
 
 	/**
@@ -261,7 +262,7 @@ public interface SyntaxTreeInterface<T> {
 	 * @since 0.0.6 
 	 */
 	default long seekNameI(CharSequence name) {
-		return seekNameI(new StringBuilder().append(name).toString());
+		return seekNameI(CharUtils.toCharArray(name), 0, name.length());
 	}
 	
 	/**

@@ -1,11 +1,14 @@
 package chav1961.purelib.streams.byte2byte;
 
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
+@Tag("OrdinalTestCategory")
 public class FragmentedStreamTest {
 
 	private int			index;

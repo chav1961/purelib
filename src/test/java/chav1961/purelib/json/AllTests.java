@@ -1,12 +1,10 @@
 package chav1961.purelib.json;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ JsonNodeAndUtilsTest.class, JsonSaxHandlerFactoryTest.class, JsonSerializerTest.class })
-
+@Suite
+@SelectClasses({ JsonNodeAndUtilsTest.class, JsonSaxHandlerFactoryTest.class, JsonSerializerTest.class })
 public class AllTests {
 
 }

@@ -1,6 +1,6 @@
 package chav1961.purelib.net;
 
-import static org.junit.Assert.assertArrayEquals;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -12,7 +12,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.net.LightWeightNetworkDiscovery.MediaAdapterImpl;
 import chav1961.purelib.net.LightWeightNetworkDiscovery.MediaDescritorImpl;
@@ -22,6 +23,7 @@ import chav1961.purelib.net.interfaces.DiscoveryEventType;
 import chav1961.purelib.net.interfaces.DiscoveryListener;
 import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 
+@Tag("OrdinalTestCategory")
 public class LightWeightNetworkDiscoveryTest {
 	@Test
 	public void basicTest() throws IOException {

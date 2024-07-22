@@ -1,18 +1,17 @@
 package chav1961.purelib.basic;
 
 import java.util.ArrayList;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class SequenceIteratorTest {
 
 	@SuppressWarnings("unchecked")

@@ -1,13 +1,12 @@
 package chav1961.purelib.concurrent;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ JUnitExecutorTest.class, XByteStreamTest.class, XCharStreamTest.class, XStreamTest.class 
-	, ListenablesTest.class, LightWeightFutureTest.class, SimpleBitmapResourceDispatcherTest.class
-	, SimpleObjectResourceDispatcherTest.class })
+@Suite
+@SelectClasses({ JUnitExecutorTest.class, LightWeightFutureTest.class, ListenablesTest.class,
+		SimpleBitmapResourceDispatcherTest.class, SimpleObjectResourceDispatcherTest.class, XByteStreamTest.class,
+		XCharStreamTest.class, XStreamTest.class })
 public class AllTests {
 
 }

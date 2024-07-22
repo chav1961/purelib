@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -19,8 +20,8 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -29,7 +30,6 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.AbstractWizardStep;
 import chav1961.purelib.ui.interfaces.ErrorProcessing;
 import chav1961.purelib.ui.interfaces.WizardStep;
@@ -54,7 +54,7 @@ public class SimpleWizardTest {
 	public static final String		CTRL_STEP3_PREV = "step3Prev";
 	public static final String		CTRL_STEP3_NEXT = "step3Next";
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 //	@Test
 	public void lifeCycleTest() throws LocalizationException, InterruptedException, TimeoutException {
 		final Properties									props = new Properties();
@@ -145,7 +145,7 @@ public class SimpleWizardTest {
 		}
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 //	@Test
 	public void localizationTest() throws LocalizationException, InterruptedException, TimeoutException, IOException {
 		final Properties									props = new Properties();
@@ -231,7 +231,7 @@ public class SimpleWizardTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void processingTest() throws LocalizationException, InterruptedException, TimeoutException, IOException {
 		final Properties									props = new Properties();
@@ -288,7 +288,7 @@ public class SimpleWizardTest {
 		}
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void exceptionsTest() throws LocalizationException, InterruptedException, TimeoutException, IOException {
 		final Properties									props = new Properties();
@@ -347,7 +347,7 @@ public class SimpleWizardTest {
 		}
 	}	
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 //	@Test
 	public void complexTest() throws NullPointerException, IOException, LocalizationException, PreparationException, FlowException, InterruptedException {
 		final Properties									props = new Properties();

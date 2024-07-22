@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.byte2byte;
 
 
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,14 +12,13 @@ import java.io.OutputStream;
 import java.io.Reader;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ZLibStreamTest {
 	@Test
 	public void lifeCycleTest() throws IOException {

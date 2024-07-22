@@ -1,6 +1,7 @@
 package chav1961.purelib.fsys.bridge;
 
 import org.junit.Assert;
+
 import org.junit.Before;
 
 import java.io.IOError;
@@ -10,12 +11,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.After;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class PureLibPathTest {
 	final PureLibFileSystemProvider p = new PureLibFileSystemProvider();
 	PureLibFileSystem				fs;

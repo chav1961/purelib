@@ -1,15 +1,18 @@
 package chav1961.purelib.streams.char2byte;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.streams.byte2char.RawReader;
 
+@Tag("OrdinalTestCategory")
 public class RawWriterTest {
 	@Test
 	public void basicTest() throws IOException {

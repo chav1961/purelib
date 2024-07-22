@@ -1,6 +1,7 @@
 package chav1961.purelib.i18n;
 
 import javax.swing.AbstractButton;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -8,12 +9,10 @@ import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class LocaleSpecificTextWrapperTest {
 	private static final String		FOR_TEXT = "text";
 	private static final String		FOR_TOOLTIP = "tooltip";

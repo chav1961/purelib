@@ -1,18 +1,18 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class MacroClassLoaderTest {
 	@Test
 	public void complexTest() throws CalculationException, IOException {

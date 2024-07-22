@@ -1,7 +1,7 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.awt.BorderLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -13,12 +13,11 @@ import java.util.Locale;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -31,10 +30,8 @@ import chav1961.purelib.json.interfaces.JsonNodeType;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
-import chav1961.purelib.testing.UITestCategory;
 
 public class SimpleNavigatorTreeTest {
 	final JFrame		root = new JFrame();
@@ -45,7 +42,7 @@ public class SimpleNavigatorTreeTest {
 	volatile boolean	action = false;
 	volatile String		actionCommand = null;
 	
-	@Before
+	@BeforeEach
 	public void prepare() {
 		root.getContentPane().setLayout(new BorderLayout());
 		text.setName("TEXT");
@@ -53,12 +50,12 @@ public class SimpleNavigatorTreeTest {
 		SwingUtils.centerMainWindow(root,0.2f);
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		root.dispose();
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicMetadataTest() throws EnvironmentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));
@@ -107,7 +104,7 @@ public class SimpleNavigatorTreeTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicJsonTest() throws EnvironmentException, SyntaxException, MalformedURLException, IOException, URISyntaxException {
 		final JsonNode					root = JsonUtils.loadJsonTree(this.getClass().getResource("Application.json").toURI());
@@ -152,7 +149,7 @@ public class SimpleNavigatorTreeTest {
 		}
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiTest() throws NullPointerException, EnvironmentException, InterruptedException, DebuggingException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));

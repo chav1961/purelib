@@ -1,19 +1,19 @@
 package chav1961.purelib.ui.swing.terminal;
 
+
+
 import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
-
-import chav1961.purelib.testing.OrdinalTestCategory;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import chav1961.purelib.ui.ColorPair;
 
 
+@Tag("OrdinalTestCategory")
 public class PseudoConsoleTest {
-	@Category(OrdinalTestCategory.class)
 	@Test
 	public void basicTest() {
 		final PseudoConsole	pc = new PseudoConsole(10,10);

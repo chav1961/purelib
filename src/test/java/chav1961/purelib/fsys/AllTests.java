@@ -1,11 +1,11 @@
 package chav1961.purelib.fsys;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ FileSystemFactoryTest.class, FileSystemTest.class, FileSystemClassLoaderTest.class })
+@Suite
+@SelectClasses({ FileSystemClassLoaderTest.class, FileSystemFactoryTest.class, FileSystemTest.class,
+		FileSystemURLConnectionTest.class })
 public class AllTests {
 
 }

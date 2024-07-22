@@ -1,11 +1,10 @@
 package chav1961.purelib.etc;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ HandlersTest.class })
+@Suite
+@SelectClasses({ HandlersTest.class })
 public class AllTests {
 
 }

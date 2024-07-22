@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import chav1961.purelib.basic.SubstitutableProperties.Format;
 import chav1961.purelib.basic.SubstitutableProperties.PropertyGroupChangeEvent;

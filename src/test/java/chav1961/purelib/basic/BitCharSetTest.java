@@ -2,12 +2,11 @@ package chav1961.purelib.basic;
 
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class BitCharSetTest {
 	@Test
 	public void bitCharSetTest() {

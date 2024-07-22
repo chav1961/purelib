@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.char2char.intern;
 
 
+
 import java.io.ByteArrayInputStream;
 import java.io.CharArrayWriter;
 import java.io.FileInputStream;
@@ -16,8 +17,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.FSM;
 import chav1961.purelib.basic.PureLibSettings;
@@ -33,10 +34,9 @@ import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
 import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
 import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
 import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class CreoleWriterTest {
 	private final PrintStream	ps = TestingUtils.err();
 	

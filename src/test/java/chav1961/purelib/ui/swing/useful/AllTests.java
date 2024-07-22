@@ -1,13 +1,12 @@
 package chav1961.purelib.ui.swing.useful;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ JContentMetadataEditorTest.class,
-		JPaginatorTest.class, JTextPaneHighlighterTest.class, LabelledLayoutTest.class })
-
+@Suite
+@SelectClasses({ JContentMetadataEditorTest.class, JDatabaseTableWithMetaTest.class, JFileSystemChangerTest.class,
+		JFreezableTableTest.class, JPaginatorTest.class, JRangeSliderTest.class, JTextPaneHighlighterTest.class,
+		LabelledLayoutTest.class })
 public class AllTests {
 
 }

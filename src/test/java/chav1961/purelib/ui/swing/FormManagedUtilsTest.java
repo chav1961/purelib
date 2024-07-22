@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.ArrayList;
@@ -10,8 +11,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
@@ -34,7 +35,7 @@ import chav1961.purelib.ui.swing.FormManagedUtils.FormManagerParserCallback;
 import chav1961.purelib.ui.swing.FormManagedUtils.MarkupParserCallback;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FormManagedUtilsTest {
 	@Test
 	public void parseModel4FormsTest() throws SyntaxException, LocalizationException, ContentException {

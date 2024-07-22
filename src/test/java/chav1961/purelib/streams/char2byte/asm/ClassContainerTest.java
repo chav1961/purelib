@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -8,17 +9,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.streams.char2byte.asm.ClassContainer;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ClassContainerTest {
 	private static final PrintStream	ps = TestingUtils.err();
 	

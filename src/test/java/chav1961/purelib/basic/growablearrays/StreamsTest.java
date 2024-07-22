@@ -2,6 +2,7 @@ package chav1961.purelib.basic.growablearrays;
 
 
 import java.util.OptionalDouble;
+
 import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,8 +12,10 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
+@Tag("OrdinalTestCategory")
 public class StreamsTest {
 	@Test
 	public void integerPrimaryTest() {

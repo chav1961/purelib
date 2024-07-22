@@ -1,11 +1,10 @@
 package chav1961.purelib.net;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ AbstractDiscoveryTest.class, LightWeightNetworkDiscoveryTest.class, URIsTest.class })
+@Suite
+@SelectClasses({ AbstractDiscoveryTest.class, LightWeightNetworkDiscoveryTest.class, URIsTest.class })
 public class AllTests {
 
 }

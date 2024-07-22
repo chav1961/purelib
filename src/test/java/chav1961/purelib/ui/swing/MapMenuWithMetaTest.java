@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
@@ -11,11 +12,11 @@ import java.util.Properties;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -26,30 +27,30 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 
+
 public class MapMenuWithMetaTest {
 	final JFrame		frame = new JFrame();
 
 	volatile boolean	focusGained = false, focusLost = false, action = false;
 	
-	@Before
+	@BeforeEach
 	public void prepare() {
 		frame.getContentPane().setLayout(new GridLayout(1,1));
 		frame.setLocationRelativeTo(null);
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		frame.dispose();
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicTest() throws EnvironmentException, ContentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));
@@ -127,7 +128,7 @@ public class MapMenuWithMetaTest {
 	
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiTest() throws EnvironmentException, ContentException, InterruptedException, DebuggingException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));

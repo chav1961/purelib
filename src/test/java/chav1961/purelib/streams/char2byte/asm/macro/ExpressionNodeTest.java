@@ -1,15 +1,14 @@
 package chav1961.purelib.streams.char2byte.asm.macro;
 
+
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.streams.char2byte.asm.ExpressionNodeType;
-import chav1961.purelib.streams.char2byte.asm.macro.ExpressionNodeOperator;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ExpressionNodeTest {
 
 	@Test

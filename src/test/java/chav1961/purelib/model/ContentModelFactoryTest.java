@@ -1,6 +1,7 @@
 package chav1961.purelib.model;
 
 import java.awt.event.ActionEvent;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -9,8 +10,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.DebuggingException;
@@ -24,14 +25,12 @@ import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.DatabaseTestCategory;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 
 public class ContentModelFactoryTest {
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void xmlDescriptionTest() throws IOException, EnvironmentException {
 		try(final InputStream	is = this.getClass().getResourceAsStream("modelTest1.xml")) {
@@ -162,7 +161,7 @@ public class ContentModelFactoryTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void annotatedClassDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException {
 		final ContentMetadataInterface 	cmi = ContentModelFactory.forAnnotatedClass(AnnotatedForTest.class);
@@ -203,7 +202,7 @@ public class ContentModelFactoryTest {
 		Assert.assertEquals(6,countArray[0]);
 	}
 	
-	@Category(DatabaseTestCategory.class)
+	@Tag("DatabaseTestCategory")
 	@Test
 	public void databaseTableDescriptionTest() throws IOException,PreparationException, SyntaxException, LocalizationException, ContentException, DebuggingException, SQLException {
 		TestingUtils.prepareDatabase("drop table public.test");

@@ -1,10 +1,11 @@
 package chav1961.purelib.matrix;
 
+
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.matrix.interfaces.DoubleMatrix;
@@ -12,9 +13,8 @@ import chav1961.purelib.matrix.interfaces.FloatMatrix;
 import chav1961.purelib.matrix.interfaces.IntMatrix;
 import chav1961.purelib.matrix.interfaces.LongMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class MatrixTest {
 	@Test
 	public void basicTest() throws CalculationException {

@@ -1,6 +1,7 @@
 package chav1961.purelib.sql.content;
 
 import java.io.IOException;
+
 import java.net.URI;
 import java.net.URL;
 import java.sql.ResultSet;
@@ -8,17 +9,16 @@ import java.sql.SQLException;
 import java.util.Hashtable;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.RsMetaDataElement;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.sql.interfaces.ResultSetContentParser;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FactoryAndParsersTest {
 	@Test
 	public void factoryTest() throws SQLException, IOException {

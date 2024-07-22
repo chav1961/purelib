@@ -1,5 +1,6 @@
 package chav1961.purelib.sql;
 
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
@@ -20,16 +21,15 @@ import java.sql.Types;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.sql.SQLUtils.ByteArrayInputStreamWithEquals;
 import chav1961.purelib.sql.SQLUtils.StringReaderWithEquals;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class SQLUtilsTest {
 	private static final ConversionPairTest[]	PAIRS = {new ConversionPairTest(Boolean.class,Boolean.class,true,false)
 													, new ConversionPairTest(Boolean.class,Byte.class,true,false)

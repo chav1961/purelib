@@ -2,23 +2,21 @@ package chav1961.purelib.basic;
 
 
 import java.io.File;
+
 import java.io.FileFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.fsys.FileSystemOnFileSystem;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class PluggableClassLoaderTest {
 	@Before
 	public void prepare() {

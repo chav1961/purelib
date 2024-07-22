@@ -1,12 +1,11 @@
 package chav1961.purelib.sql;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ ArraysLobsAndXMLsTest.class, SQLUtilsTest.class,
-				RsMetaDataElementTest.class, ResultSetTests.class})
+@Suite
+@SelectClasses({ ArraysLobsAndXMLsTest.class, ResultSetTests.class, RsMetaDataElementTest.class,
+		SimpleResultSetProviderTest.class, SQLUtilsTest.class })
 public class AllTests {
 
 }

@@ -1,6 +1,7 @@
 package chav1961.purelib.net;
 
 import java.io.ByteArrayInputStream;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
@@ -15,8 +16,8 @@ import java.util.ServiceLoader;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.net.capture.CaptureHandlerProvider;
 import chav1961.purelib.net.fsys.FSysHandlerProvider;
@@ -24,9 +25,8 @@ import chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider;
 import chav1961.purelib.net.playback.PlaybackHandlerProvider;
 import chav1961.purelib.net.root.RootHandlerProvider;
 import chav1961.purelib.net.self.SelfHandlerProvider;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class URIsTest {
 	@Test
 	public void spiTest() {

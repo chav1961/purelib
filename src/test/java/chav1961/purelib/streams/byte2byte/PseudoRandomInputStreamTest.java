@@ -10,15 +10,17 @@ import java.io.IOException;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
+@Tag("OrdinalTestCategory")
 public class PseudoRandomInputStreamTest {
 	private static final int	MAX_VAL = 1 << 16; 
 	
 	private File	f;
 	
-	@Before
+	@BeforeEach
 	public void prepare() throws IOException {
 		f = File.createTempFile("pris", ".tmp");
 		

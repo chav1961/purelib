@@ -1,8 +1,9 @@
 package chav1961.purelib.ui;
 
+
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.GettersAndSettersFactory.ByteGetterAndSetter;
 import chav1961.purelib.basic.GettersAndSettersFactory.ObjectGetterAndSetter;
@@ -11,11 +12,10 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.cdb.SyntaxNode;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.interfaces.Constraint;
 import chav1961.purelib.ui.interfaces.ConstraintChecker;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ConstraintCheckerFactoryTest {
 	@Test
 	public void termCompilationTest() throws SyntaxException {

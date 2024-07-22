@@ -2,6 +2,7 @@ package chav1961.purelib.json;
 
 
 import java.io.IOException;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -11,7 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
@@ -25,6 +27,7 @@ import chav1961.purelib.json.interfaces.JsonNodeType;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
 
+@Tag("OrdinalTestCategory")
 public class JsonNodeAndUtilsTest {
 	@Test
 	public void basicNodeTest() {

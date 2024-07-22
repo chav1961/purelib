@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing.useful.svg;
 
 
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -8,14 +9,13 @@ import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.ConvertorInterface;
 import chav1961.purelib.basic.interfaces.OnlineFloatGetter;
 import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.ui.swing.useful.svg.SVGPainter.AbstractPainter;
 import chav1961.purelib.ui.swing.useful.svg.SVGPainter.FillPolicy;
 import chav1961.purelib.ui.swing.useful.svg.SVGPainter.LinePainter;
@@ -23,7 +23,7 @@ import chav1961.purelib.ui.swing.useful.svg.SVGPainter.DynamicLinePainter;
 import chav1961.purelib.ui.swing.useful.svg.SVGPainter.RectPainter;
 import chav1961.purelib.ui.swing.useful.svg.SVGPainter.DynamicRectPainter;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class SVGPainterTest {
 	private static final ConvertorInterface	CONV = 	new ConvertorInterface() {
 														@Override

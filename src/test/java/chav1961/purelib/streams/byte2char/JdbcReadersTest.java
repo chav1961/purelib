@@ -1,19 +1,19 @@
 package chav1961.purelib.streams.byte2char;
 
+
 import java.io.IOException;
 import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.sql.content.ResultSetFactory;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class JdbcReadersTest {
 	@Test
 	public void csvReaderTest() throws SQLException, IOException {

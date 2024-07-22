@@ -1,15 +1,18 @@
 package chav1961.purelib.concurrent;
 
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.concurrent.interfaces.ResourceDispatcherLock;
 
+@Tag("OrdinalTestCategory")
 public class SimpleObjectResourceDispatcherTest {
 	private static final String		RES_1 = "res1";
 	private static final String		RES_2 = "res2";

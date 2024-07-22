@@ -1,14 +1,12 @@
 package chav1961.purelib.basic;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
 import java.awt.Color;
 
 import org.junit.Assert;
-import org.junit.experimental.categories.Category;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ColorUtilsTest {
 	@Test
 	public void colorsTest() {

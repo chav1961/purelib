@@ -1,5 +1,6 @@
 package chav1961.purelib.model;
 
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -13,8 +14,8 @@ import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
@@ -31,9 +32,8 @@ import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ModelUtilsTest {
 	@Test
 	public void buildURIsTest() throws SyntaxException, LocalizationException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {

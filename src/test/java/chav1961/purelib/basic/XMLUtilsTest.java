@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
 import java.io.ByteArrayInputStream;
+
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -13,9 +15,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -24,15 +26,14 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class XMLUtilsTest {
 	//	
 	//	Walking and attributes test
 	//
 	@Test
-	@Ignore
+	@Disabled
 	public void walkingXMLTest() throws ParserConfigurationException, SAXException, IOException, ContentException {
 		final DocumentBuilderFactory 	factory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder 			builder = factory.newDocumentBuilder();
@@ -63,7 +64,7 @@ public class XMLUtilsTest {
 	}	
 
 	@Test
-	@Ignore
+	@Disabled
 	public void attributesXMLTest() throws SyntaxException, ParserConfigurationException, SAXException, IOException {
 		final DocumentBuilderFactory 	factory = DocumentBuilderFactory.newInstance();
 		final DocumentBuilder 			builder = factory.newDocumentBuilder();

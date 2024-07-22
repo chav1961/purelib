@@ -1,16 +1,15 @@
 package chav1961.purelib.basic;
 
 import java.util.Arrays;
+
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
-
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class BKTreeTest {
 	private final String[]			content = {"test1","test234","test12","test23","test123","test2"};
 	

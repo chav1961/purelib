@@ -2,10 +2,12 @@ package chav1961.purelib.parsers;
 
 
 import java.util.ArrayList;
+
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.parsers.CommandParser.Level;
 import chav1961.purelib.parsers.CommandParser.Lexema;
@@ -17,6 +19,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
 
+@Tag("OrdinalTestCategory")
 public class CommandParserTest {
 
 	@Test

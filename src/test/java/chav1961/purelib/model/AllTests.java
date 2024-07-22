@@ -1,12 +1,11 @@
 package chav1961.purelib.model;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ ContentMetadataTest.class, ContentModelFactoryTest.class, ContentNodeMetadataTest.class,
-		FieldFormatTest.class, ModelManagedMapTest.class })
+@Suite
+@SelectClasses({ ContentFilterTest.class, ContentMetadataTest.class, ContentModelFactoryTest.class,
+		ContentNodeMetadataTest.class, FieldFormatTest.class, ModelManagedMapTest.class, ModelUtilsTest.class })
 public class AllTests {
 
 }

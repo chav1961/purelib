@@ -2,9 +2,10 @@ package chav1961.purelib.basic;
 
 import java.net.URI;
 
+
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.FSM.FSMCallback;
 import chav1961.purelib.basic.StackedFSM.StackAction;
@@ -12,9 +13,8 @@ import chav1961.purelib.basic.StackedFSM.StackedFSMCallback;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FSMTest {
 	private enum FSMTerminal {
 		TermOn, TermOff

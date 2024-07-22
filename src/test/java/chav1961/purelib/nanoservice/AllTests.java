@@ -1,12 +1,11 @@
 package chav1961.purelib.nanoservice;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ InternalUtilsTest.class, NanoServiceFactoryTest.class, HttpsNanoServiceFactoryTest.class, NanoServiceManagerTest.class,
-		TemplateCacheTest.class })
+@Suite
+@SelectClasses({ HttpsNanoServiceFactoryTest.class, InternalUtilsTest.class, NanoServiceFactoryTest.class,
+		NanoServiceHttpsTest.class, NanoServiceManagerTest.class, TemplateCacheTest.class })
 public class AllTests {
 
 }

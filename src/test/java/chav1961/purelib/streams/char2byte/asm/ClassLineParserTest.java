@@ -1,6 +1,7 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Reader;
@@ -8,8 +9,8 @@ import java.io.StringReader;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.LineByLineProcessor;
@@ -18,10 +19,9 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.JavaByteCodeConstants;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ClassLineParserTest {
 	@Test
 	public void emptyClassTest() throws IOException, ContentException {

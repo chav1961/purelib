@@ -1,5 +1,6 @@
 package chav1961.purelib.concurrent;
 
+
 import java.io.PrintStream;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Exchanger;
@@ -7,13 +8,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ListenablesTest {
 	final PrintStream	ps = TestingUtils.err();
 	

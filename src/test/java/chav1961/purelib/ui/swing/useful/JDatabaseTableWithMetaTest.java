@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,8 +12,8 @@ import javax.swing.KeyStroke;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -20,13 +21,11 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.testing.DatabaseTestCategory;
 import chav1961.purelib.testing.SwingUnitTest;
 import chav1961.purelib.testing.TestingUtils;
-import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.swing.SwingUtils;
 
-@Category(DatabaseTestCategory.class)
+@Tag("DatabaseTestCategory")
 public class JDatabaseTableWithMetaTest {
 	private Connection	conn;
 	
@@ -46,7 +45,7 @@ public class JDatabaseTableWithMetaTest {
 	}
 	
 	@Test
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	public void readOnlyTest() throws SQLException, ContentException, DebuggingException {
 		final JFrame f = new JFrame();
 		

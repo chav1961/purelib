@@ -1,6 +1,7 @@
 package chav1961.purelib.cdb;
 
 import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -9,20 +10,19 @@ import java.io.OutputStream;
 import java.io.Reader;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface;
 import chav1961.purelib.cdb.interfaces.AppDebugInterface.Event;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.cdb.interfaces.ArrayWrapper;
 import chav1961.purelib.cdb.interfaces.ClassWrapper;
 import chav1961.purelib.cdb.interfaces.ObjectWrapper;
 import chav1961.purelib.cdb.interfaces.StackWrapper;
 import chav1961.purelib.cdb.interfaces.ThreadWrapper;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ConnectorsTest {
 
 	@Test

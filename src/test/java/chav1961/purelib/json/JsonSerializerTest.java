@@ -1,5 +1,6 @@
 package chav1961.purelib.json;
 
+
 import java.io.CharArrayReader;
 import java.io.CharArrayWriter;
 import java.io.IOException;
@@ -8,9 +9,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -23,19 +24,17 @@ import chav1961.purelib.streams.charsource.ArrayCharSource;
 import chav1961.purelib.streams.chartarget.ArrayCharTarget;
 import chav1961.purelib.streams.interfaces.CharacterSource;
 import chav1961.purelib.streams.interfaces.CharacterTarget;
-import chav1961.purelib.testing.OrdinalTestCategory;
-import chav1961.purelib.testing.PerformanceTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
 public class JsonSerializerTest {
 	final static PrintStream	ps = TestingUtils.err();
 	
-	@BeforeClass
+	@BeforeEach
 	public static void prepare() {
 		ps.println("before");
 	}
 
-//	@Category(PerformanceTestCategory.class)
+//	@Tag("PerformanceTestCategory")
 //	@Test 
 	public void performanceTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		basicBytePerformanceTest();
@@ -60,7 +59,7 @@ public class JsonSerializerTest {
 		basicAnyClassPerformanceTest();		
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicByteTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -188,7 +187,7 @@ public class JsonSerializerTest {
 		ps.println("basicBytePerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicShortTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -316,7 +315,7 @@ public class JsonSerializerTest {
 		ps.println("basicShortPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicIntegerTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -444,7 +443,7 @@ public class JsonSerializerTest {
 		ps.println("basicIntegerPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicLongTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -572,7 +571,7 @@ public class JsonSerializerTest {
 		ps.println("basicLongPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicFloatTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]				buffer = new char[1024];
@@ -700,7 +699,7 @@ public class JsonSerializerTest {
 		ps.println("basicFloatPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicDoubleTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -828,7 +827,7 @@ public class JsonSerializerTest {
 		ps.println("basicDoublePerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicBooleanTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -929,7 +928,7 @@ public class JsonSerializerTest {
 		ps.println("basicBooleanPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicCharTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1029,7 +1028,7 @@ public class JsonSerializerTest {
 		ps.println("basicCharPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicStringTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1146,7 +1145,7 @@ public class JsonSerializerTest {
 		ps.println("basicStringPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicEnumTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]								buffer = new char[1024];
@@ -1216,7 +1215,7 @@ public class JsonSerializerTest {
 		ps.println("basicEnumPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicBooleanArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1287,7 +1286,7 @@ public class JsonSerializerTest {
 		ps.println("basicBooleanArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicByteArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1358,7 +1357,7 @@ public class JsonSerializerTest {
 		ps.println("basicByteArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicCharArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1429,7 +1428,7 @@ public class JsonSerializerTest {
 		ps.println("basicCharArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicDoubleArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1500,7 +1499,7 @@ public class JsonSerializerTest {
 		ps.println("basicDoubleArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicFloatArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1571,7 +1570,7 @@ public class JsonSerializerTest {
 		ps.println("basicFloatArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicIntArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1642,7 +1641,7 @@ public class JsonSerializerTest {
 		ps.println("basicIntArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicLongArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1713,7 +1712,7 @@ public class JsonSerializerTest {
 		ps.println("basicLongArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicShortArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1784,7 +1783,7 @@ public class JsonSerializerTest {
 		ps.println("basicShortArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicRefArrayTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]					buffer = new char[1024];
@@ -1855,7 +1854,7 @@ public class JsonSerializerTest {
 		ps.println("basicRefArrayPerformanceTest on stax: duration="+((System.nanoTime()-startStax)/1000000)+" msec, "+((memoryStax - Runtime.getRuntime().freeMemory())/(1<<20))+" Mb used");
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicAnyClassTest() throws EnvironmentException, SyntaxException, PrintingException, ContentException, IOException {
 		final char[]									buffer = new char[1024];

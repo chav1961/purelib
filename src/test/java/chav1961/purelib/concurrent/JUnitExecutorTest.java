@@ -3,14 +3,13 @@ package chav1961.purelib.concurrent;
 import java.io.PrintStream;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class JUnitExecutorTest {
 	final PrintStream	ps = TestingUtils.err();
 	

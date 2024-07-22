@@ -2,21 +2,21 @@ package chav1961.purelib.basic;
 
 
 import java.io.IOException;
+
 import java.io.Reader;
 import java.io.StringReader;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.annotations.ConsoleCommand;
 import chav1961.purelib.basic.annotations.ConsoleCommandParameter;
 import chav1961.purelib.basic.annotations.ConsoleCommandPrefix;
 import chav1961.purelib.basic.exceptions.ConsoleCommandException;
 import chav1961.purelib.basic.interfaces.ConsoleManagerInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ConsoleCommandManagerTest {
 	@Test
 	public void lifeCycleTest() throws IOException, ConsoleCommandException {

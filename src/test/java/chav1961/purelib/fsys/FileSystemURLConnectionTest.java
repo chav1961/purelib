@@ -1,6 +1,7 @@
 package chav1961.purelib.fsys;
 
 import java.io.File;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,13 +11,12 @@ import java.net.URLConnection;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class FileSystemURLConnectionTest {
 	@Before
 	public void prepare() {
@@ -30,7 +30,7 @@ public class FileSystemURLConnectionTest {
 	
 	@Test
 	public void fileAccessTest() throws IOException {
-		final URL			url = new URL(null,FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/fsys#content.txt",new FileSystemURLStreamHandler());
+		final URL			url = new URL(null, FileSystemInterface.FILESYSTEM_URI_SCHEME+":file:./src/test/resources/chav1961/purelib/fsys#content.txt", new FileSystemURLStreamHandler());
 		final URLConnection	connWrite = url.openConnection();
 		
 		connWrite.setDoOutput(true);

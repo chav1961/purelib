@@ -1,11 +1,10 @@
 package chav1961.purelib.streams.char2char.intern;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ CreoleWriterTest.class, ListManipulationStackTest.class })
+@Suite
+@SelectClasses({ CreoleWriterTest.class, ListManipulationStackTest.class })
 public class AllTests {
 
 }

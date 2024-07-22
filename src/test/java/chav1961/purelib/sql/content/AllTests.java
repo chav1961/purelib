@@ -1,11 +1,10 @@
 package chav1961.purelib.sql.content;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ FactoryAndParsersTest.class, SQLContentUtilsTest.class, FakeResultSetMetaDataTest.class })
+@Suite
+@SelectClasses({ FactoryAndParsersTest.class, FakeResultSetMetaDataTest.class, SQLContentUtilsTest.class })
 public class AllTests {
 
 }

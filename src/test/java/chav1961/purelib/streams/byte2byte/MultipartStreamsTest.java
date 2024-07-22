@@ -1,5 +1,6 @@
 package chav1961.purelib.streams.byte2byte;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -7,11 +8,13 @@ import java.io.StringWriter;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.streams.MultipartEntry;
 
+@Tag("OrdinalTestCategory")
 public class MultipartStreamsTest {
 
 	@Test

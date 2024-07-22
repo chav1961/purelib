@@ -1,16 +1,17 @@
 package chav1961.purelib.ui.swing.terminal;
 
+
 import java.awt.Color;
 import java.awt.Rectangle;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
+@Tag("OrdinalTestCategory")
 public class TermTest {
 	private static final char	ESC = 0x1F;
 	
@@ -19,7 +20,6 @@ public class TermTest {
 		void process(Term term) throws PrintingException;
 	}
 	
-	@Category(OrdinalTestCategory.class)
 	@Test
 	public void printingTest() throws PrintingException, IOException {
 		try(final Term	term = new Term(20, 10)) {
@@ -42,7 +42,6 @@ public class TermTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
 	@Test
 	public void cursorTest() throws PrintingException, IOException {
 		try(final Term	term = new Term(20, 10)) {
@@ -76,7 +75,6 @@ public class TermTest {
 		}
 	}
 	
-	@Category(OrdinalTestCategory.class)
 	@Test
 	public void escapingTest() throws PrintingException, IOException {
 		try(final Term	term = new Term(20, 10)) {

@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.interfaces;
 
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -7,10 +8,12 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 
+@Tag("OrdinalTestCategory")
 public class LRUPersistenceTest {
 	@Test
 	public void staticTest() throws IOException {

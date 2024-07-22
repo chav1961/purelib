@@ -1,6 +1,7 @@
 package chav1961.purelib.basic;
 
 import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -8,13 +9,11 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
-import chav1961.purelib.testing.OrdinalTestCategory;
-import chav1961.purelib.testing.PerformanceTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
 public class SyntaxTreeTest {
@@ -29,7 +28,7 @@ public class SyntaxTreeTest {
 												}
 											};  
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicFunctionalityTest() {
 		basicFunctionalityTest(new AndOrTree<Object>());
@@ -54,7 +53,7 @@ public class SyntaxTreeTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void specialTest() {
 		final SyntaxTreeInterface<String>	sti = new AndOrTree<>();
@@ -66,14 +65,14 @@ public class SyntaxTreeTest {
 		Assert.assertEquals(id3, id4);
 	}	
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void extendedFunctionalityTest() {
 		extendedFunctionalityTest(new AndOrTree<Object>());
 		extendedFunctionalityTest(new OrdinalSyntaxTree<Object>());
 	}
 
-	@Category(PerformanceTestCategory.class)
+	@Tag("PerformanceTestCategory")
 	@Test
 	public void performanceTest() throws InterruptedException {
 		final SyntaxTreeInterface<Object>	tt = new AndOrTree<>();
@@ -133,7 +132,7 @@ public class SyntaxTreeTest {
 		ps.println("Seek: time="+((startTime4-startTime3)/data.length)+", size="+((freeMem3-freeMem4)/(1 << PERF_AMOUNT)));
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void andOrTreeSpecificTest() throws IOException {
 		final SyntaxTreeInterface<Object>	src = new AndOrTree<>();

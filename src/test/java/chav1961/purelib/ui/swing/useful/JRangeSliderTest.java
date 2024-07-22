@@ -1,21 +1,20 @@
 package chav1961.purelib.ui.swing.useful;
 
+
 import java.awt.Dimension;
 import java.awt.event.MouseEvent;
 
 import javax.swing.JFrame;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingUnitTest;
-import chav1961.purelib.testing.UITestCategory;
 
 public class JRangeSliderTest {
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiTest() throws DebuggingException, InterruptedException {
 		final JFrame		frame = new JFrame();
@@ -39,7 +38,7 @@ public class JRangeSliderTest {
 		frame.setVisible(false);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicTest() throws DebuggingException, InterruptedException {
 		final JRangeSlider	slider = new JRangeSlider();

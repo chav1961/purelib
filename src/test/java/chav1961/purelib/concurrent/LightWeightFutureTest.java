@@ -1,12 +1,15 @@
 package chav1961.purelib.concurrent;
 
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
+@Tag("OrdinalTestCategory")
 public class LightWeightFutureTest {
 	@Test
 	public void lifeCycleTest() throws InterruptedException, ExecutionException {

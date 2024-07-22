@@ -1,16 +1,16 @@
 package chav1961.purelib.streams.char2byte.asm;
 
+
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.cdb.JavaByteCodeConstants;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class InterfaceLineParserTest {
 	@Test
 	public void emptyInterfaceTest() throws IOException, ContentException {

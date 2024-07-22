@@ -1,19 +1,19 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class ClassDescriptionRepoTest {
 	public static final int		testField = 0;	// For testing purposes only!
 	public void basicTest() {}	// For testing purposes only!

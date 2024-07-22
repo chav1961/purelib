@@ -1,11 +1,10 @@
 package chav1961.purelib.streams.byte2char;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.platform.suite.api.SelectClasses;
+import org.junit.platform.suite.api.Suite;
 
-@RunWith(Suite.class)
-@SuiteClasses({ JdbcReadersTest.class, RawReaderTest.class })
+@Suite
+@SelectClasses({ JdbcReadersTest.class, RawReaderTest.class })
 public class AllTests {
 
 }

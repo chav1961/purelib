@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing.useful.svg;
 
 
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -11,8 +12,8 @@ import java.awt.geom.Point2D;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
@@ -28,9 +29,8 @@ import chav1961.purelib.basic.interfaces.OnlineIntGetter;
 import chav1961.purelib.basic.interfaces.OnlineLongGetter;
 import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
 import chav1961.purelib.basic.interfaces.OnlineStringGetter;
-import chav1961.purelib.testing.OrdinalTestCategory;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class SVGUtilsTest {
 	@Test
 	public void extractPointsTest() throws SyntaxException {

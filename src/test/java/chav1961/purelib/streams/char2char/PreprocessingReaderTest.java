@@ -8,7 +8,7 @@ import java.io.StringWriter;
 import java.util.HashMap;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.Utils;

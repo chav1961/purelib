@@ -1,5 +1,6 @@
 package chav1961.purelib.ui.swing;
 
+
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -17,8 +18,8 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
@@ -33,10 +34,8 @@ import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
-import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 
@@ -44,7 +43,7 @@ public class AutoBuildFormTest {
 	private boolean		callListener = false;
 
 	@SuppressWarnings("resource")
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void basicTest() throws SyntaxException, LocalizationException, ContentException, MalformedURLException {
 		try {
@@ -133,7 +132,7 @@ public class AutoBuildFormTest {
 		}
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException {		
 		final PseudoData						pd = new PseudoData();
@@ -172,7 +171,7 @@ public class AutoBuildFormTest {
 		Assert.assertEquals(1230,pd.intValue);
 	}	
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiStaticTest() throws SyntaxException, ContentException, MalformedURLException, EnvironmentException, InterruptedException, DebuggingException, NullPointerException, InvocationTargetException {		
 		final PseudoData						pd = new PseudoData();

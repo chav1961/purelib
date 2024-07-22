@@ -1,6 +1,7 @@
 package chav1961.purelib.ui.swing;
 
 import java.awt.Dimension;
+
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -41,8 +42,8 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -65,10 +66,8 @@ import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.testing.OrdinalTestCategory;
 import chav1961.purelib.testing.SwingTestingUtils;
 import chav1961.purelib.testing.SwingUnitTest;
-import chav1961.purelib.testing.UITestCategory;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.RefreshMode;
 import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
@@ -78,7 +77,7 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
 
 public class SwingUtilsTest {
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void walkingTest() { 
 		final StringBuilder	sb = new StringBuilder();
@@ -199,7 +198,7 @@ public class SwingUtilsTest {
 		}
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void prepareRendererTest() throws LocalizationException, SyntaxException {
 		final JComponentMonitor 		monitor = new JComponentMonitor(){
@@ -220,7 +219,7 @@ public class SwingUtilsTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void windowPropertiesTest() throws IOException, URISyntaxException, InterruptedException {
 		final Dimension	screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -272,7 +271,7 @@ public class SwingUtilsTest {
 		Thread.sleep(5000);
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void prepareHtmlMessageTest() throws IOException, URISyntaxException, InterruptedException, LocalizationException {
 		Assert.assertEquals("<html><body><font color=gray>test string</font></body></html>",SwingUtils.prepareHtmlMessage(Severity.debug,"test %1$s","string"));
@@ -293,7 +292,7 @@ public class SwingUtilsTest {
 		}
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void refreshLocaleTest() throws IOException, URISyntaxException, InterruptedException, LocalizationException {
 		final JFrame		frame = new JFrame();
@@ -316,7 +315,7 @@ public class SwingUtilsTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void getSignum4ValueTest() throws IOException, URISyntaxException, InterruptedException, LocalizationException {
 		Assert.assertEquals(-1,SwingUtils.getSignum4Value(Integer.valueOf(-1)));
@@ -333,7 +332,7 @@ public class SwingUtilsTest {
 		} 
 	}
 	
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiAssignActionKeyTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final JButton			button = new JButton();
@@ -401,7 +400,7 @@ public class SwingUtilsTest {
 		}
 	}
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiAssignExitMethod4MainWindowTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final AtomicBoolean		bool = new AtomicBoolean(false);
@@ -432,7 +431,7 @@ public class SwingUtilsTest {
 		}
 	}
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void annotatedActionListenersTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final AnnotatedWithOnAction	test = new AnnotatedWithOnAction();
@@ -478,7 +477,7 @@ public class SwingUtilsTest {
 		}
 	}	
 
-	@Category(UITestCategory.class)
+	@Tag("UITestCategory")
 	@Test
 	public void uiActionListenersTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException {
 		final AnnotatedWithOnAction	test = new AnnotatedWithOnAction();
@@ -554,7 +553,7 @@ public class SwingUtilsTest {
 		}
 	}
 	
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void getAndPutValuesTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(PseudoData.class);
@@ -611,7 +610,7 @@ public class SwingUtilsTest {
 		}
 	}	
 
-	@Category(OrdinalTestCategory.class)
+	@Tag("OrdinalTestCategory")
 	@Test
 	public void navigationBuildTest() throws IOException, URISyntaxException, InterruptedException, EnvironmentException, DebuggingException, SyntaxException, NullPointerException, PreparationException, IllegalArgumentException, ContentException {
 		final ContentMetadataInterface	mdi = ContentModelFactory.forXmlDescription(this.getClass().getResourceAsStream("Application.xml"));

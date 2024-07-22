@@ -1,5 +1,6 @@
 package chav1961.purelib.streams;
 
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,17 +8,15 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.junit.Assert;
-import org.junit.Test;
-import org.junit.experimental.categories.Category;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.interfaces.JsonSaxHandler;
-import chav1961.purelib.testing.OrdinalTestCategory;
-import chav1961.purelib.testing.PerformanceTestCategory;
 import chav1961.purelib.testing.TestingUtils;
 
-@Category(OrdinalTestCategory.class)
+@Tag("OrdinalTestCategory")
 public class JsonSaxParserTest {
 	int			level = 0, maxIndex, count;
 	long		value;
@@ -220,7 +219,7 @@ public class JsonSaxParserTest {
 		}
 	}
 
-	@Category(PerformanceTestCategory.class)
+	@Tag("PerformanceTestCategory")
 	@Test	// Need 2G memory to execute
 	public void performanceTest() throws IOException, SyntaxException {
 		final JsonSaxHandler	jch	= new JsonSaxHandler(){
