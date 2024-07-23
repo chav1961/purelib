@@ -55,4 +55,6 @@ enum StackChanges {
 	callStaticAndPush,
 	callAndPush,
 	multiarrayAndPushReference,
+	
+	changeType
 }

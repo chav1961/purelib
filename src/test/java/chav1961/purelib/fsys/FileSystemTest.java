@@ -21,10 +21,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.JarOutputStream;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
@@ -33,7 +33,7 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 @Tag("OrdinalTestCategory")
 public class FileSystemTest {
-	@Before
+	@BeforeEach
 	public void prepare() throws ClassNotFoundException, IOException {
 		new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").listFiles(new FileFilter(){
 			@Override
@@ -58,7 +58,7 @@ public class FileSystemTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		new File("./src/test/resources/chav1961/purelib/fsys/fsTest/").listFiles(new FileFilter(){
 			@Override

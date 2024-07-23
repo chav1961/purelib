@@ -12,7 +12,7 @@ import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 
-@Tag("OrdinalTestCategory")
+@Tag("UITestCategory")
 public class JFileSystemChangerTest {
 	@Test
 	public void test() throws LocalizationException, ContentException, IOException {

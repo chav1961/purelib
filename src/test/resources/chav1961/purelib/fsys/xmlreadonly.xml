@@ -5,7 +5,6 @@
 			<xfs:dir name="directory2" key2="value2" />
 			<xfs:file name="file1" key3="value3">file content</xfs:file>
 		</xfs:dir>
-		<xfs:link name="link1"
-			ref="fsys:file:./src/test/resources/chav1961/purelib/fsys/fsTest/" />
+		<xfs:link name="link1" ref="fsys:file:./src/test/resources/chav1961/purelib/fsys/fsTest/" />
 	</xfs:dir>
 </xfs:root>

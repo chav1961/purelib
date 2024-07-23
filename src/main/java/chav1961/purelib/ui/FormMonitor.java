@@ -125,7 +125,9 @@ public abstract class FormMonitor<T> implements JComponentMonitor, LoggerFacadeO
 					if (value == null || component == null) {
 						// TODO:
 					}
-					((JComponentInterface)component).assignValueToComponent(value);
+					else {
+						((JComponentInterface)component).assignValueToComponent(value);
+					}
 				}
 				break;
 			case Rollback:

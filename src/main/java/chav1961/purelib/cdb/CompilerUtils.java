@@ -956,11 +956,15 @@ public class CompilerUtils {
 	 * @since 0.0.5
 	 */
 	public static String buildClassNameSignature(final String className) throws IllegalArgumentException {
+		return buildClassNameSignature(className, 0);
+	}	
+	
+	private static String buildClassNameSignature(final String className, final int depth) throws IllegalArgumentException {
 		if (className == null || className.isEmpty()) {
 			throw new IllegalArgumentException("Class name to build signature for can't be null");
 		}
 		else if (className.contains("[]")) {
-			return '['+buildClassNameSignature(className.substring(0,className.lastIndexOf("[]")));
+			return '['+buildClassNameSignature(className.substring(0,className.lastIndexOf("[]")), depth+1);
 		}
 		else {
 			switch (className) {
@@ -973,7 +977,13 @@ public class CompilerUtils {
 				case "char" 	: return "C";
 				case "boolean" 	: return "Z";
 				case "void" 	: return "V";
-				default : return "L"+className.replace('.', '/')+';';
+				default :
+					if (depth == 0) {
+						return className.replace('.', '/');
+					}
+					else {
+						return "L"+className.replace('.', '/')+';';
+					}
 			}
 		}
 	}

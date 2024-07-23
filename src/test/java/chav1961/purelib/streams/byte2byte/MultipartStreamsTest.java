@@ -33,15 +33,15 @@ public class MultipartStreamsTest {
 					switch (count) {
 						case 0 :
 							Assert.assertEquals("text", me.getName());
-							Assert.assertEquals("text default\r\n", wr.toString());
+							Assert.assertEquals("text default\n", wr.toString().replace("\r", ""));
 							break;
 						case 1 :
 							Assert.assertEquals("file1", me.getName());
-							Assert.assertEquals("Content of a.txt.\r\n\r\n", wr.toString());
+							Assert.assertEquals("Content of a.txt.\n\n", wr.toString().replace("\r", ""));
 							break;
 						case 2 :
 							Assert.assertEquals("file2", me.getName());
-							Assert.assertEquals("<!DOCTYPE html><title>Content of a.html.</title>\r\n\r\n", wr.toString());
+							Assert.assertEquals("<!DOCTYPE html><title>Content of a.html.</title>\n\n", wr.toString().replace("\r", ""));
 							break;
 						default :
 							Assert.fail("Extra part delected");

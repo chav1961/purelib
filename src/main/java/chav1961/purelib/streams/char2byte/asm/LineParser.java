@@ -291,7 +291,7 @@ class LineParser implements LineByLineProcessorCallback {
 		placeStaticCommand(0x10,false,RefTypeSource.none,"bipush",CommandFormat.byteValue,StackChanges.pushInt);
 		placeStaticCommand(0x34,false,RefTypeSource.stack2,"caload",StackChanges.pop2AndPushInt,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x55,false,RefTypeSource.none,"castore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_INT);
-		placeStaticCommand(0xc0,false,RefTypeSource.command,"checkcast",CommandFormat.classShortIndex,StackChanges.none,CompilerUtils.CLASSTYPE_REFERENCE);
+		placeStaticCommand(0xc0,false,RefTypeSource.command,"checkcast",CommandFormat.classShortIndex,StackChanges.changeType,CompilerUtils.CLASSTYPE_REFERENCE);
 		placeStaticCommand(0x90,false,RefTypeSource.none,"d2f",StackChanges.changeDouble2Float,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepoNew.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x8e,false,RefTypeSource.none,"d2i",StackChanges.changeDouble2Int,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepoNew.SPECIAL_TYPE_TOP);
 		placeStaticCommand(0x8f,false,RefTypeSource.none,"d2l",StackChanges.changeDouble2Long,CompilerUtils.CLASSTYPE_DOUBLE,StackAndVarRepoNew.SPECIAL_TYPE_TOP);
@@ -1333,6 +1333,7 @@ class LineParser implements LineByLineProcessorCallback {
 			}
 			else {
 				final long	typeId = tree.placeOrChangeName((CharSequence)InternalUtils.buildFieldSignature(tree,tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(checkType))),new NameDescriptor(checkType));
+				final long	classType = tree.placeOrChangeName((CharSequence)CompilerUtils.buildClassNameSignature(type.getCanonicalName()),new NameDescriptor(checkType));
 				
 				start = processOptions(lineNo, data, InternalUtils.skipBlank(data,start), forEntity, "field", cdr, false, OPTION_PUBLIC, OPTION_PROTECTED, OPTION_PRIVATE, OPTION_STATIC, OPTION_FINAL, OPTION_VOLATILE, OPTION_TRANSIENT, OPTION_SYNTHETIC);
 				start = InternalUtils.skipBlank(data,start);
@@ -1413,6 +1414,7 @@ class LineParser implements LineByLineProcessorCallback {
 				}
 				cc.getConstantPool().asFieldRefDescription(joinedClassNameId, id, typeId);
 				tree.getCargo(id).nameType = checkType;
+				tree.getCargo(id).nameTypeId = classType;
 
 				final int		classNameLen = tree.getNameLength(joinedClassNameId), fieldLen = tree.getNameLength(id);
 				final char[]	forLongName = new char[classNameLen+1+fieldLen];
@@ -1439,7 +1441,8 @@ class LineParser implements LineByLineProcessorCallback {
 				throw CompilerErrors.ERR_VOID_NOT_APPLICABLE.syntaxError(lineNo);
 			}
 			else {
-				final long	typeId = tree.placeOrChangeName((CharSequence)type.getName(),new NameDescriptor(checkType));
+				final long	typeId = tree.placeOrChangeName((CharSequence)type.getName().replace('.', '.'),new NameDescriptor(checkType));
+				final long	classType = tree.placeOrChangeName((CharSequence)CompilerUtils.buildClassNameSignature(type.getCanonicalName()),new NameDescriptor(checkType));
 				
 				start = processOptions(lineNo, data, InternalUtils.skipBlank(data,start), forEntity, "field", cdr, false, OPTION_PUBLIC, OPTION_STATIC, OPTION_FINAL);
 				start = InternalUtils.skipBlank(data,start);
@@ -1516,6 +1519,7 @@ class LineParser implements LineByLineProcessorCallback {
 					cc.addFieldDescription((short)(forEntity.options| JavaByteCodeConstants.ACC_PUBLIC | JavaByteCodeConstants.ACC_STATIC | JavaByteCodeConstants.ACC_FINAL),id,typeId);
 				}
 				tree.getCargo(id).nameType = checkType;
+				tree.getCargo(id).nameTypeId = classType;
 			}
 		}
 		else {
@@ -2341,7 +2345,7 @@ class LineParser implements LineByLineProcessorCallback {
 					if (nd != null) {
 						typeDispl = nd.cpIds[JavaByteCodeConstants.CONSTANT_Class];
 					
-						if (typeDispl != Short.MAX_VALUE) {
+						if (typeDispl != Short.MIN_VALUE) {
 							putCommandShort(desc.operation, typeDispl);
 							skip2line(lineNo, data, start);
 						}
@@ -2437,8 +2441,6 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 
 	private int processValueShortIndexCommand(final int lineNo, final char[] data, int start, final short[] result) throws IOException, ContentException {
-		short		displ;
-
 		try{switch (data[start]) {
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' : case '-' :
 					final long	forResult[] = longArray2;
@@ -2458,16 +2460,16 @@ class LineParser implements LineByLineProcessorCallback {
 					start = UnsafedCharUtils.uncheckedParseNumber(data, start, forResult, CharUtils.PREF_INT|CharUtils.PREF_FLOAT, true);
 					
 					if (forResult[1] == CharUtils.PREF_FLOAT) {
-						displ = cc.getConstantPool().asFloatDescription(sign * Float.intBitsToFloat((int) forResult[0]));
+						result[0] = cc.getConstantPool().asFloatDescription(sign * Float.intBitsToFloat((int) forResult[0]));
 						result[1] = CompilerUtils.CLASSTYPE_FLOAT;
 					}
 					else if (forResult[1] == CharUtils.PREF_INT) {
-						displ = cc.getConstantPool().asIntegerDescription((int)(sign * forResult[0]));
+						result[0] = cc.getConstantPool().asIntegerDescription((int)(sign * forResult[0]));
 						result[1] = CompilerUtils.CLASSTYPE_INT;
 					}
 					else {
 						throw CompilerErrors.ERR_ILLEGAL_NUMERIC_CONSTANT_SIZE.syntaxError(lineNo);
-					}		
+					}
 					break;
 				case '\'' :
 					final int	startChar = start + 1, endChar = start = skipQuoted(lineNo, data, startChar, '\'');
@@ -2484,7 +2486,7 @@ class LineParser implements LineByLineProcessorCallback {
 									throw CompilerErrors.ERR_ILLEGAL_ESCAPED_CHAR_CONTENT.syntaxError(lineNo);
 								}
 							}
-							displ = cc.getConstantPool().asIntegerDescription(value);
+							result[0] = cc.getConstantPool().asIntegerDescription(value);
 							result[1] = CompilerUtils.CLASSTYPE_INT;
 						}
 						else {
@@ -2492,7 +2494,7 @@ class LineParser implements LineByLineProcessorCallback {
 						}
 					}
 					else {
-						displ = cc.getConstantPool().asIntegerDescription(data[startChar]);
+						result[0] = cc.getConstantPool().asIntegerDescription(data[startChar]);
 						result[1] = CompilerUtils.CLASSTYPE_INT;
 					}
 					start++;
@@ -2501,7 +2503,7 @@ class LineParser implements LineByLineProcessorCallback {
 					final int	startString = start + 1, endString = start = skipQuoted(lineNo, data, startString, '\"');
 					
 					start++;
-					displ = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,startString,endString,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+					result[0] = cc.getConstantPool().asStringDescription(cc.getNameTree().placeOrChangeName(data,startString,endString,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
 					result[1] = CompilerUtils.CLASSTYPE_REFERENCE;
 					break;
 				case 'a' : case 'b' : case 'c' : case 'd' : case 'e' : case 'f' : case 'g' : case 'h' :  case 'i' : case 'j' :
@@ -2518,7 +2520,7 @@ class LineParser implements LineByLineProcessorCallback {
 								data[index] = '/';
 							}
 						}
-						displ = cc.getConstantPool().asClassDescription(cc.getNameTree().placeOrChangeName(data,startName,endName-CLASS_SUFFIX.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
+						result[0] = cc.getConstantPool().asClassDescription(cc.getNameTree().placeOrChangeName(data,startName,endName-CLASS_SUFFIX.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE)));
 						result[1] = CompilerUtils.CLASSTYPE_REFERENCE;
 					}
 					else {
@@ -2531,7 +2533,6 @@ class LineParser implements LineByLineProcessorCallback {
 		} catch (NumberFormatException exc) {
 			throw CompilerErrors.ERR_ILLEGAL_NUMBER.syntaxError(lineNo, exc.getLocalizedMessage());
 		}
-		result[0] = displ;
 		return start;
 	}
 	
@@ -2927,9 +2928,25 @@ class LineParser implements LineByLineProcessorCallback {
 					case (byte)0xc0 :	// checkcast
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(0);
 					case 0x12 :	// ldc
-						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
+						if (cc.getConstantPool().getItemType((short)parameters[0]) == JavaByteCodeConstants.CONSTANT_Class) {
+							final long	className = cc.getNameTree().placeOrChangeName((CharSequence)"java/lang/Class", new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							final short	classId = cc.getConstantPool().asClassDescription(className);
+							
+							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, classId);
+						}
+						else {
+							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
+						}
 					case 0x13 :	// ldc_w
-						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
+						if (cc.getConstantPool().getItemType((short)parameters[0]) == JavaByteCodeConstants.CONSTANT_Class) {
+							final long	className = cc.getNameTree().placeOrChangeName((CharSequence)"java/lang/Class", new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							final short	classId = cc.getConstantPool().asClassDescription(className);
+							
+							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, classId);
+						}
+						else {
+							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
+						}
 					case 0x14 :	// ldc2_w
 						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
 					case (byte)0xc5 :	// multianewarray
@@ -3035,10 +3052,12 @@ class LineParser implements LineByLineProcessorCallback {
 			desc.fieldId = tree.seekName(data,startName,endName);
 			
 			if ((desc.fieldReference = cc.getConstantPool().asFieldRefDescription(joinedClassNameId, desc.fieldId)) != 0) {
-				final int 	classType = tree.getCargo(desc.fieldId).nameType;
+				final NameDescriptor	nd = tree.getCargo(desc.fieldId); 
+				final int 				classType = nd.nameType;
 				
 				if (classType == CompilerUtils.CLASSTYPE_REFERENCE) {
-					final short	displ = cc.getConstantPool().asClassDescription(classType);
+					final long	classTypeId = nd.nameTypeId;
+					final short	displ = cc.getConstantPool().asClassDescription(classTypeId);
 					
 					desc.valueType = new TypeDescriptor(classType, displ);
 				}

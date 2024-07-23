@@ -708,7 +708,7 @@ public class VisualControlsTest implements JComponentMonitor {
 		text.setInvalid(false);
 		Assert.assertFalse(text.isInvalid());
 		
-		Assert.assertNotNull(text.standardValidation("number:ilegal"));
+		Assert.assertNotNull(text.standardValidation("number:illegal"));
 		Assert.assertNull(text.standardValidation("123,456"));
 		
 		try {new JNumericFieldWithMeta(null, this);

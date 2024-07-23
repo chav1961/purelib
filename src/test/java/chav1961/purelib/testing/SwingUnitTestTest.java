@@ -1,6 +1,7 @@
 package chav1961.purelib.testing;
 
 import java.awt.FontMetrics;
+
 import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.MouseEvent;
@@ -10,10 +11,10 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.DebuggingException;
@@ -26,7 +27,7 @@ public class SwingUnitTestTest {
 	final JTextField	field1 = new JTextField(), field2 = new JTextField();
 	final JLabel		label = new JLabel("test");
 
-	@Before
+	@BeforeEach
 	public void prepare() {
 		root.getContentPane().setLayout(new GridLayout(3,1));
 		field1.setName("field1");
@@ -40,7 +41,7 @@ public class SwingUnitTestTest {
 		root.setVisible(true);
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		root.setVisible(false);
 		root.dispose();

@@ -27,7 +27,9 @@ class CommandParser {
 	private static final RuleBasedParser<Expression, Object>	EXPRESSION;
 	
 	static {
-		try{final Class<RuleBasedParser<Expression, Object>>	cl = CompilerUtils.buildRuleBasedParserClass(CommandParser.class.getPackageName()+".ExpressionSkipper", Expression.class, Utils.fromResource(CommandParser.class.getResource("expression.txt")));
+		try{
+			final Class<RuleBasedParser<Expression, Object>>	cl = CompilerUtils.buildRuleBasedParserClass(CommandParser.class.getPackageName()+".ExpressionSkipper", Expression.class, Utils.fromResource(CommandParser.class.getResource("expression.txt")));
+			
 			EXPRESSION = cl.getConstructor(Class.class,SyntaxTreeInterface.class).newInstance(Expression.class,new AndOrTree<>());
 		} catch (SyntaxException | IOException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
 			throw new PreparationException(e.getLocalizedMessage(), e);

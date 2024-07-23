@@ -100,7 +100,7 @@ class StackAndVarRepoNew {
 				else {
 					
 				}
-				System.err.println("Displ="+displ+", item: "+item);
+//				System.err.println("Displ="+displ+", item: "+item);
 				item = item.next;
 			}
 			if (changed) {
@@ -509,6 +509,10 @@ class StackAndVarRepoNew {
 					push(codeDispl, val1, val1Type);
 					push(codeDispl, val2, val2Type);
 				}
+				break;
+			case changeType	:
+				pop(codeDispl);
+				pushReference(codeDispl, refType);
 				break;
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 

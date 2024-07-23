@@ -29,14 +29,14 @@ public class StackAndVarRepoNewTest {
 	
 		repo.processChanges(ZERO, StackChanges.pushFloat);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
-		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT,repo.selectStackItemType(0));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_FLOAT, repo.selectStackItemType(0));
 
 		repo.processChanges(ZERO, StackChanges.pop);
 		Assert.assertEquals(0,repo.getCurrentStackDepth());
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
-		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,repo.selectStackItemType(0));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE, repo.selectStackItemType(0));
 
 		repo.processChanges(ZERO, StackChanges.pop);
 		Assert.assertEquals(0,repo.getCurrentStackDepth());
@@ -178,7 +178,7 @@ public class StackAndVarRepoNewTest {
 		
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		repo.processChanges(ZERO, StackChanges.pushFloat);
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.dup_x2);
 		Assert.assertEquals(4,repo.getCurrentStackDepth());
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,repo.selectStackItemType(0));
@@ -218,7 +218,7 @@ public class StackAndVarRepoNewTest {
 
 		repo.processChanges(ZERO, StackChanges.pop4);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		repo.processChanges(ZERO, StackChanges.pushFloat);
 		repo.processChanges(ZERO, StackChanges.dup2_x1);
@@ -290,8 +290,8 @@ public class StackAndVarRepoNewTest {
 
 		repo.processChanges(ZERO, StackChanges.pop4);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		repo.processChanges(ZERO, StackChanges.pushFloat);
 		repo.processChanges(ZERO, StackChanges.dup2_x2);
@@ -306,8 +306,8 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.pop4);
 		repo.processChanges(ZERO, StackChanges.pop2);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.pushLong);
 		repo.processChanges(ZERO, StackChanges.dup2_x2);
 		Assert.assertEquals(6,repo.getCurrentStackDepth());
@@ -321,8 +321,8 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.pop4);
 		repo.processChanges(ZERO, StackChanges.pop2);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.pushDouble);
 		repo.processChanges(ZERO, StackChanges.dup2_x2);
 		Assert.assertEquals(6,repo.getCurrentStackDepth());
@@ -336,9 +336,9 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.pop4);
 		repo.processChanges(ZERO, StackChanges.pop2);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.pushLong);
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		try {repo.processChanges(ZERO, StackChanges.dup2_x2);
 			Assert.fail("Mandatory exception was not detected (attempt to push half long)");
 		} catch (ContentException exc) {
@@ -353,9 +353,9 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.pop4);
 		repo.processChanges(ZERO, StackChanges.pop2);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		repo.processChanges(ZERO, StackChanges.pushDouble);
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		try {repo.processChanges(ZERO, StackChanges.dup2_x2);
 			Assert.fail("Mandatory exception was not detected (attempt to push half double)");
 		} catch (ContentException exc) {
@@ -496,7 +496,7 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.clear);
 
 		repo.processChanges(ZERO, StackChanges.pushInt);
-		repo.processChanges(ZERO, StackChanges.popAndPushReference);
+		repo.processChanges(ZERO, StackChanges.popAndPushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,repo.selectStackItemType(0));
 
@@ -517,7 +517,7 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.clear);
 		
 		repo.processChanges(ZERO, StackChanges.pushLong);
-		repo.processChanges(ZERO, StackChanges.pop2AndPushReference);
+		repo.processChanges(ZERO, StackChanges.pop2AndPushReference,CompilerUtils.CLASSTYPE_REFERENCE,(short)1);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,repo.selectStackItemType(0));
 
@@ -639,14 +639,14 @@ public class StackAndVarRepoNewTest {
 		
 		repo.processChanges(ZERO, StackChanges.clear);
 		
-		repo.processChanges(ZERO, StackChanges.pushReference);
-		repo.processChanges(ZERO, StackChanges.pushField,CompilerUtils.CLASSTYPE_INT, ZERO);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
+		repo.processChanges(ZERO, StackChanges.pushField, CompilerUtils.CLASSTYPE_INT, ZERO);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
 		Assert.assertEquals(CompilerUtils.CLASSTYPE_INT,repo.selectStackItemType(0));
 
 		repo.processChanges(ZERO, StackChanges.clear);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushField,CompilerUtils.CLASSTYPE_LONG, ZERO);
 		Assert.assertEquals(2,repo.getCurrentStackDepth());
 		Assert.assertEquals(StackAndVarRepoNew.SPECIAL_TYPE_TOP,repo.selectStackItemType(0));
@@ -662,19 +662,19 @@ public class StackAndVarRepoNewTest {
 
 		repo.processChanges(ZERO, StackChanges.clear);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		repo.processChanges(ZERO, StackChanges.popField,CompilerUtils.CLASSTYPE_INT, ZERO);
 		Assert.assertEquals(0,repo.getCurrentStackDepth());
 
 		repo.processChanges(ZERO, StackChanges.clear);
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushLong);
 		repo.processChanges(ZERO, StackChanges.popField,CompilerUtils.CLASSTYPE_LONG, ZERO);
 		Assert.assertEquals(0,repo.getCurrentStackDepth());
 
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushInt);
 		try {repo.processChanges(ZERO, StackChanges.popField,CompilerUtils.CLASSTYPE_LONG, ZERO);
 			Assert.fail("Mandatory exception was not detected (attempt to unload non-long)");
@@ -687,7 +687,7 @@ public class StackAndVarRepoNewTest {
 		
 		repo.processChanges(ZERO, StackChanges.clear);
 		
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushLong);
 		try {repo.processChanges(ZERO, StackChanges.popField,CompilerUtils.CLASSTYPE_INT, ZERO);
 			Assert.fail("Mandatory exception was not detected (attempt to unload half long)");
@@ -696,7 +696,7 @@ public class StackAndVarRepoNewTest {
 
 		repo.processChanges(ZERO, StackChanges.clear);
 		
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushDouble);
 		try {repo.processChanges(ZERO, StackChanges.popField,CompilerUtils.CLASSTYPE_INT, ZERO);
 			Assert.fail("Mandatory exception was not detected (attempt to unload half double)");
@@ -731,22 +731,22 @@ public class StackAndVarRepoNewTest {
 		repo.processChanges(ZERO, StackChanges.clear);
 		
 		repo.processChanges(ZERO, StackChanges.pushInt);
-		repo.processChanges(ZERO, StackChanges.multiarrayAndPushReference, CompilerUtils.CLASSTYPE_BYTE, ZERO);
+		repo.processChanges(ZERO, StackChanges.multiarrayAndPushReference, 1, (short)1);
 		Assert.assertEquals(1,repo.getCurrentStackDepth());
-		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE,repo.selectStackItemType(0));
+		Assert.assertEquals(CompilerUtils.CLASSTYPE_REFERENCE, repo.selectStackItemType(0));
 
 		repo.processChanges(ZERO, StackChanges.clear);
 		
-		repo.processChanges(ZERO, StackChanges.pushReference);
+		repo.processChanges(ZERO, StackChanges.pushReference, CompilerUtils.CLASSTYPE_REFERENCE, (short)1);
 		repo.processChanges(ZERO, StackChanges.pushInt);
-		try {repo.processChanges(ZERO, StackChanges.multiarrayAndPushReference, CompilerUtils.CLASSTYPE_SHORT, ZERO);
+		try {repo.processChanges(ZERO, StackChanges.multiarrayAndPushReference, 2, (short)1);
 			Assert.fail("Mandatory exception was not detected (integer dimensions are missing)");
 		} catch (ContentException exc) {
 		}
 
 		repo.processChanges(ZERO, StackChanges.clear);
 		
-		try {repo.processChanges(ZERO, StackChanges.multiarrayAndPushReference, CompilerUtils.CLASSTYPE_BYTE, ZERO);
+		try {repo.processChanges(ZERO, StackChanges.multiarrayAndPushReference, 1, (short)1);
 			Assert.fail("Mandatory exception was not detected (reference is missing)");
 		} catch (ContentException exc) {
 		}
@@ -758,7 +758,7 @@ public class StackAndVarRepoNewTest {
 	public void callTest() throws ContentException {
 		final StackAndVarRepoNew	repo = new StackAndVarRepoNew(null);
 
-		repo.pushReference(ZERO, ZERO);
+		repo.pushReference(ZERO, (short)1);
 		repo.pushInt(ZERO);
 		repo.pushLong(ZERO);
 		repo.pushDouble(ZERO);

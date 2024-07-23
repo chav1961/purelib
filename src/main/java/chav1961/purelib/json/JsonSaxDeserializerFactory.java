@@ -2,6 +2,7 @@ package chav1961.purelib.json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -145,7 +146,7 @@ public class JsonSaxDeserializerFactory {
 		}
 		else {
 			final SyntaxTreeInterface<FieldDesc>	tree = new AndOrTree<FieldDesc>(1,1);
-			final ClassDesc							desc = new ClassDesc(clazz,tree.placeName(clazz.getCanonicalName(),null));
+			final ClassDesc							desc = new ClassDesc(clazz,tree.placeName((CharSequence)clazz.getCanonicalName(),null));
 	
 			try{collectFieldNames(clazz,tree,publicOnly);
 			} catch (NoSuchFieldException | IllegalAccessException exc) {
@@ -166,7 +167,7 @@ public class JsonSaxDeserializerFactory {
 				final String						pseudoClassName;
 				
 				try(final ByteArrayOutputStream		baos = new ByteArrayOutputStream()) {
-					try(final Writer				wr = new AsmWriter(baos);) {
+					try(final Writer				wr = new AsmWriter(baos, new PrintWriter(System.err));) {
 						final List<SettingPairs>	settingPairs = new ArrayList<>();				
 						
 						pseudoClassName = BasicDeserializer.class.getPackage().getName()+'.'+extra.getSimpleName()+"_serv"; 
@@ -261,16 +262,16 @@ public class JsonSaxDeserializerFactory {
 						try{item.setAccessible(true);						
 							final MethodHandle 	setter = lookup.unreflectSetter(item);
 							
-							if (tree.seekName(item.getName()) >= 0) {
-								tree.getCargo(tree.seekName(item.getName())).access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-								tree.getCargo(tree.seekName(item.getName())).type.put(tree.placeName(clazz.getCanonicalName(),null),item);
+							if (tree.seekName((CharSequence)item.getName()) >= 0) {
+								tree.getCargo(tree.seekName((CharSequence)item.getName())).access.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),setter);
+								tree.getCargo(tree.seekName((CharSequence)item.getName())).type.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),item);
 							}
 							else {
 								final FieldDesc	desc = new FieldDesc();
 								
-								desc.access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-								desc.type.put(tree.placeName(clazz.getCanonicalName(),null),item);
-								tree.placeName(item.getName(),desc);
+								desc.access.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),setter);
+								desc.type.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),item);
+								tree.placeName((CharSequence)item.getName(),desc);
 							}
 							collectFieldNames(item.getType(),tree,publicOnly);
 						} catch (InaccessibleObjectException exc) {
@@ -284,16 +285,16 @@ public class JsonSaxDeserializerFactory {
 						try{item.setAccessible(true);
 							final MethodHandle 	setter = lookup.unreflectSetter(item);
 							
-							if (tree.seekName(item.getName()) >= 0) {
-								tree.getCargo(tree.seekName(item.getName())).access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-								tree.getCargo(tree.seekName(item.getName())).type.put(tree.placeName(clazz.getCanonicalName(),null),item);
+							if (tree.seekName((CharSequence)item.getName()) >= 0) {
+								tree.getCargo(tree.seekName((CharSequence)item.getName())).access.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),setter);
+								tree.getCargo(tree.seekName((CharSequence)item.getName())).type.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),item);
 							}
 							else {
 								final FieldDesc	desc = new FieldDesc();
 								
-								desc.access.put(tree.placeName(clazz.getCanonicalName(),null),setter);
-								desc.type.put(tree.placeName(clazz.getCanonicalName(),null),item);
-								tree.placeName(item.getName(),desc);
+								desc.access.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),setter);
+								desc.type.put(tree.placeName((CharSequence)clazz.getCanonicalName(),null),item);
+								tree.placeName((CharSequence)item.getName(),desc);
 							}
 							collectFieldNames(item.getType(),tree,publicOnly);
 						} catch (InaccessibleObjectException exc) {
@@ -308,15 +309,15 @@ public class JsonSaxDeserializerFactory {
 	private static void buildClassTree(final Class<?> clazz, final ClassDesc desc, final boolean publicOnly, final SyntaxTreeInterface<?> tree) {
 		if (clazz != null) {
 			if (clazz.isArray()) {
-				desc.arrayContent = new ClassDesc(clazz.getComponentType(),tree.placeName(clazz.getComponentType().getCanonicalName(),null),desc);
+				desc.arrayContent = new ClassDesc(clazz.getComponentType(),tree.placeName((CharSequence)clazz.getComponentType().getCanonicalName(),null),desc);
 				buildClassTree(clazz.getComponentType(),desc.arrayContent,publicOnly,tree);
 			}
 			else if (publicOnly) {
 				for (Field item : clazz.getFields()) {
 					if (!Modifier.isStatic(item.getModifiers()) && !Modifier.isTransient(item.getModifiers())) {
-						final ClassDesc	itemDesc = new ClassDesc(item.getType(),tree.placeName(item.getType().getCanonicalName(),null),desc);
+						final ClassDesc	itemDesc = new ClassDesc(item.getType(),tree.placeName((CharSequence)item.getType().getCanonicalName(),null),desc);
 						
-						desc.fields.put(tree.seekName(item.getName()),itemDesc);
+						desc.fields.put(tree.seekName((CharSequence)item.getName()),itemDesc);
 						buildClassTree(item.getType(),itemDesc,publicOnly,tree);
 					}
 				}
@@ -324,9 +325,9 @@ public class JsonSaxDeserializerFactory {
 			else {
 				for (Field item : clazz.getDeclaredFields()) {
 					if (!Modifier.isStatic(item.getModifiers()) && !Modifier.isTransient(item.getModifiers())) {
-						final ClassDesc	itemDesc = new ClassDesc(item.getType(),tree.placeName(item.getType().getCanonicalName(),null),desc);
+						final ClassDesc	itemDesc = new ClassDesc(item.getType(),tree.placeName((CharSequence)item.getType().getCanonicalName(),null),desc);
 						
-						desc.fields.put(tree.seekName(item.getName()),itemDesc);
+						desc.fields.put(tree.seekName((CharSequence)item.getName()),itemDesc);
 						buildClassTree(item.getType(),itemDesc,publicOnly,tree);
 					}
 				}
@@ -564,6 +565,9 @@ public class JsonSaxDeserializerFactory {
 			this.objectIds = new long[stackDepth];
 			try{final Class<CreateAndSet>	clazz = (Class<CreateAndSet>)cl.define(serviceClass,serviceClassBody,0,serviceClassBody.length); 
 				this.cs = clazz.getConstructor().newInstance();
+			} catch (VerifyError exc) {
+				exc.printStackTrace();
+				throw new PreparationException(exc.getMessage());
 			} catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
 				throw new ContentException(e.getMessage());
 			}

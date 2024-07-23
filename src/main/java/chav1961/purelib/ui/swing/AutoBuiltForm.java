@@ -710,7 +710,8 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 			
 			if (control instanceof JComponent) {
 				if ((control instanceof JComponentInterface) && accessors.containsKey(item.getUIPath())) {
-					try{process(MonitorEvent.Loading, item, (JComponentInterface)control);
+					try{
+						process(MonitorEvent.Loading, item, (JComponentInterface)control);
 					} catch (ContentException e) {
 					}
 				}

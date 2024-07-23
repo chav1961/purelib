@@ -122,6 +122,7 @@ public class JavaByteCodeConstants {
 	public static final byte	CONSTANT_InvokeDynamic = 18;
 	public static final byte	CONSTANT_Module = 19;
 	public static final byte	CONSTANT_Package = 20;
+	public static final byte	CONSTANT_MaxPoolTypes = 21;
 	
 	/**
 	 * <p>Attribute names</p>

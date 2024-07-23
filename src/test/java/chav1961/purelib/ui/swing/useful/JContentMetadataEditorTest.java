@@ -19,7 +19,7 @@ import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
-@Tag("OrdinalTestCategory")
+@Tag("UITestCategory")
 public class JContentMetadataEditorTest {
 
 	@Test

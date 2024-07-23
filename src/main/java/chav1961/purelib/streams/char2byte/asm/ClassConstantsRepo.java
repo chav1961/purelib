@@ -25,6 +25,7 @@ class ClassConstantsRepo implements Closeable {
 	private final LongIdTree<Short>			nameAndType = new LongIdTree<>(2);
 	private final LongIdTree<Short>			utfs = new LongIdTree<>(1);
 	private final LongIdTree[]				content = {classes, entityRefs, fieldRefs, strings, integers, longs, floats, doubles, nameAndType, utfs};
+	private final int[]						itemTypes = new int[65536];
 	private short							sequence = 1;
 	
 	ClassConstantsRepo(final SyntaxTreeInterface<NameDescriptor> names) {
@@ -58,9 +59,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeShort(utfId);
 			classes.addRef(result = nextVal(), classId);
 			names.getCargo(classId).cpIds[JavaByteCodeConstants.CONSTANT_Class] = result;
-			if (result == 51) {
-				int x = 10;
-			}
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Class;
 		}
 		
 		return result;
@@ -77,6 +76,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeShort(forField);
 			entityRefs.addRef(result = nextVal(), classId, fieldId, typeId);
 			fieldRefs.addRef(result, classId, fieldId);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Fieldref;
 		}
 		return result;
 	}
@@ -95,6 +95,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
 			entityRefs.addRef(result = nextVal(), classId, methodId, signatureId);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Methodref;
 		}
 		return result;
 	}
@@ -109,6 +110,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeShort(forClass);
 			iogba.writeShort(forField);
 			entityRefs.addRef(result = nextVal(), classId, methodId, signatureId);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_InterfaceMethodref;
 		}
 		return result;
 	}
@@ -122,6 +124,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_String);
 			iogba.writeShort(utf);
 			strings.addRef(result = nextVal(), stringId);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_String;
 		}
 		return result;
 	}		
@@ -133,6 +136,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Integer);
 			iogba.writeInt(value);
 			integers.addRef(result = nextVal(), value);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Integer;
 		}
 		return result;
 	}
@@ -145,6 +149,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeLong(value);
 			longs.addRef(result = nextVal(), value);
 			nextVal();	// Placed 2 slots!
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Long;
 		}
 		return result;
 	}
@@ -157,6 +162,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Float);
 			iogba.writeInt(bytes);
 			floats.addRef(result = nextVal(), bytes);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Float;
 		}
 		return result;
 	}
@@ -170,6 +176,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeLong(bytes);
 			doubles.addRef(result = nextVal(), bytes);
 			nextVal();	// Placed 2 slots!
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Double;
 		}
 		return result;
 	}
@@ -184,6 +191,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeShort(forName);
 			iogba.writeShort(forType);
 			nameAndType.addRef(result = nextVal(), fieldId, typeId);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_NameAndType;
 		}
 		return result;
 	}
@@ -195,6 +203,7 @@ class ClassConstantsRepo implements Closeable {
 			iogba.writeByte(JavaByteCodeConstants.CONSTANT_Utf8);
 			iogba.writeUTF(names.getName(stringId));
 			utfs.addRef(result = nextVal(), stringId);
+			itemTypes[result] = JavaByteCodeConstants.CONSTANT_Utf8;
 		}
 		return result;
 	}
@@ -213,6 +222,10 @@ class ClassConstantsRepo implements Closeable {
 			}
 		}
 	}
+
+	int getItemType(final short item) {
+		return itemTypes[item];		
+	}
 	
 	int dump(final InOutGrowableByteArray os) throws IOException {
 		final byte[] content = iogba.extract();
@@ -226,6 +239,9 @@ class ClassConstantsRepo implements Closeable {
 			throw CompilerErrors.ERR_CONSTANT_POOL_TOO_LONG.error();
 		}
 		else {
+			if (sequence == 52) {
+				int x = 10;
+			}
 			return sequence++;
 		}
 	}	

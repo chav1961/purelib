@@ -13,10 +13,10 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
@@ -29,7 +29,7 @@ public class PureLibFileSystemProviderTest {
 	
 	final File	ioDir = new File(new File(System.getProperty("java.io.tmpdir")),"testDir");
 	
-	@Before
+	@BeforeEach
 	public void prepare() throws IOException {
 		new File(ioDir,"fromDir").mkdirs();
 		try(final FileOutputStream	fos = new FileOutputStream(new File(ioDir,"fromDir/fromFile.txt"))) {
@@ -38,7 +38,7 @@ public class PureLibFileSystemProviderTest {
 		}
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() throws IOException { 
 		Utils.deleteDir(ioDir);
 	}

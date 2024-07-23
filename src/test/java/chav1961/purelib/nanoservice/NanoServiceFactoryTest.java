@@ -3,6 +3,7 @@ package chav1961.purelib.nanoservice;
 
 
 import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,10 +20,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 
 import com.sun.net.httpserver.Authenticator;
@@ -51,7 +52,6 @@ import chav1961.purelib.nanoservice.NanoServiceFactory.RequestHeadParser;
 import chav1961.purelib.nanoservice.interfaces.MethodExecutor;
 import chav1961.purelib.nanoservice.interfaces.QueryType;
 
-@SuppressWarnings("restriction")
 @Tag("OrdinalTestCategory")
 public class NanoServiceFactoryTest {
 	private static final String			LOOPBACK_RESPONSE =
@@ -165,7 +165,7 @@ public class NanoServiceFactoryTest {
 	
 	private NanoServiceFactory	factory;
 	
-	@Before 
+	@BeforeEach
 	public void prepare() throws Exception {
 		factory = new NanoServiceFactory(new SystemErrLoggerFacade(), new SubstitutableProperties(Utils.mkProps(
 												NanoServiceFactory.NANOSERVICE_PORT, "0",
@@ -180,7 +180,7 @@ public class NanoServiceFactoryTest {
 											));
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() throws Exception {
 		factory.close();
 	}

@@ -8,6 +8,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.WellKnownLocalizationKeys;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
@@ -23,7 +24,7 @@ import chav1961.purelib.ui.interfaces.RefreshMode;
 
 @LocaleResourceLocation("i18n:xml:root://chav1961.purelib.ui.swing.useful.JContentMetadataEditor/chav1961/purelib/i18n/localization.xml")
 @LocaleResource(value="JContentMetadataEditor.single.caption",tooltip="JContentMetadataEditor.single.caption.tt")
-public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescriptor> {
+public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescriptor>, ModuleAccessor {
 	private static final URI	DEFAULT_LOCALIZER = URI.create("missing");
 	private static final String	DEFAULT_TOOLTIP_ID = "<tooltip>";
 	private static final String	DEFAULT_HELP_ID = "<help>";
@@ -285,6 +286,13 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 		}
 		else {
 			return true;
+		}
+	}
+
+	@Override
+	public void allowUnnamedModuleAccess(final Module... unnamedModules) {
+		for(Module item : unnamedModules) {
+			this.getClass().getModule().addExports(this.getClass().getPackageName(),item);
 		}
 	}
 }

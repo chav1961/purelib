@@ -205,25 +205,25 @@ public class AutoBuildFormTest {
 		final Thread			t = new Thread(()->{
 									JDialog	frame = null;
 									
-									try{frame = new JDialog((JFrame)null,true) {
+									try{frame = new JDialog((JFrame)null, true) {
 														@Override
 														public void setVisible(final boolean visible) {
+															super.setVisible(visible);
 															if (visible) {
-																final JButton	btn = (JButton)SwingUtils.findComponentByName(this,click.toString());
+																final JButton	btn = (JButton)SwingUtils.findComponentByName(this, click.toString());
 																
 																Assert.assertNotNull(btn);
-																SwingUtilities.invokeLater(()->{btn.doClick();});
+																SwingUtilities.invokeLater(()->btn.doClick());
 															}
-															super.setVisible(visible);
 														}
 												};
 													
-										AutoBuiltForm.askInternal((JFrame)null,frame,PureLibSettings.PURELIB_LOCALIZER,abf,buttons);
+										AutoBuiltForm.askInternal((JFrame)null, frame, PureLibSettings.PURELIB_LOCALIZER, abf, buttons);
 									} catch (Exception e) {
 										Assert.fail("Exception detected: "+e.getLocalizedMessage());
 									} finally {
-										frame.dispose();
 										cdl.countDown();
+										frame.dispose();
 									}
 								});
 

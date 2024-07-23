@@ -195,7 +195,7 @@ class InternalUtils {
 		if (parameters.length == 0) {
 			try{return String.format(PureLibSettings.PURELIB_LOCALIZER.getValue(messageId),
 						LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()).getValue(metadata.getLabelId()),
-						parameters[0]);
+						"");
 			} catch (LocalizationException e) {
 				return PureLibSettings.PURELIB_LOCALIZER.getValue(messageId).replace("%", "%%") + ": (" + metadata.getLabelId() + ")";
 			}

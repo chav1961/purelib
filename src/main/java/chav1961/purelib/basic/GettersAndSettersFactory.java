@@ -1324,9 +1324,10 @@ public class GettersAndSettersFactory {
 				throw new PreparationException("Class ["+GettersAndSettersFactory.class.getCanonicalName()+"] was not prepared correctly");
 			}
 
-			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(),baos)) {
+			try(final AsmWriter			wr = writer.clone(owner.getClassLoader(), baos)) {
 				
-				try{wr.importClass(owner);
+				try{
+					wr.importClass(owner);
 					wr.importClass(Instantiator.class);
 					wr.importClass(InstantiatorImpl.class);
 				} catch (ContentException e) {
@@ -1336,8 +1337,10 @@ public class GettersAndSettersFactory {
 			}
 			Class<Instantiator<T>>	inst;
 			
-			try{inst = (Class<Instantiator<T>>) loader.createClass(className,baos.toByteArray());
+			try{
+				inst = (Class<Instantiator<T>>) loader.createClass(className, baos.toByteArray());
 			} catch (Exception exc) {
+				exc.printStackTrace();
 				inst = (Class<Instantiator<T>>) loader.loadClass(className);
 			}
 			assigner.allowUnnamedModuleAccess(loader.getUnnamedModule());

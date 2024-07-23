@@ -44,7 +44,7 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 			serialVersionUID = -7990739033479280548L;
 
-	private static final Class<?>[]		VALID_CLASSES = {BigDecimal.class, Float.class, float.class, Double.class, double.class};
+	private static final Class<?>[]		VALID_CLASSES = {BigDecimal.class, Float.class, float.class, Double.class, double.class, String.class};
 	
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;

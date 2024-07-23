@@ -2,6 +2,7 @@ package chav1961.purelib.json;
 
 
 import java.io.CharArrayReader;
+
 import java.io.CharArrayWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -10,7 +11,7 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -29,7 +30,7 @@ import chav1961.purelib.testing.TestingUtils;
 public class JsonSerializerTest {
 	final static PrintStream	ps = TestingUtils.err();
 	
-	@BeforeEach
+	@BeforeAll
 	public static void prepare() {
 		ps.println("before");
 	}

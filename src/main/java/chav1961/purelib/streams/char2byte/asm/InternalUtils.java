@@ -106,8 +106,7 @@ class InternalUtils {
 				currentType = signatureByLetter(currentChar);
 				
 				sbSignature.append(currentChar);
-				if (currentChar == 'L') {
-					sbSignature.append(currentChar);
+				if (currentType == CompilerUtils.CLASSTYPE_REFERENCE) {
 					while (currentChar != ';') {
 						currentChar = methodSignature.charAt(++index);
 						sbSignature.append(currentChar);

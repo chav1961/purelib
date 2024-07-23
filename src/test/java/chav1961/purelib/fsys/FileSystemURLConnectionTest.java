@@ -8,22 +8,22 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 @Tag("OrdinalTestCategory")
 public class FileSystemURLConnectionTest {
-	@Before
+	@BeforeEach
 	public void prepare() {
 		new File("./src/test/resources/chav1961/purelib/fsys/content.txt").delete();
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		new File("./src/test/resources/chav1961/purelib/fsys/content.txt").delete();
 	}

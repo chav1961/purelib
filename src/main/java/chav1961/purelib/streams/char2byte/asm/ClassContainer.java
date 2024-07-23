@@ -217,8 +217,9 @@ class ClassContainer implements Closeable {
 			int				curs = getNameTree().getName(packageId,forName,0);
 			
 			forName[curs] = '.';	
-			getNameTree().getName(classId,forName,curs+1);
-			decode(forName,'.','/');
+			getNameTree().getName(classId, forName, curs + 1);
+			decode(forName, '.', '/');
+			
 			return getNameTree().placeOrChangeName(forName,0,forName.length,new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 		}
 		else {
