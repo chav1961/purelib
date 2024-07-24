@@ -12,6 +12,8 @@ makeIncludes 			.macro		class2load:str
 						.import		chav1961.purelib.streams.char2char.CreoleWriter
 						.import		chav1961.purelib.streams.JsonStaxParser
 						.import		chav1961.purelib.streams.JsonStaxPrinter
+						.import		chav1961.purelib.streams.interfaces.CharacterSource
+						.import		chav1961.purelib.streams.interfaces.CharacterTarget
 						.import		chav1961.purelib.nanoservice.NanoServiceFactory$PathParser
 						.import		chav1961.purelib.nanoservice.NanoServiceFactory$QueryParser
 						.import		chav1961.purelib.nanoservice.NanoServiceFactory$RequestHeadParser
@@ -35,6 +37,7 @@ makeIncludes 			.macro		class2load:str
 						.import		java.util.UUID
 						.import		javax.xml.stream.XMLStreamWriter
 						.import		org.w3c.dom.Document
+						.import		javax.xml.stream.XMLStreamReader						
 						.import		&class2load
 						.mend
 
@@ -763,6 +766,8 @@ currentElement			.var		int
 						iconst_0
 						dup
 						istore		currentIndex
+						dup
+						istore		endIndex
 						istore		endValue
 						iload		forFrom
 						istore		currentElement
@@ -942,7 +947,12 @@ forFrom					.parameter	int final
 						dup
 						ifnull		skip&index
 						invokestatic	chav1961.purelib.nanoservice.NanoServiceFactory$RequestHeadParser.list2charArray(Ljava/util/List;)[C
-skip&index:				aastore
+						aastore
+						goto		next&index
+skip&index:				pop
+						aconst_null
+						aastore
+next&index:						
 			.endfor
 						ldc			&parameterCount
 						ireturn

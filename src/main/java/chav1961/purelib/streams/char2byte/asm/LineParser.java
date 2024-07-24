@@ -1,7 +1,6 @@
 package chav1961.purelib.streams.char2byte.asm;
 
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -271,7 +270,7 @@ class LineParser implements LineByLineProcessorCallback {
 		
 		placeStaticCommand(0x32,false,RefTypeSource.stack2,"aaload",StackChanges.pop2AndPushReference,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT);
 		placeStaticCommand(0x53,false,RefTypeSource.none,"aastore",StackChanges.pop3,CompilerUtils.CLASSTYPE_REFERENCE,CompilerUtils.CLASSTYPE_INT,CompilerUtils.CLASSTYPE_REFERENCE);
-		placeStaticCommand(0x01,false,RefTypeSource.none,"aconst_null",StackChanges.pushReference);
+		placeStaticCommand(0x01,false,RefTypeSource.none,"aconst_null",StackChanges.pushNull,StackAndVarRepoNew.SPECIAL_TYPE_NULL);
 		placeStaticCommand(0x19,false,RefTypeSource.locaVariable,"aload",CommandFormat.extendableByteIndex,CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
 		placeStaticCommand(0x2a,false,RefTypeSource.locaVariable,"aload_0",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
 		placeStaticCommand(0x2b,false,RefTypeSource.locaVariable,"aload_1",CompilerUtils.CLASSTYPE_REFERENCE,StackChanges.pushReference);
@@ -548,11 +547,11 @@ class LineParser implements LineByLineProcessorCallback {
 	
 	@Override
 	public void processLine(final long displacement, final int lineNo, final char[] data, final int from, final int len) throws IOException {
-		int		start = from, end = Math.min(from+len,data.length);
+		int		start = from, end = Math.min(from + len, data.length);
 		int		startName, endName, startDir, endDir;
 		long	id = -1;
 
-		if (printAssembler) {
+		if (diagnostics != null && printAssembler) {
 			printDiagnostics(lineNo, data, from, len);
 		}
 		
@@ -574,6 +573,7 @@ class LineParser implements LineByLineProcessorCallback {
 							currentMacros.compile(loader.createClass(className,writer).getConstructor(char[].class).newInstance(stringRepo.extract()));
 							macros.placeOrChangeName((CharSequence)macroName,currentMacros);
 						} catch (CalculationException | InstantiationException | RuntimeException | InvocationTargetException | NoSuchMethodException | IllegalAccessException e) {
+							e.printStackTrace();
 							throw CompilerErrors.ERR_MACROS_INVOCATION_ERROR.syntaxError(lineNo, className, e.getLocalizedMessage()); 
 						} catch (VerifyError | ClassFormatError e) {
 							throw CompilerErrors.ERR_MACROS_CODE_CORRUPTED.error(className, e.getLocalizedMessage(), new String(writer.extract())); 
@@ -964,28 +964,24 @@ class LineParser implements LineByLineProcessorCallback {
 																? new LineByLineProcessorCallback(){
 																		@Override
 																		public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-																	//		printDiagnostics("\n\t> "+new String(data,from,length));
 																			try{
-																				LineParser.this.processLine(displacement,lineNo, data, from, len);
+																				LineParser.this.processLine(displacement, lineNo, data, from, length);
 																			} catch (Exception  exc) {
-																				diagnostics.flush();
+																				printDiagnostics("");
 																				throw exc;
 																			}
 																		}
 																	}  
 																: this);
-							final Reader	rdr = m.processCall(lineNo,data,possiblyMacroEnd,len-(possiblyMacroEnd-from)+1)) {
+							final Reader	rdr = m.processCall(lineNo, data, possiblyMacroEnd, len - (possiblyMacroEnd - from) + 1)) {
 
 							lbl.write(rdr);
+							lbl.flush();
 						} catch (SyntaxException exc) {
-							if (diagnostics != null) {
-								diagnostics.flush();
-							}
+							printDiagnostics("");
 							throw new SyntaxException(lineNo, 0, "Error in ["+new String(m.getName())+"] macros: "+exc.getLocalizedMessage(), exc); 
 						} catch (IOException exc) {
-							if (diagnostics != null) {
-								diagnostics.flush();
-							}
+							printDiagnostics("");
 							exc.printStackTrace();
 						} catch (Exception exc) {
 							throw exc;
@@ -1080,9 +1076,11 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 			}
 		} catch (SyntaxException exc) {
+			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo, start-from, new String(data,from,len)+exc.getMessage(), exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
 		} catch (ContentException exc) {
+			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo, start-from, new String(data,from,len)+exc.getMessage(), exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
 		}
@@ -2180,7 +2178,10 @@ class LineParser implements LineByLineProcessorCallback {
 		final StackAndVarRepoNew	svr = methodDescriptor.getBody().getStackAndVarRepoNew();
 		final TypeDescriptor		declared = svr.getVarType(varIndex);
 		
-		if (svr.typesAreCompatible(type.dataType, declared.dataType) && svr.typeRefsAreCompatible(type.reference, declared.reference)) {
+		if (svr.typesAreCompatible(type.dataType, declared.dataType) && 
+				(type.dataType == StackAndVarRepoNew.SPECIAL_TYPE_NULL && declared.dataType == CompilerUtils.CLASSTYPE_REFERENCE 
+				 || svr.typeRefsAreCompatible(type.reference, declared.reference)
+				)) {
 			declared.unassigned = false;
 		}
 		else {
@@ -2326,10 +2327,20 @@ class LineParser implements LineByLineProcessorCallback {
 				final long		typeId = tree.placeOrChangeName((CharSequence)type.getName().replace('.','/'),new NameDescriptor(checkType));
 				
 				typeDispl = cc.getConstantPool().asClassDescription(typeId);
-		
+				
 				putCommandShort((byte)desc.operation, typeDispl);
 				if (desc.refTypeSource != RefTypeSource.none) {
-					changeStackRef(desc.stackChanges, typeDispl);
+					if ((desc.operation & 0xFF) == 0xbd) {
+						final Class<?>	arrType = Array.newInstance(type, 0).getClass();
+						final int		checkArrType = CompilerUtils.defineClassType(arrType);
+						final long		typeArrId = tree.placeOrChangeName((CharSequence)CompilerUtils.buildClassNameSignature(arrType.getCanonicalName()),new NameDescriptor(checkArrType));
+						final short		typeArrDispl = cc.getConstantPool().asClassDescription(typeArrId);
+						
+						changeStackRef(desc.stackChanges, typeArrDispl);
+					}
+					else {
+						changeStackRef(desc.stackChanges, typeDispl);
+					}
 				}
 				else {
 					changeStack(desc.stackChanges);
@@ -2918,10 +2929,8 @@ class LineParser implements LineByLineProcessorCallback {
 
 	private TypeDescriptor calculateRefType(final CommandDescriptor desc, final int... parameters) throws ContentException, IOException {
 		// TODO Auto-generated method stub
-//		System.err.println("CalculateRefType: "+desc+", p="+Arrays.toString(parameters));
 		switch (desc.refTypeSource) {
 			case command		:
-//				System.err.println("Command");
 				switch (desc.operation) {
 					case (byte)0xbd :	// anewarray
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(parameters[0]);
@@ -2930,6 +2939,12 @@ class LineParser implements LineByLineProcessorCallback {
 					case 0x12 :	// ldc
 						if (cc.getConstantPool().getItemType((short)parameters[0]) == JavaByteCodeConstants.CONSTANT_Class) {
 							final long	className = cc.getNameTree().placeOrChangeName((CharSequence)"java/lang/Class", new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							final short	classId = cc.getConstantPool().asClassDescription(className);
+							
+							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, classId);
+						}
+						else if (cc.getConstantPool().getItemType((short)parameters[0]) == JavaByteCodeConstants.CONSTANT_String) {
+							final long	className = cc.getNameTree().placeOrChangeName((CharSequence)"java/lang/String", new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
 							final short	classId = cc.getConstantPool().asClassDescription(className);
 							
 							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, classId);
@@ -2944,6 +2959,12 @@ class LineParser implements LineByLineProcessorCallback {
 							
 							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, classId);
 						}
+						else if (cc.getConstantPool().getItemType((short)parameters[0]) == JavaByteCodeConstants.CONSTANT_String) {
+							final long	className = cc.getNameTree().placeOrChangeName((CharSequence)"java/lang/String", new NameDescriptor(CompilerUtils.CLASSTYPE_REFERENCE));
+							final short	classId = cc.getConstantPool().asClassDescription(className);
+							
+							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, classId);
+						}
 						else {
 							return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
 						}
@@ -2952,20 +2973,17 @@ class LineParser implements LineByLineProcessorCallback {
 					case (byte)0xc5 :	// multianewarray
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
 					case (byte)0xbb :	// new
-						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
+						return new TypeDescriptor(CompilerUtils.CLASSTYPE_REFERENCE, (short)parameters[0]);
 					case (byte)0xbc :	// newarray
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(3);
 					default :
 						throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
 				}
 			case staticField	:
-//				System.err.println("Static field");
 				break;
 			case instanceField	:
-//				System.err.println("Instance field");
 				break;
 			case locaVariable	:
-//				System.err.println("Local variable");
 				switch (desc.operation) {
 					case 0x19 :	// aload N
 						return methodDescriptor.getBody().getStackAndVarRepoNew().getVarType(parameters[0]);
@@ -2981,10 +2999,8 @@ class LineParser implements LineByLineProcessorCallback {
 						throw new UnsupportedOperationException("Ref type source ["+desc.refTypeSource+"] is not supported yet");
 				}
 			case returnedValue	:
-//				System.err.println("Returned value");
 				break;
 			case stack2			:
-//				System.err.println("Stack 2");
 				final String	className = InternalUtils.displ2String(cc, (short)parameters[1]);
 				
 				if (className.length() > 2) {	// Referenced type
@@ -3693,46 +3709,52 @@ class LineParser implements LineByLineProcessorCallback {
 		return new String(result);
 	}
 
-	protected synchronized void printDiagnostics(final int lineNo, final char[] content, final int from, final int len) throws IOException {
-		if (diagnostics != null && printAssembler) {
-			final StringBuilder	sb = new StringBuilder();
-			
-			switch (state) {
-				case afterClass					:
-				case beforeImport				:
-				case beforePackage				:
-					sb.append(content, from, len).append('\n');
-					break;
-				case insideBegin				:
-				case insideClassBody			:
-				case insideClassMethod			:
-					try{final int	pc = methodDescriptor.getBody().getPC();
-					
-						sb.append(pc).append(":\t").append(content, from, len).append('\n');
-					} catch (ContentException e) {
-						sb.append('\t').append(content, from, len).append('\n');
-					}
-					break;
-				case insideClass				:
-				case insideClassAbstractMethod	:
-				case insideInterface			:
-				case insideInterfaceAbstractMethod	:
-					sb.append('\t').append('\t').append(content, from, len).append('\n');
-					break;
-				case insideMacros				:
-					sb.append('\t').append(content, from, len).append('\n');
-					break;
-				case insideMethodLookup			:
-				case insideMethodTable			:
-					sb.append('\t').append('\t').append('\t').append(content, from, len).append('\n');
-					break;
-				default:
-					throw new UnsupportedOperationException("State ["+state+"] is not supported yet");
+	protected void printDiagnostics(final int lineNo, final char[] content, final int from, final int len) throws IOException {
+		final StringBuilder	sb = new StringBuilder();
+		
+		switch (state) {
+			case afterClass					:
+			case beforeImport				:
+			case beforePackage				:
+				sb.append(content, from, len);
+				break;
+			case insideBegin				:
+			case insideClassBody			:
+			case insideClassMethod			:
+				try{final int	pc = methodDescriptor.getBody().getPC();
+				
+					sb.append(pc).append(":\t").append(content, from, len);
+				} catch (ContentException e) {
+					sb.append('\t').append(content, from, len);
+				}
+				break;
+			case insideClass				:
+			case insideClassAbstractMethod	:
+			case insideInterface			:
+			case insideInterfaceAbstractMethod	:
+				sb.append('\t').append('\t').append(content, from, len);
+				break;
+			case insideMacros				:
+				sb.append('\t').append(content, from, len);
+				break;
+			case insideMethodLookup			:
+			case insideMethodTable			:
+				sb.append('\t').append('\t').append('\t').append(content, from, len);
+				break;
+			default:
+				throw new UnsupportedOperationException("State ["+state+"] is not supported yet");
+		}
+		printDiagnostics(sb.toString());
+	}
+
+	protected synchronized void printDiagnostics(final String content) throws IOException {
+		if (diagnostics != null) {
+			if (!content.isEmpty()) {
+				diagnostics.write(content);
 			}
-			diagnostics.write(sb.toString());
 			diagnostics.flush();
 		}
-	}
+	}	
 	
 	private static class EntityDescriptor {
 		public short			options;

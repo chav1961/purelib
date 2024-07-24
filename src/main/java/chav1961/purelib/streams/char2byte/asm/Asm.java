@@ -72,7 +72,8 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 		this.cc = new ClassContainer(cdr);
 		this.asmLoader = asm.asmLoader;
 		this.macros = asm.macros;	
-		try{this.lp = diagnostics != null ? new LineParser(owner,cc,cdr,macros,asmLoader,diagnostics) : new LineParser(owner,cc,cdr,macros,asmLoader);
+		try{
+			this.lp = diagnostics != null ? new LineParser(owner,cc,cdr,macros,asmLoader,diagnostics) : new LineParser(owner,cc,cdr,macros,asmLoader);
 		} catch (ContentException e) {
 			throw new IOException(e.getMessage(),e);
 		}
@@ -80,11 +81,10 @@ public class Asm implements LineByLineProcessorCallback, Closeable, Flushable {
 
 	@Override
 	public void processLine(long displacement, int lineNo, char[] data, int from, int length) throws IOException, SyntaxException {
-		try{lp.processLine(displacement,lineNo, data, from, length);
+		try{
+			lp.processLine(displacement,lineNo, data, from, length);
 		} catch (Exception exc) {
-			if (diagnostics != null) {
-				diagnostics.flush();
-			}
+			lp.printDiagnostics("");
 			throw exc;
 		}
 	}

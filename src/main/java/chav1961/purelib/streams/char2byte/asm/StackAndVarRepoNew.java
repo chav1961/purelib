@@ -13,6 +13,7 @@ import chav1961.purelib.cdb.CompilerUtils;
 
 class StackAndVarRepoNew {
 	static final int			SPECIAL_TYPE_TOP = -1;
+	static final int			SPECIAL_TYPE_NULL = -2;
 //	static final int			STACK_AND_VAR_TYPE_INDEX = 0;
 //	static final int			STACK_AND_VAR_REFTYPE_INDEX = 1;
 	
@@ -21,6 +22,7 @@ class StackAndVarRepoNew {
 	private static final int	INTIAL_VARS = 16;
 	private static final int	INTIAL_NESTING = 16;
 	private static final TypeDescriptor	STACK_TOP_DESCRIPTOR = new TypeDescriptor(SPECIAL_TYPE_TOP, (short)0);
+	private static final TypeDescriptor	STACK_NULL_DESCRIPTOR = new TypeDescriptor(SPECIAL_TYPE_NULL, (short)0);
 
 	private final ClassContainer		cc;
 	private Map<Long, StackSnapshot>	forwards = new HashMap<>(); 
@@ -100,7 +102,6 @@ class StackAndVarRepoNew {
 				else {
 					
 				}
-//				System.err.println("Displ="+displ+", item: "+item);
 				item = item.next;
 			}
 			if (changed) {
@@ -201,7 +202,6 @@ class StackAndVarRepoNew {
 	}
 	
 	void processChanges(final short codeDispl, final StackChanges changes, final short refType) throws ContentException {
-//		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
 			case changeDouble2Float:
 				if (selectStackItemType(0) == SPECIAL_TYPE_TOP && selectStackItemType(-1) == CompilerUtils.CLASSTYPE_DOUBLE) {
@@ -318,7 +318,10 @@ class StackAndVarRepoNew {
 				final int	dup = selectStackItemType(0);
 				final short	dupType = selectStackItemRefType(0);
 				
-				if (dup != SPECIAL_TYPE_TOP) {
+				if (dup == SPECIAL_TYPE_NULL) {
+					pushNull(codeDispl);
+				}
+				else if (dup != SPECIAL_TYPE_TOP) {
 					push(codeDispl, dup, dupType);
 				}
 				else {
@@ -334,8 +337,18 @@ class StackAndVarRepoNew {
 						push(codeDispl, dup2V2, dup2V2Type);
 					}
 					else {
-						push(codeDispl, dup2V2, dup2V2Type);
-						push(codeDispl, dup2V1, dup2V1Type);
+						if (dup2V2 == SPECIAL_TYPE_NULL) {
+							pushNull(codeDispl);
+						}
+						else {
+							push(codeDispl, dup2V2, dup2V2Type);
+						}
+						if (dup2V1 == SPECIAL_TYPE_NULL) {
+							pushNull(codeDispl);
+						}
+						else {
+							push(codeDispl, dup2V1, dup2V1Type);
+						}
 					}
 				}
 				else {
@@ -514,6 +527,9 @@ class StackAndVarRepoNew {
 				pop(codeDispl);
 				pushReference(codeDispl, refType);
 				break;
+			case pushNull	:
+				pushNull(codeDispl);
+				break;
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
@@ -521,7 +537,6 @@ class StackAndVarRepoNew {
 	}
 
 	void processChanges(final short codeDispl, final StackChanges changes, final int type, final short refType) throws ContentException {
-//		System.err.println("Code displacement: "+codeDispl);
 		switch (changes) {
 			case multiarrayAndPushReference	:
 				for (int index = 0; index < type; index++) {
@@ -603,6 +618,10 @@ class StackAndVarRepoNew {
 				pop(codeDispl, 2);
 				pushReference(codeDispl, refType);
 				break;
+			case pop2AndPushInt	:
+				pop(codeDispl, 2);
+				pushInt(codeDispl);
+				break;
 			default:
 				throw new UnsupportedOperationException("Stack changes type ["+changes+"] is not supported here"); 
 		}
@@ -650,12 +669,10 @@ class StackAndVarRepoNew {
 	}
 
 	void markForwardBrunch(final long labelId) {
-//		System.err.println("markForwardBrunch "+labelId);
 		forwards.put(labelId, new StackSnapshot(stackContent, currentStackTop));
 	}
 	
 	void loadForwardSnapshot(final long labelId) {
-//		System.err.println("loadForwardSnapshot "+labelId);
 	}
 	
 	int getCurrentStackDepth() {
@@ -702,7 +719,6 @@ class StackAndVarRepoNew {
 		final TypeDescriptor[] varTypes = collectVarDescriptors();
 		
 		if (forwards.containsKey(labelId)) {
-//			System.err.println("---Label found ("+labelId+")---");
 			loadStackSnapshot(forwards.get(labelId));
 		}
 		return new StackMapRecord(displ, new StackSnapshot(stackContent, currentStackTop), new VarSnapshot(varTypes));
@@ -733,7 +749,12 @@ class StackAndVarRepoNew {
 
 	boolean typesAreCompatible(final int fromStack, final int fromSignature) {
 		if (fromStack != fromSignature) {
-			return fromStack == CompilerUtils.CLASSTYPE_INT && (fromSignature == CompilerUtils.CLASSTYPE_BYTE || fromSignature == CompilerUtils.CLASSTYPE_SHORT || fromSignature == CompilerUtils.CLASSTYPE_CHAR || fromSignature == CompilerUtils.CLASSTYPE_INT || fromSignature == CompilerUtils.CLASSTYPE_BOOLEAN);
+			if (fromStack == SPECIAL_TYPE_NULL && fromSignature == CompilerUtils.CLASSTYPE_REFERENCE) {
+				return true;
+			}
+			else {
+				return fromStack == CompilerUtils.CLASSTYPE_INT && (fromSignature == CompilerUtils.CLASSTYPE_BYTE || fromSignature == CompilerUtils.CLASSTYPE_SHORT || fromSignature == CompilerUtils.CLASSTYPE_CHAR || fromSignature == CompilerUtils.CLASSTYPE_INT || fromSignature == CompilerUtils.CLASSTYPE_BOOLEAN);
+			}
 		}
 		else {
 			return true;
@@ -859,6 +880,14 @@ class StackAndVarRepoNew {
 		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, temp);
 		pushStack(temp);
 	}
+
+	void pushNull(final short codeDispl) {
+		final TypeDescriptor	nullDesc = new TypeDescriptor(SPECIAL_TYPE_NULL, (short)0);
+				
+		ensureStackMapCapacity(codeDispl);
+		stackMap[codeDispl] = new StackMapItem(stackMap[codeDispl], codeDispl, 0, null, 1, nullDesc);
+		pushStack(nullDesc);
+	}
 	
 	private void pushStack(final TypeDescriptor value) {
 		ensureStackCapacity(1);
@@ -961,6 +990,12 @@ class StackAndVarRepoNew {
 				case CompilerUtils.CLASSTYPE_VOID		:	
 					dataTypeName = "void";
 					break;
+				case SPECIAL_TYPE_TOP					:
+					dataTypeName = "top";
+					break;
+				case SPECIAL_TYPE_NULL					:
+					dataTypeName = "null";
+					break;
 				default :
 					dataTypeName = ""+dataType;
 					break;
@@ -970,8 +1005,6 @@ class StackAndVarRepoNew {
 	}
 	
 	static class VarDescriptors {
-		private static final TypeDescriptor	TOP_TYPE = new TypeDescriptor(SPECIAL_TYPE_TOP, (short)0);
-		
 		final short			codeDispl; 
 		final int			initialVarNumber; 
 		int					currentVarNumber; 
@@ -992,7 +1025,7 @@ class StackAndVarRepoNew {
 				}
 				content[index] = (TypeDescriptor) desc.clone();
 				if (desc.dataType == CompilerUtils.CLASSTYPE_DOUBLE || desc.dataType == CompilerUtils.CLASSTYPE_LONG) {
-					content[index + 1] = (TypeDescriptor) TOP_TYPE.clone();
+					content[index + 1] = (TypeDescriptor) STACK_TOP_DESCRIPTOR.clone();
 					currentVarNumber += 2; 
 				}
 				else {
@@ -1071,6 +1104,7 @@ class StackAndVarRepoNew {
 						case CompilerUtils.CLASSTYPE_BOOLEAN	: sb.append("boolean"); break;
 						case CompilerUtils.CLASSTYPE_VOID		: sb.append("void"); break;
 						case SPECIAL_TYPE_TOP 					: sb.append("top"); break;
+						case SPECIAL_TYPE_NULL 					: sb.append("null"); break;
 						default 								: sb.append(val); break;
 					}
 				}
@@ -1234,6 +1268,8 @@ class StackAndVarRepoNew {
 					return StackMap.ITEM_Double;	
 				case SPECIAL_TYPE_TOP					: 
 					return StackMap.ITEM_Top;
+				case SPECIAL_TYPE_NULL					: 
+					return StackMap.ITEM_Null;
 				default : 
 					throw new UnsupportedOperationException("Type ["+type.dataType+"] is not supported yet");
 			}
@@ -1258,6 +1294,8 @@ class StackAndVarRepoNew {
 						return StackMap.ITEM_Double;	
 					case SPECIAL_TYPE_TOP					: 
 						return StackMap.ITEM_Top;
+					case SPECIAL_TYPE_NULL					: 
+						return StackMap.ITEM_Null;
 					default : 
 						throw new UnsupportedOperationException("Type ["+type.dataType+"] is not supported yet");
 				}
@@ -1269,7 +1307,9 @@ class StackAndVarRepoNew {
 			
 			for (int index = 0; index < array.length; index++) {
 				if (array[index].dataType == CompilerUtils.CLASSTYPE_REFERENCE && !array[index].unassigned) {
-					result += 2;
+					if (array[index].reference != 0) {
+						result += 2;
+					}
 				}
 				else if (array[index].dataType == SPECIAL_TYPE_TOP) {
 					result--;

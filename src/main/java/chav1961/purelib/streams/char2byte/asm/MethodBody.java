@@ -264,10 +264,6 @@ loop:	for (ItemDescriptor item : brunches) {
 		if (sb != null) {
 			final String	clazz = tree.getName(className), method = tree.getName(methodName);
 			
-//			final PrintWriter	pw = new PrintWriter(System.err);
-//			((AndOrTree)tree).print(pw);
-//			pw.flush();
-			
 			throw new ContentException("Class ["+clazz+"], method ["+method+"] - unresolved jumps: labels {"+sb.toString()+"} are not defined in the method body!");
 		}
 	}

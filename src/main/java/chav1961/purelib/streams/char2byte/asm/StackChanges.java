@@ -14,6 +14,7 @@ enum StackChanges {
 	pushDouble,
 	pushFloat,
 	pushReference,
+	pushNull,
 	
 	dup,
 	dup_x1,

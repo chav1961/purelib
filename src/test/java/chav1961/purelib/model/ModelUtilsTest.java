@@ -15,6 +15,7 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.PureLibSettings;
@@ -383,7 +384,7 @@ public class ModelUtilsTest {
 	}
 
 	@Test
-	@Ignore
+	@Disabled
 	public void buildMappedWrapperClassByModelTest() throws LocalizationException, ContentException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestClass.class);
 		final TestClass						tc = new TestClass();
