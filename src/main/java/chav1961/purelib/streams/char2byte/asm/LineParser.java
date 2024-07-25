@@ -184,7 +184,7 @@ class LineParser implements LineByLineProcessorCallback {
 	}
 	
 	private enum ParserState {
-		beforePackage, insideMacros, beforeImport, insideClass, insideInterface, insideInterfaceAbstractMethod, insideClassAbstractMethod, insideClassMethod, insideClassBody, insideBegin, insideMethodLookup, insideMethodTable, afterClass
+		beforePackage, insideMacros, beforeImport, insideClass, insideInterface, insideInterfaceAbstractMethod, insideClassAbstractMethod, insideClassMethod, insideClassBody, insideBegin, insideBeginCode,insideMethodLookup, insideMethodTable, afterClass
 	}
 	
 	private enum CommandFormat{
@@ -576,6 +576,7 @@ class LineParser implements LineByLineProcessorCallback {
 							e.printStackTrace();
 							throw CompilerErrors.ERR_MACROS_INVOCATION_ERROR.syntaxError(lineNo, className, e.getLocalizedMessage()); 
 						} catch (VerifyError | ClassFormatError e) {
+							e.printStackTrace();
 							throw CompilerErrors.ERR_MACROS_CODE_CORRUPTED.error(className, e.getLocalizedMessage(), new String(writer.extract())); 
 						}
 						state = ParserState.beforePackage;
@@ -601,8 +602,7 @@ class LineParser implements LineByLineProcessorCallback {
 				start = InternalUtils.skipBlank(data,start);
 				if (data[start] == ':') {
 					switch (state) {
-						case insideClassBody :
-						case insideBegin :
+						case insideClassBody : case insideBegin : case insideBeginCode :
 							putLabel(lineNo, id);
 							break;
 						default :
@@ -699,8 +699,7 @@ class LineParser implements LineByLineProcessorCallback {
 						case DIR_VAR	:
 							checkLabel(lineNo, id, true);
 							switch (state) {
-								case insideClassBody :
-								case insideBegin :
+								case insideClassBody : case insideBegin :
 									processVarDir(lineNo, id, data, InternalUtils.skipBlank(data,start));
 									break;
 								default :
@@ -709,7 +708,9 @@ class LineParser implements LineByLineProcessorCallback {
 							break;
 						case DIR_BEGIN	:
 							switch (state) {
-								case insideBegin :
+								case insideBeginCode :
+									state = ParserState.insideBegin;
+								case insideBegin : 
 									beginLevel++;
 									methodDescriptor.push();
 									methodDescriptor.getBody().getStackAndVarRepoNew().pushVarFrame((short)getPC());
@@ -776,9 +777,10 @@ class LineParser implements LineByLineProcessorCallback {
 										state = ParserState.insideInterface;
 									}
 									break;
-								case insideBegin :
+								case insideBegin : case insideBeginCode :
 									if (beginLevel > 0) {
 										methodDescriptor.pop();
+										methodDescriptor.getBody().getStackAndVarRepoNew().popVarFrame();
 										beginLevel--;
 										if (stackSize4CurrentMethod == STACK_OPTIMISTIC) {
 											methodDescriptor.getBody().getStackAndVarRepoNew().popVarFrame();
@@ -796,17 +798,20 @@ class LineParser implements LineByLineProcessorCallback {
 											state = ParserState.insideClass;
 										}
 									}
+									if (beginLevel > 0) {
+										prepareStackMapRecord(0);
+									}
 									break;
 								case insideMethodLookup :
 									fillLookup(lineNo);	
 									jumps.clear();
-									state = ParserState.insideBegin;
+									state = ParserState.insideBeginCode;
 									markLabelRequired(true);
 									break;
 								case insideMethodTable :
 									fillTable(lineNo);	
 									jumps.clear();
-									state = ParserState.insideBegin; 
+									state = ParserState.insideBeginCode; 
 									markLabelRequired(true);
 									break;
 								default :
@@ -822,8 +827,7 @@ class LineParser implements LineByLineProcessorCallback {
 									state = ParserState.insideClassBody;
 									methodLineNo = 0;
 									break;
-								case insideClassBody :
-								case insideBegin :
+								case insideClassBody : case insideBegin : case insideBeginCode :
 									throw CompilerErrors.ERR_DUPLICATE_STACK_DIRECTIVE.syntaxError(lineNo);
 								default :
 									throw CompilerErrors.ERR_STACK_DIRECTIVE_OUTSIDE_METHOD.syntaxError(lineNo);
@@ -859,8 +863,7 @@ class LineParser implements LineByLineProcessorCallback {
 							break;
 						case DIR_TRY	:
 							switch (state) {
-								case insideClassBody :
-								case insideBegin :
+								case insideClassBody : case insideBegin : case insideBeginCode :
 									pushTryBlock();
 									break;
 								default :
@@ -869,8 +872,7 @@ class LineParser implements LineByLineProcessorCallback {
 							break;
 						case DIR_CATCH	:
 							switch (state) {
-								case insideClassBody :
-								case insideBegin :
+								case insideClassBody : case insideBegin : case insideBeginCode :
 									processCatch(lineNo, data, InternalUtils.skipBlank(data, start), end);
 									break;
 								default :
@@ -879,8 +881,7 @@ class LineParser implements LineByLineProcessorCallback {
 							break;
 						case DIR_END_TRY	:
 							switch (state) {
-								case insideClassBody :
-								case insideBegin :
+								case insideClassBody : case insideBegin : case insideBeginCode :
 									popTryBlock(lineNo);
 									break;
 								default :
@@ -934,8 +935,7 @@ class LineParser implements LineByLineProcessorCallback {
 					break;
 				case '*' :
 					switch (state) {
-						case insideClassBody : 
-						case insideBegin : 
+						case insideClassBody : case insideBegin : case insideBeginCode : 
 							endDir = start = skipSimpleName(data,start+1);
 			
 							switch ((int)staticDirectiveTree.seekName(data,startDir,endDir)) {
@@ -993,8 +993,7 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 					
 					switch (state) {
-						case insideClassBody : 
-						case insideBegin : 
+						case insideClassBody : case insideBegin : case insideBeginCode : 
 							endDir = start = skipSimpleName(data,start);
 							
 							if (startDir == endDir) {
@@ -1015,6 +1014,13 @@ class LineParser implements LineByLineProcessorCallback {
 										throw new SyntaxException(lineNo,0,"Illegal data types at the top of stack to use this command.");
 									}
 								}								
+						
+								if (state == ParserState.insideBegin) {
+									if (beginLevel > 0) {
+										prepareStackMapRecord(0);
+									}
+									state = ParserState.insideBeginCode;
+								}
 								
 								switch (desc.commandFormat) {
 									case single					: processSingleCommand(lineNo, desc, data, start); break; 
@@ -3719,6 +3725,7 @@ class LineParser implements LineByLineProcessorCallback {
 				sb.append(content, from, len);
 				break;
 			case insideBegin				:
+			case insideBeginCode			:
 			case insideClassBody			:
 			case insideClassMethod			:
 				try{final int	pc = methodDescriptor.getBody().getPC();
@@ -3735,7 +3742,7 @@ class LineParser implements LineByLineProcessorCallback {
 				sb.append('\t').append('\t').append(content, from, len);
 				break;
 			case insideMacros				:
-				sb.append('\t').append(content, from, len);
+				sb.append('\t').append('>').append(content, from, len);
 				break;
 			case insideMethodLookup			:
 			case insideMethodTable			:

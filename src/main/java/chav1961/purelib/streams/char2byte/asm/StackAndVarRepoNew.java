@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.growablearrays.InOutGrowableByteArray;
@@ -956,6 +957,20 @@ class StackAndVarRepoNew {
 		}
 
 		@Override
+		public int hashCode() {
+			return Objects.hash(dataType, reference, unassigned);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			TypeDescriptor other = (TypeDescriptor) obj;
+			return dataType == other.dataType && reference == other.reference && unassigned == other.unassigned;
+		}
+
+		@Override
 		public String toString() {
 			final String	dataTypeName;
 			
@@ -1126,7 +1141,14 @@ class StackAndVarRepoNew {
 		}		
 
 		VarSnapshot(final TypeDescriptor[] varContent) {
-			this.content = varContent.clone();
+			this.content = new TypeDescriptor[varContent.length];
+					
+			for(int index = 0; index < content.length; index++) {
+				try{
+					this.content[index] = (TypeDescriptor) varContent[index].clone();
+				} catch (CloneNotSupportedException e) {
+				}
+			}
 		}
 		
 		
@@ -1229,9 +1251,14 @@ class StackAndVarRepoNew {
 			for (int index = 0; index < vars.content.length; index++) {
 				final int	verification = toVarFrameTypes(vars.content[index]); 
 				
-				os.writeByte(verification);
-				if (verification == StackMap.ITEM_Object) {
-					os.writeShort(vars.content[index].reference);
+				if (vars.content[index].unassigned) {
+					os.writeByte(StackMap.ITEM_Top);
+				}
+				else {
+					os.writeByte(verification);
+					if (verification == StackMap.ITEM_Object) {
+						os.writeShort(vars.content[index].reference);
+					}
 				}
 			}
 			

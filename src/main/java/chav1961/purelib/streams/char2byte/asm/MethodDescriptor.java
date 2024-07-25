@@ -213,7 +213,7 @@ class MethodDescriptor implements Closeable {
 	void addStackMapRecord(final long labelId) throws ContentException {
 		final short	displ = this.getBody().getPC();
 		
-		if (!stackMapsDisplacement.contains(displ)) {
+		if (displ != 0 && !stackMapsDisplacement.contains(displ)) {
 			stackMapsDisplacement.add(displ);
 			stackMaps.add(this.getBody().getStackAndVarRepoNew().createStackMapRecord(displ, labelId));
 		}
