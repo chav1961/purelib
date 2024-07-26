@@ -21,7 +21,6 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.ui.swing.SwingUtils;
 
-@Tag("OrdinalTestCategory")
 public class SwingUnitTestTest {
 	final JFrame		root = new JFrame();
 	final JTextField	field1 = new JTextField(), field2 = new JTextField();
