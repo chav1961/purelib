@@ -563,8 +563,10 @@ class InternalUtils {
 			if (mode == NodeEnterMode.ENTER) {
 				switch (node.getType()) {
 					case Char		:
-						node.cargo = new char[] {(char)node.value};
-						node.value = lexTypes.placeName((char[])node.cargo, 0, ((char[])node.cargo).length, node);
+						final char[]	temp = new char[] {(char)node.value}; 
+						
+						node.cargo = temp;
+						node.value = lexTypes.placeName(temp, 0, temp.length, node);
 						break;
 					case Sequence	:
 						node.value = lexTypes.placeName((char[])node.cargo, 0, ((char[])node.cargo).length, node);
@@ -742,7 +744,7 @@ class InternalUtils {
 loop:	for (;;) {
 			switch (lex.type) {
 				case Char	:
-					list.add(new SyntaxNode<>(0, from, EntityType.Char, lex.keyword, null));
+					list.add(new SyntaxNode<>(0, from, EntityType.Char, lex.keyword, new char[] {(char)lex.keyword}));
 					from = next(content, from, keywords, temp, lex);
 					if (lex.type == LexType.Colon) {
 						from = next(content, from, keywords, temp, lex);
@@ -854,7 +856,7 @@ loop:	for (;;) {
 	static <NodeType extends Enum<?>> void printTree(final SyntaxNode<EntityType, ?> root, final SyntaxTreeInterface<NodeType> keywords, final Writer wr) throws IOException {
 		switch (root.type) {
 			case Char		:
-				wr.write("="+root.value+" '"+(root.cargo instanceof char[] ? new String((char[])root.cargo) : "")+"'");
+				wr.write("'"+(root.cargo instanceof char[] ? new String((char[])root.cargo) : "")+"'");
 				break;
 			case Name		:
 				wr.write("<"+(keywords.getName(root.value))+"> ");
@@ -903,7 +905,7 @@ loop:	for (;;) {
 				wr.write("\r\n");
 				break;
 			case Sequence	:
-				wr.write("="+root.value+" \""+(root.cargo instanceof char[] ? new String((char[])root.cargo) : "")+"\"");
+				wr.write("\""+(root.cargo instanceof char[] ? new String((char[])root.cargo) : "")+"\"");
 				break;
 			case Switch		:
 				String	prefix = "{";
@@ -1141,7 +1143,7 @@ L:				switch (node.type) {
 			
 			switch (root.getType()) {
 				case Char		:
-					wr.write(" prepareNameTestMethodChar value="+root.value+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\",addTrace="+addTrace+"\n");
+					wr.write(" prepareNameTestMethodChar value="+String.valueOf((int)((char[])root.cargo)[0])+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\",addTrace="+addTrace+"\n");
 					break;
 				case Name		:
 					wr.write(" prepareNameTestMethodRule methodName=\""+names.testMethod+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");
@@ -1247,7 +1249,7 @@ L:				switch (node.type) {
 			
 			switch (root.getType()) {
 				case Char		:
-					wr.write(" prepareNameTestMethodChar value="+root.value+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\",addTrace="+addTrace+"\n");
+					wr.write(" prepareNameTestMethodChar value="+String.valueOf((int)((char[])root.cargo)[0])+",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\",addTrace="+addTrace+"\n");
 					break;
 				case Name		:
 					wr.write(" prepareNameParseMethodRule methodName=\""+names.parseMethod+"\",trueJump=\""+trueLabel+"\",falseJump=\""+falseLabel+"\"\n");

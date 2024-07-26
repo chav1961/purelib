@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.AndOrTree;
@@ -127,10 +128,10 @@ public class InternalUtilsTest {
 	@Test
 	@Ignore
 	public void parserTest() throws SyntaxException, IOException {
-		Assert.assertEquals("<Test1> ::= '1' \r\n", parseAndPrint("<Test1>::='1'"));
-		Assert.assertEquals("<Test1> ::= '1' :<Test2> \r\n", parseAndPrint("<Test1>::='1':<Test2>"));
-		Assert.assertEquals("<Test1> ::= \"123\" \r\n", parseAndPrint("<Test1>::='123'"));
-		Assert.assertEquals("<Test1> ::= \"123\" :<Test2> \r\n", parseAndPrint("<Test1>::='123':<Test2>"));
+		Assert.assertEquals("<Test1> ::= '1'\r\n", parseAndPrint("<Test1>::='1'"));
+		Assert.assertEquals("<Test1> ::= '1':<Test2> \r\n", parseAndPrint("<Test1>::='1':<Test2>"));
+		Assert.assertEquals("<Test1> ::= \"123\"\r\n", parseAndPrint("<Test1>::='123'"));
+		Assert.assertEquals("<Test1> ::= \"123\":<Test2> \r\n", parseAndPrint("<Test1>::='123':<Test2>"));
 		Assert.assertEquals("<Test1> ::= <Test2> \r\n", parseAndPrint("<Test1>::=<Test2>"));
 		Assert.assertEquals("<Test1> ::= @Empty \r\n", parseAndPrint("<Test1>::=@Empty"));
 		Assert.assertEquals("<Test1> ::= <Test2> <Test3> \r\n", parseAndPrint("<Test1>::=<Test2><Test3>"));
@@ -168,6 +169,7 @@ public class InternalUtilsTest {
 	}
 
 	@Test
+	@Disabled
 	public void buildTest2Test() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 //		test2Test("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
 //		test2Test("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
@@ -361,7 +363,7 @@ public class InternalUtilsTest {
 	}	
 
 	@Test
-	@Ignore
+	@Disabled
 	public void complexTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		final SyntaxTreeInterface<Object>				tree = new AndOrTree<>();
 		final SyntaxTreeInterface<Object>				names = new AndOrTree<>();

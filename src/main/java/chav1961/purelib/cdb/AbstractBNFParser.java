@@ -91,7 +91,7 @@ public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> impleme
 	}
 	
 	protected static void throwSyntaxException(final char[] content, final int col, final String message, final Object[] parameters) throws SyntaxException {
-		final int		from = Math.max(0, col - 10), to = Math.min(content.length, col + 10), pos = col < 10 ? col : 10;
+		final int		from = Math.max(0, col - 10), to = Math.min(content.length, col + 10);
 		final char[]	piece = Arrays.copyOfRange(content, from, to);
 		final char[]	pointer = new char[piece.length];
 		

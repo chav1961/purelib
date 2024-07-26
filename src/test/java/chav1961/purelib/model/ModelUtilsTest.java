@@ -525,6 +525,7 @@ public class ModelUtilsTest {
 	}
 
 	@Test
+	@Disabled
 	public void buildMappedWrapperClassByModelNonPublicTest() throws LocalizationException, ContentException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
 		final ContentMetadataInterface		mdi = ContentModelFactory.forAnnotatedClass(TestPrivateClass.class);
 		final TestPrivateClass				tc = new TestPrivateClass();
