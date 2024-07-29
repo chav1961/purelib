@@ -46,19 +46,19 @@ public class InOutGrowableByteArrayTest {
 			
 			gba.append(baos.toByteArray());
 			
-			Assert.assertEquals(gba.readByte(),123);
+			Assert.assertEquals(123, gba.readByte());
 			Assert.assertTrue(gba.readBoolean());
-			Assert.assertEquals(gba.readChar(),'1');
-			Assert.assertEquals(gba.readLine(),"23456789");
-			Assert.assertEquals(gba.readDouble(),-345.6,0.0001);
-			Assert.assertEquals(gba.readFloat(),-345.6,0.0001);
-			Assert.assertEquals(gba.readInt(),789);
-			Assert.assertEquals(gba.readLong(),1234);
-			Assert.assertEquals(gba.readShort(),567);
-			Assert.assertEquals(65535,gba.readUnsignedShort());
-			Assert.assertEquals(gba.readUTF(),"test \u1200 string");
-			Assert.assertEquals(gba.readByte(),123);
-			Assert.assertEquals(255,gba.readUnsignedByte());
+			Assert.assertEquals('1', gba.readChar());
+			Assert.assertEquals("23456789", gba.readLine());
+			Assert.assertEquals(-345.6, gba.readDouble(), 0.0001);
+			Assert.assertEquals(-345.6, gba.readFloat(), 0.0001);
+			Assert.assertEquals(789, gba.readInt());
+			Assert.assertEquals(1234, gba.readLong());
+			Assert.assertEquals(567, gba.readShort());
+			Assert.assertEquals(gba.readUnsignedShort(), 65535);
+			Assert.assertEquals("test \u1200 string", gba.readUTF());
+			Assert.assertEquals(123, gba.readByte());
+			Assert.assertEquals(255, gba.readUnsignedByte());
 		}
 		
 		gba.reset();
@@ -77,16 +77,16 @@ public class InOutGrowableByteArrayTest {
 		try(final ByteArrayInputStream	bais = new ByteArrayInputStream(gba.toPlain().toArray());
 			final DataInputStream		dis = new DataInputStream(bais)) {
 
-			Assert.assertEquals(dis.readByte(),123);
-			Assert.assertEquals(dis.readChar(),'1');
-			Assert.assertEquals(dis.readLine(),"23456789");
-			Assert.assertEquals(dis.readDouble(),-345.6,0.0001);
-			Assert.assertEquals(dis.readFloat(),-345.6,0.0001);
-			Assert.assertEquals(dis.readInt(),789);
-			Assert.assertEquals(dis.readLong(),1234);
-			Assert.assertEquals(dis.readShort(),567);
-			Assert.assertEquals(dis.readUTF(),"test \u1200 string");
-			Assert.assertEquals(dis.readByte(),123);
+			Assert.assertEquals(123, dis.readByte());
+			Assert.assertEquals('1', dis.readChar());
+			Assert.assertEquals("23456789", dis.readLine());
+			Assert.assertEquals(-345.6, dis.readDouble(), 0.0001);
+			Assert.assertEquals(-345.6, dis.readFloat(), 0.0001);
+			Assert.assertEquals(789, dis.readInt());
+			Assert.assertEquals(1234, dis.readLong());
+			Assert.assertEquals(567, dis.readShort());
+			Assert.assertEquals("test \u1200 string", dis.readUTF());
+			Assert.assertEquals(123, dis.readByte());
 		}
 		
 		gba.reset();

@@ -73,7 +73,7 @@ public class GrowableByteArray implements AnyGrowableArray {
 	 * @return self
 	 */
 	public GrowableByteArray append(final byte data) {
-		aacm.checkSize(filled+1);
+		aacm.checkSize(filled + 1);
 		
 		if (usePlain) {
 			plain[filled] = data;
@@ -128,21 +128,22 @@ public class GrowableByteArray implements AnyGrowableArray {
 			throw new ArrayIndexOutOfBoundsException("To location ["+to+"] less than from location["+from+"]");
 		}
 		else if (len > 0) {
-			aacm.checkSize(filled+len);
-			
-			if (usePlain) {
-				System.arraycopy(data,from,plain,filled,len);
-				filled += len;
-			}
-			else {
-				int	rest = Math.min(len,initialSize - (filled & (initialSize-1))), actualLen = len;
-				
-				do {System.arraycopy(data,from,sliced[aacm.toSliceIndex(filled)],aacm.toRelativeOffset(filled),rest);
-					filled += rest;
-					from += rest;
-					rest = Math.min(actualLen-=rest,initialSize - (filled & (initialSize-1)));
-				} while(rest > 0);
-			}
+			aacm.checkSize(filled + len);
+
+			appendInternal(data, from, len);
+//			if (usePlain) {
+//				System.arraycopy(data, from, plain, filled, len);
+//				filled += len;
+//			}
+//			else {
+//				int	rest = Math.min(len,initialSize - (filled & (initialSize-1))), actualLen = len;
+//				
+//				do {System.arraycopy(data, from, sliced[aacm.toSliceIndex(filled)], aacm.toRelativeOffset(filled), rest);
+//					filled += rest;
+//					from += rest;
+//					rest = Math.min(actualLen-=rest, initialSize - (filled & (initialSize-1)));
+//				} while(rest > 0);
+//			}
 		}
 		return this;
 	}
@@ -562,29 +563,30 @@ public class GrowableByteArray implements AnyGrowableArray {
 	protected int unckeckedWrite(int displ, final byte[] data, int off, final int len) {
 		if (displ >= 0 && displ < filled) {
 			if (displ + len < filled) {
-				if (usePlain) {
-					System.arraycopy(data,off,plain,displ,len);
-				}
-				else {
-					int	rest = Math.min(len,initialSize - (displ & (initialSize-1))), actualLen = len;
-					
-					do {System.arraycopy(data,off,sliced[aacm.toSliceIndex(displ)],aacm.toRelativeOffset(displ),rest);
-						actualLen -= rest;
-						displ += rest;
-						off += rest;
-						rest = Math.min(actualLen,initialSize - (displ & (initialSize-1)));
-					} while(actualLen > 0);
-				}
+				appendInternal(data, off, len);
+//				if (usePlain) {
+//					System.arraycopy(data,off,plain,displ,len);
+//				}
+//				else {
+//					int	rest = Math.min(len,initialSize - (displ & (initialSize-1))), actualLen = len;
+//					
+//					do {System.arraycopy(data,off,sliced[aacm.toSliceIndex(displ)],aacm.toRelativeOffset(displ),rest);
+//						actualLen -= rest;
+//						displ += rest;
+//						off += rest;
+//						rest = Math.min(actualLen,initialSize - (displ & (initialSize-1)));
+//					} while(actualLen > 0);
+//				}
 			}
 			else {
-				final int	delta = filled-displ;
+				final int	delta = filled - displ;
 				
-				unckeckedWrite(displ,data,off,delta);
-				unckeckedWrite(filled,data,off+delta,len-delta);
+				unckeckedWrite(displ, data, off, delta);
+				unckeckedWrite(filled, data, off+delta, len-delta);
 			}
 		}
 		else if (displ == filled) {
-			append(data,off,len);
+			append(data, off, len);
 		}
 		else {
 			throw new IllegalArgumentException("Displacement to write ["+displ+"] out of range 0.."+filled);
@@ -594,6 +596,22 @@ public class GrowableByteArray implements AnyGrowableArray {
 	
 	boolean isSliced() {
 		return !usePlain;
+	}
+
+	protected void appendInternal(final byte[] data, int from, final int len) {
+		if (usePlain) {
+			System.arraycopy(data, from, plain, filled, len);
+			filled += len;
+		}
+		else {
+			int	rest = Math.min(len,initialSize - (filled & (initialSize-1))), actualLen = len;
+			
+			do {System.arraycopy(data, from, sliced[aacm.toSliceIndex(filled)], aacm.toRelativeOffset(filled), rest);
+				filled += rest;
+				from += rest;
+				rest = Math.min(actualLen-=rest, initialSize - (filled & (initialSize-1)));
+			} while(rest > 0);
+		}
 	}
 	
 	private class PlainManager extends AbstractPlainContentManager<byte[]> {

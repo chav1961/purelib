@@ -85,6 +85,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		charBuffer = new char[0];
 		sb.setLength(0);
 		wasInput = wasOutput = false;
+		length(0);
 	}
 
 	@Override
@@ -376,7 +377,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			displ += unckeckedWrite(displ,(byte)b);
+			displ += unckeckedWrite(displ, (byte)b);
 		}
 	}
 
@@ -390,7 +391,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			write(b,0,b.length);
+			write(b, 0, b.length);
 		}
 	}
 
@@ -413,7 +414,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			displ += unckeckedWrite(displ,b,off,len);
+			displ += unckeckedWrite(displ, b, off, len);
 		}
 	}
 
@@ -435,7 +436,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			displ += unckeckedWrite(displ,(byte)v);
+			displ += unckeckedWrite(displ, (byte)v);
 		}
 	}
 
@@ -446,8 +447,8 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			displ += unckeckedWrite(displ,(byte)((v >>> 8) & 0xFF)); 
-			displ += unckeckedWrite(displ,(byte)((v >>> 0) & 0xFF));
+			displ += unckeckedWrite(displ, (byte)((v >>> 8) & 0xFF)); 
+			displ += unckeckedWrite(displ, (byte)((v >>> 0) & 0xFF));
 		}
 	}
 
@@ -458,8 +459,8 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			displ += unckeckedWrite(displ,(byte)((v >>> 8) & 0xFF)); 
-			displ += unckeckedWrite(displ,(byte)((v >>> 0) & 0xFF));
+			displ += unckeckedWrite(displ, (byte)((v >>> 8) & 0xFF)); 
+			displ += unckeckedWrite(displ, (byte)((v >>> 0) & 0xFF));
 		}
 	}
 
@@ -470,11 +471,16 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			forLong[0] = (byte)((v >>> 24) & 0xFF);
-			forLong[1] = (byte)((v >>> 16) & 0xFF);
-			forLong[2] = (byte)((v >>>  8) & 0xFF);
-			forLong[3] = (byte)((v >>>  0) & 0xFF);
-			displ += unckeckedWrite(displ,forLong,0,4);
+			intoLong(0, ((v >>> 24) & 0xFF));
+			intoLong(1, ((v >>> 16) & 0xFF));
+			intoLong(2, ((v >>>  8) & 0xFF));
+			intoLong(3, ((v >>>  0) & 0xFF));
+			flushLong(4);
+//			forLong[0] = (byte)((v >>> 24) & 0xFF);
+//			forLong[1] = (byte)((v >>> 16) & 0xFF);
+//			forLong[2] = (byte)((v >>>  8) & 0xFF);
+//			forLong[3] = (byte)((v >>>  0) & 0xFF);
+//			displ += unckeckedWrite(displ,forLong,0,4);
 		}
 	}
 
@@ -485,15 +491,24 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			forLong[0] = (byte)((v >>> 56) & 0xFF);
-			forLong[1] = (byte)((v >>> 48) & 0xFF);
-			forLong[2] = (byte)((v >>> 40) & 0xFF);
-			forLong[3] = (byte)((v >>> 32) & 0xFF);
-			forLong[4] = (byte)((v >>> 24) & 0xFF);
-			forLong[5] = (byte)((v >>> 16) & 0xFF);
-			forLong[6] = (byte)((v >>>  8) & 0xFF);
-			forLong[7] = (byte)((v >>>  0) & 0xFF);
-			displ += unckeckedWrite(displ,forLong,0,8);
+			intoLong(0, ((v >>> 56) & 0xFF));
+			intoLong(1, ((v >>> 48) & 0xFF));
+			intoLong(2, ((v >>> 40) & 0xFF));
+			intoLong(3, ((v >>> 32) & 0xFF));
+			intoLong(4, ((v >>> 24) & 0xFF));
+			intoLong(5, ((v >>> 16) & 0xFF));
+			intoLong(6, ((v >>>  8) & 0xFF));
+			intoLong(7, ((v >>>  0) & 0xFF));
+			flushLong(8);
+//			forLong[0] = (byte)((v >>> 56) & 0xFF);
+//			forLong[1] = (byte)((v >>> 48) & 0xFF);
+//			forLong[2] = (byte)((v >>> 40) & 0xFF);
+//			forLong[3] = (byte)((v >>> 32) & 0xFF);
+//			forLong[4] = (byte)((v >>> 24) & 0xFF);
+//			forLong[5] = (byte)((v >>> 16) & 0xFF);
+//			forLong[6] = (byte)((v >>>  8) & 0xFF);
+//			forLong[7] = (byte)((v >>>  0) & 0xFF);
+//			displ += unckeckedWrite(displ,forLong,0,8);
 		}
 	}
 
@@ -517,26 +532,31 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
+
+			int		where = 0;
+//			int	len = s.length(), tail = len, index = 0;
 			
-			int	len = s.length(), tail = len, index = 0;
-			
-			if (len >= 8) {
-				for (index = 0; index <= len - 8; index += 8, tail -= 8) {
-					forLong[0] = (byte)s.charAt(index);
-					forLong[1] = (byte)s.charAt(index+1);
-					forLong[2] = (byte)s.charAt(index+2);
-					forLong[3] = (byte)s.charAt(index+3);
-					forLong[4] = (byte)s.charAt(index+4);
-					forLong[5] = (byte)s.charAt(index+5);
-					forLong[6] = (byte)s.charAt(index+6);
-					forLong[7] = (byte)s.charAt(index+7);
-					displ += unckeckedWrite(displ,forLong,0,8);
-				}
+			for (int index = 0, maxIndex = s.length(); index < maxIndex; index++) {
+				where = intoLong(where, s.charAt(index));
 			}
-			for (int delta = 0; delta < tail; index++, delta++) {
-				forLong[delta] = (byte)s.charAt(index);
-			}
-			displ += unckeckedWrite(displ,forLong,0,tail);
+			flushLong(where);
+//			if (len >= 8) {
+//				for (index = 0; index <= len - 8; index += 8, tail -= 8) {
+//					forLong[0] = (byte)s.charAt(index);
+//					forLong[1] = (byte)s.charAt(index+1);
+//					forLong[2] = (byte)s.charAt(index+2);
+//					forLong[3] = (byte)s.charAt(index+3);
+//					forLong[4] = (byte)s.charAt(index+4);
+//					forLong[5] = (byte)s.charAt(index+5);
+//					forLong[6] = (byte)s.charAt(index+6);
+//					forLong[7] = (byte)s.charAt(index+7);
+//					displ += unckeckedWrite(displ,forLong,0,8);
+//				}
+//			}
+//			for (int delta = 0; delta < tail; index++, delta++) {
+//				forLong[delta] = (byte)s.charAt(index);
+//			}
+//			displ += unckeckedWrite(displ,forLong,0,tail);
 		}
 	}
 
@@ -550,23 +570,44 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		}
 		else {
 			wasOutput = true;
-			
-			int		len = s.length(), tail = len, index = 0;
+
+			int		where = 0;
 			char	value;
+//			int	len = s.length(), tail = len, index = 0;
 			
-			if (len >= 4) {
-				for (index = 0; index <= len - 4; index += 4, tail -= 4) {
-					value = s.charAt(index);	forLong[0] = (byte)((value >>> 8) & 0xFF);	forLong[1] = (byte)((value >>> 0) & 0xFF);
-					value = s.charAt(index+1);	forLong[2] = (byte)((value >>> 8) & 0xFF);	forLong[3] = (byte)((value >>> 0) & 0xFF);
-					value = s.charAt(index+2);	forLong[4] = (byte)((value >>> 8) & 0xFF);	forLong[5] = (byte)((value >>> 0) & 0xFF);
-					value = s.charAt(index+3);	forLong[6] = (byte)((value >>> 8) & 0xFF);	forLong[7] = (byte)((value >>> 0) & 0xFF);
-					displ += unckeckedWrite(displ,forLong,0,8);
-				}
+			for (int index = 0, maxIndex = s.length(); index < maxIndex; index++) {
+				value = s.charAt(index);	
+				where = intoLong(where, ((value >>> 8) & 0xFF));
+				where = intoLong(where, ((value >>> 0) & 0xFF));
 			}
-			for (int delta = 0; delta < tail; index++, delta += 2) {
-				value = s.charAt(index);	forLong[delta] = (byte)((value >>> 8) & 0xFF);	forLong[delta+1] = (byte)((value >>> 0) & 0xFF);
-			}
-			displ += unckeckedWrite(displ,forLong,0,2*tail);
+			flushLong(where);
+//			
+//			int		len = s.length(), tail = len, index = 0;
+//			char	value;
+//			
+//			if (len >= 4) {
+//				for (index = 0; index <= len - 4; index += 4, tail -= 4) {
+//					value = s.charAt(index);	
+//					forLong[0] = (byte)((value >>> 8) & 0xFF);	
+//					forLong[1] = (byte)((value >>> 0) & 0xFF);
+//					value = s.charAt(index+1);	
+//					forLong[2] = (byte)((value >>> 8) & 0xFF);	
+//					forLong[3] = (byte)((value >>> 0) & 0xFF);
+//					value = s.charAt(index+2);	
+//					forLong[4] = (byte)((value >>> 8) & 0xFF);	
+//					forLong[5] = (byte)((value >>> 0) & 0xFF);
+//					value = s.charAt(index+3);	
+//					forLong[6] = (byte)((value >>> 8) & 0xFF);	
+//					forLong[7] = (byte)((value >>> 0) & 0xFF);
+//					displ += unckeckedWrite(displ,forLong,0,8);
+//				}
+//			}
+//			for (int delta = 0; delta < tail; index++, delta += 2) {
+//				value = s.charAt(index);	
+//				forLong[delta] = (byte)((value >>> 8) & 0xFF);	
+//				forLong[delta+1] = (byte)((value >>> 0) & 0xFF);
+//			}
+//			displ += unckeckedWrite(displ,forLong,0,2*tail);
 		}
 	}
 
@@ -601,7 +642,7 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 			}
 			writeShort(utflen);
 			
-			int i = 0, forLongIndex = 0;
+			int i = 0, forLongIndex = 0, where = 0;
 			
 			for (i=0; i < strlen; i++, forLongIndex++) {
 			   c = str.charAt(i);
@@ -609,48 +650,60 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 				   break;
 			   }
 			   else {
-				   if (forLongIndex >= 8) {
-					   displ += unckeckedWrite(displ,forLong,0,8);
-					   forLongIndex = 0;
-				   }
-				   forLong[forLongIndex] = (byte) c;
+//				   if (forLongIndex >= 8) {
+//					   displ += unckeckedWrite(displ,forLong,0,8);
+//					   forLongIndex = 0;
+//				   }
+//				   forLong[forLongIndex] = (byte) c;
+				   where = intoLong(where, c);
 			   }
 			}
-			if (forLongIndex != 0) {
-				displ += unckeckedWrite(displ,forLong,0,forLongIndex);
-				forLongIndex = 0;
-			}
+			flushLong(where);
+			where = 0;
+//			if (forLongIndex != 0) {
+//				displ += unckeckedWrite(displ,forLong,0,forLongIndex);
+//				forLongIndex = 0;
+//			}
 			
 			for (; i < strlen; i++, forLongIndex++){
 			    c = str.charAt(i);
 			    if ((c >= 0x0001) && (c <= 0x007F)) {
-				   if (forLongIndex >= 8) {
-					   displ += unckeckedWrite(displ,forLong,0,forLongIndex);
-					   forLongIndex = 0;
-				   }
-				   forLong[forLongIndex] = (byte) c;
-			    } else if (c > 0x07FF) {
-				   if (forLongIndex >= 6) {
-					   displ += unckeckedWrite(displ,forLong,0,forLongIndex);
-					   forLongIndex = 0;
-				   }
-				   forLong[forLongIndex] = (byte) (0xE0 | ((c >> 12) & 0x0F));
-				   forLong[forLongIndex+1] = (byte) (0x80 | ((c >>  6) & 0x3F));
-				   forLong[forLongIndex+2] = (byte) (0x80 | ((c >>  0) & 0x3F));
-				   forLongIndex += 2;
-			    } else {
-				   if (forLongIndex >= 7) {
-					   displ += unckeckedWrite(displ,forLong,0,forLongIndex);
-					   forLongIndex = 0;
-				   }
-				   forLong[forLongIndex] = (byte) (0xC0 | ((c >>  6) & 0x1F));
-				   forLong[forLongIndex+1] = (byte) (0x80 | ((c >>  0) & 0x3F));
+//				   if (forLongIndex >= 8) {
+//					   displ += unckeckedWrite(displ,forLong,0,forLongIndex);
+//					   forLongIndex = 0;
+//				   }
+//				   forLong[forLongIndex] = (byte) c;
+				   where = intoLong(where, c);
+			    } 
+			    else if (c > 0x07FF) {
+				   where = intoLong(where, (0xE0 | ((c >> 12) & 0x0F)));
+				   where = intoLong(where, (0x80 | ((c >>  6) & 0x3F)));
+				   where = intoLong(where, (0x80 | ((c >>  0) & 0x3F)));
+//				   if (forLongIndex >= 6) {
+//					   displ += unckeckedWrite(displ,forLong,0,forLongIndex);
+//					   forLongIndex = 0;
+//				   }
+//				   forLong[forLongIndex] = (byte) (0xE0 | ((c >> 12) & 0x0F));
+//				   forLong[forLongIndex+1] = (byte) (0x80 | ((c >>  6) & 0x3F));
+//				   forLong[forLongIndex+2] = (byte) (0x80 | ((c >>  0) & 0x3F));
+//				   forLongIndex += 2;
+			    } 
+			    else {
+				   where = intoLong(where, (0xC0 | ((c >>  6) & 0x1F)));
+				   where = intoLong(where, (0x80 | ((c >>  0) & 0x3F)));
+//				   if (forLongIndex >= 7) {
+//					   displ += unckeckedWrite(displ,forLong,0,forLongIndex);
+//					   forLongIndex = 0;
+//				   }
+//				   forLong[forLongIndex] = (byte) (0xC0 | ((c >>  6) & 0x1F));
+//				   forLong[forLongIndex+1] = (byte) (0x80 | ((c >>  0) & 0x3F));
 			    }
 			}
-			if (forLongIndex != 0) {
-				displ += unckeckedWrite(displ,forLong,0,forLongIndex);
-				forLongIndex = 0;
-			}
+			flushLong(where);
+//			if (forLongIndex != 0) {
+//				displ += unckeckedWrite(displ,forLong,0,forLongIndex);
+//				forLongIndex = 0;
+//			}
 		}
 	}
 	
@@ -659,7 +712,22 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 			throw new NullPointerException("Another growable array can't be null"); 
 		}
 		else {
-			write(another.toPlain().toArray(),0,another.length());
+			write(another.toPlain().toArray(), 0, another.length());
+		}
+	}
+	
+	private int intoLong(int index, final long value) {
+		if (index >= forLong.length) {
+			flushLong(index);
+			index = 0;
+		}
+		forLong[index] = (byte)value;
+		return index + 1;
+	}
+
+	private void flushLong(final int size) {
+		if (size != 0) {
+			displ += unckeckedWrite(displ, forLong, 0, size);
 		}
 	}
 }
