@@ -293,8 +293,8 @@ public class CharUtils {
 		else if (from < 0 || from >= len) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
 		}
-		else if (result == null || result.length != 1) {
-			throw new IllegalArgumentException("Result array can't be null and need contain exactly one element"); 
+		else if (result == null || result.length < 1) {
+			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
 			return UnsafedCharUtils.uncheckedParseIntExtended(source,from,result,checkOverflow);
@@ -406,8 +406,8 @@ public class CharUtils {
 		else if (from < 0 || from >= len) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
 		}
-		else if (result == null || result.length != 1) {
-			throw new IllegalArgumentException("Result array can't be null and need contain exactly one element"); 
+		else if (result == null || result.length < 1) {
+			throw new IllegalArgumentException("Result array can't be null and need contain al least one element"); 
 		}
 		else {
 			return UnsafedCharUtils.uncheckedParseFloat(source,from,result,checkOverflow);
@@ -435,8 +435,8 @@ public class CharUtils {
 		else if (from < 0 || from >= len) {
 			throw new IllegalArgumentException("From position ["+from+"] out of range 0.."+len); 
 		}
-		else if (result == null || result.length != 1) {
-			throw new IllegalArgumentException("Result array can't be null and need contain exactly one element"); 
+		else if (result == null || result.length < 1) {
+			throw new IllegalArgumentException("Result array can't be null and need contain at least one element"); 
 		}
 		else {
 			return UnsafedCharUtils.uncheckedParseSignedFloat(source, from, result, checkOverflow);

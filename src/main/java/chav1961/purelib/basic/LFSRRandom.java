@@ -1,8 +1,12 @@
 package chav1961.purelib.basic;
 
-
-// https://microsin.net/programming/avr/lfsr-pseudo-random-number-generator.html
-
+/**
+ * <p>This class is a random generator based on linear feedback shift register.</p>
+ * 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @see https://microsin.net/programming/avr/lfsr-pseudo-random-number-generator.html
+ * @since 0.0.7 
+ */
 public class LFSRRandom {
 	private static final int[][]	CONFIG = new int[][] {
 										{2, 3, (1 << 0) | (1 << 1)},
@@ -44,10 +48,19 @@ public class LFSRRandom {
 	private final int	bitmap;
 	private int			current;
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param sequenceLength sequence length awaited. Must be at least 2
+	 */
 	public LFSRRandom(final int sequenceLength) {
 		this((int) System.nanoTime(), sequenceLength);
 	}
 	
+	/**
+	 * <p>Constructor of the class</p>
+	 * @param seed initial seed for random generator. Can't be 0
+	 * @param sequenceLength sequence length awaited. Must be at least 2
+	 */
 	public LFSRRandom(final int seed, final int sequenceLength) {
 		if (seed == 0) {
 			throw new IllegalArgumentException("Seed initial value can't be 0");
@@ -65,10 +78,17 @@ public class LFSRRandom {
 		}
 	}
 	
+	/**
+	 * <p>Reset random generator to initial seed</p>
+	 */
 	public void reset() {
 		this.current = seed;
 	}
 
+	/**
+	 * <p>Get next integer from random generator</p>
+	 * @return next integer in the range 1..sequence length up to nearest power of 2.
+	 */
 	public int next() {
 		boolean calc = false;
 		
