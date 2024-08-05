@@ -9,17 +9,16 @@ import java.io.Reader;
  * Every char in the range 0..127 will be converted from byte to char 'as-is', all other chars will be converted by a decoding table, passed as an argument
  * into it's constructor. The decoding table can have size from 0 to 128 items, and every item in it is a char that appropriates to byte from the range 128..255
  * (the same first char in the table appropriates to (byte)128, the second - to (byte)129 etc. If byte value is outside the table, it will be replaced by '?'.</p>
- * <p>This class can be used in multi-thread environment</p>   
+ * <p>This class is not thread-safe</p>   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
- * @thread.safe
  */
 public class RawByteReader extends Reader {
 	private static final char[]	NULL_FAST_CONVERSION_TABLE = new char[0];
 	
 	private final InputStream	nested;
 	private final char[]		fct;
-	private volatile byte[]		buffer = new byte[1024];
+	private byte[]				buffer = new byte[1024];
 	
 	/**
 	 * <p>Constructor of the class</p>
