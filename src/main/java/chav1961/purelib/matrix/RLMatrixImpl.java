@@ -21,7 +21,8 @@ class RLMatrixImpl implements Matrix {
 	}
 	
 	@Override
-	public void done() {
+	public Matrix done() {
+		return this;
 	}
 	
 	@Override
@@ -553,6 +554,11 @@ class RLMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix subtractFromValue(final int value) {
+		throw new UnsupportedOperationException("Can't subtract longs because matrix content is long"); 
+	}
+
+	@Override
+	public Matrix subtractFromValue(final long value) {
 		final Matrix	result = new RLMatrixImpl(numberOfRows(), numberOfColumns());
 		final long[]	temp = result.extractLongs();
 		final long[]	source = this.content;
@@ -561,11 +567,6 @@ class RLMatrixImpl implements Matrix {
 			temp[index] = value - source[index];
 		}
 		return result;
-	}
-
-	@Override
-	public Matrix subtractFromValue(final long value) {
-		throw new UnsupportedOperationException("Can't subtract longs because matrix content is long"); 
 	}
 
 	@Override
@@ -909,17 +910,22 @@ class RLMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix transpose() {
-		// TODO Auto-generated method stub
+		final Matrix	result = new RLMatrixImpl(numberOfColumns(), numberOfRows());
+		
 		if (numberOfRows() == 1 || numberOfColumns() == 1) {
-			final Matrix	result = new RLMatrixImpl(numberOfColumns(), numberOfRows());
-			
 			System.arraycopy(content, 0, result.extractLongs(), 0, numberOfColumns() * numberOfRows());
-			return result;
 		}
 		else {
+			final long[]	source = this.content;
+			final long[]	target = result.extractLongs();
 			
-			return null;
+			for (int x = 0, maxX = result.numberOfRows(); x < maxX; x++) {
+				for (int y = 0, maxY = result.numberOfColumns(); y < maxY; y++) {
+					target[x * result.numberOfColumns() + y] = source[y * numberOfColumns() + x];  
+				}
+			}
 		}
+		return result;
 	}
 
 	@Override

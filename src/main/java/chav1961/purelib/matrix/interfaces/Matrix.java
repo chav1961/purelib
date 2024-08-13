@@ -229,5 +229,5 @@ public interface Matrix extends AutoCloseable {
 
 	public String toHumanReadableString();
 	
-	public void done();
+	public Matrix done();
 }

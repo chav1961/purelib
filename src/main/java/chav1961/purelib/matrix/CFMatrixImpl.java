@@ -21,7 +21,8 @@ class CFMatrixImpl implements Matrix {
 	}
 
 	@Override
-	public void done() {
+	public Matrix done() {
+		return this;
 	}
 	
 	@Override
@@ -345,7 +346,7 @@ class CFMatrixImpl implements Matrix {
 		if (content == null) {
 			throw new NullPointerException("Content to add can't be null");
 		}
-		else if (numberOfRows() * numberOfColumns() != content.length) {
+		else if (2 * numberOfRows() * numberOfColumns() != content.length) {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
@@ -393,19 +394,20 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix addValue(final float value) {
-		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
-		final float[]	temp = result.extractFloats();
-		final float[]	source = this.content;
-		
-		for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-			temp[index] = source[index] + value;
-		}
-		return result;
+		throw new UnsupportedOperationException("Can't add floats because matrix content is complex float"); 
 	}
 
 	@Override
 	public Matrix addValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Can't add floats because matrix content is complex float"); 
+		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
+		final float[]	temp = result.extractFloats();
+		final float[]	source = this.content;
+		
+		for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+			temp[index] = source[index] + real;
+			temp[index + 1] = source[index + 1] + image;
+		}
+		return result;
 	}
 
 	@Override
@@ -433,7 +435,7 @@ class CFMatrixImpl implements Matrix {
 		if (content == null) {
 			throw new NullPointerException("Content to subtract can't be null");
 		}
-		else if (numberOfRows() * numberOfColumns() != content.length) {
+		else if (2 * numberOfRows() * numberOfColumns() != content.length) {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
@@ -481,19 +483,20 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix subtractValue(final float value) {
-		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
-		final float[]	temp = result.extractFloats();
-		final float[]	source = this.content;
-		
-		for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-			temp[index] = source[index] - value;
-		}
-		return result;
+		throw new UnsupportedOperationException("Can't subtract floats because matrix content is complex float"); 
 	}
 
 	@Override
 	public Matrix subtractValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Can't subtract floats because matrix content is complex float"); 
+		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
+		final float[]	temp = result.extractFloats();
+		final float[]	source = this.content;
+		
+		for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+			temp[index] = source[index] - real;
+			temp[index + 1] = source[index + 1] - image;
+		}
+		return result;
 	}
 
 	@Override
@@ -521,7 +524,7 @@ class CFMatrixImpl implements Matrix {
 		if (content == null) {
 			throw new NullPointerException("Content to subtract from can't be null");
 		}
-		else if (numberOfRows() * numberOfColumns() != content.length) {
+		else if (2 * numberOfRows() * numberOfColumns() != content.length) {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
@@ -569,19 +572,20 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix subtractFromValue(final float value) {
-		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
-		final float[]	temp = result.extractFloats();
-		final float[]	source = this.content;
-		
-		for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-			temp[index] = value - source[index];
-		}
-		return result;
+		throw new UnsupportedOperationException("Can't subtract floats because matrix content is complex float"); 
 	}
 
 	@Override
 	public Matrix subtractFromValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Can't subtract floats because matrix content is complex float"); 
+		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
+		final float[]	temp = result.extractFloats();
+		final float[]	source = this.content;
+		
+		for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+			temp[index] = real - source[index];
+			temp[index + 1] = image - source[index + 1];
+		}
+		return result;
 	}
 
 	@Override
@@ -621,19 +625,20 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix mulValue(final float value) {
-		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
-		final float[]	temp = result.extractFloats();
-		final float[]	source = this.content;
-		
-		for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-			temp[index] = value * source[index];
-		}
-		return result;
+		throw new UnsupportedOperationException("Can't multiply floats because matrix content is complex float"); 
 	}
 
 	@Override
 	public Matrix mulValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Can't multiply floats because matrix content is complex float"); 
+		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
+		final float[]	temp = result.extractFloats();
+		final float[]	source = this.content;
+		
+		for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+			temp[index] = real * source[index] - image * source[index + 1];
+			temp[index + 1] = image * source[index] + real * source[index + 1];
+		}
+		return result;
 	}
 
 	@Override
@@ -658,19 +663,21 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix divValue(final float value) {
-		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
-		final float[]	temp = result.extractFloats();
-		final float[]		source = this.content;
-		
-		for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-			temp[index] = source[index] / value;
-		}
-		return result;
+		throw new UnsupportedOperationException("Can't divide floats because matrix content is complex float"); 
 	}
 
 	@Override
 	public Matrix divValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Can't divide floats because matrix content is complex float"); 
+		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
+		final float[]	temp = result.extractFloats();
+		final float[]	source = this.content;
+		final float		k = 1 / (real * real + image * image); 
+		
+		for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+			temp[index] = (source[index] * real + source[index + 1] * image) * k;
+			temp[index + 1] = (source[index + 1] * real - source[index] * image) * k;
+		}
+		return result;
 	}
 
 	@Override
@@ -695,19 +702,21 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix divFromValue(final float value) {
-		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
-		final float[]	temp = result.extractFloats();
-		final float[]		source = this.content;
-		
-		for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-			temp[index] = value / source[index];
-		}
-		return result;
+		throw new UnsupportedOperationException("Can't divide floats because matrix content is complex float"); 
 	}
 
 	@Override
 	public Matrix divFromValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Can't divide floats because matrix content is complex float"); 
+		final Matrix	result = new CFMatrixImpl(numberOfRows(), numberOfColumns());
+		final float[]	temp = result.extractFloats();
+		final float[]	source = this.content;
+		
+		for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+			final float	k = 1 / (source[index] * source[index] + source[index + 1] * source[index + 1]);
+			temp[index] = (real * source[index] + image * source[index + 1]) * k;
+			temp[index + 1] = (image * source[index] - real * source[index + 1]) * k;
+		}
+		return result;
 	}
 
 	@Override
@@ -735,7 +744,7 @@ class CFMatrixImpl implements Matrix {
 		if (content == null) {
 			throw new NullPointerException("Content to multiply can't be null");
 		}
-		else if (numberOfRows() * numberOfColumns() != content.length) {
+		else if (2 * numberOfRows() * numberOfColumns() != content.length) {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
@@ -743,8 +752,9 @@ class CFMatrixImpl implements Matrix {
 			final float[]	temp = result.extractFloats();
 			final float[]		source = this.content;
 			
-			for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-				temp[index] = source[index] * content[index];
+			for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+				temp[index] = source[index] * content[index] - source[index + 1] * content[index + 1];
+				temp[index + 1] = source[index + 1] * content[index] + source[index] * content[index + 1];
 			}
 			return result;
 		}
@@ -786,7 +796,7 @@ class CFMatrixImpl implements Matrix {
 		if (content == null) {
 			throw new NullPointerException("Content to multiply can't be null");
 		}
-		else if (numberOfRows() * numberOfColumns() != content.length) {
+		else if (2 * numberOfRows() * numberOfColumns() != content.length) {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
@@ -794,8 +804,11 @@ class CFMatrixImpl implements Matrix {
 			final float[]	temp = result.extractFloats();
 			final float[]	source = this.content;
 			
-			for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-				temp[index] = source[index] / content[index];
+			for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+				final float	k = 1 / (content[index] * content[index] + content[index + 1] * content[index + 1]);
+				
+				temp[index] = (source[index] * content[index] + source[index + 1] * content[index + 1]) * k;
+				temp[index + 1] = (source[index + 1] * content[index] - source[index] * content[index + 1]) * k;
 			}
 			return result;
 		}
@@ -837,7 +850,7 @@ class CFMatrixImpl implements Matrix {
 		if (content == null) {
 			throw new NullPointerException("Content to multiply can't be null");
 		}
-		else if (numberOfRows() * numberOfColumns() != content.length) {
+		else if (2 * numberOfRows() * numberOfColumns() != content.length) {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
@@ -845,8 +858,11 @@ class CFMatrixImpl implements Matrix {
 			final float[]	temp = result.extractFloats();
 			final float[]	source = this.content;
 			
-			for(int index = 0, maxIndex = temp.length; index < maxIndex; index++) {
-				temp[index] = content[index] / source[index];
+			for(int index = 0, maxIndex = temp.length; index < maxIndex; index += 2) {
+				final float	k = 1 / (source[index] * source[index] + source[index + 1] * source[index + 1]);
+				
+				temp[index] = (content[index] * source[index] + content[index + 1] * source[index + 1]) * k;
+				temp[index + 1] = (content[index + 1] * source[index] - content[index] * source[index + 1]) * k;
 			}
 			return result;
 		}
@@ -915,17 +931,23 @@ class CFMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix transpose() {
-		// TODO Auto-generated method stub
+		final Matrix	result = new CFMatrixImpl(numberOfColumns(), numberOfRows());
+		
 		if (numberOfRows() == 1 || numberOfColumns() == 1) {
-			final Matrix	result = new CFMatrixImpl(numberOfColumns(), numberOfRows());
-			
-			System.arraycopy(content, 0, result.extractInts(), 0, numberOfColumns() * numberOfRows());
-			return result;
+			System.arraycopy(content, 0, result.extractFloats(), 0, 2 * numberOfColumns() * numberOfRows());
 		}
 		else {
+			final float[]	source = this.content;
+			final float[]	target = result.extractFloats();
 			
-			return null;
+			for (int x = 0, maxX = result.numberOfRows(); x < maxX; x++) {
+				for (int y = 0, maxY = result.numberOfColumns(); y < maxY; y++) {
+					target[2 * (x * result.numberOfColumns() + y)] = source[2 * (y * numberOfColumns() + x)];  
+					target[2 * (x * result.numberOfColumns() + y) + 1] = source[2 * (y * numberOfColumns() + x) + 1];  
+				}
+			}
 		}
+		return result;
 	}
 
 	@Override

@@ -21,7 +21,8 @@ class RIMatrixImpl implements Matrix {
 	}
 	
 	@Override
-	public void done() {
+	public Matrix done() {
+		return this;
 	}
 
 	@Override
@@ -333,7 +334,7 @@ class RIMatrixImpl implements Matrix {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
-			final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+			final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 			final int[]		temp = result.extractInts();
 			final int[]		source = this.content;
 			
@@ -377,7 +378,7 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix addValue(final int value) {
-		final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+		final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 		final int[]		temp = result.extractInts();
 		final int[]		source = this.content;
 		
@@ -421,7 +422,7 @@ class RIMatrixImpl implements Matrix {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
-			final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+			final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 			final int[]		temp = result.extractInts();
 			final int[]		source = this.content;
 			
@@ -465,7 +466,7 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix subtractValue(final int value) {
-		final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+		final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 		final int[]		temp = result.extractInts();
 		final int[]		source = this.content;
 		
@@ -509,7 +510,7 @@ class RIMatrixImpl implements Matrix {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
-			final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+			final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 			final int[]		temp = result.extractInts();
 			final int[]		source = this.content;
 			
@@ -553,7 +554,7 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix subtractFromValue(final int value) {
-		final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+		final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 		final int[]		temp = result.extractInts();
 		final int[]		source = this.content;
 		
@@ -605,7 +606,7 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix mulValue(final int value) {
-		final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+		final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 		final int[]		temp = result.extractInts();
 		final int[]		source = this.content;
 		
@@ -642,7 +643,7 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix divValue(final int value) {
-		final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+		final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 		final int[]		temp = result.extractInts();
 		final int[]		source = this.content;
 		
@@ -679,7 +680,7 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix divFromValue(final int value) {
-		final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+		final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 		final int[]		temp = result.extractInts();
 		final int[]		source = this.content;
 		
@@ -723,7 +724,7 @@ class RIMatrixImpl implements Matrix {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
-			final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+			final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 			final int[]		temp = result.extractInts();
 			final int[]		source = this.content;
 			
@@ -774,7 +775,7 @@ class RIMatrixImpl implements Matrix {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
-			final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+			final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 			final int[]		temp = result.extractInts();
 			final int[]		source = this.content;
 			
@@ -825,7 +826,7 @@ class RIMatrixImpl implements Matrix {
 			throw new IllegalArgumentException("Content size ["+content.length+"] is differ to awaited ["+(numberOfRows()*numberOfColumns())+"]");
 		}
 		else {
-			final Matrix	result = new RFMatrixImpl(numberOfRows(), numberOfColumns());
+			final Matrix	result = new RIMatrixImpl(numberOfRows(), numberOfColumns());
 			final int[]		temp = result.extractInts();
 			final int[]		source = this.content;
 			
@@ -909,17 +910,22 @@ class RIMatrixImpl implements Matrix {
 
 	@Override
 	public Matrix transpose() {
-		// TODO Auto-generated method stub
+		final Matrix	result = new RIMatrixImpl(numberOfColumns(), numberOfRows());
+		
 		if (numberOfRows() == 1 || numberOfColumns() == 1) {
-			final Matrix	result = new RFMatrixImpl(numberOfColumns(), numberOfRows());
-			
 			System.arraycopy(content, 0, result.extractInts(), 0, numberOfColumns() * numberOfRows());
-			return result;
 		}
 		else {
+			final int[]	source = this.content;
+			final int[]	target = result.extractInts();
 			
-			return null;
+			for (int x = 0, maxX = result.numberOfRows(); x < maxX; x++) {
+				for (int y = 0, maxY = result.numberOfColumns(); y < maxY; y++) {
+					target[x * result.numberOfColumns() + y] = source[y * numberOfColumns() + x];  
+				}
+			}
 		}
+		return result;
 	}
 
 	@Override
