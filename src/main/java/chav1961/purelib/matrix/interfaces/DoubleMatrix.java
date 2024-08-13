@@ -2,7 +2,7 @@ package chav1961.purelib.matrix.interfaces;
 
 import java.util.function.DoubleUnaryOperator;
 
-public interface DoubleMatrix extends Matrix<DoubleMatrix> {
+public interface DoubleMatrix extends OldMatrix<DoubleMatrix> {
 	DoubleMatrix function(DoubleUnaryOperator op);
 	double get(int... indices);
 	void set(double value, int... indices);

@@ -1,14 +1,16 @@
 package chav1961.purelib.matrix;
 
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.matrix.interfaces.OldMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.Matrix.Piece;
 
 public class MatrixUtils {
-	public static Matrix<?> zero(final Class<?> type, int size) {
+	public static OldMatrix<?> zero(final Class<?> type, int size) {
 		return zero(type,size,size);
 	}
 
-	public static Matrix<?> zero(final Class<?> type, final int sizeX, final int sizeY) {
+	public static OldMatrix<?> zero(final Class<?> type, final int sizeX, final int sizeY) {
 		if (type == null) {
 			throw new NullPointerException("Class type can't be null");
 		}
@@ -41,7 +43,7 @@ public class MatrixUtils {
 		}
 	}
 	
-	public static Matrix<?> identity(final Class<?> type, final int size) {
+	public static OldMatrix<?> identity(final Class<?> type, final int size) {
 		if (type == null) {
 			throw new NullPointerException("Class type can't be null");
 		}
@@ -83,7 +85,7 @@ public class MatrixUtils {
 		}
 	}
 	
-	public static Matrix<?> filled(final Class<?> type, final int sizeX, final int sizeY, final Number filled) {
+	public static OldMatrix<?> filled(final Class<?> type, final int sizeX, final int sizeY, final Number filled) {
 		if (type == null) {
 			throw new NullPointerException("Class type can't be null");
 		}
@@ -139,7 +141,29 @@ public class MatrixUtils {
 		}
 	}
 
-	static boolean areDimensions2AddValid(final Matrix<?> first, final Matrix<?> second) {
+	static void ensurePieceIsValid(final Piece piece, final int rows, final int columns) {
+		if (piece.getTop() < 0 || piece.getTop() >= rows) {
+			throw new IllegalArgumentException("Piece top value ["+piece.getTop()+"] out of range 0.."+(rows-1));
+		}
+		else if (piece.getLeft() < 0 || piece.getLeft() >= columns) {
+			throw new IllegalArgumentException("Piece left value ["+piece.getLeft()+"] out of range 0.."+(columns-1));
+		}
+		else if (piece.getHeight() < 0) {
+			throw new IllegalArgumentException("Negative piece height ["+piece.getHeight()+"]");
+		}
+		else if (piece.getWidth() < 0) {
+			throw new IllegalArgumentException("Negative piece width ["+piece.getWidth()+"]");
+		}
+		else if (piece.getTop() + piece.getHeight() < 0 || piece.getTop() + piece.getHeight() - 1 >= rows) {
+			throw new IllegalArgumentException("Piece top value ["+piece.getTop()+"] + piece height ["+piece.getHeight()+"] out of range 0.."+(rows-1));
+		}
+		else if (piece.getLeft() + piece.getWidth() < 0 || piece.getLeft() + piece.getWidth() - 1 >= columns) {
+			throw new IllegalArgumentException("Piece left value ["+piece.getLeft()+"] + piece width ["+piece.getWidth()+"] out of range 0.."+(columns-1));
+		}
+	}
+	
+	
+	static boolean areDimensions2AddValid(final OldMatrix<?> first, final OldMatrix<?> second) {
 		final int	firstDim = first.getDimensions(), secondDim = second.getDimensions();
 		
 		if (firstDim != secondDim) {
@@ -155,11 +179,11 @@ public class MatrixUtils {
 		}
 	}
 
-	static boolean areDimensions2MulValid(final Matrix<?> first, final Matrix<?> second) {
+	static boolean areDimensions2MulValid(final OldMatrix<?> first, final OldMatrix<?> second) {
 		return first.getDimensions() == 2 && second.getDimensions() == 2 && first.getSize(1) == second.getSize(0);
 	}
 
-	static String printDimensions(final Matrix<?> matrix) {
+	static String printDimensions(final OldMatrix<?> matrix) {
 		final StringBuilder	sb = new StringBuilder();
 		
 		for (int index = 0, maxIndex = matrix.getDimensions(); index < maxIndex; index++) {
@@ -196,7 +220,7 @@ public class MatrixUtils {
 		}
 	}
 	
-	static int indices2Displ(final Matrix<?> matrix, final int... indices) {
+	static int indices2Displ(final OldMatrix<?> matrix, final int... indices) {
 		if (indices == null) {
 			throw new NullPointerException("Indices can't be null");
 		}

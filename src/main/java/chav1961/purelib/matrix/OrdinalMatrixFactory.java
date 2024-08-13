@@ -6,7 +6,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.OldMatrix;
 import chav1961.purelib.matrix.interfaces.MatrixFactory;
 
 public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFactory> {
@@ -27,7 +27,7 @@ public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFac
 	}
 
 	@Override
-	public Matrix<?> newMatrix(final Class<?> content, final int rows, final int cols) {
+	public OldMatrix<?> newMatrix(final Class<?> content, final int rows, final int cols) {
 		if (content == null) {
 			throw new NullPointerException("Content class can't be null"); 
 		}
@@ -54,7 +54,7 @@ public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFac
 	}
 
 	@Override
-	public Matrix newMatrix(final int rows, final int cols, final int... content) {
+	public OldMatrix newMatrix(final int rows, final int cols, final int... content) {
 		if (rows <= 0) {
 			throw new IllegalArgumentException("Number of rows ["+rows+"] must be greater than 0"); 
 		}
@@ -70,7 +70,7 @@ public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFac
 	}
 
 	@Override
-	public Matrix newMatrix(final int rows, final int cols, final long... content) {
+	public OldMatrix newMatrix(final int rows, final int cols, final long... content) {
 		if (rows <= 0) {
 			throw new IllegalArgumentException("Number of rows ["+rows+"] must be greater than 0"); 
 		}
@@ -86,7 +86,7 @@ public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFac
 	}
 
 	@Override
-	public Matrix newMatrix(final int rows, final int cols, final float... content) {
+	public OldMatrix newMatrix(final int rows, final int cols, final float... content) {
 		if (rows <= 0) {
 			throw new IllegalArgumentException("Number of rows ["+rows+"] must be greater than 0"); 
 		}
@@ -102,7 +102,7 @@ public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFac
 	}
 
 	@Override
-	public Matrix newMatrix(final int rows, final int cols, final double... content) {
+	public OldMatrix newMatrix(final int rows, final int cols, final double... content) {
 		if (rows <= 0) {
 			throw new IllegalArgumentException("Number of rows ["+rows+"] must be greater than 0"); 
 		}
