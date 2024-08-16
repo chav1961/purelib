@@ -4127,4 +4127,11 @@ public class MatrixTest {
 			}
 		}
 	}
+
+	@Test
+	public void readIntSpecialTest() {
+		try(final Matrix	m1 = new RIMatrixImpl(2, 4)) {
+		}
+	}
+
 }
