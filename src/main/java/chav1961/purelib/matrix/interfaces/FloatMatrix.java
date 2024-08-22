@@ -2,7 +2,7 @@ package chav1961.purelib.matrix.interfaces;
 
 import java.util.function.DoubleUnaryOperator;
 
-public interface FloatMatrix extends Matrix<FloatMatrix> {
+public interface FloatMatrix extends OldMatrix<FloatMatrix> {
 	FloatMatrix function(DoubleUnaryOperator op);
 	float get(int... indices);
 	void set(float value, int... indices);

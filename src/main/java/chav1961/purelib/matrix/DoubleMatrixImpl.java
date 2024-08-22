@@ -9,7 +9,7 @@ import chav1961.purelib.matrix.interfaces.DoubleMatrix;
 import chav1961.purelib.matrix.interfaces.FloatMatrix;
 import chav1961.purelib.matrix.interfaces.IntMatrix;
 import chav1961.purelib.matrix.interfaces.LongMatrix;
-import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.OldMatrix;
 
 public class DoubleMatrixImpl implements DoubleMatrix {
 	private final int		sizeX, sizeY;
@@ -74,7 +74,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public DoubleMatrix add(final Matrix<?> another) {
+	public DoubleMatrix add(final OldMatrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -128,7 +128,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public DoubleMatrix sub(final Matrix<?> another) {
+	public DoubleMatrix sub(final OldMatrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -182,7 +182,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public DoubleMatrix mul(final Matrix<?> another) {
+	public DoubleMatrix mul(final OldMatrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}
@@ -264,7 +264,7 @@ public class DoubleMatrixImpl implements DoubleMatrix {
 	}
 
 	@Override
-	public DoubleMatrix h_mul(Matrix<?> another) {
+	public DoubleMatrix h_mul(OldMatrix<?> another) {
 		if (another == null) {
 			throw new NullPointerException("Matrix to add can't be null"); 
 		}

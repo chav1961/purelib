@@ -26,7 +26,7 @@ public interface MatrixFactory {
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @return matrix created
 	 */
-	Matrix<?> newMatrix(final Class<?> content, final int rows, final int cols);
+	OldMatrix<?> newMatrix(final Class<?> content, final int rows, final int cols);
 
 	/**
 	 * <p>Create int matrix with the given rows and columns and fill it with initial values.</p>  
@@ -35,7 +35,7 @@ public interface MatrixFactory {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix<?> newMatrix(final int rows, final int cols, final int... content);
+	OldMatrix<?> newMatrix(final int rows, final int cols, final int... content);
 	
 	/**
 	 * <p>Create long matrix with the given rows and columns and fill it with initial values.</p>  
@@ -44,7 +44,7 @@ public interface MatrixFactory {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix<?> newMatrix(final int rows, final int cols, final long... content);
+	OldMatrix<?> newMatrix(final int rows, final int cols, final long... content);
 	
 	/**
 	 * <p>Create float matrix with the given rows and columns and fill it with initial values.</p>  
@@ -53,7 +53,7 @@ public interface MatrixFactory {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix<?> newMatrix(final int rows, final int cols, final float... content);
+	OldMatrix<?> newMatrix(final int rows, final int cols, final float... content);
 	
 	/**
 	 * <p>Create double matrix with the given rows and columns and fill it with initial values.</p>  
@@ -62,7 +62,7 @@ public interface MatrixFactory {
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	Matrix<?> newMatrix(final int rows, final int cols, final double... content);
+	OldMatrix<?> newMatrix(final int rows, final int cols, final double... content);
 
 	/**
 	 * <p>This class is a factory to get matrix factory by it's URI. It implements a 'Factory' template.</p> 

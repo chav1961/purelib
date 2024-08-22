@@ -4,7 +4,7 @@ import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
 @Suite
-@SelectClasses({ MatrixTest.class, MatrixUtilsTest.class })
+@SelectClasses({ OldMatrixTest.class, MatrixUtilsTest.class })
 public class AllTests {
 
 }

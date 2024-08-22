@@ -1,533 +1,4137 @@
 package chav1961.purelib.matrix;
 
-
-import java.util.Arrays;
-
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.basic.exceptions.CalculationException;
-import chav1961.purelib.matrix.interfaces.DoubleMatrix;
-import chav1961.purelib.matrix.interfaces.FloatMatrix;
-import chav1961.purelib.matrix.interfaces.IntMatrix;
-import chav1961.purelib.matrix.interfaces.LongMatrix;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.Matrix.Piece;
 
-@Tag("OrdinalTestCategory")
 public class MatrixTest {
 	@Test
-	public void basicTest() throws CalculationException {
-		// Integer matrix test
-		final IntMatrix	im = new IntMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
-		
-		Assert.assertEquals(int.class, im.getContentType());
-		Assert.assertEquals(2, im.getDimensions());
-		Assert.assertEquals(2, im.getSize(0));
-		Assert.assertEquals(3, im.getSize(1));
+	public void basicRealIntTest() {
+		try(final Matrix	m = new RIMatrixImpl(2, 4);
+			final Matrix	mEq = new RIMatrixImpl(2, 4);
+			final Matrix	mNe = new RIMatrixImpl(2, 4);
+			final Matrix	mBlock = new RIMatrixImpl(2, 2);) {
+			Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+			Assert.assertEquals(2, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(8, m.extractInts().length);
+			
+			try {m.extractLongs();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			m.assign(1,2,3,4,5,6,7,8);
+			Assert.assertArrayEquals(new int[] {1,2,3,4,5,6,7,8}, m.extractInts());
 
-		final int[]		intContent = new int[6];
-		im.get(0, intContent, 0, intContent.length);
-		
-		Assert.assertArrayEquals(new int[] {1, 2, 3, 4, 5, 6}, intContent);
+			mEq.assign(1,2,3,4,5,6,7,8);
+			mNe.assign(1,2,3,4,5,6,7,0);
+			
+			Assert.assertTrue(m.deepEquals(m));
+			Assert.assertTrue(m.deepEquals(mEq));
+			Assert.assertFalse(m.deepEquals(null));
+			Assert.assertFalse(m.deepEquals(mBlock));
+			Assert.assertFalse(m.deepEquals(mNe));
+			
+			mNe.assign(m);
+			Assert.assertTrue(m.deepEquals(mNe));
 
-		Arrays.fill(intContent, 10);
-		im.set(intContent, 0, 0, intContent.length);
-		Arrays.fill(intContent, 0);
-		im.get(0, intContent, 0, intContent.length);
-		
-		Assert.assertArrayEquals(new int[] {10, 10, 10, 10, 10, 10}, intContent);
-		
-		try{im.getSize(3);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		try{im.get(100, intContent, 0, intContent.length);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im.get(0, null, 0, intContent.length);
-			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im.get(0, intContent, 100, intContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im.get(0, intContent, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
+			Assert.assertFalse(Utils.checkEmptyOrNullString(m.toHumanReadableString()));
+			
+			try {m.assign((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(1,2,3,4,5,6,7);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		try{im.set(null, 0, 0, intContent.length);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im.set(intContent, 100, 0, intContent.length);
-		Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im.set(intContent, 0, 100, intContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im.set(intContent, 0, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
+			Assert.assertArrayEquals(new int[] {1,2,5,6}, m.extractInts(Piece.of(0, 0, 2, 2)));
+			
+			try {m.extractInts(null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.extractLongs(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		// Long matrix test
-		final LongMatrix	lm = new LongMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
-		
-		Assert.assertEquals(long.class, lm.getContentType());
-		Assert.assertEquals(2, lm.getDimensions());
-		Assert.assertEquals(2, lm.getSize(0));
-		Assert.assertEquals(3, lm.getSize(1));
+			m.assign(Piece.of(0, 0, 2, 2), 10, 20, 50, 60);
+			Assert.assertArrayEquals(new int[] {10,20,3,4,50,60,7,8}, m.extractInts());
 
-		final long[]		longContent = new long[6];
-		lm.get(0, longContent, 0, longContent.length);
-		
-		Assert.assertArrayEquals(new long[] {1, 2, 3, 4, 5, 6}, longContent);
+			mBlock.assign(100, 200, 500, 600);
+			m.assign(Piece.of(0, 0, 2, 2), mBlock);
+			Assert.assertArrayEquals(new int[] {100,200,3,4,500,600,7,8}, m.extractInts());
+			
+			try {m.assign(null, 1, 2, 5, 6);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1, 2, 5);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L, 6L);
+			Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L, 6L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1f, 2f, 5f, 6f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1d, 2d, 5d, 6d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		Arrays.fill(longContent, 10);
-		lm.set(longContent, 0, 0, longContent.length);
-		Arrays.fill(longContent, 0);
-		lm.get(0, longContent, 0, longContent.length);
-		
-		Assert.assertArrayEquals(new long[] {10, 10, 10, 10, 10, 10}, longContent);
-		
-		try{lm.getSize(3);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		try{lm.get(100, longContent, 0, longContent.length);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm.get(0, null, 0, longContent.length);
-			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm.get(0, longContent, 100, longContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm.get(0, longContent, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
+			m.fill(10);
+			Assert.assertArrayEquals(new int[] {10,10,10,10,10,10,10,10}, m.extractInts());
 
-		try{lm.set(null, 0, 0, longContent.length);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm.set(longContent, 100, 0, longContent.length);
-		Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm.set(longContent, 0, 100, longContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm.set(longContent, 0, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
+			try {m.fill(10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		// Float matrix test
-		final FloatMatrix	fm = new FloatMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
-		
-		Assert.assertEquals(float.class, fm.getContentType());
-		Assert.assertEquals(2, fm.getDimensions());
-		Assert.assertEquals(2, fm.getSize(0));
-		Assert.assertEquals(3, fm.getSize(1));
+			m.fill(Piece.of(0, 0, 2, 2), 20);
+			Assert.assertArrayEquals(new int[] {20,20,10,10,20,20,10,10}, m.extractInts());
 
-		final float[]		floatContent = new float[6];
-		fm.get(0, floatContent, 0, floatContent.length);
+			try {m.fill(null, 10);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+		}
 		
-		Assert.assertArrayEquals(new float[] {1, 2, 3, 4, 5, 6}, floatContent, 0.001f);
+		try(final Matrix	m = new RIMatrixImpl(1, 4);
+			final Matrix	mEq = new RIMatrixImpl(1, 4);
+			final Matrix	mBlock = new RIMatrixImpl(1, 2)) {
+			Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+			Assert.assertEquals(1, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(4, m.extractInts().length);
+			
+			m.assign(1,2,3,4);
+			Assert.assertArrayEquals(new int[] {1,2}, m.extractInts(Piece.of(0, 0, 1, 2)));
+			
+			m.assign(Piece.of(0, 0, 1, 2), 10,20);
+			Assert.assertArrayEquals(new int[] {10,20,3,4}, m.extractInts());
+			
+			m.fill(Piece.of(0, 0, 1, 2), 100);
+			Assert.assertArrayEquals(new int[] {100,100,3,4}, m.extractInts());
 
-		Arrays.fill(floatContent, 10);
-		fm.set(floatContent, 0, 0, floatContent.length);
-		Arrays.fill(floatContent, 0);
-		fm.get(0, floatContent, 0, floatContent.length);
-		
-		Assert.assertArrayEquals(new float[] {10, 10, 10, 10, 10, 10}, floatContent, 0.001f);
-		
-		try{fm.getSize(3);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		try{fm.get(100, floatContent, 0, floatContent.length);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm.get(0, null, 0, floatContent.length);
-			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm.get(0, floatContent, 100, floatContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm.get(0, floatContent, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
+			mEq.assign(10,20,30,40);
+			mBlock.assign(100,200);
+			
+			m.assign(mEq);
+			Assert.assertArrayEquals(new int[] {10,20,30,40}, m.extractInts());
+			
+			try {m.assign(new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			m.assign(Piece.of(0, 0, 1, 2), mBlock);
+			Assert.assertArrayEquals(new int[] {100,200,30,40}, m.extractInts());
 
-		try{fm.set(null, 0, 0, floatContent.length);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm.set(floatContent, 100, 0, floatContent.length);
-		Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm.set(floatContent, 0, 100, floatContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm.set(floatContent, 0, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
+			try {m.assign(Piece.of(0, 0, 1, 2), new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 1, 2), mEq);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+		}		
+	}
 
-		// Double matrix test
-		final DoubleMatrix	dm = new DoubleMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
-		
-		Assert.assertEquals(double.class, dm.getContentType());
-		Assert.assertEquals(2, dm.getDimensions());
-		Assert.assertEquals(2, dm.getSize(0));
-		Assert.assertEquals(3, dm.getSize(1));
-
-		final double[]		doubleContent = new double[6];
-		dm.get(0, doubleContent, 0, doubleContent.length);
-		
-		Assert.assertArrayEquals(new double[] {1, 2, 3, 4, 5, 6}, doubleContent, 0.001);
-
-		Arrays.fill(doubleContent, 10);
-		dm.set(doubleContent, 0, 0, doubleContent.length);
-		Arrays.fill(doubleContent, 0);
-		dm.get(0, doubleContent, 0, doubleContent.length);
-		
-		Assert.assertArrayEquals(new double[] {10, 10, 10, 10, 10, 10}, doubleContent, 0.001);
-		
-		try{dm.getSize(3);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		
-		try{dm.get(100, doubleContent, 0, doubleContent.length);
-			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm.get(0, null, 0, doubleContent.length);
-			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{dm.get(0, doubleContent, 100, doubleContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm.get(0, doubleContent, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-
-		try{dm.set(null, 0, 0, doubleContent.length);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		} 
-		try{dm.set(doubleContent, 100, 0, doubleContent.length);
-		Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm.set(doubleContent, 0, 100, doubleContent.length);
-			Assert.fail("Mandatory exception was not detected (2-rd argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm.set(doubleContent, 0, 0, 100);
-			Assert.fail("Mandatory exception was not detected (4-th argument out of range)");
-		} catch (IllegalArgumentException exc) {
-		}
-	}	
-	
 	@Test
-	public void additionMatrixTest() throws CalculationException {
-		// Integer matrix test
-		final IntMatrix	im1 = new IntMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), im2 = new IntMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60);
-		
-		Assert.assertEquals(new IntMatrixImpl(2, 3, 11, 22, 33, 44, 55, 66), im1.add(im2));
-		Assert.assertEquals(new IntMatrixImpl(2, 3, 9, 18, 27, 36, 45, 54), im2.sub(im1));
-		Assert.assertEquals(new IntMatrixImpl(2, 3, 11, 12, 13, 14, 15, 16), im1.add(10));
-		
-		try{im1.add((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im1.add(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im1.add((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im1.sub((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im1.sub(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
+	public void basicRealLongTest() {
+		try(final Matrix	m = new RLMatrixImpl(2, 4);
+			final Matrix	mEq = new RLMatrixImpl(2, 4);
+			final Matrix	mNe = new RLMatrixImpl(2, 4);
+			final Matrix	mBlock = new RLMatrixImpl(2, 2);) {
+			Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+			Assert.assertEquals(2, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(8, m.extractLongs().length);
+			
+			try {m.extractInts();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			m.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6,7,8}, m.extractLongs());
+
+			mEq.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+			mNe.assign(1L,2L,3L,4L,5L,6L,7L,0L);
+			
+			Assert.assertTrue(m.deepEquals(m));
+			Assert.assertTrue(m.deepEquals(mEq));
+			Assert.assertFalse(m.deepEquals(null));
+			Assert.assertFalse(m.deepEquals(mBlock));
+			Assert.assertFalse(m.deepEquals(mNe));
+			
+			mNe.assign(m);
+			Assert.assertTrue(m.deepEquals(mNe));
+
+			Assert.assertFalse(Utils.checkEmptyOrNullString(m.toHumanReadableString()));
+			
+			try {m.assign((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(1L,2L,3L,4L,5L,6L,7L);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			Assert.assertArrayEquals(new long[] {1,2,5,6}, m.extractLongs(Piece.of(0, 0, 2, 2)));
+			
+			try {m.extractLongs(null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.extractInts(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.assign(Piece.of(0, 0, 2, 2), 10L, 20L, 50L, 60L);
+			Assert.assertArrayEquals(new long[] {10,20,3,4,50,60,7,8}, m.extractLongs());
+
+			mBlock.assign(100L, 200L, 500L, 600L);
+			m.assign(Piece.of(0, 0, 2, 2), mBlock);
+			Assert.assertArrayEquals(new long[] {100,200,3,4,500,600,7,8}, m.extractLongs());
+			
+			try {m.assign(null, 1L, 2L, 5L, 6L);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1, 2, 5, 6);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1f, 2f, 5f, 6f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1d, 2d, 5d, 6d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(10L);
+			Assert.assertArrayEquals(new long[] {10,10,10,10,10,10,10,10}, m.extractLongs());
+
+			try {m.fill(null, 10L);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.fill(10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(Piece.of(0, 0, 2, 2), 20L);
+			Assert.assertArrayEquals(new long[] {20,20,10,10,20,20,10,10}, m.extractLongs());
+
+			try {m.fill(Piece.of(0, 0, 2, 2), 10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 		}
 
-		// Long matrix test
-		final LongMatrix	lm1 = new LongMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), lm2 = new LongMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60);
-		
-		Assert.assertEquals(new LongMatrixImpl(2, 3, 11, 22, 33, 44, 55, 66), lm1.add(lm2));
-		Assert.assertEquals(new LongMatrixImpl(2, 3, 9, 18, 27, 36, 45, 54), lm2.sub(lm1));
-		Assert.assertEquals(new LongMatrixImpl(2, 3, 11, 12, 13, 14, 15, 16), lm1.add(10));
-		
-		try{lm1.add((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm1.add(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm1.add((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm1.sub((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm1.sub(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
+		try(final Matrix	m = new RLMatrixImpl(1, 4);
+			final Matrix	mEq = new RLMatrixImpl(1, 4);
+			final Matrix	mBlock = new RLMatrixImpl(1, 2)) {
+			Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+			Assert.assertEquals(1, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(4, m.extractLongs().length);
+			
+			m.assign(1L,2L,3L,4L);
+			Assert.assertArrayEquals(new long[] {1,2}, m.extractLongs(Piece.of(0, 0, 1, 2)));
+			
+			m.assign(Piece.of(0, 0, 1, 2), 10L, 20L);
+			Assert.assertArrayEquals(new long[] {10,20,3,4}, m.extractLongs());
+			
+			m.fill(Piece.of(0, 0, 1, 2), 100L);
+			Assert.assertArrayEquals(new long[] {100,100,3,4}, m.extractLongs());
+
+			mEq.assign(10L,20L,30L,40L);
+			mBlock.assign(100L,200L);
+			
+			m.assign(mEq);
+			Assert.assertArrayEquals(new long[] {10,20,30,40}, m.extractLongs());
+			
+			try {m.assign(new RIMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			m.assign(Piece.of(0, 0, 1, 2), mBlock);
+			Assert.assertArrayEquals(new long[] {100,200,30,40}, m.extractLongs());
+
+			try {m.assign(Piece.of(0, 0, 1, 2), new RIMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 1, 2), mEq);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+		}		
+	}
+
+	@Test
+	public void basicRealFloatTest() {
+		try(final Matrix	m = new RFMatrixImpl(2, 4);
+			final Matrix	mEq = new RFMatrixImpl(2, 4);
+			final Matrix	mNe = new RFMatrixImpl(2, 4);
+			final Matrix	mBlock = new RFMatrixImpl(2, 2);) {
+			Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+			Assert.assertEquals(2, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(8, m.extractFloats().length);
+			
+			try {m.extractInts();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			m.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+			Assert.assertArrayEquals(new float[] {1,2,3,4,5,6,7,8}, m.extractFloats(), 0.001f);
+
+			mEq.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+			mNe.assign(1f,2f,3f,4f,5f,6f,7f,0f);
+			
+			Assert.assertTrue(m.deepEquals(m));
+			Assert.assertTrue(m.deepEquals(mEq));
+			Assert.assertFalse(m.deepEquals(null));
+			Assert.assertFalse(m.deepEquals(mBlock));
+			Assert.assertFalse(m.deepEquals(mNe));
+			
+			mNe.assign(m);
+			Assert.assertTrue(m.deepEquals(mNe));
+
+			Assert.assertFalse(Utils.checkEmptyOrNullString(m.toHumanReadableString()));
+			
+			try {m.assign((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(1f,2f,3f,4f,5f,6f,7f);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			Assert.assertArrayEquals(new float[] {1,2,5,6}, m.extractFloats(Piece.of(0, 0, 2, 2)), 0.001f);
+			
+			try {m.extractFloats(null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.extractInts(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.assign(Piece.of(0, 0, 2, 2), 10f, 20f, 50f, 60f);
+			Assert.assertArrayEquals(new float[] {10,20,3,4,50,60,7,8}, m.extractFloats(), 0.001f);
+
+			mBlock.assign(100f, 200f, 500f, 600f);
+			m.assign(Piece.of(0, 0, 2, 2), mBlock);
+			Assert.assertArrayEquals(new float[] {100,200,3,4,500,600,7,8}, m.extractFloats(), 0.001f);
+			
+			try {m.assign(null, 1f, 2f, 5f, 6f);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1f, 2f, 5f);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1, 2, 5, 6);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L, 6L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1d, 2d, 5d, 6d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(10f);
+			Assert.assertArrayEquals(new float[] {10,10,10,10,10,10,10,10}, m.extractFloats(), 0.001f);
+
+			try {m.fill(null, 10f);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.fill(10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(Piece.of(0, 0, 2, 2), 20f);
+			Assert.assertArrayEquals(new float[] {20,20,10,10,20,20,10,10}, m.extractFloats(), 0.001f);
+
+			try {m.fill(Piece.of(0, 0, 2, 2), 10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 		}
 
-		// Float matrix test
-		final FloatMatrix	fm1 = new FloatMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), fm2 = new FloatMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60);
-		
-		Assert.assertEquals(new FloatMatrixImpl(2, 3, 11, 22, 33, 44, 55, 66), fm1.add(fm2));
-		Assert.assertEquals(new FloatMatrixImpl(2, 3, 9, 18, 27, 36, 45, 54), fm2.sub(fm1));
-		Assert.assertEquals(new FloatMatrixImpl(2, 3, 11, 12, 13, 14, 15, 16), fm1.add(10));
-		
-		try{fm1.add((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm1.add(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm1.add((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm1.sub((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm1.sub(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
+		try(final Matrix	m = new RFMatrixImpl(1, 4);
+			final Matrix	mEq = new RFMatrixImpl(1, 4);
+			final Matrix	mBlock = new RFMatrixImpl(1, 2)) {
+			Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+			Assert.assertEquals(1, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(4, m.extractFloats().length);
+			
+			m.assign(1f,2f,3f,4f);
+			Assert.assertArrayEquals(new float[] {1,2}, m.extractFloats(Piece.of(0, 0, 1, 2)), 0.001f);
+			
+			m.assign(Piece.of(0, 0, 1, 2), 10f, 20f);
+			Assert.assertArrayEquals(new float[] {10,20,3,4}, m.extractFloats(), 0.001f);
+			
+			m.fill(Piece.of(0, 0, 1, 2), 100f);
+			Assert.assertArrayEquals(new float[] {100,100,3,4}, m.extractFloats(), 0.001f);
 
-		// Double matrix test
-		final DoubleMatrix	dm1 = new DoubleMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), dm2 = new DoubleMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60);
+			mEq.assign(10f,20f,30f,40f);
+			mBlock.assign(100f,200f);
+			
+			m.assign(mEq);
+			Assert.assertArrayEquals(new float[] {10,20,30,40}, m.extractFloats(), 0.001f);
+			
+			try {m.assign(new RIMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			m.assign(Piece.of(0, 0, 1, 2), mBlock);
+			Assert.assertArrayEquals(new float[] {100,200,30,40}, m.extractFloats(), 0.001f);
+
+			try {m.assign(Piece.of(0, 0, 1, 2), new RIMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 1, 2), mEq);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+		}		
+	}
+
+	@Test
+	public void basicRealDoubleTest() {
+		try(final Matrix	m = new RDMatrixImpl(2, 4);
+			final Matrix	mEq = new RDMatrixImpl(2, 4);
+			final Matrix	mNe = new RDMatrixImpl(2, 4);
+			final Matrix	mBlock = new RDMatrixImpl(2, 2);) {
+			Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+			Assert.assertEquals(2, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(8, m.extractDoubles().length);
+			
+			try {m.extractInts();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			m.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+			Assert.assertArrayEquals(new double[] {1,2,3,4,5,6,7,8}, m.extractDoubles(), 0.001d);
+
+			mEq.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+			mNe.assign(1d,2d,3d,4d,5d,6d,7d,0d);
+			
+			Assert.assertTrue(m.deepEquals(m));
+			Assert.assertTrue(m.deepEquals(mEq));
+			Assert.assertFalse(m.deepEquals(null));
+			Assert.assertFalse(m.deepEquals(mBlock));
+			Assert.assertFalse(m.deepEquals(mNe));
+			
+			mNe.assign(m);
+			Assert.assertTrue(m.deepEquals(mNe));
+
+			Assert.assertFalse(Utils.checkEmptyOrNullString(m.toHumanReadableString()));
+			
+			try {m.assign((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(1d,2d,3d,4d,5d,6d,7d);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			Assert.assertArrayEquals(new double[] {1,2,5,6}, m.extractDoubles(Piece.of(0, 0, 2, 2)), 0.001d);
+			
+			try {m.extractDoubles(null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.extractInts(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.assign(Piece.of(0, 0, 2, 2), 10d, 20d, 50d, 60d);
+			Assert.assertArrayEquals(new double[] {10,20,3,4,50,60,7,8}, m.extractDoubles(), 0.001d);
+
+			mBlock.assign(100d, 200d, 500d, 600d);
+			m.assign(Piece.of(0, 0, 2, 2), mBlock);
+			Assert.assertArrayEquals(new double[] {100,200,3,4,500,600,7,8}, m.extractDoubles(), 0.001d);
+			
+			try {m.assign(null, 1d, 2d, 5d, 6d);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1d, 2d, 5d);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1, 2, 5, 6);
+			Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L, 6L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1f, 2f, 5f, 6f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(10d);
+			Assert.assertArrayEquals(new double[] {10,10,10,10,10,10,10,10}, m.extractDoubles(), 0.001d);
+
+			try {m.fill(10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(Piece.of(0, 0, 2, 2), 20d);
+			Assert.assertArrayEquals(new double[] {20,20,10,10,20,20,10,10}, m.extractDoubles(), 0.001d);
+
+			try {m.fill(null, 10d);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f,0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+		}
 		
-		Assert.assertEquals(new DoubleMatrixImpl(2, 3, 11, 22, 33, 44, 55, 66), dm1.add(dm2));
-		Assert.assertEquals(new DoubleMatrixImpl(2, 3, 9, 18, 27, 36, 45, 54), dm2.sub(dm1));
-		Assert.assertEquals(new DoubleMatrixImpl(2, 3, 11, 12, 13, 14, 15, 16), dm1.add(10));
+		try(final Matrix	m = new RDMatrixImpl(1, 4);
+			final Matrix	mEq = new RDMatrixImpl(1, 4);
+			final Matrix	mBlock = new RDMatrixImpl(1, 2)) {
+			Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+			Assert.assertEquals(1, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(4, m.extractDoubles().length);
+			
+			m.assign(1d,2d,3d,4d);
+			Assert.assertArrayEquals(new double[] {1,2}, m.extractDoubles(Piece.of(0, 0, 1, 2)), 0.001d);
+			
+			m.assign(Piece.of(0, 0, 1, 2), 10d, 20d);
+			Assert.assertArrayEquals(new double[] {10,20,3,4}, m.extractDoubles(), 0.001d);
+			
+			m.fill(Piece.of(0, 0, 1, 2), 100d);
+			Assert.assertArrayEquals(new double[] {100,100,3,4}, m.extractDoubles(), 0.001d);
+
+			mEq.assign(10d,20d,30d,40d);
+			mBlock.assign(100d,200d);
+			
+			m.assign(mEq);
+			Assert.assertArrayEquals(new double[] {10,20,30,40}, m.extractDoubles(), 0.001d);
+			
+			try {m.assign(new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			m.assign(Piece.of(0, 0, 1, 2), mBlock);
+			Assert.assertArrayEquals(new double[] {100,200,30,40}, m.extractDoubles(), 0.001d);
+
+			try {m.assign(Piece.of(0, 0, 1, 2), new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 1, 2), mEq);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+		}		
+	}
+
+	@Test
+	public void basicComplexFloatTest() {
+		try(final Matrix	m = new CFMatrixImpl(2, 4);
+			final Matrix	mEq = new CFMatrixImpl(2, 4);
+			final Matrix	mNe = new CFMatrixImpl(2, 4);
+			final Matrix	mBlock = new CFMatrixImpl(2, 2);) {
+			Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+			Assert.assertEquals(2, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(16, m.extractFloats().length);
+			
+			try {m.extractInts();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			m.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f,8f,0f);
+			Assert.assertArrayEquals(new float[] {1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0}, m.extractFloats(), 0.001f);
+
+			mEq.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f,8f,0f);
+			mNe.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f,0f,0f);
+			
+			Assert.assertTrue(m.deepEquals(m));
+			Assert.assertTrue(m.deepEquals(mEq));
+			Assert.assertFalse(m.deepEquals(null));
+			Assert.assertFalse(m.deepEquals(mBlock));
+			Assert.assertFalse(m.deepEquals(mNe));
+			
+			mNe.assign(m);
+			Assert.assertTrue(m.deepEquals(mNe));
+
+			Assert.assertFalse(Utils.checkEmptyOrNullString(m.toHumanReadableString()));
+			
+			try {m.assign((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			Assert.assertArrayEquals(new float[] {1,0,2,0,5,0,6,0}, m.extractFloats(Piece.of(0, 0, 2, 2)), 0.001f);
+			
+			try {m.extractFloats(null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.extractInts(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractDoubles(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.assign(Piece.of(0, 0, 2, 2), 10f, 0f, 20f, 0f, 50f, 0f, 60f, 0f);
+			Assert.assertArrayEquals(new float[] {10, 0, 20, 0, 3, 0, 4, 0, 50, 0, 60, 0, 7, 0, 8, 0}, m.extractFloats(), 0.001f);
+
+			mBlock.assign(100f, 0f, 200f, 0f, 500f, 0f, 600f, 0f);
+			m.assign(Piece.of(0, 0, 2, 2), mBlock);
+			Assert.assertArrayEquals(new float[] {100,0,200,0,3,0,4,0,500,0,600,0,7,0,8,0}, m.extractFloats(), 0.001f);
+			
+			try {m.assign(null, 1f, 0f, 2f, 0f, 5f, 0f, 6f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1f, 0f, 2f, 0f, 5f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L, 6L);
+			Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1d, 2d, 5d, 6d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(10f, 0f);
+			Assert.assertArrayEquals(new float[] {10,0,10,0,10,0,10,0,10,0,10,0,10,0,10,0}, m.extractFloats(), 0.001f);
+
+			try {m.fill(10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(Piece.of(0, 0, 2, 2), 20f, 0f);
+			Assert.assertArrayEquals(new float[] {20,0,20,0,10,0,10,0,20,0,20,0,10,0,10,0}, m.extractFloats(), 0.001f);
+
+			try {m.fill(null, 10f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d,0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+		}
 		
-		try{dm1.add((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+		try(final Matrix	m = new CFMatrixImpl(1, 4);
+			final Matrix	mEq = new CFMatrixImpl(1, 4);
+			final Matrix	mBlock = new CFMatrixImpl(1, 2)) {
+			Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+			Assert.assertEquals(1, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(8, m.extractFloats().length);
+			
+			m.assign(1f,0f,2f,0f,3f,0f,4f,0f);
+			Assert.assertArrayEquals(new float[] {1,0,2,0}, m.extractFloats(Piece.of(0, 0, 1, 2)), 0.001f);
+			
+			m.assign(Piece.of(0, 0, 1, 2), 10f, 0f, 20f, 0f);
+			Assert.assertArrayEquals(new float[] {10,0,20,0,3,0,4,0}, m.extractFloats(), 0.001f);
+			
+			m.fill(Piece.of(0, 0, 1, 2), 100f, 0f);
+			Assert.assertArrayEquals(new float[] {100,0,100,0,3,0,4,0}, m.extractFloats(), 0.001f);
+
+			mEq.assign(10f,0f,20f,0f,30f,0f,40f,0f);
+			mBlock.assign(100f,0f,200f,0f);
+			
+			m.assign(mEq);
+			Assert.assertArrayEquals(new float[] {10,0,20,0,30,0,40,0}, m.extractFloats(), 0.001f);
+			
+			try {m.assign(new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			m.assign(Piece.of(0, 0, 1, 2), mBlock);
+			Assert.assertArrayEquals(new float[] {100,0,200,0,30,0,40,0}, m.extractFloats(), 0.001f);
+
+			try {m.assign(Piece.of(0, 0, 1, 2), new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 1, 2), mEq);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+		}		
+	}
+
+	@Test
+	public void basicComplexDoubleTest() {
+		try(final Matrix	m = new CDMatrixImpl(2, 4);
+			final Matrix	mEq = new CDMatrixImpl(2, 4);
+			final Matrix	mNe = new CDMatrixImpl(2, 4);
+			final Matrix	mBlock = new CDMatrixImpl(2, 2);) {
+			Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+			Assert.assertEquals(2, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(16, m.extractDoubles().length);
+			
+			try {m.extractInts();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats();
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			m.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d,8d,0d);
+			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0}, m.extractDoubles(), 0.001d);
+
+			mEq.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d,8d,0d);
+			mNe.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d,0d,0d);
+			
+			Assert.assertTrue(m.deepEquals(m));
+			Assert.assertTrue(m.deepEquals(mEq));
+			Assert.assertFalse(m.deepEquals(null));
+			Assert.assertFalse(m.deepEquals(mBlock));
+			Assert.assertFalse(m.deepEquals(mNe));
+			
+			mNe.assign(m);
+			Assert.assertTrue(m.deepEquals(mNe));
+
+			Assert.assertFalse(Utils.checkEmptyOrNullString(m.toHumanReadableString()));
+			
+			try {m.assign((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			Assert.assertArrayEquals(new double[] {1,0,2,0,5,0,6,0}, m.extractDoubles(Piece.of(0, 0, 2, 2)), 0.001d);
+			
+			try {m.extractDoubles(null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.extractInts(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractLongs(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.extractFloats(Piece.of(0, 0, 2, 2));
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.assign(Piece.of(0, 0, 2, 2), 10d, 0d, 20d, 0d, 50d, 0d, 60d, 0d);
+			Assert.assertArrayEquals(new double[] {10, 0, 20, 0, 3, 0, 4, 0, 50, 0, 60, 0, 7, 0, 8, 0}, m.extractDoubles(), 0.001d);
+
+			mBlock.assign(100d, 0d, 200d, 0d, 500d, 0d, 600d, 0d);
+			m.assign(Piece.of(0, 0, 2, 2), mBlock);
+			Assert.assertArrayEquals(new double[] {100,0,200,0,3,0,4,0,500,0,600,0,7,0,8,0}, m.extractDoubles(), 0.001d);
+			
+			try {m.assign(null, 1d, 0d, 2d, 0d, 5d, 0d, 6d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), (Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1d, 0d, 2d, 0d, 5d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1L, 2L, 5L, 6L);
+			Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 2, 2), 1f, 2f, 5f, 6f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(10d, 0d);
+			Assert.assertArrayEquals(new double[] {10,0,10,0,10,0,10,0,10,0,10,0,10,0,10,0}, m.extractDoubles(), 0.001d);
+
+			try {m.fill(10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			m.fill(Piece.of(0, 0, 2, 2), 20d, 0d);
+			Assert.assertArrayEquals(new double[] {20,0,20,0,10,0,10,0,20,0,20,0,10,0,10,0}, m.extractDoubles(), 0.001d);
+
+			try {m.fill(null, 10d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m.fill(Piece.of(0, 0, 2, 2), 10d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 		}
-		try{dm1.add(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm1.add((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{dm1.sub((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{dm1.sub(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
+		
+		try(final Matrix	m = new CDMatrixImpl(1, 4);
+			final Matrix	mEq = new CDMatrixImpl(1, 4);
+			final Matrix	mBlock = new CDMatrixImpl(1, 2)) {
+			Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+			Assert.assertEquals(1, m.numberOfRows());
+			Assert.assertEquals(4, m.numberOfColumns());
+			
+			Assert.assertEquals(8, m.extractDoubles().length);
+			
+			m.assign(1d,0d,2d,0d,3d,0d,4d,0d);
+			Assert.assertArrayEquals(new double[] {1,0,2,0}, m.extractDoubles(Piece.of(0, 0, 1, 2)), 0.001d);
+			
+			m.assign(Piece.of(0, 0, 1, 2), 10d, 0d, 20d, 0d);
+			Assert.assertArrayEquals(new double[] {10,0,20,0,3,0,4,0}, m.extractDoubles(), 0.001d);
+			
+			m.fill(Piece.of(0, 0, 1, 2), 100d, 0d);
+			Assert.assertArrayEquals(new double[] {100,0,100,0,3,0,4,0}, m.extractDoubles(), 0.001d);
+
+			mEq.assign(10d,0d,20d,0d,30d,0d,40d,0d);
+			mBlock.assign(100d,0d,200d,0d);
+			
+			m.assign(mEq);
+			Assert.assertArrayEquals(new double[] {10,0,20,0,30,0,40,0}, m.extractDoubles(), 0.001d);
+			
+			try {m.assign(new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(mBlock);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			m.assign(Piece.of(0, 0, 1, 2), mBlock);
+			Assert.assertArrayEquals(new double[] {100,0,200,0,30,0,40,0}, m.extractDoubles(), 0.001d);
+
+			try {m.assign(Piece.of(0, 0, 1, 2), new RLMatrixImpl(1, 1));
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 1, 2), mEq);
+				Assert.fail("Mandatory exceptions was not detected (2-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+		}		
+	}
+
+	@Test
+	public void realIntArithmeticTest() {
+		try(final Matrix	m1 = new RIMatrixImpl(2, 4);
+			final Matrix	m2 = new RIMatrixImpl(2, 4);
+			final Matrix	m3 = new RIMatrixImpl(2, 4);
+			final Matrix	m4 = new RIMatrixImpl(4, 2);
+			final Matrix	m5 = new RIMatrixImpl(4, 1)) {
+			
+			m1.assign(1,2,3,4,5,6,7,8);
+			m2.assign(1,2,3,4,5,6,7,8);
+			m3.assign(-1,-2,-3,-4,-5,-6,-7,-8);
+			m4.assign(1,2,3,4,5,6,7,8);
+			m5.assign(1,2,3,4);
+
+			// Add
+			
+			try(final Matrix	m = m1.add(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {2,4,6,8,10,12,14,16}, m.extractInts());
+			}
+			
+			try {m1.add((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add(new RLMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1,2);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Add scalar
+			
+			try(final Matrix	m = m1.addValue(10).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {11,12,13,14,15,16,17,18}, m.extractInts());
+			}
+			
+			try {m1.addValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Subtract
+			
+			try(final Matrix	m = m1.subtract(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {0,0,0,0,0,0,0,0}, m.extractInts());
+			}
+			
+			try {m1.subtract((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract(new RLMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1,2);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Subtract scalar
+			
+			try(final Matrix	m = m1.subtractValue(-10).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {11,12,13,14,15,16,17,18}, m.extractInts());
+			}
+			
+			try {m1.subtractValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Inverted subtract
+			
+			try(final Matrix	m = m1.subtractFrom(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {-2,-4,-6,-8,-10,-12,-14,-16}, m.extractInts());
+			}
+			
+			try {m1.subtractFrom((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom(new RLMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1,2);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Inverted subtract scalar
+			
+			try(final Matrix	m = m1.subtractFromValue(10).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {9,8,7,6,5,4,3,2}, m.extractInts());
+			}
+			
+			try {m1.subtractFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Hadamard multiplication
+			
+			try(final Matrix	m = m1.mulHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {1,4,9,16,25,36,49,64}, m.extractInts());
+			}
+			
+			try {m1.mulHadamard((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard(new RLMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1,2);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard multiplication scalar
+			
+			try(final Matrix	m = m1.mulValue(10).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {10,20,30,40,50,60,70,80}, m.extractInts());
+			}
+			
+			try {m1.mulValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {1,1,1,1,1,1,1,1}, m.extractInts());
+			}
+			
+			try {m1.mulInvHadamard((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard(new RLMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1,2);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divValue(2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {0,1,1,2,2,3,3,4}, m.extractInts());
+			}
+			
+			try {m1.divValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvFromHadamard(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {-1,-1,-1,-1,-1,-1,-1,-1}, m.extractInts());
+			}
+			
+			try {m1.mulInvFromHadamard((int[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard(new RLMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1,2);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divFromValue(100).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {100,50,33,25,20,16,14,12}, m.extractInts());
+			}
+			
+			try {m1.divFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			try(final Matrix	m = m1.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(4, m.numberOfRows());
+				Assert.assertEquals(2, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {1,5,2,6,3,7,4,8}, m.extractInts());
+			}
+			
+			try(final Matrix	m = m5.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_INT, m.getType());
+				Assert.assertEquals(1, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new int[] {1,2,3,4}, m.extractInts());
+			}
 		}
 	}
 
 	@Test
-	public void multiplicationMatrixTest() throws CalculationException {
-		// Integer matrix test
-		final IntMatrix	im1 = new IntMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), im2 = new IntMatrixImpl(3, 2, 10, 20, 30, 40, 50, 60);
+	public void realLongArithmeticTest() {
+		try(final Matrix	m1 = new RLMatrixImpl(2, 4);
+			final Matrix	m2 = new RLMatrixImpl(2, 4);
+			final Matrix	m3 = new RLMatrixImpl(2, 4);
+			final Matrix	m4 = new RLMatrixImpl(4, 2);
+			final Matrix	m5 = new RLMatrixImpl(4, 1)) {
+			
+			m1.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+			m2.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+			m3.assign(-1L,-2L,-3L,-4L,-5L,-6L,-7L,-8L);
+			m4.assign(1L,2L,3L,4L,5L,6L,7L,8L);
+			m5.assign(1L,2L,3L,4L);
+
+			// Add
+			
+			try(final Matrix	m = m1.add(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {2,4,6,8,10,12,14,16}, m.extractLongs());
+			}
+			
+			try {m1.add((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1L,2L);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Add scalar
+			
+			try(final Matrix	m = m1.addValue(10L).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {11,12,13,14,15,16,17,18}, m.extractLongs());
+			}
+			
+			try {m1.addValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Subtract
+			
+			try(final Matrix	m = m1.subtract(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {0,0,0,0,0,0,0,0}, m.extractLongs());
+			}
+			
+			try {m1.subtract((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1L,2L);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Subtract scalar
+			
+			try(final Matrix	m = m1.subtractValue(-10L).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {11,12,13,14,15,16,17,18}, m.extractLongs());
+			}
+			
+			try {m1.subtractValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Inverted subtract
+			
+			try(final Matrix	m = m1.subtractFrom(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {-2,-4,-6,-8,-10,-12,-14,-16}, m.extractLongs());
+			}
+			
+			try {m1.subtractFrom((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1L,2L);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Inverted subtract scalar
+			
+			try(final Matrix	m = m1.subtractFromValue(10L).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {9,8,7,6,5,4,3,2}, m.extractLongs());
+			}
+			
+			try {m1.subtractFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Hadamard multiplication
+			
+			try(final Matrix	m = m1.mulHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {1,4,9,16,25,36,49,64}, m.extractLongs());
+			}
+			
+			try {m1.mulHadamard((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1L,2L);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard multiplication scalar
+			
+			try(final Matrix	m = m1.mulValue(10L).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {10,20,30,40,50,60,70,80}, m.extractLongs());
+			}
+			
+			try {m1.mulValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {1,1,1,1,1,1,1,1}, m.extractLongs());
+			}
+			
+			try {m1.mulInvHadamard((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1L,2L);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divValue(2L).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {0,1,1,2,2,3,3,4}, m.extractLongs());
+			}
+			
+			try {m1.divValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvFromHadamard(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {-1,-1,-1,-1,-1,-1,-1,-1}, m.extractLongs());
+			}
+			
+			try {m1.mulInvFromHadamard((long[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1L,2L);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divFromValue(100L).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {100,50,33,25,20,16,14,12}, m.extractLongs());
+			}
+			
+			try {m1.divFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			try(final Matrix	m = m1.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(4, m.numberOfRows());
+				Assert.assertEquals(2, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {1,5,2,6,3,7,4,8}, m.extractLongs());
+			}
+			
+			try(final Matrix	m = m5.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
+				Assert.assertEquals(1, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new long[] {1,2,3,4}, m.extractLongs());
+			}
+		}
+	}
 	
-		Assert.assertEquals(new IntMatrixImpl(2, 2, 220, 280, 490, 640), im1.mul(im2));
-		Assert.assertEquals(new IntMatrixImpl(2, 3, 1, 4, 9, 16, 25, 36), im1.h_mul(im1));
-		Assert.assertEquals(new IntMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60), im1.mul(10));
+	@Test
+	public void realFloatArithmeticTest() {
+		try(final Matrix	m1 = new RFMatrixImpl(2, 4);
+			final Matrix	m2 = new RFMatrixImpl(2, 4);
+			final Matrix	m3 = new RFMatrixImpl(2, 4);
+			final Matrix	m4 = new RFMatrixImpl(4, 2);
+			final Matrix	m5 = new RFMatrixImpl(4, 1)) {
+			
+			m1.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+			m2.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+			m3.assign(-1f,-2f,-3f,-4f,-5f,-6f,-7f,-8f);
+			m4.assign(1f,2f,3f,4f,5f,6f,7f,8f);
+			m5.assign(1f,2f,3f,4f);
 
-		try{im1.mul((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im1.mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im1.h_mul(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{im1.h_mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{im1.mul((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		
-		// Long matrix test
-		final LongMatrix	lm1 = new LongMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), lm2 = new LongMatrixImpl(3, 2, 10, 20, 30, 40, 50, 60);
-	
-		Assert.assertEquals(new LongMatrixImpl(2, 2, 220, 280, 490, 640), lm1.mul(lm2));
-		Assert.assertEquals(new LongMatrixImpl(2, 3, 1, 4, 9, 16, 25, 36), lm1.h_mul(lm1));
-		Assert.assertEquals(new LongMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60), lm1.mul(10));
+			// Add
+			
+			try(final Matrix	m = m1.add(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {2,4,6,8,10,12,14,16}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.add((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		try{lm1.mul((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm1.mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm1.h_mul(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{lm1.h_mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{lm1.mul((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		
-		// Float matrix test
-		final FloatMatrix	fm1 = new FloatMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), fm2 = new FloatMatrixImpl(3, 2, 10, 20, 30, 40, 50, 60);
-	
-		Assert.assertEquals(new FloatMatrixImpl(2, 2, 220, 280, 490, 640), fm1.mul(fm2));
-		Assert.assertEquals(new FloatMatrixImpl(2, 3, 1, 4, 9, 16, 25, 36), fm1.h_mul(fm1));
-		Assert.assertEquals(new FloatMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60), fm1.mul(10));
+			// Add scalar
+			
+			try(final Matrix	m = m1.addValue(10f).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {11,12,13,14,15,16,17,18}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.addValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Subtract
+			
+			try(final Matrix	m = m1.subtract(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {0,0,0,0,0,0,0,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtract((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		try{fm1.mul((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm1.mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm1.h_mul(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{fm1.h_mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{fm1.mul((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
+			// Subtract scalar
+			
+			try(final Matrix	m = m1.subtractValue(-10f).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {11,12,13,14,15,16,17,18}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtractValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Inverted subtract
+			
+			try(final Matrix	m = m1.subtractFrom(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {-2,-4,-6,-8,-10,-12,-14,-16}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtractFrom((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		// Double matrix test
-		final DoubleMatrix	dm1 = new DoubleMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6), dm2 = new DoubleMatrixImpl(3, 2, 10, 20, 30, 40, 50, 60);
-	
-		Assert.assertEquals(new DoubleMatrixImpl(2, 2, 220, 280, 490, 640), dm1.mul(dm2));
-		Assert.assertEquals(new DoubleMatrixImpl(2, 3, 1, 4, 9, 16, 25, 36), dm1.h_mul(dm1));
-		Assert.assertEquals(new DoubleMatrixImpl(2, 3, 10, 20, 30, 40, 50, 60), dm1.mul(10));
+			// Inverted subtract scalar
+			
+			try(final Matrix	m = m1.subtractFromValue(10f).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {9,8,7,6,5,4,3,2}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtractFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Hadamard multiplication
+			
+			try(final Matrix	m = m1.mulHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,4,9,16,25,36,49,64}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulHadamard((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		try{dm1.mul((Matrix<?>)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{dm1.mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm1.h_mul(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
-		}
-		try{dm1.h_mul(new IntMatrixImpl(1, 1));
-			Assert.fail("Mandatory exception was not detected (uncompatible dimensions)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{dm1.mul((Number)null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (NullPointerException exc) {
+			// Hadamard multiplication scalar
+			
+			try(final Matrix	m = m1.mulValue(10f).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {10,20,30,40,50,60,70,80}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,1,1,1,1,1,1,1}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulInvHadamard((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divValue(2f).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {0.5f,1f,1.5f,2f,2.5f,3f,3.5f,4f}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.divValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvFromHadamard(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {-1,-1,-1,-1,-1,-1,-1,-1}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulInvFromHadamard((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divFromValue(100f).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {100,50,33.3333f,25,20,16.6666f,14.2857f,12.5f}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.divFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			try(final Matrix	m = m1.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(4, m.numberOfRows());
+				Assert.assertEquals(2, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,5,2,6,3,7,4,8}, m.extractFloats(), 0.001f);
+			}
+			
+			try(final Matrix	m = m5.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_FLOAT, m.getType());
+				Assert.assertEquals(1, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,2,3,4}, m.extractFloats(), 0.001f);
+			}
 		}
 	}
 
 	@Test
-	public void transpositionMatrixTest() throws CalculationException {
-		// Integer matrix test
-		final IntMatrix	im1 = new IntMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
+	public void realDoubleArithmeticTest() {
+		try(final Matrix	m1 = new RDMatrixImpl(2, 4);
+			final Matrix	m2 = new RDMatrixImpl(2, 4);
+			final Matrix	m3 = new RDMatrixImpl(2, 4);
+			final Matrix	m4 = new RDMatrixImpl(4, 2);
+			final Matrix	m5 = new RDMatrixImpl(4, 1)) {
+			
+			m1.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+			m2.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+			m3.assign(-1d,-2d,-3d,-4d,-5d,-6d,-7d,-8d);
+			m4.assign(1d,2d,3d,4d,5d,6d,7d,8d);
+			m5.assign(1d,2d,3d,4d);
 
-		Assert.assertEquals(new IntMatrixImpl(3, 2, 1, 4, 2, 5, 3, 6), im1.transp());
-		
-		// Long matrix test
-		final LongMatrix	lm1 = new LongMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
+			// Add
+			
+			try(final Matrix	m = m1.add(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {2,4,6,8,10,12,14,16}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.add((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		Assert.assertEquals(new LongMatrixImpl(3, 2, 1, 4, 2, 5, 3, 6), lm1.transp());
+			// Add scalar
+			
+			try(final Matrix	m = m1.addValue(10d).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {11,12,13,14,15,16,17,18}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.addValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Subtract
+			
+			try(final Matrix	m = m1.subtract(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {0,0,0,0,0,0,0,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtract((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		// Float matrix test
-		final FloatMatrix	fm1 = new FloatMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
+			// Subtract scalar
+			
+			try(final Matrix	m = m1.subtractValue(-10d).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {11,12,13,14,15,16,17,18}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtractValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Inverted subtract
+			
+			try(final Matrix	m = m1.subtractFrom(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {-2,-4,-6,-8,-10,-12,-14,-16}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtractFrom((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		Assert.assertEquals(new FloatMatrixImpl(3, 2, 1, 4, 2, 5, 3, 6), fm1.transp());
+			// Inverted subtract scalar
+			
+			try(final Matrix	m = m1.subtractFromValue(10d).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {9,8,7,6,5,4,3,2}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtractFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Hadamard multiplication
+			
+			try(final Matrix	m = m1.mulHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,4,9,16,25,36,49,64}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulHadamard((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		// Double matrix test
-		final DoubleMatrix	dm1 = new DoubleMatrixImpl(2, 3, 1, 2, 3, 4, 5, 6);
+			// Hadamard multiplication scalar
+			
+			try(final Matrix	m = m1.mulValue(10d).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {10,20,30,40,50,60,70,80}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		Assert.assertEquals(new DoubleMatrixImpl(3, 2, 1, 4, 2, 5, 3, 6), dm1.transp());
+			// Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,1,1,1,1,1,1,1}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulInvHadamard((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divValue(2d).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {0.5f,1f,1.5f,2f,2.5f,3f,3.5f,4f}, m.extractDoubles(), 0.001f);
+			}
+			
+			try {m1.divValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvFromHadamard(m3).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {-1,-1,-1,-1,-1,-1,-1,-1}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulInvFromHadamard((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divFromValue(100d).done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {100,50,33.3333f,25,20,16.6666f,14.2857f,12.5f}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.divFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			try(final Matrix	m = m1.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(4, m.numberOfRows());
+				Assert.assertEquals(2, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,5,2,6,3,7,4,8}, m.extractDoubles(), 0.001d);
+			}
+			
+			try(final Matrix	m = m5.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
+				Assert.assertEquals(1, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,2,3,4}, m.extractDoubles(), 0.001d);
+			}
+		}
 	}
-	
+
 	@Test
-	public void inversionMatrixTest() throws CalculationException {
-		// Float matrix test
-		final FloatMatrix	fm1 = new FloatMatrixImpl(3, 3, 1, 2, 3, 4, 5, 6, 7, 8, 0), fm2 = new FloatMatrixImpl(3, 3, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+	public void complexFloatArithmeticTest() {
+		try(final Matrix	m1 = new CFMatrixImpl(2, 4);
+			final Matrix	m2 = new CFMatrixImpl(2, 4);
+			final Matrix	m3 = new CFMatrixImpl(2, 4);
+			final Matrix	m4 = new CFMatrixImpl(4, 2);
+			final Matrix	m5 = new CFMatrixImpl(4, 1)) {
+			
+			m1.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f,8f,0f);
+			m2.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f,8f,0f);
+			m3.assign(-1f,0f,-2f,0f,-3f,0f,-4f,0f,-5f,0f,-6f,0f,-7f,0f,-8f,0f);
+			m4.assign(1f,0f,2f,0f,3f,0f,4f,0f,5f,0f,6f,0f,7f,0f,8f,0f);
+			m5.assign(1f,0f,2f,0f,3f,0f,4f,0f);
 
-		Assert.assertEquals(new FloatMatrixImpl(3, 3, -16/9f, 8/9f, -1/9f, 14/9f, -7/9f, 2/9f, -1/9f, 2/9f, -1/9f), fm1.inv());
-		
-		try{fm2.inv();
-			Assert.fail("Mandatory exception was not detected (null determinant)");
-		} catch (CalculationException exc) {
-		}
-		
-		// Double matrix test
-		final DoubleMatrix	dm1 = new DoubleMatrixImpl(3, 3, 1, 2, 3, 4, 5, 6, 7, 8, 0), dm2 = new DoubleMatrixImpl(3, 3, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+			// Add
+			
+			try(final Matrix	m = m1.add(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {2,0,4,0,6,0,8,0,10,0,12,0,14,0,16,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.add((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		Assert.assertEquals(new DoubleMatrixImpl(3, 3, -16/9d, 8/9d, -1/9d, 14/9d, -7/9d, 2/9d, -1/9d, 2/9d, -1/9d), dm1.inv());
+			// Add scalar
+			
+			try(final Matrix	m = m1.addValue(10f, 10f).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {11,10,12,10,13,10,14,10,15,10,16,10,17,10,18,10}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.addValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Subtract
+			
+			try(final Matrix	m = m1.subtract(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtract((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
 
-		try{dm2.inv();
-			Assert.fail("Mandatory exception was not detected (null determinant)");
-		} catch (CalculationException exc) {
+			// Subtract scalar
+			
+			try(final Matrix	m = m1.subtractValue(-10f, 10f).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {11,-10,12,-10,13,-10,14,-10,15,-10,16,-10,17,-10,18,-10}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtractValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Inverted subtract
+			
+			try(final Matrix	m = m1.subtractFrom(m3).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {-2,0,-4,0,-6,0,-8,0,-10,0,-12,0,-14,0,-16,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtractFrom((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Inverted subtract scalar
+			
+			try(final Matrix	m = m1.subtractFromValue(10f, 10f).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {9,10,8,10,7,10,6,10,5,10,4,10,3,10,2,10}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.subtractFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Hadamard multiplication
+			
+			try(final Matrix	m = m1.mulHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,0,4,0,9,0,16,0,25,0,36,0,49,0,64,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulHadamard((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard multiplication scalar
+			
+			try(final Matrix	m = m1.mulValue(10f, 10f).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {10,10,20,20,30,30,40,40,50,50,60,60,70,70,80,80}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulInvHadamard((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divValue(2f, 2f).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {0.25f,-0.25f,0.5f,-0.5f,0.75f,-0.75f,1f,-1f,1.25f,-1.25f,1.5f,-1.5f,1.75f,-1.75f,2f,-2f}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.divValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvFromHadamard(m3).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.mulInvFromHadamard((float[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1f,2f);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d,7d,8d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divFromValue(100f, 100f).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {100,100,50,50,33.3333f,33.3333f,25,25,20,20,16.6666f,16.6666f,14.2857f,14.2857f,12.5f,12.5f}, m.extractFloats(), 0.001f);
+			}
+			
+			try {m1.divFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d, 0d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			try(final Matrix	m = m1.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(4, m.numberOfRows());
+				Assert.assertEquals(2, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,0,5,0,2,0,6,0,3,0,7,0,4,0,8,0}, m.extractFloats(), 0.001f);
+			}
+			
+			try(final Matrix	m = m5.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
+				Assert.assertEquals(1, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new float[] {1,0,2,0,3,0,4,0}, m.extractFloats(), 0.001f);
+			}
 		}
 	}
+
+	@Test
+	public void complexDoubleArithmeticTest() {
+		try(final Matrix	m1 = new CDMatrixImpl(2, 4);
+			final Matrix	m2 = new CDMatrixImpl(2, 4);
+			final Matrix	m3 = new CDMatrixImpl(2, 4);
+			final Matrix	m4 = new CDMatrixImpl(4, 2);
+			final Matrix	m5 = new CDMatrixImpl(4, 1)) {
+			
+			m1.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d,8d,0d);
+			m2.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d,8d,0d);
+			m3.assign(-1d,0d,-2d,0d,-3d,0d,-4d,0d,-5d,0d,-6d,0d,-7d,0d,-8d,0d);
+			m4.assign(1d,0d,2d,0d,3d,0d,4d,0d,5d,0d,6d,0d,7d,0d,8d,0d);
+			m5.assign(1d,0d,2d,0d,3d,0d,4d,0d);
+
+			// Add
+			
+			try(final Matrix	m = m1.add(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {2,0,4,0,6,0,8,0,10,0,12,0,14,0,16,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.add((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.add(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.add(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.add(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Add scalar
+			
+			try(final Matrix	m = m1.addValue(10d, 10d).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {11,10,12,10,13,10,14,10,15,10,16,10,17,10,18,10}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.addValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.addValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Subtract
+			
+			try(final Matrix	m = m1.subtract(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtract((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtract(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtract(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtract(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Subtract scalar
+			
+			try(final Matrix	m = m1.subtractValue(-10d, 10d).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {11,-10,12,-10,13,-10,14,-10,15,-10,16,-10,17,-10,18,-10}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtractValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Inverted subtract
+			
+			try(final Matrix	m = m1.subtractFrom(m3).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {-2,0,-4,0,-6,0,-8,0,-10,0,-12,0,-14,0,-16,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtractFrom((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.subtractFrom(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.subtractFrom(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFrom(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Inverted subtract scalar
+			
+			try(final Matrix	m = m1.subtractFromValue(10d, 10d).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {9,10,8,10,7,10,6,10,5,10,4,10,3,10,2,10}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.subtractFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.subtractFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			// Hadamard multiplication
+			
+			try(final Matrix	m = m1.mulHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,0,4,0,9,0,16,0,25,0,36,0,49,0,64,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulHadamard((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard multiplication scalar
+			
+			try(final Matrix	m = m1.mulValue(10d, 10d).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {10,10,20,20,30,30,40,40,50,50,60,60,70,70,80,80}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvHadamard(m2).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulInvHadamard((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divValue(2d, 2d).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {0.25f,-0.25f,0.5f,-0.5f,0.75f,-0.75f,1f,-1f,1.25f,-1.25f,1.5f,-1.5f,1.75f,-1.75f,2f,-2f}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.divValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division"
+			
+			try(final Matrix	m = m1.mulInvFromHadamard(m3).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0,-1,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.mulInvFromHadamard((double[])null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard((Matrix)null);
+				Assert.fail("Mandatory exceptions was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m1.mulInvFromHadamard(new RIMatrixImpl(2, 4));
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different type)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(m4);
+				Assert.fail("Mandatory exceptions was not detected (1-st argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1d,2d);
+				Assert.fail("Mandatory exceptions was not detected (1-nd argument different size)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m1.mulInvFromHadamard(1,2,3,4,5,6,7,8);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L,7L,8L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f,7f,8f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+
+			// Invert Hadamard "division" scalar
+			
+			try(final Matrix	m = m1.divFromValue(100d, 100d).done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(2, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {100,100,50,50,33.3333f,33.3333f,25,25,20,20,16.6666f,16.6666f,14.2857f,14.2857f,12.5f,12.5f}, m.extractDoubles(), 0.001d);
+			}
+			
+			try {m1.divFromValue(1);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1L);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1f, 0f);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {m1.divFromValue(1d);
+				Assert.fail("Mandatory exceptions was not detected (unsupported op)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			
+			try(final Matrix	m = m1.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(4, m.numberOfRows());
+				Assert.assertEquals(2, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,0,5,0,2,0,6,0,3,0,7,0,4,0,8,0}, m.extractDoubles(), 0.001d);
+			}
+			
+			try(final Matrix	m = m5.transpose().done()) {
+				Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
+				Assert.assertEquals(1, m.numberOfRows());
+				Assert.assertEquals(4, m.numberOfColumns());
+				Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0}, m.extractDoubles(), 0.001f);
+			}
+		}
+	}
+
+	@Test
+	public void readIntSpecialTest() {
+		try(final Matrix	m1 = new RIMatrixImpl(2, 4)) {
+		}
+	}
+
 }

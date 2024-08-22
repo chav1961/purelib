@@ -2,7 +2,7 @@ package chav1961.purelib.matrix.interfaces;
 
 import java.util.function.LongUnaryOperator;
 
-public interface LongMatrix extends Matrix<LongMatrix> {
+public interface LongMatrix extends OldMatrix<LongMatrix> {
 	LongMatrix function(LongUnaryOperator op);
 	long get(int... indices);
 	void set(long value, int... indices);
