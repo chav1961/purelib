@@ -279,6 +279,26 @@ public class ArgParser {
 	}
 	
 	/**
+	 * <p>Is any parameter typed</p>
+	 * @param keys parameters to test
+	 * @return true of any parameter typed
+	 * @since 0.0.7
+	 */
+	public boolean anyIsTyped(final String... keys) {
+		if (keys == null || keys.length == 0 || Utils.checkArrayContent4Nulls(keys) > 0) {
+			throw new IllegalArgumentException("Keys to test are null, empty or contain nulls inside");
+		}
+		else {
+			for (String item : keys) {
+				if (isTyped(item)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
+	/**
 	 * <p>Build "usage" string to print it as short help</p>
 	 * @param applicationName application name to substitute into string
 	 * @return string built
