@@ -345,7 +345,7 @@ public class CodePrintStreamWrapper implements CodeCharStreamPrinter<CodePrintSt
 	private void printPrefix() throws PrintingException {
 		if (startLine) {
 			for(int index = 0; index < depth; index++) {
-				print('\t');
+				delegate.print('\t');
 			}
 			startLine = false;
 		}
