@@ -260,8 +260,9 @@ public class ArgParser {
 
 	/**
 	 * <p>Are all parameters typed</p>
-	 * @param keys parameters to test
+	 * @param keys parameters to test. Can't be null or empty list
 	 * @return true of all parameters typed
+	 * @throws IllegalArgumentException key to test is null or empty
 	 * @since 0.0.4
 	 */
 	public boolean allAreTyped(final String... keys) {
@@ -277,6 +278,28 @@ public class ArgParser {
 			return true;
 		}
 	}
+
+	/**
+	 * <p>Is any parameter typed</p>
+	 * @param keys parameters to test. Can't be null or empty list
+	 * @return true of all parameters typed
+	 * @throws IllegalArgumentException key to test is null or empty
+	 * @since 0.0.7
+	 */
+	public boolean isAnyTyped(final String... keys) {
+		if (keys == null || keys.length == 0 || Utils.checkArrayContent4Nulls(keys) > 0) {
+			throw new IllegalArgumentException("Keys to test are null, empty or contain nulls inside");
+		}
+		else {
+			for (String item : keys) {
+				if (isTyped(item)) {
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+	
 	
 	/**
 	 * <p>Build "usage" string to print it as short help</p>
