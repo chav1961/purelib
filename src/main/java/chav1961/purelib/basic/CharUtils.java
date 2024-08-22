@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -204,6 +205,7 @@ public class CharUtils {
 	private static final String[]	WORDS_RU_UNITS_F = {"", "", "", "", "", "", "", "", "", "", };
 	private static final String[]	WORDS_RU_UNITS_N = {"", "", "", "", "", "", "", "", "", "", };
 	private static final Map<String, WordsKeeper>	WORDS_RU_SET = new HashMap<>();
+	private static final BitCharSet	UUID_CHARS = new BitCharSet('0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','A','B','C','D','E','F','-');
 			
 	static {
 		CONSTANTS.placeName((CharSequence)"true",true);
@@ -3537,6 +3539,64 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	}
     }
 
+    /**
+     * <p>Does char sequence contain an UUID representation</p>
+     * @param seq sequence to test. Can't be null
+     * @return true is yes
+     * @throws NullPointerException when seq is null
+     * @since 0.0.7
+     */
+    public static boolean isUUID(final CharSequence seq) throws NullPointerException {
+    	if (seq == null) {
+    		throw new NullPointerException("Sequence to test can't be null");
+    	}
+    	else if (seq.length() != 36 || seq.charAt(8) != '-' || seq.charAt(13) != '-' || seq.charAt(18) != '-' || seq.charAt(23) != '-') {
+    		return false;
+    	}
+    	else {
+    		for(int index = 0, maxIndex = seq.length(); index < maxIndex; index++) {
+    			if (!UUID_CHARS.contains(seq.charAt(index))) {
+    				return false;
+    			}
+    		}
+    		return true;
+    	}
+    }
+    
+    public static UUID toUUID(final CharSequence seq) throws NullPointerException, IllegalArgumentException {
+    	if (seq == null) {
+    		throw new NullPointerException("Sequence to test can't be null");
+    	}
+    	else if (seq.length() != 36 || seq.charAt(8) != '-' || seq.charAt(13) != '-' || seq.charAt(18) != '-' || seq.charAt(23) != '-') {
+    		throw new IllegalArgumentException("Illegal UUID format");
+    	}
+    	else {
+    		long hiValue = 0, loValue = 0;
+    		
+    		for(int index = 0, maxIndex = seq.length(); index < maxIndex; index++) {
+    			final char	symbol = seq.charAt(index);
+
+    			if (index == 18) {
+    				hiValue = loValue;
+    				loValue = 0;
+    			}
+    			if (symbol >= '0' && symbol <= '9') {
+    				loValue = (loValue << 4) | (symbol - '0') & 0xFF;
+    			}
+    			else if (symbol >= 'A' && symbol <= 'F') {
+    				loValue = (loValue << 4) | (symbol - 'A' + 10) & 0xFF;
+    			}
+    			else if (symbol >= 'a' && symbol <= 'f') {
+    				loValue = (loValue << 4) | (symbol - 'a' + 10) & 0xFF;
+    			}
+    			else if (symbol != '-') {
+    	    		throw new IllegalArgumentException("Illegal UUID char at index ["+index+"]");
+    			}
+    		}
+    		return new UUID(hiValue, loValue);
+    	}
+    }
+    
     public static String toWords(final long value, final SupportedLanguages lang, final int options) throws NullPointerException {
     	if (lang == null) {
     		throw new NullPointerException("Language type can't be null"); 
