@@ -351,11 +351,20 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 		if (value instanceof BigDecimal) {
 			return ((BigDecimal)value).signum();
 		}
+		else if (value instanceof BigInteger) {
+			return ((BigInteger)value).signum();
+		}
 		else if (value instanceof Float) {
 			return (int)Math.signum(((Float)value).floatValue());
 		}
 		else if (value instanceof Double) {
 			return (int)Math.signum(((Double)value).doubleValue());
+		}
+		else if (value instanceof Long) {
+			return (int)Math.signum(((Long)value).longValue());
+		}
+		else if (value instanceof Integer) {
+			return (int)Math.signum(((Integer)value).intValue());
 		}
 		else {
 			throw new UnsupportedOperationException("Value class ["+value.getClass().getCanonicalName()+"] is not supported yet");
@@ -364,7 +373,17 @@ public class JNumericFieldWithMeta extends JFormattedTextField implements NodeMe
 	
 	private Object getValue2Validate(final String value) throws SyntaxException {
 		try{if (!Utils.checkEmptyOrNullString(value)) {
-				return getFormatter().stringToValue(value);
+				final Object result = getFormatter().stringToValue(value);
+				
+				if (result instanceof Long) {
+					return Double.valueOf(((Long)result).doubleValue());
+				}
+				else if (result instanceof Integer) {
+					return Float.valueOf(((Integer)result).floatValue());
+				}
+				else {
+					return result;
+				}
 			}
 			else {
 				return null;

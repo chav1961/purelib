@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
+import java.util.UUID;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
@@ -1702,6 +1703,35 @@ public class CharUtilsTest {
 			Assert.fail("Mandatory exception was not detected (3-rd argument less than 2-nd)");
 		} catch (StringIndexOutOfBoundsException exc) {
 		}
+	}
+
+	@Test
+	public void workingUUIDTest() throws IOException {
+		final UUID		uuid = UUID.randomUUID();
+		final String	str =uuid.toString(); 
+		
+		Assert.assertTrue(CharUtils.isUUID(str));
+		Assert.assertFalse(CharUtils.isUUID(str.substring(0, 35)+'?'));
+		
+		try {
+			CharUtils.isUUID(null);
+			Assert.fail("Mandatory exceptron was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		
+		Assert.assertEquals(uuid, CharUtils.toUUID(str));
+		
+		try {
+			CharUtils.toUUID(null);
+			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+		} catch (NullPointerException exc) {
+		}
+		try {
+			CharUtils.toUUID(str.substring(0, 35)+'?');
+			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		
 	}
 }
 

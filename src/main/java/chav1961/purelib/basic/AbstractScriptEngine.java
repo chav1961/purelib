@@ -18,7 +18,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.util.Arrays;
-import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.jar.Attributes;

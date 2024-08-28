@@ -3563,6 +3563,14 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	}
     }
     
+    /**
+     * <p>Convert character UUID representation to UUID instance</p>
+     * @param seq sequence to convert. Can't be null
+     * @return instance converted. Can\t be null
+     * @throws NullPointerException char sequence is null
+     * @throws IllegalArgumentException illegal UUID format in the char sequence
+     * @since 0.0.7
+     */
     public static UUID toUUID(final CharSequence seq) throws NullPointerException, IllegalArgumentException {
     	if (seq == null) {
     		throw new NullPointerException("Sequence to test can't be null");

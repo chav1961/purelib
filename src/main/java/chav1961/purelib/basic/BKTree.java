@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
  */
 public class BKTree<Content, Cargo> {
 	/**
-	 * <p>This interface describes function to calculate metrics (for example, Levenshtein distance) for tree element pairs</p> 
+	 * <p>This interface describes function to calculate metrics (for example, Levenstein distance) for tree element pairs</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.7
 	 * @see https://en.wikipedia.org/wiki/Levenshtein_distance

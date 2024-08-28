@@ -14,8 +14,10 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.LineBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
@@ -84,6 +86,55 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 							label.setForeground((isSelected ?  list.getSelectionForeground() : list.getForeground()).brighter());
 						}
 						if (cellHasFocus) {
+							label.setBorder(new LineBorder(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
+						}
+						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
+								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
+								final Localizer			localizer = LocalizerFactory.getLocalizer(URI.create(value.getClass().getAnnotation(LocaleResourceLocation.class).value())); 
+							
+								label.setText(localizer.getValue(res.value()));
+								label.setToolTipText(localizer.getValue(res.tooltip()));
+								if (!res.icon().isEmpty()) {
+									label.setIcon(new ImageIcon(URI.create(res.icon()).toURL()));
+								}
+							}
+							else {
+								label.setText(value.name());
+								label.setToolTipText(value.name());
+							}
+						} catch (NoSuchFieldException | LocalizationException | MalformedURLException e) {
+							label.setText(value.name());
+						}
+						return label;
+					}
+				}
+			};
+		}
+		else if (TableCellRenderer.class.isAssignableFrom(rendererType)) {
+			return (R) new DefaultTableCellRenderer() {
+				private static final long serialVersionUID = 0L;
+				
+				private final Map<Class<?>, ListCellRenderer>	nestedRenderers = new HashMap<>();
+
+				@Override
+				public Component getTableCellRendererComponent(final JTable table, final Object val, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
+					if (val == null) {
+						return new JLabel("unselected");
+					}
+					else {
+						final Enum<?>	value = (Enum<?>)val;
+						final JLabel	label = new JLabel();
+
+						label.setOpaque(true);
+						if (table.isEnabled()) {
+							label.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+							label.setForeground(isSelected ?  table.getSelectionForeground() : table.getForeground());
+						}
+						else {
+							label.setBackground((isSelected ? table.getSelectionBackground() : table.getBackground()).darker());
+							label.setForeground((isSelected ?  table.getSelectionForeground() : table.getForeground()).brighter());
+						}
+						if (hasFocus) {
 							label.setBorder(new LineBorder(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
 						}
 						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
