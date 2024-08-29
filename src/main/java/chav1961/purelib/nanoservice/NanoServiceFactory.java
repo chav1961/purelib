@@ -176,8 +176,8 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 
 	public static final InputStream		NULL_INPUT = new InputStream(){@Override public int read() throws IOException {return -1;}};
 
-	private static final MimeType[]		CREOLE_DETECTED = new MimeType[] {PureLibSettings.MIME_CREOLE_TEXT};
-	private static final MimeType[]		HTML_DETECTED = new MimeType[] {PureLibSettings.MIME_HTML_TEXT};
+	private static final MimeType[]		CREOLE_DETECTED = new MimeType[] {MimeType.MIME_CREOLE_TEXT};
+	private static final MimeType[]		HTML_DETECTED = new MimeType[] {MimeType.MIME_HTML_TEXT};
 	
 	public interface NanoServiceEnvironment {
 		Connection getConnection() throws SQLException;
@@ -941,14 +941,14 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			
 			if (desc != null) {
 				try{final List<String>	from = requestHeaders.get(HEAD_CONTENT_TYPE);
-					final String		fromMimeString = from !=null ? from.get(0) : PureLibSettings.MIME_OCTET_STREAM.toString();
+					final String		fromMimeString = from !=null ? from.get(0) : MimeType.MIME_OCTET_STREAM.toString();
 					final List<String>	to = requestHeaders.get(HEAD_ACCEPT);
-					final String		toMimeString = to != null ? to.get(0) : PureLibSettings.MIME_OCTET_STREAM.toString();
-					final MimeType		fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
-//										toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : PureLibSettings.MIME_OCTET_STREAM;
+					final String		toMimeString = to != null ? to.get(0) : MimeType.MIME_OCTET_STREAM.toString();
+					final MimeType		fromMime = fromMimeString != null ? MimeType.parseMimeList(fromMimeString)[0] : MimeType.MIME_OCTET_STREAM;
+//										toMime = toMimeString != null ? MimeType.parseMimeList(toMimeString)[0] : MimeType.MIME_OCTET_STREAM;
 					
 					for (MethodDescriptor item : desc.methods) {
-						for (MimeType type : MimeType.parseMimeList(toMimeString != null ? toMimeString : PureLibSettings.MIME_OCTET_STREAM.toString())) {
+						for (MimeType type : MimeType.parseMimeList(toMimeString != null ? toMimeString : MimeType.MIME_OCTET_STREAM.toString())) {
 							if (item.isAppicable(qType, charPath, prefixLen, fromMime, type)) {
 								return item.caller;
 							}
@@ -1793,7 +1793,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	static String buildFromBodyParameterText(Class<?> itemType, MimeType mimeType) throws ContentException {
 		final StringBuilder	sb = new StringBuilder();
 		
-		if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,mimeType)) {
+		if (InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,mimeType)) {
 			if (String.class.isAssignableFrom(itemType)) {
 				sb.append(" PostString2Stack\n");
 			}
@@ -1810,7 +1810,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream, CreoleWriter, Writer, StringBuilder and CharacterTarget are available");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_XML_TEXT,mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_XML_TEXT,mimeType)) {
 			if (String.class.isAssignableFrom(itemType)) {
 				sb.append(" PostString2Stack\n");
 			}
@@ -1833,7 +1833,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream, CreoleWriter, Writer, StringBuilder and CharacterTarget are available");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_JSON_TEXT,mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_JSON_TEXT,mimeType)) {
 			if (String.class.isAssignableFrom(itemType)) {
 				sb.append(" PostString2Stack\n");
 			}
@@ -1864,7 +1864,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 //				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only InputStream can be used");
 //			}
 //		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_MULTIPART_FORM, mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_MULTIPART_FORM, mimeType)) {
 			if (InputStream.class.isAssignableFrom(itemType)) {
 				sb.append(" PostInputStream2Stack\n");
 			}
@@ -1875,7 +1875,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only InputStream can be used");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_STREAM, mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_ANY_STREAM, mimeType)) {
 			if (InputStream.class.isAssignableFrom(itemType)) {
 				sb.append(" PostInputStream2Stack\n");
 			}
@@ -1892,7 +1892,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 	static String buildToBodyParameterText(final Class<?> itemType, final MimeType mimeType) throws ContentException {
 		final StringBuilder	sb = new StringBuilder();
 		
-		if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,mimeType)) {
+		if (InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,mimeType)) {
 			if (StringBuilder.class.isAssignableFrom(itemType)) {
 				sb.append(" StringBuilder2Stack\n");
 			}
@@ -1912,7 +1912,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream, CreoleWriter, Writer, StringBuilder and CharacterTarget are available");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_HTML_TEXT,mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_HTML_TEXT,mimeType)) {
 			if (StringBuilder.class.isAssignableFrom(itemType)) {
 				sb.append(" StringBuilder2Stack\n");
 			}
@@ -1932,7 +1932,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream, CreoleWriter, Writer, StringBuilder and CharacterTarget are available");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_XML_TEXT,mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_XML_TEXT,mimeType)) {
 			if (StringBuilder.class.isAssignableFrom(itemType)) {
 				sb.append(" StringBuilder2Stack\n");
 			}
@@ -1958,7 +1958,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream, CreoleWriter, Writer, StringBuilder and CharacterTarget are available");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_JSON_TEXT,mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_JSON_TEXT,mimeType)) {
 			if (StringBuilder.class.isAssignableFrom(itemType)) {
 				sb.append(" StringBuilder2Stack\n");
 			}
@@ -1981,7 +1981,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. It's type should not be array, primitive type or enumeration");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_IMAGE, mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_ANY_IMAGE, mimeType)) {
 			if (OutputStream.class.isAssignableFrom(itemType)) {
 				sb.append(" OutputStream2Stack\n");
 			}
@@ -1989,7 +1989,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 				throw new ContentException("Requested MIME ["+mimeType+"] is not compatible with parameter type ["+itemType.getCanonicalName()+"]. Only OutputStream can be used");
 			}
 		}
-		else if (InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_STREAM, mimeType)) {
+		else if (InternalUtils.mimesAreCompatible(MimeType.MIME_ANY_STREAM, mimeType)) {
 			if (OutputStream.class.isAssignableFrom(itemType)) {
 				sb.append(" OutputStream2Stack\n");
 			}
@@ -1998,7 +1998,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 			}
 		}
 		else {
-			InternalUtils.mimesAreCompatible(PureLibSettings.MIME_ANY_STREAM, mimeType);
+			InternalUtils.mimesAreCompatible(MimeType.MIME_ANY_STREAM, mimeType);
 			throw new ContentException("Unsupported combination of parameter type ["+itemType.getCanonicalName()+"] and annotated MIME type ["+mimeType+"]");
 		}
 		return sb.toString();
@@ -2012,7 +2012,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 		final StringBuilder	sb = new StringBuilder("; ------- Additional imports\n");
 		
 		for (Parameter parm : m.getParameters()) {
-			try{if (parm.isAnnotationPresent(FromBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(parm.getAnnotation(FromBody.class).mimeType()),PureLibSettings.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
+			try{if (parm.isAnnotationPresent(FromBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(parm.getAnnotation(FromBody.class).mimeType()),MimeType.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
 					try{if (!Modifier.isPublic(parm.getType().getConstructor().getModifiers())) {
 							throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 						}
@@ -2023,7 +2023,7 @@ public class NanoServiceFactory implements Closeable, NanoService, HttpHandler  
 						throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 					}
 				}
-				else if (parm.isAnnotationPresent(ToBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(new String[]{parm.getAnnotation(ToBody.class).mimeType()}),PureLibSettings.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
+				else if (parm.isAnnotationPresent(ToBody.class) && InternalUtils.mimesAreCompatible(InternalUtils.buildMime(new String[]{parm.getAnnotation(ToBody.class).mimeType()}),MimeType.MIME_JSON_TEXT) && !inList(parm.getType(),EXCLUDE_CLASSES_4_JSON)) {
 					try{if (!Modifier.isPublic(parm.getType().getConstructor().getModifiers())) {
 							throw new ContentException("Class ["+m.getDeclaringClass().getCanonicalName()+"] method ["+m.getName()+"] parameter ["+parm.getName()+"] type ["+parm.getType().getCanonicalName()+"] doesnt't have default public constructor to create"); 
 						}
@@ -2454,7 +2454,7 @@ loop:		for (; index < maxIndex && from < maxFrom; index++) {
 			else {
 				final byte[] 	answer = (parameters == null || parameters.length == 0 ? format : String.format(format,parameters)).getBytes("UTF-8");
 				
-				handler.getResponseHeaders().add(HEAD_CONTENT_TYPE, PureLibSettings.MIME_PLAIN_TEXT.toString());
+				handler.getResponseHeaders().add(HEAD_CONTENT_TYPE, MimeType.MIME_PLAIN_TEXT.toString());
 				handler.getResponseHeaders().add(HEAD_CONTENT_LENGTH, String.valueOf(answer.length));
 				handler.getResponseHeaders().add(HEAD_CONTENT_ENCODING, HEAD_CONTENT_ENCODING_IDENTITY);
 				handler.sendResponseHeaders(rc,0);

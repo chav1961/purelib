@@ -270,8 +270,8 @@ public class NanoServiceFactoryTest {
 										return 0;
 									}
 								};
-		final MethodDescriptor	desc1 = new MethodDescriptor("first/*",new QueryType[]{QueryType.GET},new MimeType[]{},new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT},executor);
-		final MethodDescriptor	desc2 = new MethodDescriptor("first/{value}/second",new QueryType[]{QueryType.GET},new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT},new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT},executor);
+		final MethodDescriptor	desc1 = new MethodDescriptor("first/*",new QueryType[]{QueryType.GET},new MimeType[]{},new MimeType[]{MimeType.MIME_PLAIN_TEXT},executor);
+		final MethodDescriptor	desc2 = new MethodDescriptor("first/{value}/second",new QueryType[]{QueryType.GET},new MimeType[]{MimeType.MIME_PLAIN_TEXT},new MimeType[]{MimeType.MIME_PLAIN_TEXT},executor);
 		
 		Assert.assertTrue(desc1.canServeQuery(QueryType.GET));
 		Assert.assertFalse(desc1.canServeQuery(QueryType.POST));
@@ -282,13 +282,13 @@ public class NanoServiceFactoryTest {
 		Assert.assertTrue(desc2.canServePath("first/text/second".toCharArray(),0));
 		Assert.assertFalse(desc2.canServePath("first/second".toCharArray(),0));
 
-		Assert.assertTrue(desc1.isCompatibleByMimeTypes(null,PureLibSettings.MIME_PLAIN_TEXT));
-		Assert.assertTrue(desc1.isCompatibleByMimeTypes(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT));
+		Assert.assertTrue(desc1.isCompatibleByMimeTypes(null,MimeType.MIME_PLAIN_TEXT));
+		Assert.assertTrue(desc1.isCompatibleByMimeTypes(MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT));
 		
-		Assert.assertFalse(desc2.isCompatibleByMimeTypes(null,PureLibSettings.MIME_PLAIN_TEXT));
-		Assert.assertTrue(desc2.isCompatibleByMimeTypes(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT));
-		Assert.assertFalse(desc2.isCompatibleByMimeTypes(PureLibSettings.MIME_HTML_TEXT,PureLibSettings.MIME_PLAIN_TEXT));
-		Assert.assertFalse(desc2.isCompatibleByMimeTypes(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_HTML_TEXT));
+		Assert.assertFalse(desc2.isCompatibleByMimeTypes(null,MimeType.MIME_PLAIN_TEXT));
+		Assert.assertTrue(desc2.isCompatibleByMimeTypes(MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT));
+		Assert.assertFalse(desc2.isCompatibleByMimeTypes(MimeType.MIME_HTML_TEXT,MimeType.MIME_PLAIN_TEXT));
+		Assert.assertFalse(desc2.isCompatibleByMimeTypes(MimeType.MIME_PLAIN_TEXT,MimeType.MIME_HTML_TEXT));
 	}	
 	
 	@Test
@@ -801,7 +801,7 @@ public class NanoServiceFactoryTest {
 		
 		try{factory.start();
 
-			caller = new SimpleCaller(URI.create("http://localhost:1000/loopback"), QueryType.GET, Utils.mkProps(NanoServiceFactory.HEAD_ACCEPT,PureLibSettings.MIME_HTML_TEXT.toString()));
+			caller = new SimpleCaller(URI.create("http://localhost:1000/loopback"), QueryType.GET, Utils.mkProps(NanoServiceFactory.HEAD_ACCEPT,MimeType.MIME_HTML_TEXT.toString()));
 			try(final ByteArrayOutputStream	os = new ByteArrayOutputStream()) {
 				
 				caller.setStreams(null,os);
@@ -813,7 +813,7 @@ public class NanoServiceFactoryTest {
 					final String		readed = Utils.fromResource(rdr);
 					
 					Assert.assertEquals(LOOPBACK_RESPONSE,readed.replace("\r",""));
-					Assert.assertEquals(caller.getResponseHeaders().getFirst(NanoServiceFactory.HEAD_CONTENT_TYPE),PureLibSettings.MIME_HTML_TEXT.toString());
+					Assert.assertEquals(caller.getResponseHeaders().getFirst(NanoServiceFactory.HEAD_CONTENT_TYPE),MimeType.MIME_HTML_TEXT.toString());
 					Assert.assertEquals(caller.getResponseHeaders().getFirst(NanoServiceFactory.HEAD_CONTENT_ENCODING),NanoServiceFactory.HEAD_CONTENT_ENCODING_IDENTITY);
 				}
 			}

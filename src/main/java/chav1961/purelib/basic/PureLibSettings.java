@@ -226,76 +226,6 @@ public final class PureLibSettings {
 	public static final String		SWING_TOOLTIP_MODE_DISMISS_DELAY = "purelib.settings.ui.swing.tooptip.dismissDelay";
 
 	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>
-	 */
-	public static final MimeType	MIME_PLAIN_TEXT = buildMime("text","plain");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for CREOLE text</p>
-	 */
-	public static final MimeType	MIME_CREOLE_TEXT = buildMime("text","x-wiki.creole");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for MARKDOWN text</p>
-	 */
-	public static final MimeType	MIME_MARKDOWN_TEXT = buildMime("text","markdown");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for HTML text</p>
-	 */
-	public static final MimeType	MIME_HTML_TEXT = buildMime("text","html");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for XML text</p>
-	 */
-	public static final MimeType	MIME_XML_TEXT = buildMime("text","xml");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for JSON</p>
-	 */
-	public static final MimeType	MIME_JSON_TEXT = buildMime("application","json");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for CSS</p>
-	 */
-	public static final MimeType	MIME_CSS_TEXT = buildMime("text","css");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for favicon content</p>
-	 */
-	public static final MimeType	MIME_FAVICON = buildMime("image","webp");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for *.png content</p>
-	 */
-	public static final MimeType	MIME_PNG = buildMime("image","x-png");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for any image content</p>
-	 */
-	public static final MimeType	MIME_ANY_IMAGE = buildMime("image","*");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for html form content</p>
-	 */
-	public static final MimeType	MIME_FORM_URLENCODED = buildMime("application","x-www-form-urlencoded");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for html multipart form content</p>
-	 */
-	public static final MimeType	MIME_MULTIPART_FORM = buildMime("multipart","form-data");
-	
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for octet stream</p>
-	 */
-	public static final MimeType	MIME_OCTET_STREAM = buildMime("application","octet-stream");
-
-	/**
-	 * <p>Predefined MIMEs in the Pure Library: MIME for any stream</p>
-	 */
-	public static final MimeType	MIME_ANY_STREAM = buildMime("application","*");
-	
-	/**
 	 * <p>Predefined Data Flavor name for Pure Library models to use them in the Swing applications</p>
 	 * @see chav1961.purelibrary.model
 	 */	
@@ -803,7 +733,8 @@ public final class PureLibSettings {
 	}
 	
 	private static MimeType buildMime(final String type, final String subtype) {
-		try{return new MimeType(type,subtype);
+		try{
+			return new MimeType(type,subtype);
 		} catch (MimeParseException e) {
 			return new MimeType();
 		}

@@ -108,6 +108,7 @@ import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.GettersAndSettersFactory;
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -1506,7 +1507,7 @@ loop:			for (Component comp : children(node)) {
 			try {
 				SwingUtils.showCreoleHelpWindow(owner, 
 						URIUtils.convert2selfURI(
-								Utils.fromResource(localizer.getContent(helpKey, PureLibSettings.MIME_CREOLE_TEXT, PureLibSettings.MIME_HTML_TEXT)).toCharArray(),
+								Utils.fromResource(localizer.getContent(helpKey, MimeType.MIME_CREOLE_TEXT, MimeType.MIME_HTML_TEXT)).toCharArray(),
 						Localizer.LOCALIZER_DEFAULT_ENCODING)
 				);
 			} catch (LocalizationException exc) {
@@ -2363,14 +2364,14 @@ loop:			for (;;) {
 	}
 
 	private static JEditorPane buildAboutContent(final Localizer localizer, final String content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
-		try(final Reader	rdr = localizer.getContent(content, PureLibSettings.MIME_CREOLE_TEXT, PureLibSettings.MIME_HTML_TEXT)) {
+		try(final Reader	rdr = localizer.getContent(content, MimeType.MIME_CREOLE_TEXT, MimeType.MIME_HTML_TEXT)) {
 
 			return buildAboutContent(URIUtils.convert2selfURI(Utils.fromResource(rdr).toCharArray(), Localizer.LOCALIZER_DEFAULT_ENCODING), preferredSize);
 		}
 	}	
 	
 	private static JEditorPane buildAboutContent(final URI content, final Dimension preferredSize) throws MimeParseException, LocalizationException, IOException {
-		final JEditorPane 	pane = new JEditorPane(PureLibSettings.MIME_HTML_TEXT.toString(),null);
+		final JEditorPane 	pane = new JEditorPane(MimeType.MIME_HTML_TEXT.toString(),null);
 	
 		try(final Reader	rdr = new InputStreamReader(content.toURL().openStream(), PureLibSettings.DEFAULT_CONTENT_ENCODING)) {
 			pane.read(rdr,null);

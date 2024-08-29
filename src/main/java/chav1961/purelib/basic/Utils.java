@@ -1715,15 +1715,15 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 							return MimeType.parseMimeList(HARDCODED_MIMES.get(ext))[0];
 						}
 						else {
-							return PureLibSettings.MIME_OCTET_STREAM;
+							return MimeType.MIME_OCTET_STREAM;
 						}
 					}
 					else {
-						return PureLibSettings.MIME_OCTET_STREAM;
+						return MimeType.MIME_OCTET_STREAM;
 					}
 				}
 			} catch (IOException | MimeParseException e) {
-				return PureLibSettings.MIME_OCTET_STREAM;
+				return MimeType.MIME_OCTET_STREAM;
 			}
 		}
 	}

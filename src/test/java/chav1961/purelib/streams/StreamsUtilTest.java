@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -22,19 +23,19 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
 public class StreamsUtilTest {
 	@Test
 	public void getStreamClass4OutputTest() throws IOException {
-		Assert.assertEquals(WriterWrapper.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT).getClass());
-		Assert.assertEquals(CreoleWriter.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),PureLibSettings.MIME_CREOLE_TEXT,PureLibSettings.MIME_PLAIN_TEXT).getClass());
-		Assert.assertEquals(WriterWrapper.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_FAVICON).getClass());
+		Assert.assertEquals(WriterWrapper.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT).getClass());
+		Assert.assertEquals(CreoleWriter.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_CREOLE_TEXT,MimeType.MIME_PLAIN_TEXT).getClass());
+		Assert.assertEquals(WriterWrapper.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_PLAIN_TEXT,MimeType.MIME_FAVICON).getClass());
 		
-		try{StreamsUtil.getStreamClassForOutput(null,PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT);
+		try{StreamsUtil.getStreamClassForOutput(null,MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{StreamsUtil.getStreamClassForOutput(new StringWriter(),null,PureLibSettings.MIME_PLAIN_TEXT);
+		try{StreamsUtil.getStreamClassForOutput(new StringWriter(),null,MimeType.MIME_PLAIN_TEXT);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{StreamsUtil.getStreamClassForOutput(new StringWriter(),PureLibSettings.MIME_PLAIN_TEXT,null);
+		try{StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_PLAIN_TEXT,null);
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}

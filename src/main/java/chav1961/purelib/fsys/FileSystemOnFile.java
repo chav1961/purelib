@@ -120,7 +120,10 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			throw new EnvironmentException("Resource URI ["+resource+"] is not supported by the class. Valid URI must be ["+SERVE+"...]");
 		}
 		else {
-			try{return new FileSystemOnFile(URI.create(resource.getRawSchemeSpecificPart()));
+			try{final URI	uriPath = URI.create(resource.getRawSchemeSpecificPart());
+				final File	f = new File(uriPath.getRawSchemeSpecificPart()).getAbsoluteFile();
+				
+				return new FileSystemOnFile(f.toURI());
 			} catch (IOException e) {
 				throw new EnvironmentException("I/O error creatinf file system on file: "+e.getLocalizedMessage(),e);
 			}

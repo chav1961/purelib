@@ -190,21 +190,21 @@ public class InternalUtils {
 			throw new IllegalArgumentException("File name to define MIME for can't be null or empty");
 		}
 		else if (fileName.endsWith(".cre")) {
-			return new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT};
+			return new MimeType[]{MimeType.MIME_CREOLE_TEXT};
 		}
 		else if (fileName.endsWith(".css")) {
-			return new MimeType[]{PureLibSettings.MIME_CSS_TEXT};
+			return new MimeType[]{MimeType.MIME_CSS_TEXT};
 		}
 		else if (fileName.endsWith(".html")) {
-			return new MimeType[]{PureLibSettings.MIME_HTML_TEXT};
+			return new MimeType[]{MimeType.MIME_HTML_TEXT};
 		}
 		else if (fileName.contains("favicon.ico")) {
-			return new MimeType[]{PureLibSettings.MIME_FAVICON};
+			return new MimeType[]{MimeType.MIME_FAVICON};
 		}
 		else {
 			try{return MimeType.parseMimeList(typeMap.getContentType(fileName));
 			} catch (MimeParseException e) {
-				return new MimeType[]{PureLibSettings.MIME_OCTET_STREAM};
+				return new MimeType[]{MimeType.MIME_OCTET_STREAM};
 			}
 		}
 	}

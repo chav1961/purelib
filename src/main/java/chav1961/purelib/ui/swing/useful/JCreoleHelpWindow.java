@@ -17,6 +17,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -49,7 +50,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 	 * @throws IllegalArgumentException root content id is null or empty
 	 */
 	public JCreoleHelpWindow(final Localizer localizer, final String root) throws LocalizationException, NullPointerException, IllegalArgumentException {
-		super(PureLibSettings.MIME_HTML_TEXT.toString(),"");
+		super(MimeType.MIME_HTML_TEXT.toString(),"");
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null"); 
 		}
@@ -153,6 +154,6 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 	}
 	
 	private void loadContent(final String uri) throws LocalizationException, IOException {
-		setText(Utils.fromResource(localizer.getContent(uri, PureLibSettings.MIME_CREOLE_TEXT, PureLibSettings.MIME_HTML_TEXT)));
+		setText(Utils.fromResource(localizer.getContent(uri, MimeType.MIME_CREOLE_TEXT, MimeType.MIME_HTML_TEXT)));
 	}
 }

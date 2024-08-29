@@ -265,7 +265,7 @@ public abstract class AbstractLocalizer implements Localizer {
 					
 					if (uriRef.getQuery() != null) {
 						try{final Hashtable<String,String[]>	mimes = URIUtils.parseQuery(uriRef.getQuery());
-							final MimeType		fromMime = mimes.containsKey(CONTENT_MIME) ? PureLibSettings.MIME_PLAIN_TEXT : MimeType.parseMimeList(mimes.get(CONTENT_MIME_SOURCE)[0])[0];
+							final MimeType		fromMime = mimes.containsKey(CONTENT_MIME) ? MimeType.MIME_PLAIN_TEXT : MimeType.parseMimeList(mimes.get(CONTENT_MIME_SOURCE)[0])[0];
 							final MimeType 		toMime = mimes.containsKey(CONTENT_MIME) ? MimeType.parseMimeList((mimes.get(CONTENT_MIME)[0]))[0] : MimeType.parseMimeList((mimes.get(CONTENT_MIME_TARGET)[0]))[0];
 						
 							try(final StringWriter	wr = new StringWriter();
@@ -323,7 +323,7 @@ public abstract class AbstractLocalizer implements Localizer {
 	
 	@Override
 	public Reader getContent(final String key) throws LocalizationException, IllegalArgumentException {
-		return getContent(key,PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT);
+		return getContent(key,MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT);
 	}
 
 	@Override

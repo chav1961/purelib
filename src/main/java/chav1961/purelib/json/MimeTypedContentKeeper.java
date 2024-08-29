@@ -9,7 +9,7 @@ public class MimeTypedContentKeeper implements Serializable {
 	private static final long 	serialVersionUID = -2548073480706654963L;
 	private static final byte[]	EMPTY = new byte[0]; 
 
-	private MimeType	mime = PureLibSettings.MIME_OCTET_STREAM;
+	private MimeType	mime = MimeType.MIME_OCTET_STREAM;
 	private byte[]		content = EMPTY;
 	
 	public MimeTypedContentKeeper() {

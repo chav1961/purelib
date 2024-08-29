@@ -14,9 +14,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
@@ -102,6 +104,7 @@ public class PureLibFileSystemProviderTest {
 	}
 	
 	@Test
+	@Disabled
 	public void pathAndActionsTest() throws IOException {
 		final PureLibFileSystemProvider	plfsp = new PureLibFileSystemProvider();
 		

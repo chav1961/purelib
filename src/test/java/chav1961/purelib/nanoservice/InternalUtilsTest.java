@@ -18,37 +18,37 @@ import chav1961.purelib.nanoservice.InternalUtils;
 public class InternalUtilsTest {
 	@Test
 	public void mimesTest() throws MimeParseException, IOException {
-		Assert.assertTrue(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_PLAIN_TEXT));
-		Assert.assertTrue(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,MimeType.parseMimeList("text/plain")[0]));
+		Assert.assertTrue(InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT));
+		Assert.assertTrue(InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,MimeType.parseMimeList("text/plain")[0]));
 		
-		Assert.assertFalse(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_JSON_TEXT));
-		Assert.assertFalse(InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,MimeType.parseMimeList("application/json")[0]));
+		Assert.assertFalse(InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,MimeType.MIME_JSON_TEXT));
+		Assert.assertFalse(InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,MimeType.parseMimeList("application/json")[0]));
 		
-		try{InternalUtils.mimesAreCompatible((MimeType)null,PureLibSettings.MIME_PLAIN_TEXT);
+		try{InternalUtils.mimesAreCompatible((MimeType)null,MimeType.MIME_PLAIN_TEXT);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{InternalUtils.mimesAreCompatible(PureLibSettings.MIME_PLAIN_TEXT,null);
+		try{InternalUtils.mimesAreCompatible(MimeType.MIME_PLAIN_TEXT,null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
 
-		Assert.assertTrue(InternalUtils.mimesAreCompatible(new MimeType[]{PureLibSettings.MIME_JSON_TEXT, PureLibSettings.MIME_PLAIN_TEXT},PureLibSettings.MIME_PLAIN_TEXT));
+		Assert.assertTrue(InternalUtils.mimesAreCompatible(new MimeType[]{MimeType.MIME_JSON_TEXT, MimeType.MIME_PLAIN_TEXT},MimeType.MIME_PLAIN_TEXT));
 
-		Assert.assertFalse(InternalUtils.mimesAreCompatible(new MimeType[]{PureLibSettings.MIME_JSON_TEXT, PureLibSettings.MIME_CREOLE_TEXT},PureLibSettings.MIME_PLAIN_TEXT));
+		Assert.assertFalse(InternalUtils.mimesAreCompatible(new MimeType[]{MimeType.MIME_JSON_TEXT, MimeType.MIME_CREOLE_TEXT},MimeType.MIME_PLAIN_TEXT));
 
-		try{InternalUtils.mimesAreCompatible((MimeType[])null,PureLibSettings.MIME_PLAIN_TEXT);
+		try{InternalUtils.mimesAreCompatible((MimeType[])null,MimeType.MIME_PLAIN_TEXT);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{InternalUtils.mimesAreCompatible(new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT},null);
+		try{InternalUtils.mimesAreCompatible(new MimeType[]{MimeType.MIME_PLAIN_TEXT},null);
 			Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}
 		
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_JSON_TEXT, PureLibSettings.MIME_PLAIN_TEXT}, InternalUtils.buildMime(PureLibSettings.MIME_JSON_TEXT.toString(), PureLibSettings.MIME_PLAIN_TEXT.toString())));
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_JSON_TEXT, PureLibSettings.MIME_PLAIN_TEXT}, InternalUtils.buildMime(PureLibSettings.MIME_JSON_TEXT.toString()+','+PureLibSettings.MIME_PLAIN_TEXT.toString())));
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_JSON_TEXT, PureLibSettings.MIME_PLAIN_TEXT}, InternalUtils.buildMime(PureLibSettings.MIME_JSON_TEXT.toString()+','+PureLibSettings.MIME_PLAIN_TEXT.toString()+"; someshit")));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_JSON_TEXT, MimeType.MIME_PLAIN_TEXT}, InternalUtils.buildMime(MimeType.MIME_JSON_TEXT.toString(), MimeType.MIME_PLAIN_TEXT.toString())));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_JSON_TEXT, MimeType.MIME_PLAIN_TEXT}, InternalUtils.buildMime(MimeType.MIME_JSON_TEXT.toString()+','+MimeType.MIME_PLAIN_TEXT.toString())));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_JSON_TEXT, MimeType.MIME_PLAIN_TEXT}, InternalUtils.buildMime(MimeType.MIME_JSON_TEXT.toString()+','+MimeType.MIME_PLAIN_TEXT.toString()+"; someshit")));
 
 		try{InternalUtils.buildMime((String[])null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -72,11 +72,11 @@ public class InternalUtilsTest {
 		} catch (NullPointerException exc) {
 		}
 		
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT},InternalUtils.defineMimeByExtension(".cre")));
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_CSS_TEXT},InternalUtils.defineMimeByExtension(".css")));
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_FAVICON},InternalUtils.defineMimeByExtension("favicon.ico")));
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT},InternalUtils.defineMimeByExtension("test.txt")));
-		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{PureLibSettings.MIME_OCTET_STREAM},InternalUtils.defineMimeByExtension("abracadabra")));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_CREOLE_TEXT},InternalUtils.defineMimeByExtension(".cre")));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_CSS_TEXT},InternalUtils.defineMimeByExtension(".css")));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_FAVICON},InternalUtils.defineMimeByExtension("favicon.ico")));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_PLAIN_TEXT},InternalUtils.defineMimeByExtension("test.txt")));
+		Assert.assertTrue(InternalUtils.theSameMimes(new MimeType[]{MimeType.MIME_OCTET_STREAM},InternalUtils.defineMimeByExtension("abracadabra")));
 
 		try{InternalUtils.defineMimeByExtension(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -87,9 +87,9 @@ public class InternalUtilsTest {
 		} catch (IllegalArgumentException exc) {
 		}
 		
-		Assert.assertFalse(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT}));
-		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{PureLibSettings.MIME_PLAIN_TEXT,PureLibSettings.MIME_CREOLE_TEXT}));
-		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT}, new MimeType[]{new MimeType("text","*")}));
+		Assert.assertFalse(InternalUtils.mimesIntersect(new MimeType[]{MimeType.MIME_CREOLE_TEXT}, new MimeType[]{MimeType.MIME_PLAIN_TEXT}));
+		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{MimeType.MIME_CREOLE_TEXT}, new MimeType[]{MimeType.MIME_PLAIN_TEXT,MimeType.MIME_CREOLE_TEXT}));
+		Assert.assertTrue(InternalUtils.mimesIntersect(new MimeType[]{MimeType.MIME_CREOLE_TEXT}, new MimeType[]{new MimeType("text","*")}));
 		
 		try{InternalUtils.mimesIntersect(null,new MimeType[0]);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -103,7 +103,7 @@ public class InternalUtilsTest {
 			Assert.fail("Mandatory exception was not detected (nulls inside 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{InternalUtils.mimesIntersect(new MimeType[]{PureLibSettings.MIME_CREOLE_TEXT},new MimeType[]{null});
+		try{InternalUtils.mimesIntersect(new MimeType[]{MimeType.MIME_CREOLE_TEXT},new MimeType[]{null});
 			Assert.fail("Mandatory exception was not detected (nulls inside 2-nd argument)");
 		} catch (NullPointerException exc) {
 		}

@@ -388,9 +388,10 @@ public class ArgParser {
 	 * arguments now</p> 
 	 * @param parser parser item to check it's arguments. Can't be null</p>
 	 * @return null or empty string on success, any error message otherwise.
+	 * @throws CommandLineParametersException on any errors detected
 	 * @since 0.0.7
 	 */
-	protected String finalValidation(final ArgParser parser) {
+	protected String finalValidation(final ArgParser parser) throws CommandLineParametersException {
 		return null;
 	}
 	

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Properties;
 
 import chav1961.purelib.basic.exceptions.MimeParseException;
+import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
 /**
@@ -13,7 +14,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
  * @author Alexander Chernomyrdin aka chav1961
  * @see <a href="https://tools.ietf.org/pdf/rfc2045.pdf">RFC 2045</a>
  * @since 0.0.3
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class MimeType implements Serializable {
 	private static final long 		serialVersionUID = -4429376900886702159L;	
@@ -24,6 +25,82 @@ public class MimeType implements Serializable {
 	private static final String		ASTERISK_SUBTYPE = "*";
 	private static final String		APPLICATION_PRIMARY_TYPE = "application";
 
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for plain text</p>
+	 */
+	public static final MimeType	MIME_PLAIN_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for CREOLE text</p>
+	 */
+	public static final MimeType	MIME_CREOLE_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for MARKDOWN text</p>
+	 */
+	public static final MimeType	MIME_MARKDOWN_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for HTML text</p>
+	 */
+	public static final MimeType	MIME_HTML_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for XML text</p>
+	 */
+	public static final MimeType	MIME_XML_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for JSON</p>
+	 */
+	public static final MimeType	MIME_JSON_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for CSS</p>
+	 */
+	public static final MimeType	MIME_CSS_TEXT;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for favicon content</p>
+	 */
+	public static final MimeType	MIME_FAVICON;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for *.png content</p>
+	 */
+	public static final MimeType	MIME_PNG;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for any image content</p>
+	 */
+	public static final MimeType	MIME_ANY_IMAGE;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for html form content</p>
+	 */
+	public static final MimeType	MIME_FORM_URLENCODED;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for html multipart form content</p>
+	 */
+	public static final MimeType	MIME_MULTIPART_FORM;
+	
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for octet stream</p>
+	 */
+	public static final MimeType	MIME_OCTET_STREAM;
+
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for any stream</p>
+	 */
+	public static final MimeType	MIME_ANY_STREAM;
+	
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for any type</p>
+	 */
+	public static final MimeType	MIME_ANY_TYPE;
+	
+	
 	/**
 	 * <p>This enumeration describes format of MIME string to parse</p>
 	 * @author Alexander Chernomyrdin aka chav1961
@@ -51,6 +128,22 @@ public class MimeType implements Serializable {
 		value = "multipart"; 	AVAILABLE_TYPE.placeName((CharSequence)value,value);
 		value = "message"; 		AVAILABLE_TYPE.placeName((CharSequence)value,value);
 		value = "*"; 			AVAILABLE_TYPE.placeName((CharSequence)value,value);
+
+		MIME_PLAIN_TEXT = buildMime("text","plain");
+		MIME_CREOLE_TEXT = buildMime("text","x-wiki.creole");
+		MIME_MARKDOWN_TEXT = buildMime("text","markdown");
+		MIME_HTML_TEXT = buildMime("text","html");
+		MIME_XML_TEXT = buildMime("text","xml");
+		MIME_JSON_TEXT = buildMime("application","json");
+		MIME_CSS_TEXT = buildMime("text","css");
+		MIME_FAVICON = buildMime("image","webp");
+		MIME_PNG = buildMime("image","x-png");
+		MIME_ANY_IMAGE = buildMime("image","*");
+		MIME_FORM_URLENCODED = buildMime("application","x-www-form-urlencoded");
+		MIME_MULTIPART_FORM = buildMime("multipart","form-data");
+		MIME_OCTET_STREAM = buildMime("application","octet-stream");
+		MIME_ANY_STREAM = buildMime("application","*");
+		MIME_ANY_TYPE = buildMime("*","*");
 	}
 	
 	private final String		primaryType, subType;
@@ -420,6 +513,14 @@ public class MimeType implements Serializable {
 			else {
 				throw new MimeParseException(0,0,"Unsupported primary MIME type ["+new String(primaryType,from,to-from)+"]");
 			}
+		}
+	}
+
+	private static MimeType buildMime(final String string, final String string2) {
+		try {
+			return new MimeType(string, string2);
+		} catch (MimeParseException e) {
+			throw new PreparationException(e.getLocalizedMessage());
 		}
 	}
 }
