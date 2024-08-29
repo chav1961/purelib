@@ -403,17 +403,20 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		if (another == null) {
 			throw new NullPointerException("Another file system can't be null");
 		}
-		else if (mounts.seekName(currentPath.getPath()) > 0) {
+		else if (mounts.seekName((CharSequence)currentPath.getPath()) > 0) {
 			throw new IOException("There is a mound file system at the path ["+getPath()+"]. Use another path for mounting or unmount prevous file system");
 		}
-		else if (!exists() || !isDirectory()) {
-			throw new IOException("Mount path ["+getPath()+"] is not exists or is a file, not directory");
+		else if (!exists()) {
+			throw new IOException("Mount path ["+getPath()+"] is not exists");
+		}
+		else if (!isDirectory()) {
+			throw new IOException("Mount path ["+getPath()+"] point to a file, not directory");
 		}
 		else if (!(another instanceof AbstractFileSystem)) {
 			throw new UnsupportedOperationException("Implementation restriction: another file system must be instance of AbstractFileSystem"); 
 		}
 		else {
-			mounts.placeName(currentPath.getPath(),another);
+			mounts.placeName((CharSequence)currentPath.getPath(), another);
 			prevPath = null;
 			return this;
 		}
