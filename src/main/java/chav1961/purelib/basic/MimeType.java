@@ -2,6 +2,8 @@ package chav1961.purelib.basic;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -99,7 +101,8 @@ public class MimeType implements Serializable {
 	 * <p>Predefined MIMEs in the Pure Library: MIME for any type</p>
 	 */
 	public static final MimeType	MIME_ANY_TYPE;
-	
+
+	private static final MimeType[]	MIMES;
 	
 	/**
 	 * <p>This enumeration describes format of MIME string to parse</p>
@@ -144,9 +147,21 @@ public class MimeType implements Serializable {
 		MIME_OCTET_STREAM = buildMime("application","octet-stream");
 		MIME_ANY_STREAM = buildMime("application","*");
 		MIME_ANY_TYPE = buildMime("*","*");
+		
+		MIMES = new MimeType[]{
+					MIME_PLAIN_TEXT,		MIME_CREOLE_TEXT,
+					MIME_MARKDOWN_TEXT,		MIME_HTML_TEXT,
+					MIME_XML_TEXT,			MIME_JSON_TEXT,
+					MIME_CSS_TEXT,			MIME_FAVICON,
+					MIME_PNG,				MIME_ANY_IMAGE,
+					MIME_FORM_URLENCODED,	MIME_MULTIPART_FORM,
+					MIME_OCTET_STREAM,		MIME_ANY_STREAM,
+					MIME_ANY_TYPE
+					};
+		
 	}
 	
-	private final String		primaryType, subType;
+	private final String		primaryType, subType, similar;
 	private final Properties	attr;
 
 	/**
@@ -181,6 +196,7 @@ public class MimeType implements Serializable {
 		else {
 			this.primaryType = primaryType;
 			this.subType = subtype;
+			this.similar = primaryType + '/' + subtype;
 			this.attr = attrs;
 			checkPrimaryType(primaryType.toCharArray(),0,primaryType.length());
 		}
@@ -192,6 +208,7 @@ public class MimeType implements Serializable {
 	public MimeType() {
 		this.primaryType = APPLICATION_PRIMARY_TYPE;
 		this.subType = ASTERISK_SUBTYPE;
+		this.similar = APPLICATION_PRIMARY_TYPE + '/' + ASTERISK_SUBTYPE; 
 		this.attr = new Properties();
 	}
 
@@ -283,6 +300,79 @@ public class MimeType implements Serializable {
 			return another.containsIn(this);
 		}
 	}
+
+	/**
+	 * <p>Convert string representation of MIME to MIME instance</p>
+	 * @param value value to convert. Can't be null or empty;
+	 * @return instance converted. Can't be null
+	 * @throws IllegalArgumentException argument is null or empty
+	 * @throws MimeParseException MIME parse exception
+	 */
+	public static MimeType valueOf(final String value) throws IllegalArgumentException, MimeParseException {
+		if (Utils.checkEmptyOrNullString(value)) {
+			throw new IllegalArgumentException("Value to convert can't be null or empty");
+		}
+		else {
+			for(MimeType item : MIMES) {
+				if (item.similar.equals(value)) {
+					return item;
+				}
+			}
+			return parseMimeList(value)[0];
+		}
+	}
+	
+	/**
+	 * <p>Parse list of string representations for MIME types.</p>
+	 * @param mimes mime types to parse. Can't be null, empty and can't contains nulls/empties inside
+	 * @return mime types parsed. Can't be null and can't be empty
+	 * @throws IllegalArgumentException mime types is null, empty or contains nulls/empties inside
+	 * @throws MimeParseException illegal mime format detected
+	 * @since 0.0.7
+	 */
+	public static MimeType[] parseMimes(final String... mimes) throws IllegalArgumentException, MimeParseException {
+		if (mimes == null || mimes.length == 0 ||  Utils.checkArrayContent4Nulls(mimes, true) >= 0) {
+			throw new IllegalArgumentException("Mime list is null, empty or contains nulls/empties inside");
+		}
+		else {
+			final List<MimeType>	result = new ArrayList<>();
+			
+			for(int index = 0; index < mimes.length; index++) {
+				result.addAll(Arrays.asList(parseMimeList(mimes[index].toCharArray(), 0, mimes[index].length())));
+			}
+			return result.toArray(new MimeType[result.size()]);
+		}
+	}
+
+	/**
+	 * <p>Parse list of string representations for MIME types.</p>
+	 * @param mimes mime types to parse. Can't be null, empty and can't contains nulls/empties inside
+	 * @return mime types parsed. Can't be null and can't be empty
+	 * @throws IllegalArgumentException mime types is null, empty or contains nulls/empties inside
+	 * @throws MimeParseException illegal mime format detected
+	 * @since 0.0.7
+	 */
+	public static MimeType[] parseMimes(final List<String> mimes) throws IllegalArgumentException, MimeParseException {
+		if (mimes == null || mimes.isEmpty()) {
+			throw new IllegalArgumentException("Mime list is null or empty");
+		}
+		else {
+			final List<MimeType>	result = new ArrayList<>();
+			
+			for(int index = 0, maxIndex = mimes.size(); index < maxIndex; index++) {
+				final String	mime = mimes.get(index);
+				
+				if (Utils.checkEmptyOrNullString(mime)) {
+					throw new IllegalArgumentException("Mime list contains nulls inside");
+				}
+				else {
+					result.addAll(Arrays.asList(parseMimeList(mime.toCharArray(), 0, mime.length())));
+				}
+			}
+			return result.toArray(new MimeType[result.size()]);
+		}
+	}
+	
 	
 	/**
 	 * <p>Parse MIME string and return array of MIMEs parsed. Format of MIME string see {@linkplain #parseMimeList(char[], int, int)}<br>
@@ -499,7 +589,7 @@ public class MimeType implements Serializable {
 	public String toString() {
 		return primaryType + "/" + subType+ (attr != null && !attr.isEmpty() ? "; attr="+attr : "");
 	}
-	
+
 	private static String checkPrimaryType(final char[] primaryType, final int from, final int to) throws MimeParseException {
 		final long	id = AVAILABLE_TYPE.seekName(primaryType,from,to);
 
