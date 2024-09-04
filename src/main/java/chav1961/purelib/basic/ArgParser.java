@@ -1300,7 +1300,22 @@ loop:	for (int index = 0; index < args.length; index++) {
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
-					return (T)SQLUtils.convert(awaited, value);
+					if (awaited == String.class) {
+						return (T)value;
+					}
+					else {
+						
+						try {
+							URI		temp = URI.create(value);
+							
+							if (!temp.isAbsolute()) {
+								temp = new File(value).getAbsoluteFile().toURI();
+							}
+							return (T)temp;
+						} catch (IllegalArgumentException exc) {
+							throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type ("+exc.getLocalizedMessage()+")"); 
+						}
+					}
 				}
 				else {
 					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 

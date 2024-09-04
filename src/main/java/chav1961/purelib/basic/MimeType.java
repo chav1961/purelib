@@ -63,6 +63,11 @@ public class MimeType implements Serializable {
 	public static final MimeType	MIME_CSS_TEXT;
 
 	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for any text</p>
+	 */
+	public static final MimeType	MIME_ANY_TEXT;
+
+	/**
 	 * <p>Predefined MIMEs in the Pure Library: MIME for favicon content</p>
 	 */
 	public static final MimeType	MIME_FAVICON;
@@ -139,6 +144,7 @@ public class MimeType implements Serializable {
 		MIME_XML_TEXT = buildMime("text","xml");
 		MIME_JSON_TEXT = buildMime("application","json");
 		MIME_CSS_TEXT = buildMime("text","css");
+		MIME_ANY_TEXT = buildMime("text","*");
 		MIME_FAVICON = buildMime("image","webp");
 		MIME_PNG = buildMime("image","x-png");
 		MIME_ANY_IMAGE = buildMime("image","*");
@@ -156,7 +162,7 @@ public class MimeType implements Serializable {
 					MIME_PNG,				MIME_ANY_IMAGE,
 					MIME_FORM_URLENCODED,	MIME_MULTIPART_FORM,
 					MIME_OCTET_STREAM,		MIME_ANY_STREAM,
-					MIME_ANY_TYPE
+					MIME_ANY_TYPE,			MIME_ANY_TEXT
 					};
 		
 	}
