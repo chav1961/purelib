@@ -34,7 +34,8 @@ public interface Matrix extends AutoCloseable {
 	
 	public static enum AggregateDirection {
 		ByRows,
-		ByColumns
+		ByColumns,
+		Total
 	}
 	
 	public static enum AggregateType {
