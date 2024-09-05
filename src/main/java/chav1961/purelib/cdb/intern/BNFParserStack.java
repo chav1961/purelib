@@ -6,7 +6,6 @@ import java.util.List;
 
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.cdb.SyntaxNode;
-import chav1961.purelib.nanoservice.InternalUtils;
 
 public class BNFParserStack<NodeType extends Enum<?>> implements ModuleAccessor {
 	private static final SyntaxNode[]		EMPTY_ARRAY = new SyntaxNode[0]; 

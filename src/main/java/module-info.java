@@ -45,8 +45,6 @@ module chav1961.purelib {
 	exports chav1961.purelib.model;
 	exports chav1961.purelib.model.interfaces;
 	exports chav1961.purelib.monitoring;
-	exports chav1961.purelib.nanoservice;
-	exports chav1961.purelib.nanoservice.interfaces;
 	exports chav1961.purelib.net;
 	exports chav1961.purelib.net.interfaces;
 	exports chav1961.purelib.net.fsys;

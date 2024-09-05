@@ -55,7 +55,6 @@ import chav1961.purelib.matrix.interfaces.MatrixFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.monitoring.MonitoringManager;
 import chav1961.purelib.monitoring.NanoServiceControl;
-import chav1961.purelib.nanoservice.NanoServiceFactory;
 import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 
@@ -407,10 +406,7 @@ public final class PureLibSettings {
 																	return  false;
 																}),
 														};
-	private static final AtomicInteger				HELP_CONTEXT_COUNT = new AtomicInteger();
-	private static final Object						HELP_CONTEXT_COUNT_SYNC = new Object();
 	private static final List<AutoCloseable>		finalCloseList = new ArrayList<>();
-	static volatile NanoServiceFactory				helpServer = null;
 	
 	static {
 		try(final InputStream	is = PureLibSettings.class.getResourceAsStream("/purelib.default.properties")) {
@@ -516,104 +512,6 @@ public final class PureLibSettings {
 		return PROPS;
 	}
 
-	/**
-	 * <p>Install help content to the application</p> 
-	 * @param helpPath help path in the http://localhost:<port>/<path>
-	 * @param helpContent static help content
-	 * @throws NullPointerException help when content is null
-	 * @throws IllegalArgumentException when help path is null or empty
-	 * @throws IllegalStateException if help system is not available
-	 * @throws SyntaxException syntax errors in the help content
-	 * @throws ContentException errors in the help content
-	 * @throws IOException I/O errors on installation
-	 * @since 0.0.3
-	 */
-	public static void installHelpContent(final String helpPath, final FileSystemInterface helpContent) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
-		if (Utils.checkEmptyOrNullString(helpPath)) {
-			throw new IllegalArgumentException("Help path can't be null or empty"); 
-		}
-		else if (helpContent == null) {
-			throw new NullPointerException("Help content can't be null"); 
-		}
-		else if (!instance().containsKey(BUILTIN_HELP_PORT)) {
-			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
-		}
-		else {
-			synchronized (HELP_CONTEXT_COUNT_SYNC) {
-				if (helpServer == null) {
-					if (!PROPS.containsKey(NanoServiceFactory.NANOSERVICE_PORT)) {
-						PROPS.setProperty(NanoServiceFactory.NANOSERVICE_PORT,instance().getProperty(BUILTIN_HELP_PORT));
-					}
-					if (!PROPS.containsKey(NanoServiceFactory.NANOSERVICE_ROOT)) {
-						PROPS.setProperty(NanoServiceFactory.NANOSERVICE_ROOT,FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/");
-					}
-					if (!PROPS.containsKey(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY)) {
-						PROPS.setProperty(NanoServiceFactory.NANOSERVICE_LOCALHOST_ONLY,"true");
-					}
-					helpServer = new NanoServiceFactory(new StandardJRELoggerFacade(logger), PROPS);
-					helpServer.start();
-				}
-				try(final FileSystemInterface fsi = helpServer.getServiceRoot().clone().open(helpPath)) {
-					if (fsi.exists()) {
-						throw new IllegalArgumentException("Help path ["+helpPath+"] already installed");
-					}
-					else {
-						fsi.mkDir();
-						helpServer.getServiceRoot().open(helpPath).mount(helpContent).open("/");
-					}
-				}			
-				HELP_CONTEXT_COUNT.incrementAndGet();
-			}
-		}
-	}
-
-	/**
-	 * <p>Uninstall help content</p>
-	 * @param helpPath help path in the http://localhost:<port>/<path>
-	 * @throws NullPointerException help when content is null
-	 * @throws IllegalArgumentException when help path is null or empty
-	 * @throws IllegalStateException if help system is not available
-	 * @throws SyntaxException syntax errors in the help content
-	 * @throws ContentException errors in the help content
-	 * @throws IOException I/O errors on installation
-	 * @since 0.0.3
-	 */
-	public static void uninstallHelpContent(final String helpPath) throws SyntaxException, NullPointerException, IllegalArgumentException, IllegalStateException, ContentException, IOException {
-		if (Utils.checkEmptyOrNullString(helpPath)) {
-			throw new IllegalArgumentException("Help path can't be null or empty"); 
-		}
-		else if (!instance().containsKey(BUILTIN_HELP_PORT)) {
-			throw new IllegalStateException("Parameter ["+BUILTIN_HELP_PORT+"] is not defined for application. Built-in help system is not available"); 
-		}
-		else {
-			synchronized (HELP_CONTEXT_COUNT_SYNC) {
-				final int	value = HELP_CONTEXT_COUNT.decrementAndGet();
-				
-				if (value < 0) {
-					throw new IllegalArgumentException("Help path ["+helpPath+"] was not deployed earlier"); 
-				}
-				else {
-					try(final FileSystemInterface fsi = helpServer.getServiceRoot().clone().open(helpPath)) {
-						if (!fsi.exists()) {
-							throw new IllegalArgumentException("Help path ["+helpPath+"] is not installed");
-						}
-						else {
-							helpServer.getServiceRoot().open(helpPath).unmount();
-							if (helpServer.getServiceRoot().open(helpPath).exists()) {
-								helpServer.getServiceRoot().delete();
-							}
-							helpServer.getServiceRoot().open("/");
-						}
-					}			
-					if (value == 0) {
-						helpServer.stop();
-						helpServer = null;
-					}
-				}
-			}
-		}
-	}
-	
 	
 	/**
 	 * <p>Get well-known schemas in the Pure Library</p> 
@@ -770,16 +668,6 @@ public final class PureLibSettings {
 		final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
 				
 		closeAll(finalCloseList);
-		
-		synchronized (HELP_CONTEXT_COUNT_SYNC) {
-			if (helpServer != null) {
-				try{helpServer.stop();
-				} catch (IOException e) {
-					logger.log(Level.WARNING,"Builtin help server stop failure: "+e.getLocalizedMessage(),e);
-				}
-				helpServer = null;
-			}
-		}
 		
 		try{final ObjectName 	monitoringName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring");
 			final ObjectName 	httpServerName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=httpServer");
