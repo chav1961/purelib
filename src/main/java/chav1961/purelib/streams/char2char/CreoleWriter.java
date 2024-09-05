@@ -5,6 +5,7 @@ import java.io.Writer;
 import java.net.URI;
 
 import chav1961.purelib.basic.LineByLineProcessor;
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
@@ -37,7 +38,7 @@ import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.4
+ * @last.update 0.0.7
  */
 
 public class CreoleWriter extends Writer {
@@ -77,15 +78,24 @@ public class CreoleWriter extends Writer {
 	private long						nonCreoleDisplacement = -1;
 
 	public CreoleWriter(final Writer nested) throws IOException {
-		this(nested,MarkupOutputFormat.XML2HTML);
+		this(nested, MimeType.MIME_HTML_TEXT);
 	}
 
+	@Deprecated
 	public CreoleWriter(final Writer nested, final MarkupOutputFormat format) throws IOException {
-		this(nested,format,getPrologue(format),getEpilogue(format));
+		this(nested,format.getMimeType(),getPrologue(format),getEpilogue(format));
+	}
+
+	public CreoleWriter(final Writer nested, final MimeType format) throws IOException {
+		this(nested,format, getPrologue(format), getEpilogue(format));
+	}
+
+	public <Wr,Inst> CreoleWriter(final Writer nested, final MarkupOutputFormat format, final PrologueEpilogueMaster<Wr,Inst> prologue, final PrologueEpilogueMaster<Wr,Inst> epilogue) throws IOException {
+		this(nested, format.getMimeType(), prologue, epilogue);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <Wr,Inst> CreoleWriter(final Writer nested, final MarkupOutputFormat format, final PrologueEpilogueMaster<Wr,Inst> prologue, final PrologueEpilogueMaster<Wr,Inst> epilogue) throws IOException {
+	public <Wr,Inst> CreoleWriter(final Writer nested, final MimeType format, final PrologueEpilogueMaster<Wr,Inst> prologue, final PrologueEpilogueMaster<Wr,Inst> epilogue) throws IOException {
 		if (nested == null) {
 			throw new NullPointerException("Nested writer can't be null");
 		}
@@ -716,7 +726,52 @@ loop:		for (;from < to; from++) {
 	}
 	
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format) throws NullPointerException {
+		if (format == null) {
+			throw new NullPointerException("Output format can't be null"); 
+		}
+		else {
+			return CreoleOutputWriterFactory.getPrologue(format.getMimeType());
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Deprecated
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
+		if (format == null) {
+			throw new NullPointerException("Output format can't be null"); 
+		}
+		else {
+			return CreoleOutputWriterFactory.getPrologue(format.getMimeType(), source);
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Deprecated
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format) throws NullPointerException {
+		if (format == null) {
+			throw new NullPointerException("Output format can't be null"); 
+		}
+		else {
+			return CreoleOutputWriterFactory.getEpilogue(format.getMimeType());
+		}
+	}
+
+	
+	@SuppressWarnings("unchecked")
+	@Deprecated
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
+		if (format == null) {
+			throw new NullPointerException("Output format can't be null"); 
+		}
+		else {
+			return CreoleOutputWriterFactory.getEpilogue(format.getMimeType(), source);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MimeType format) throws NullPointerException {
 		if (format == null) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
@@ -726,17 +781,17 @@ loop:		for (;from < to; from++) {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MimeType format, final URI source) throws NullPointerException, ContentException {
 		if (format == null) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
 		else {
-			return CreoleOutputWriterFactory.getPrologue(format,source);
+			return CreoleOutputWriterFactory.getPrologue(format, source);
 		}
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format) throws NullPointerException {
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MimeType format) throws NullPointerException {
 		if (format == null) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
@@ -745,13 +800,14 @@ loop:		for (;from < to; from++) {
 		}
 	}
 
+	
 	@SuppressWarnings("unchecked")
-	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MimeType format, final URI source) throws NullPointerException, ContentException {
 		if (format == null) {
 			throw new NullPointerException("Output format can't be null"); 
 		}
 		else {
-			return CreoleOutputWriterFactory.getEpilogue(format,source);
+			return CreoleOutputWriterFactory.getEpilogue(format, source);
 		}
 	}
 }

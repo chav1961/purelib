@@ -106,7 +106,12 @@ public class MimeType implements Serializable {
 	 * <p>Predefined MIMEs in the Pure Library: MIME for any type</p>
 	 */
 	public static final MimeType	MIME_ANY_TYPE;
-
+	
+	/**
+	 * <p>Predefined MIMEs in the Pure Library: MIME for pdf format</p>
+	 */
+	public static final MimeType	MIME_PDF_TYPE;
+	
 	private static final MimeType[]	MIMES;
 	
 	/**
@@ -153,6 +158,7 @@ public class MimeType implements Serializable {
 		MIME_OCTET_STREAM = buildMime("application","octet-stream");
 		MIME_ANY_STREAM = buildMime("application","*");
 		MIME_ANY_TYPE = buildMime("*","*");
+		MIME_PDF_TYPE = buildMime("application","pdf");
 		
 		MIMES = new MimeType[]{
 					MIME_PLAIN_TEXT,		MIME_CREOLE_TEXT,
@@ -162,7 +168,8 @@ public class MimeType implements Serializable {
 					MIME_PNG,				MIME_ANY_IMAGE,
 					MIME_FORM_URLENCODED,	MIME_MULTIPART_FORM,
 					MIME_OCTET_STREAM,		MIME_ANY_STREAM,
-					MIME_ANY_TYPE,			MIME_ANY_TEXT
+					MIME_ANY_TYPE,			MIME_ANY_TEXT,
+					MIME_PDF_TYPE
 					};
 		
 	}

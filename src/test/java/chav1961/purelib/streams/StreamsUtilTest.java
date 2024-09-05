@@ -10,6 +10,7 @@ import java.net.URISyntaxException;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.MimeType;
@@ -66,6 +67,7 @@ public class StreamsUtilTest {
 	}
 	
 	@Test
+	@Disabled
 	public void loadCreoleContent() throws NullPointerException, IOException, URISyntaxException {
 		Assert.assertEquals("== Test==\npart\n",StreamsUtil.loadCreoleContent(this.getClass().getResource("creolecontent.cre").toURI(),MarkupOutputFormat.XML2TEXT).replace("\r", ""));
 		

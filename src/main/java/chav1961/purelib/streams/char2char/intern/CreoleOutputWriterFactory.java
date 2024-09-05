@@ -6,22 +6,34 @@ import java.net.URI;
 
 import javax.xml.stream.XMLEventWriter;
 
+import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
 import chav1961.purelib.streams.interfaces.intern.CreoleMarkUpOutputWriter;
 
 public class CreoleOutputWriterFactory {
+	@Deprecated
 	public static CreoleMarkUpOutputWriter<Long> getInstance(final MarkupOutputFormat format, final Writer nested) throws NullPointerException, IOException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
 		}
 		else {
-			return getInstance(format,nested,getPrologue(format),getEpilogue(format));
+			return getInstance(format, nested, getPrologue(format), getEpilogue(format));
 		}
 	}
 
+	public static CreoleMarkUpOutputWriter<Long> getInstance(final MimeType format, final Writer nested) throws NullPointerException, IOException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else {
+			return getInstance(MarkupOutputFormat.byMimeType(format), nested, getPrologue(format), getEpilogue(format));
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <Wr,T> CreoleMarkUpOutputWriter<Long> getInstance(final MarkupOutputFormat format, final Writer nested, final PrologueEpilogueMaster<Wr,T> prologue, final PrologueEpilogueMaster<Wr,T> epilogue) throws NullPointerException, IOException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -47,8 +59,25 @@ public class CreoleOutputWriterFactory {
 			return writer;
 		}
 	}
+
+	@SuppressWarnings("unchecked")
+	public static <Wr,T> CreoleMarkUpOutputWriter<Long> getInstance(final MimeType format, final Writer nested, final PrologueEpilogueMaster<Wr,T> prologue, final PrologueEpilogueMaster<Wr,T> epilogue) throws NullPointerException, IOException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else if (prologue == null) {
+			throw new NullPointerException("Prologue master  can't be null");
+		}
+		else if (epilogue == null) {
+			throw new NullPointerException("Epilogue master  can't be null");
+		}
+		else {
+			return getInstance(MarkupOutputFormat.byMimeType(format), nested, prologue, epilogue);
+		}
+	}
 	
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format) throws NullPointerException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -67,6 +96,18 @@ public class CreoleOutputWriterFactory {
 	}
 
 	@SuppressWarnings("unchecked")
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MimeType format) throws NullPointerException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else {
+			return getPrologue(MarkupOutputFormat.byMimeType(format));
+		}
+	}
+	
+	
+	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format) throws NullPointerException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -84,7 +125,17 @@ public class CreoleOutputWriterFactory {
 		}
 	}
 
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MimeType format) throws NullPointerException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else {
+			return getEpilogue(MarkupOutputFormat.byMimeType(format));
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -102,7 +153,17 @@ public class CreoleOutputWriterFactory {
 		}
 	}
 
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getPrologue(final MimeType format, final URI source) throws NullPointerException, ContentException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else {
+			return getPrologue(MarkupOutputFormat.byMimeType(format), source);
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
+	@Deprecated
 	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MarkupOutputFormat format, final URI source) throws NullPointerException, ContentException {
 		if (format == null) {
 			throw new NullPointerException("Markup output format can't be null");
@@ -117,6 +178,15 @@ public class CreoleOutputWriterFactory {
 				case MARKDOWN	: return (PrologueEpilogueMaster<Wr, T>) CreoleMarkdownWriter.getEpilogue();
 				default : throw new UnsupportedOperationException("Output format ["+format+"] is not implemented yet"); 
 			}
+		}
+	}
+
+	public static <Wr,T> PrologueEpilogueMaster<Wr,T> getEpilogue(final MimeType format, final URI source) throws NullPointerException, ContentException {
+		if (format == null) {
+			throw new NullPointerException("Markup output format can't be null");
+		}
+		else {
+			return getEpilogue(MarkupOutputFormat.byMimeType(format), source);
 		}
 	}
 }
