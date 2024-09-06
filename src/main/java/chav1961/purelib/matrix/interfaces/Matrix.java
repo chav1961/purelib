@@ -95,6 +95,36 @@ public interface Matrix extends AutoCloseable {
 		}
 	}
 	
+	@FunctionalInterface
+	public static interface ApplyInt {
+		int apply(int row, int col, int value);
+	}
+
+	@FunctionalInterface
+	public static interface ApplyLong {
+		long apply(int row, int col, long value);
+	}
+
+	@FunctionalInterface
+	public static interface ApplyFloat {
+		float apply(int row, int col, float value);
+	}
+
+	@FunctionalInterface
+	public static interface ApplyDouble {
+		double apply(int row, int col, double value);
+	}
+
+	@FunctionalInterface
+	public static interface ApplyFloat2  {
+		void apply(int row, int col, float real, float image, float[] result);
+	}
+
+	@FunctionalInterface
+	public static interface ApplyDouble2  {
+		void apply(int row, int col, double real, double image, double[] result);
+	}
+	
 	@Override
 	public void close() throws RuntimeException;
 	
@@ -178,8 +208,9 @@ public interface Matrix extends AutoCloseable {
 	public Matrix subtractFromValue(double real, double image);
 	
 	public Matrix mul(Matrix content);
-	public Matrix mulInv(Matrix content);
-	public Matrix mulInvFrom(Matrix content);
+//	public Matrix mulInv(Matrix content);
+	public Matrix mulFrom(Matrix content);
+//	public Matrix mulInvFrom(Matrix content);
 	
 	public Matrix mulValue(int value);
 	public Matrix mulValue(long value);
@@ -221,6 +252,7 @@ public interface Matrix extends AutoCloseable {
 	public Matrix mulInvFromHadamard(Matrix content);
 	
 	public Matrix tensorMul(Matrix content);
+	public Matrix tensorMulFrom(Matrix content);
 
 	public Matrix invert();
 	public Matrix transpose();
@@ -228,6 +260,19 @@ public interface Matrix extends AutoCloseable {
 	public Number det();
 	public Number track();
 
+	public Matrix apply(ApplyInt callback);
+	public Matrix apply(Piece piece, ApplyInt callback);
+	public Matrix apply(ApplyLong callback);
+	public Matrix apply(Piece piece, ApplyLong callback);
+	public Matrix apply(ApplyFloat callback);
+	public Matrix apply(Piece piece, ApplyFloat callback);
+	public Matrix apply(ApplyDouble callback);
+	public Matrix apply(Piece piece, ApplyDouble callback);
+	public Matrix apply(ApplyFloat2 callback);
+	public Matrix apply(Piece piece, ApplyFloat2 callback);
+	public Matrix apply(ApplyDouble2 callback);
+	public Matrix apply(Piece piece, ApplyDouble2 callback);
+	
 	public String toHumanReadableString();
 	
 	public Matrix done();

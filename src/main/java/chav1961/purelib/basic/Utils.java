@@ -338,6 +338,27 @@ public class Utils {
 			return result;
 		}
 	}
+
+	/**
+	 * <p>Build the Map&lt;String,Object&gt; map from the variable arguments list.</p>
+	 * @param parameters key/value pairs to parse. Can't be null.
+	 * @return map built. Can be empty but not null.
+	 * @since 0.0.7
+	 * @throws IllegalArgumentException parameters list is null or contains nulls inside
+	 */
+	public static <T> Map<String,T> mkMap(@SuppressWarnings("unchecked") final NamedValue<T>... parameters) throws IllegalArgumentException {
+		if (parameters == null || Utils.checkArrayContent4Nulls(parameters) >= 0) {
+			throw new IllegalArgumentException("Parameters are null or contain nulls inside can't be null");
+		}
+		else {
+			final Map<String,T>	result = new HashMap<>();
+			
+			for (int index = 0; index < parameters.length; index++) {
+				result.put(parameters[index].getName(),(T)parameters[index].getValue());
+			}
+			return result;
+		}
+	}
 	
 	/**
 	 * <p>Build a set of the given type from the parameter's list.</p>

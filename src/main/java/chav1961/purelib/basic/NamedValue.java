@@ -14,8 +14,10 @@ public class NamedValue<T> {
 	 * <p>Constructor of the class.</p>
 	 * @param name key name. Can't be null or empty
 	 * @param value value associated. Can't be null
+	 * @throws IllegalArgumentException name is null or empty
+	 * @throws NullPointerException value is null
 	 */
-	public NamedValue(final String name, final T value) {
+	public NamedValue(final String name, final T value) throws NullPointerException, IllegalArgumentException {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name can't be null or empty string");
 		}
@@ -44,6 +46,19 @@ public class NamedValue<T> {
 		return value;
 	}
 
+	/**
+	 * <p>Create named value instance.</p>
+	 * @param <T> value type.
+	 * @param name key name. Can't be null or empty
+	 * @param value value associated. Can't be null
+	 * @return instance created. Can't be null
+	 * @throws IllegalArgumentException name is null or empty
+	 * @throws NullPointerException value is null
+	 */
+	public static <T> NamedValue<T> of(final String name, final T value) {
+		return new NamedValue<T>(name, value);
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
