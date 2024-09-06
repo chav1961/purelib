@@ -88,7 +88,7 @@ public interface Matrix extends AutoCloseable {
 					
 					@Override
 					public String toString() {
-						return "Piece[top="+top+",left="+left+",height="+height+"width="+width+"]";
+						return "Piece[top="+top+",left="+left+",height="+height+",width="+width+"]";
 					}
 				};
 			}
