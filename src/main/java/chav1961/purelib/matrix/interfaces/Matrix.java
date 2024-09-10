@@ -1,6 +1,6 @@
 package chav1961.purelib.matrix.interfaces;
 
-public interface Matrix extends AutoCloseable {
+public interface Matrix extends AutoCloseable, Cloneable {
 	public static enum Type {
 		REAL_INT(1, 4, "RI"),
 		REAL_LONG(1, 8, "RL"),
@@ -124,6 +124,8 @@ public interface Matrix extends AutoCloseable {
 	public static interface ApplyDouble2  {
 		void apply(int row, int col, double real, double image, double[] result);
 	}
+	
+	public Object clone() throws CloneNotSupportedException;
 	
 	@Override
 	public void close() throws RuntimeException;
