@@ -210,9 +210,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix subtractFromValue(double real, double image);
 	
 	public Matrix mul(Matrix content);
-//	public Matrix mulInv(Matrix content);
 	public Matrix mulFrom(Matrix content);
-//	public Matrix mulInvFrom(Matrix content);
 	
 	public Matrix mulValue(int value);
 	public Matrix mulValue(long value);
@@ -261,6 +259,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix aggregate(AggregateDirection dir, AggregateType aggType);
 	public Number det();
 	public Number track();
+	public Number[] det2();
+	public Number[] track2();
 
 	public Matrix apply(ApplyInt callback);
 	public Matrix apply(Piece piece, ApplyInt callback);
