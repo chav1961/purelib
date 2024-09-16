@@ -21,48 +21,52 @@ public interface MatrixFactory {
 	
 	/**
 	 * <p>Create zero matrix with the given rows and columns and given content type.</p>  
-	 * @param content content type. Can't be null. Only int.class, ling.class, float.class and double.class are available
+	 * @param contentType content type. Can't be null.
 	 * @param rows number of rows in the matrix. Must be at least 1
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @return matrix created
 	 */
-	OldMatrix<?> newMatrix(final Class<?> content, final int rows, final int cols);
+	Matrix newMatrix(final Matrix.Type contentType, final int rows, final int cols);
 
 	/**
 	 * <p>Create int matrix with the given rows and columns and fill it with initial values.</p>  
+	 * @param contentType content type. Can't be null.
 	 * @param rows number of rows in the matrix. Must be at least 1
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	OldMatrix<?> newMatrix(final int rows, final int cols, final int... content);
+	Matrix newMatrix(final Matrix.Type contentType, final int rows, final int cols, final int... content);
 	
 	/**
 	 * <p>Create long matrix with the given rows and columns and fill it with initial values.</p>  
+	 * @param contentType content type. Can't be null.
 	 * @param rows number of rows in the matrix. Must be at least 1
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	OldMatrix<?> newMatrix(final int rows, final int cols, final long... content);
+	Matrix newMatrix(final Matrix.Type contentType, final int rows, final int cols, final long... content);
 	
 	/**
 	 * <p>Create float matrix with the given rows and columns and fill it with initial values.</p>  
+	 * @param contentType content type. Can't be null.
 	 * @param rows number of rows in the matrix. Must be at least 1
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	OldMatrix<?> newMatrix(final int rows, final int cols, final float... content);
+	Matrix newMatrix(final Matrix.Type contentType, final int rows, final int cols, final float... content);
 	
 	/**
 	 * <p>Create double matrix with the given rows and columns and fill it with initial values.</p>  
+	 * @param contentType content type. Can't be null.
 	 * @param rows number of rows in the matrix. Must be at least 1
 	 * @param cols number of rows in the matrix. Must be at least 1
 	 * @param content content to fill. Can't be null, but can contain less data than required
 	 * @return matrix created
 	 */
-	OldMatrix<?> newMatrix(final int rows, final int cols, final double... content);
+	Matrix newMatrix(final Matrix.Type contentType, final int rows, final int cols, final double... content);
 
 	/**
 	 * <p>This class is a factory to get matrix factory by it's URI. It implements a 'Factory' template.</p> 

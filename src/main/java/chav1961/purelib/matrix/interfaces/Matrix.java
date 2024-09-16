@@ -1,11 +1,22 @@
 package chav1961.purelib.matrix.interfaces;
 
 /**
- * 
+ * <p>This interface describes matrices. All implementations of this interface must follow some conventions described below.</p>
+ * <ul>
+ * <li>Internal matrix representation must be one-dimensional array to increase performance.</p></li>
+ * <li>All implementations must support asynchronous/parallel operations inside to increase performance. Start of asynchronous/parallel operations is any 
+ * call to arithmetic operations and end of asynchronous/parallel operations is calling {@linkplain #done()} method. Neither getting nor setting matrix values
+ * can't be executed before all the asynchronous/parallel operations will be completed, otherwise {@linkplain IllegalStateException} must be fired</li>
+ * </ul>
+ * <p>Matrix implementation is not required to be thread-safe</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
  */
 public interface Matrix extends AutoCloseable, Cloneable {
 	/**
 	 * <p>This enumeration describes matrix content type</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	public static enum Type {
 		/**
@@ -74,6 +85,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	
 	/**
 	 * <p>This enumeration describes aggregate direction for {@linkplain Matrix#aggregate(AggregateDirection, AggregateType)} method</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	public static enum AggregateDirection {
 		/**
@@ -92,6 +105,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	
 	/**
 	 * <p>This enumeration describes aggregate function for {@linkplain Matrix#aggregate(AggregateDirection, AggregateType)} method</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	public static enum AggregateType {
 		/**
@@ -113,7 +128,9 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	}
 
 	/**
-	 * <p>This iterface describes piece of the matrix to extract/assign</p> 
+	 * <p>This interface describes piece of the matrix to extract/assign</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	public static interface Piece {
 		/**
@@ -192,6 +209,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>This interface is used to apply changes for bit matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyBit {
@@ -207,6 +226,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	
 	/**
 	 * <p>This interface is used to apply changes for int matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyInt {
@@ -222,6 +243,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>This interface is used to apply changes for long matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyLong {
@@ -237,6 +260,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>This interface is used to apply changes for float matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyFloat {
@@ -252,6 +277,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>This interface is used to apply changes for double matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyDouble {
@@ -267,6 +294,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>This interface is used to apply changes for complex float matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyFloat2  {
@@ -283,6 +312,8 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>This interface is used to apply changes for complex double matrix. Can be used in lambdas.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
 	 */
 	@FunctionalInterface
 	public static interface ApplyDouble2  {

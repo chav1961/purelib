@@ -7,9 +7,9 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.SpiService;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.matrix.interfaces.OldMatrix;
-import chav1961.purelib.matrix.interfaces.MatrixFactory;
+import chav1961.purelib.matrix.interfaces.OldMatrixFactory;
 
-public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFactory> {
+public class OrdinalMatrixFactory implements OldMatrixFactory, SpiService<OldMatrixFactory> {
 	private static final String			SUBSCHEME = "ordinal";
 	private static final URI			SERVE = URI.create(MATRIX_FACTORY_SCHEME+":"+SUBSCHEME+":/");
 	
@@ -22,7 +22,7 @@ public class OrdinalMatrixFactory implements MatrixFactory, SpiService<MatrixFac
 	}
 
 	@Override
-	public MatrixFactory newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
+	public OldMatrixFactory newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
 		return this;
 	}
 
