@@ -184,7 +184,8 @@ public abstract class FormMonitor<T> implements JComponentMonitor, LoggerFacadeO
 					return false;
 				}
 				else {
-					try{if (formMgr.onField(instance,null,metadata.getName(),fvChanged,true) != RefreshMode.REJECT) {
+					try{
+						if (formMgr.onField(instance,null,metadata.getName(),fvChanged,true) != RefreshMode.REJECT) {
 							return true;
 						}
 					} catch (LocalizationException | FlowException e) {

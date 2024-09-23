@@ -7,7 +7,6 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.IOException;
 import java.net.URI;
-import java.text.Format;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
@@ -94,9 +93,7 @@ public class JUriFieldWithMeta extends JFormattedTextField implements NodeMetada
 			});
 			
 			final String					name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
-			final Localizer					localizer = LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated());
 			final FieldFormat				format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
-			final InternationalFormatter	formatter = InternalUtils.prepareNumberFormatter(format, localizer.currentLocale().getLocale());
 			final int						columns;
 			
 			if (format.getFormatMask() != null) {
@@ -106,7 +103,6 @@ public class JUriFieldWithMeta extends JFormattedTextField implements NodeMetada
 				final int 			len = format.getLength() == 0 ? 15 : format.getLength();
 				columns = len + 1;
 			}
-			setFormatterFactory(new DefaultFormatterFactory(formatter));
 			if (columns > 0) {
 				setColumns(columns);
 			}			
@@ -217,7 +213,8 @@ public class JUriFieldWithMeta extends JFormattedTextField implements NodeMetada
 	@Override
 	public String standardValidation(final Object val) {
 		if (val instanceof String) {
-			try{URI.create(val.toString());
+			try{
+				URI.create(val.toString());
 				return null;
 			} catch (IllegalArgumentException exc) {
 				return InternalUtils.buildStandardValidationMessage(getNodeMetadata(), InternalUtils.VALIDATION_ILLEGAL_VALUE, exc.getLocalizedMessage());
