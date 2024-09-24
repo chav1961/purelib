@@ -336,14 +336,26 @@ public class ArgParser {
 			
 			sb.append("Usage: ").append(applicationName);
 			for (ArgDescription item : desc) {
-				sb.append(' ');
-				if (!item.isMandatory()) {
-					sb.append('[');
-				}
 				if (item.isPositional()) {
+					sb.append(' ');
+					if (!item.isMandatory()) {
+						sb.append('[');
+					}
 					sb.append('<').append(item.getName()).append("::").append(item.getHumanReadedbleArgType()).append('>');
+					if (item.isList()) {
+						sb.append("...");
+					}
+					if (!item.isMandatory()) {
+						sb.append(']');
+					}
 				}
-				else {
+			}
+			for (ArgDescription item : desc) {
+				if (!item.isPositional()) {
+					sb.append(' ');
+					if (!item.isMandatory()) {
+						sb.append('[');
+					}
 					sb.append(keyPrefix).append(item.getName());
 					if (item.hasValue()) {
 						if (item.getDefaultValue() != null && item.getDefaultValue().length > 0) {
@@ -360,21 +372,24 @@ public class ArgParser {
 							sb.append(" <").append(item.getHumanReadedbleArgType()).append(">");
 						}
 					}
-				}
-				if (item.isList()) {
-					sb.append("...");
-				}
-				if (!item.isMandatory()) {
-					sb.append(']');
+					if (item.isList()) {
+						sb.append("...");
+					}
+					if (!item.isMandatory()) {
+						sb.append(']');
+					}
 				}
 			}
 			sb.append('\n');
 			for (ArgDescription item : desc) {
-				sb.append('\t');
 				if (item.isPositional()) {
+					sb.append('\t');
 					sb.append(item.getName()).append(": - ").append(item.getHelpDescriptor()).append('\n');
 				}
-				else {
+			}
+			for (ArgDescription item : desc) {
+				if (!item.isPositional()) {
+					sb.append('\t');
 					sb.append(keyPrefix).append(item.getName()).append(": - ").append(item.getHelpDescriptor()).append('\n');
 				}
 			}
@@ -479,12 +494,12 @@ loop:	for (int index = 0; index < args.length; index++) {
 		for (ArgDescription item : desc) {
 			if (item.isMandatory()) {
 				if (!pairs.containsKey(item.getName())) {
-					sb.append(',').append(item.getName());
+					sb.append(", ").append(item.getName());
 				}
 			}
 		}
 		if (sb.length() > 0) {
-			throw new CommandLineParametersException("Mandatory argument(s) ["+sb.toString().substring(1)+"] are missing in the parameters");
+			throw new CommandLineParametersException("Mandatory argument(s) ["+sb.toString().substring(2)+"] are missing in the parameters");
 		}
 		
 		if (hasConfigArg && confArg != null && (pairs.containsKey(confArg.getName()) || confArg.getDefaultValue() != null)) {
@@ -500,15 +515,15 @@ loop:	for (int index = 0; index < args.length; index++) {
 			if (!ignoreUnknown) {
 				for (Entry<Object,Object> item : sp.entrySet()) {
 					if (!names.contains(item.getKey().toString())) {
-						sb.append(',').append(item.getKey().toString());
+						sb.append(", ").append(item.getKey().toString());
 					}
 				}
 				if (sb.length() > 0) {
-					throw new CommandLineParametersException("Configuration source ["+confSource+"] contains unknown parameters ["+sb.substring(1)+"]");
+					throw new CommandLineParametersException("Configuration source ["+confSource+"] contains unknown parameters ["+sb.substring(2)+"]");
 				}
 			}
 			for (Entry<Object,Object> item : sp.entrySet()) {
-				pairs.putIfAbsent(item.getKey().toString(),new String[]{sp.getProperty(item.getKey().toString())});
+				pairs.putIfAbsent(item.getKey().toString(), new String[]{sp.getProperty(item.getKey().toString())});
 			}
 		}
 	}
