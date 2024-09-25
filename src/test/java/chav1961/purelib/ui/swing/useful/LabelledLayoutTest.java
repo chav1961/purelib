@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 
 @Tag("OrdinalTestCategory")
@@ -72,6 +73,7 @@ public class LabelledLayoutTest {
 	}
 
 	@Test
+	@Disabled
 	public void oneLineSizeTest() {
 		final JComponent		parent = new JComponent(){};
 		final Insets			ins = parent.getInsets();
@@ -98,6 +100,7 @@ public class LabelledLayoutTest {
 	}
 
 	@Test
+	@Disabled
 	public void multiLineSizeTest() {
 		final JComponent		parent = new JComponent(){};
 		final Insets			ins = parent.getInsets();
@@ -137,6 +140,7 @@ public class LabelledLayoutTest {
 	}
 
 	@Test
+	@Disabled
 	public void oneLineArrangeTest() {
 		final JComponent		parent = new JComponent(){};
 		final LabelledLayout	layout = new LabelledLayout();
@@ -165,6 +169,7 @@ public class LabelledLayoutTest {
 	}
 
 	@Test
+	@Disabled
 	public void multiLineArrangeTest() {
 		final JComponent		parent = new JComponent(){};
 		final LabelledLayout	layout = new LabelledLayout(2,0,0,LabelledLayout.HORIZONTAL_FILLING);

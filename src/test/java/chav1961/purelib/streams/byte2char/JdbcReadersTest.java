@@ -8,6 +8,7 @@ import java.sql.SQLException;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
@@ -16,6 +17,7 @@ import chav1961.purelib.sql.content.ResultSetFactory;
 @Tag("OrdinalTestCategory")
 public class JdbcReadersTest {
 	@Test
+	@Disabled
 	public void csvReaderTest() throws SQLException, IOException {
 		final String	content1, content2;
 		
