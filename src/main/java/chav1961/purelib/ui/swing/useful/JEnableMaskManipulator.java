@@ -25,6 +25,7 @@ public class JEnableMaskManipulator {
 	private final List<Long>				enableStack = new ArrayList<>();
 	private final List<Long>				checkStack = new ArrayList<>();
 	private final long						localMask;
+	private final boolean					autoDisabled;
 	private long							currentEnableMask = 0L;
 	private long							currentCheckMask = 0L;
 	
@@ -52,6 +53,10 @@ public class JEnableMaskManipulator {
 	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list  
 	 */
 	public JEnableMaskManipulator(final String[] itemNames, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
+		this(itemNames, ignoreMissing, false, components);
+	}	
+	
+	public JEnableMaskManipulator(final String[] itemNames, final boolean ignoreMissing, final boolean autoDisabled, final JComponent... components) throws IllegalArgumentException {
 		if (itemNames == null || itemNames.length == 0 || Utils.checkArrayContent4Nulls(itemNames, true) >= 0) {
 			throw new IllegalArgumentException("Item names list is null, empty or contains nulls/empties inside");
 		}
@@ -72,6 +77,7 @@ loop:		for (String itemName : itemNames) {
 			this.parent = null;
 			this.names = itemNames;
 			this.localMask = 0;
+			this.autoDisabled = autoDisabled;
 			this.entities.addAll(Arrays.asList(components));
 			refreshState(~localMask);
 		}
@@ -88,8 +94,12 @@ loop:		for (String itemName : itemNames) {
 	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
 		this(parent, ignoreMissing, 0, components);
 	}
-	
+
 	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final boolean ignoreMissing, final long localMask, final JComponent... components) throws IllegalArgumentException {
+		this(parent, ignoreMissing, parent.autoDisabled, localMask, components);
+	}	
+	
+	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final boolean ignoreMissing, final boolean autoDisables, final long localMask, final JComponent... components) throws IllegalArgumentException {
 		if (parent == null) {
 			throw new NullPointerException("Parent manipulator can't be null");
 		}
@@ -101,6 +111,7 @@ loop:		for (String itemName : itemNames) {
 			this.entities.addAll(Arrays.asList(components));
 			this.names = null;
 			this.localMask = localMask;
+			this.autoDisabled = autoDisables;
 			refreshState(~0L);
 		}
 	}
