@@ -193,7 +193,8 @@ public class DnDManager implements AutoCloseable {
 		 * @param xToAbsolute current x-coordinate related to upper-left corner of the screen
 		 * @param yToAbsolute current y-coordinate related to upper-left corner of the screen
 		 */
-		void track(final DnDMode currentMode, final Component from, final int xFromAbsolute, final int yFromAbsolute, final Component to, final int xToAbsolute, final int yToAbsolute);
+		default void track(final DnDMode currentMode, final Component from, final int xFromAbsolute, final int yFromAbsolute, final Component to, final int xToAbsolute, final int yToAbsolute) {
+		}
 		
 		/**
 		 * <p>Complete drop operation.</p>

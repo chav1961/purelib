@@ -1,10 +1,20 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.AWTEvent;
-import java.awt.Component;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.Locale;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 import javax.swing.JLabel;
 import javax.swing.ToolTipManager;
@@ -13,8 +23,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
-import chav1961.purelib.ui.swing.useful.DnDManager.DnDInterface;
-import chav1961.purelib.ui.swing.useful.DnDManager.DnDMode;
 
 /**
  * <p>This class is a placeholder for different purposes. This class supports:</p>
@@ -27,19 +35,22 @@ import chav1961.purelib.ui.swing.useful.DnDManager.DnDMode;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  */
-public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInterface, AutoCloseable {
+public class JPlaceHolder extends JLabel implements LocaleChangeListener, AutoCloseable {
 	private static final long serialVersionUID = 1L;
 
 	private final Localizer		localizer;
-	private final DnDManager	mgr;
 	private final String		innerText, innerTooltip;
+	private final BiPredicate<Transferable, DataFlavor[]>	support;
 	
-	public JPlaceHolder(final Localizer localizer, final String innerText, final String innerTooltip) {
+	public JPlaceHolder(final Localizer localizer, final String innerText, final String innerTooltip, final BiPredicate<Transferable, DataFlavor[]> support) {
 		if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
 		}
 		else if (Utils.checkEmptyOrNullString(innerText)) {
 			throw new IllegalArgumentException("Inner text can't be null or empty");
+		}
+		else if (support == null) {
+			throw new NullPointerException("Data flavor accept predicate can't be null");
 		}
 		else {
 			setFocusable(true);
@@ -48,6 +59,7 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
             this.localizer = localizer;
 			this.innerText = innerText;
 			this.innerTooltip = innerTooltip;
+			this.support = support;
 			
 			addMouseListener(new MouseAdapter() {
 				@Override
@@ -56,8 +68,8 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
 				}
 			});
 			ToolTipManager.sharedInstance().registerComponent(this);
-			this.mgr = new DnDManager(this, this);
-			mgr.selectDnDMode(DnDMode.NONE);
+			
+            new DropTarget(this, DnDConstants.ACTION_COPY, new DropTargetHandler(this), true);
 			fillLocalizedStrings();
 		}
 	}
@@ -65,7 +77,6 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
 	@Override
 	public void close() throws RuntimeException {
 		ToolTipManager.sharedInstance().unregisterComponent(this);
-		mgr.close();
 	}
 	
 	@Override
@@ -73,29 +84,10 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
 		fillLocalizedStrings();
 	}
 
-	@Override
-	public Class<?> getSourceContentClass(final DnDMode currentMode, final Component component, final int x, final int y) {
-		return null;
+	public boolean acceptDrop(final Transferable trans) throws IOException {
+		return support.test(trans, trans.getTransferDataFlavors());
 	}
-
-	@Override
-	public Object getSourceContent(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo) {
-		return null;
-	}
-
-	@Override
-	public boolean canReceive(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Class<?> contentClass) {
-		return false;
-	}
-
-	@Override
-	public void track(final DnDMode currentMode, final Component from, final int xFromAbsolute, final int yFromAbsolute, final Component to, final int xToAbsolute, final int yToAbsolute) {
-	}
-
-	@Override
-	public void complete(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Object content) {
-	}
-
+	
 	@Override
 	public String getToolTipText() {
 		if (Utils.checkEmptyOrNullString(innerTooltip)) {
@@ -110,14 +102,6 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
 		}
 	}
 
-	/**
-	 * <p>Get Drag&Drop manager associated with the placeholder</p>
-	 * @return manager associated. Can't be null
-	 */
-	public DnDManager getDnDManager() {
-		return mgr;
-	}
-	
 	private void fillLocalizedStrings() {
 		try {
 			setText(localizer.getValue(innerText));
@@ -125,4 +109,44 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
 			setText(innerText);
 		}
 	}
+
+    private class DropTargetHandler implements DropTargetListener {
+        private JLabel panel;
+
+        public DropTargetHandler(JLabel panel) {
+            this.panel = panel;
+        }
+
+        public void dragEnter(final DropTargetDragEvent dtde) {
+        	if (support.test(dtde.getTransferable(), dtde.getTransferable().getTransferDataFlavors())) {
+                dtde.acceptDrag(DnDConstants.ACTION_COPY);
+        	}
+        	else {
+                dtde.rejectDrag();
+        	}
+        }
+
+        public void dragOver(final DropTargetDragEvent dtde) {
+        }
+
+        public void dragExit(final DropTargetEvent dte) {
+        }
+
+        public void dropActionChanged(final DropTargetDragEvent dtde) {
+        }
+
+        public void drop(DropTargetDropEvent dtde) {
+        	if (support.test(dtde.getTransferable(), dtde.getTransferable().getTransferDataFlavors())) {
+        		try {
+				    dtde.acceptDrop(DnDConstants.ACTION_COPY);
+				    
+					if (!acceptDrop(dtde.getTransferable())) {
+					    dtde.rejectDrop();
+					}
+				} catch (IOException e) {
+				    dtde.rejectDrop();
+				}
+            }
+        }
+    }
 }
