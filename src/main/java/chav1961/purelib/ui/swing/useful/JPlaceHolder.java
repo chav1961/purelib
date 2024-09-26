@@ -2,6 +2,8 @@ package chav1961.purelib.ui.swing.useful;
 
 import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Locale;
 
 import javax.swing.JLabel;
@@ -24,13 +26,12 @@ import chav1961.purelib.ui.swing.useful.DnDManager.DnDMode;
  * <p>This class is not thread-safe</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
- * @since 0.0.7
  */
 public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInterface, AutoCloseable {
 	private static final long serialVersionUID = 1L;
 
 	private final Localizer		localizer;
-	private final DnDManager	mgr = new DnDManager(this, this);
+	private final DnDManager	mgr;
 	private final String		innerText, innerTooltip;
 	
 	public JPlaceHolder(final Localizer localizer, final String innerText, final String innerTooltip) {
@@ -48,7 +49,14 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, DnDInt
 			this.innerText = innerText;
 			this.innerTooltip = innerTooltip;
 			
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(final MouseEvent e) {
+					requestFocusInWindow();
+				}
+			});
 			ToolTipManager.sharedInstance().registerComponent(this);
+			this.mgr = new DnDManager(this, this);
 			mgr.selectDnDMode(DnDMode.NONE);
 			fillLocalizedStrings();
 		}
