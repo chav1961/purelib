@@ -1,5 +1,6 @@
 package chav1961.purelib.fsys;
 
+
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -380,7 +381,7 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 			}
 		}
 		
-		private File getFile() {
+		private File getFile() throws IOException {
 			return new File(wrapper.getSchemeSpecificPart());
 		}
 
@@ -725,35 +726,35 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 					this.atRootItem = false;
 				}
 				else if (decodedWrapper.endsWith(":/")) {
-					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)).normalize(); 
+					this.wrapper = toNormalizedURI(rootPath+decodedWrapper.substring(1)); 
 					this.atRoot = false;
 					this.atRootItem = true;
 				}
 				else if (decodedWrapper.endsWith(":")) {
-					this.wrapper = URI.create(rootPath+decodedWrapper.substring(1)+'/').normalize(); 
+					this.wrapper = toNormalizedURI(rootPath+decodedWrapper.substring(1)+'/'); 
 					this.atRoot = false;
 					this.atRootItem = true;
 				}
 				else {
 					if (relative.startsWith("/") && root.endsWith("/")) {
-						this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+						this.wrapper = toNormalizedURI(rootPath+relative.substring(1));
 						this.atRoot = false;
 						this.atRootItem = false;
 					}
 					else {
-						this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+						this.wrapper = toNormalizedURI(rootPath.toString()+wrapper.toString());
 						this.atRoot = false;
 						this.atRootItem = false;
 					}
 				}
 			}
 			else if (relative.startsWith("/") && root.endsWith("/")) {
-				this.wrapper = URI.create(rootPath+relative.substring(1)).normalize();
+				this.wrapper = toNormalizedURI(rootPath+relative.substring(1));
 				this.atRoot = false;
 				this.atRootItem = false;
 			}
 			else {
-				this.wrapper = URI.create(rootPath.toString()+wrapper.toString()).normalize();
+				this.wrapper = toNormalizedURI(rootPath.toString()+wrapper.toString());
 				this.atRoot = false;
 				this.atRootItem = false;
 			}
@@ -763,5 +764,9 @@ public class FileSystemOnFile extends AbstractFileSystemWithLockService<FileChan
 		public String toString() {
 			return "RootsAndWrapper [atRoot=" + atRoot + ", atRootItem=" + atRootItem + ", wrapper=" + wrapper + "]";
 		}
-	}
+		
+		private URI toNormalizedURI(final String content) throws UnsupportedEncodingException {
+			return URI.create(content).normalize();
+		}
+ 	}
 }

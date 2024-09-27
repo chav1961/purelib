@@ -39,6 +39,7 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
@@ -331,7 +332,7 @@ public class ModelUtils {
 				@SuppressWarnings("unchecked")
 				final ObjectGetterAndSetter<Object>	setter = (ObjectGetterAndSetter<Object>)gas;
 				
-				setter.set(instance,value);
+				setter.set(instance, value);
 			}
 			else if (gas instanceof BooleanGetterAndSetter) {
 				if (value == null) {

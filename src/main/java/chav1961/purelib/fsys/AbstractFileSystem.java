@@ -10,7 +10,6 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -21,7 +20,6 @@ import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -862,7 +860,7 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 			walk((AbstractFileSystem)fsi,path,to,path.length,collection);
 		}
 		else if (to == path.length) {
-			collection.add(afs.createDataWrapper(URI.create(URLEncoder.encode(new String(path,from,to-from), PureLibSettings.DEFAULT_CONTENT_ENCODING))));
+			collection.add(afs.createDataWrapper(URI.create(partialEncode(new String(path,from,to-from)))));
 		}
 		else {
 			int		slash = -1;
@@ -882,6 +880,10 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 		}
 	}
 
+	private static String partialEncode(final String source) {
+		return source.replace(" ","%20").replace("[", "%5B").replace("]", "%5D");
+	}
+	
 	private URI build(final String delta) throws IOException {
 		final StringBuilder sb = new StringBuilder();
 		final List<String>	result = new ArrayList<String>();
