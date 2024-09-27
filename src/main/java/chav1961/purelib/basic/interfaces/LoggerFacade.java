@@ -56,10 +56,41 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 *
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.1
-	 * @last.update 0.0.6
+	 * @last.update 0.0.7
 	 */
 	public enum Severity {
-		tooltip, trace, debug, info, note, warning, error, severe
+		tooltip(false, false), 
+		trace(true, false), 
+		debug(true, false),
+		info(true, false),
+		note(true, false),
+		warning(true, false),
+		error(true, true),
+		severe(true, true);
+		
+		private final boolean	mandatory;
+		private final boolean	blinkingRequired;
+		
+		private Severity(final boolean mandatory, final boolean blinkingRequired) {
+			this.mandatory = mandatory;
+			this.blinkingRequired = blinkingRequired; 
+		}
+		
+		/**
+		 * <p>Is the severity level mandatory. Non-mandatory severity can be ignored for any purposes</p>
+		 * @return true if mandatory, false otherwise
+		 */
+		public boolean isMandatory() {
+			return mandatory;
+		}
+
+		/**
+		 * <p>Is attention required for the given severity (for example, blinking)</p>
+		 * @return true if attention required, false otherwise
+		 */
+		public boolean isAttentionRequired() {
+			return blinkingRequired;
+		}
 	}
 
 	/**

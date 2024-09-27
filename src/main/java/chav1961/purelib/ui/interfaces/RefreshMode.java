@@ -3,7 +3,8 @@ package chav1961.purelib.ui.interfaces;
 /**
  * <p>This enumeration describes refreshing mode for the given UI screen after callback processing</p> 
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.2 last update 0.0.3
+ * @since 0.0.2 
+ * @last.update 0.0.3
  */
 public enum RefreshMode {
 	/**

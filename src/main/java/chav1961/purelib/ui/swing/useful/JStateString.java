@@ -90,6 +90,7 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 	private static final Icon		CANCEL_ICON = PureLibStandardIcons.CANCEL.getIcon();
 	private static final SimpleDateFormat	SDF = new SimpleDateFormat("DDD HH:mm:ss");
 	private static final int		PERCENT_100 = 100;
+	private static final int		BLINK_DELAY = 300;
 
 	static {
 		SDF.setTimeZone(TimeZone.getTimeZone("UTC"));	
@@ -965,8 +966,16 @@ public class JStateString extends JPanel implements LoggerFacade, ProgressIndica
 				default: 
 					throw new UnsupportedOperationException("Severity level ["+level+"] is not supported yet"); 
 			}
-			if (level != Severity.tooltip || supportTooltips) {
+			if (level.isMandatory() || supportTooltips) {
 				state.setText(text2Store);
+				if (level.isAttentionRequired()) {
+					final Color	color = state.getForeground();
+					
+					for(int index = 0; index < 3; index++) {
+						SimpleTimerTask.start(()->state.setForeground(state.getBackground()), BLINK_DELAY * (2 * index));
+						SimpleTimerTask.start(()->state.setForeground(color), BLINK_DELAY * (2 * index + 1));
+					}
+				}
 			}
 			if ((lastThrowable = throwable) != null) {
 				state.setIcon(InternalConstants.ICON_EYE);
