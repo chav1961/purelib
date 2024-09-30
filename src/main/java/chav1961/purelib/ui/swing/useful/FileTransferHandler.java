@@ -10,9 +10,7 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -93,41 +91,5 @@ class FileTransferHandler extends TransferHandler {
 			}
 		}
 		throw new IllegalArgumentException("Neither target control nor one of it's parents don't implement FileContentKeeper interface");
-	}
-	
-	private class FileTransferable implements Transferable {
-	    private final DataFlavor[]				flavors = {DataFlavor.javaFileListFlavor};
-		private final List<JFileItemDescriptor>	files;
-
-	    public FileTransferable(final Collection<JFileItemDescriptor> files) throws IllegalArgumentException {
-	    	if (files == null || files.isEmpty()) {
-	    		throw new IllegalArgumentException("File list can't be null or empty collection"); 
-	    	}
-	    	else {
-	            this.files = Collections.unmodifiableList(new ArrayList<JFileItemDescriptor>(files));
-	    	}
-	    }
-	 
-	    public DataFlavor[] getTransferDataFlavors() {
-	        return flavors;
-	    }
-	 
-	    public boolean isDataFlavorSupported(final DataFlavor flavor) {
-	        return DataFlavor.javaFileListFlavor.equals(flavor);
-	    }
-	 
-	    public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-	        if (isDataFlavorSupported(flavor)) {
-	            return files;
-	        }
-	        else {
-	        	return null;
-	        }
-	    }
-
-		@Override
-		public String toString() {
-			return "FileTransferable [flavors=" + Arrays.toString(flavors) + ", files=" + files + "]";
-		}
 	}
 }

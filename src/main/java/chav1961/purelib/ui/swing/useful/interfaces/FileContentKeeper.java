@@ -45,5 +45,9 @@ public interface FileContentKeeper {
 	 * @param content content to place. Can be empty but not null
 	 * @throws IOException on any I/O errors
 	 */
-	void placeFileContent(final Point location, Iterable<JFileItemDescriptor> content) throws IOException;
+	void placeFileContent(Point location, Iterable<JFileItemDescriptor> content) throws IOException;
+	
+	default boolean canPlaceFileContent(Point location, Iterable<JFileItemDescriptor> content) throws IOException {
+		return true;
+	}
 }

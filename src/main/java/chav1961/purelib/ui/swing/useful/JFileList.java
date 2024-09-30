@@ -322,7 +322,8 @@ public abstract class JFileList extends JPanel implements LocaleChangeListener, 
 		}
 	}
 
-	@Override public abstract void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content);
+	@Override 
+	public abstract void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content);
 	
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {

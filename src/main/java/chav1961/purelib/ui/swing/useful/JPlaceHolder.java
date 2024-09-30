@@ -5,10 +5,6 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
@@ -69,7 +65,7 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, AutoCl
 			});
 			ToolTipManager.sharedInstance().registerComponent(this);
 			
-            new DropTarget(this, DnDConstants.ACTION_COPY, new DropTargetHandler(this), true);
+            new DropTarget(this, DnDConstants.ACTION_COPY, new InternalDropTargetHandler(this, support, this::acceptDrop), true);
 			fillLocalizedStrings();
 		}
 	}
@@ -109,44 +105,4 @@ public class JPlaceHolder extends JLabel implements LocaleChangeListener, AutoCl
 			setText(innerText);
 		}
 	}
-
-    private class DropTargetHandler implements DropTargetListener {
-        private JLabel panel;
-
-        public DropTargetHandler(JLabel panel) {
-            this.panel = panel;
-        }
-
-        public void dragEnter(final DropTargetDragEvent dtde) {
-        	if (support.test(dtde.getTransferable(), dtde.getTransferable().getTransferDataFlavors())) {
-                dtde.acceptDrag(DnDConstants.ACTION_COPY);
-        	}
-        	else {
-                dtde.rejectDrag();
-        	}
-        }
-
-        public void dragOver(final DropTargetDragEvent dtde) {
-        }
-
-        public void dragExit(final DropTargetEvent dte) {
-        }
-
-        public void dropActionChanged(final DropTargetDragEvent dtde) {
-        }
-
-        public void drop(DropTargetDropEvent dtde) {
-        	if (support.test(dtde.getTransferable(), dtde.getTransferable().getTransferDataFlavors())) {
-        		try {
-				    dtde.acceptDrop(DnDConstants.ACTION_COPY);
-				    
-					if (!acceptDrop(dtde.getTransferable())) {
-					    dtde.rejectDrop();
-					}
-				} catch (IOException e) {
-				    dtde.rejectDrop();
-				}
-            }
-        }
-    }
 }

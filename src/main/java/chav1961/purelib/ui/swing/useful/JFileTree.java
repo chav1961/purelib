@@ -1,6 +1,13 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.Point;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDragEvent;
+import java.awt.dnd.DropTargetDropEvent;
+import java.awt.dnd.DropTargetEvent;
+import java.awt.dnd.DropTargetListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
@@ -17,6 +24,7 @@ import java.util.Objects;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
 
+import javax.swing.DropMode;
 import javax.swing.Icon;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
@@ -177,6 +185,8 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 			fillChildren(root, fsi);
 			((DefaultTreeModel)getModel()).setRoot(root);
 			setDragEnabled(true);
+			setDropMode(DropMode.ON);
+			
 			setTransferHandler(new FileTransferHandler());
 			FileTransferHandler.prepare4DroppingFiles(this);
 			
@@ -204,7 +214,7 @@ public abstract class JFileTree extends JTree implements FileContentKeeper {
 	}
 
 	@Override
-	public abstract void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content);
+	public abstract void placeFileContent(final Point location, final Iterable<JFileItemDescriptor> content) throws IOException;
 	
 	/**
 	 * <p>Refresh linked content. Typical use of this method is refresh list of files in another component, when selection in this component changes. 
