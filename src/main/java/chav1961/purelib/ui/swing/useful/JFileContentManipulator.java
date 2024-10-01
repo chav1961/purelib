@@ -889,7 +889,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 	
 	protected boolean processLoad(final String fileName, final InputStream source, final ProgressIndicator progress) throws IOException {
-		try(final OutputStream			os = getterOut.getOutputContent()) {
+		try(final OutputStream	os = getterOut.getOutputContent()) {
 
 			Utils.copyStream(source, os, progress);
 		}
