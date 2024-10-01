@@ -3,6 +3,8 @@ package chav1961.purelib.ui.swing.useful;
 import java.io.File;
 import java.util.Date;
 
+import chav1961.purelib.basic.Utils;
+
 /**
  * <p>This class describes file/directory items in the {@linkplain JFileTree} and {@linkplain JFileList} classes. Class implements 
  * {@linkplain Comparable} interface and orders firstly directories and then files in lexical order. Ordering is case-sensitive</p>  
@@ -17,13 +19,45 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor>, Clo
 	private final boolean	isDirectory;
 	private final long		size;
 	private final Date		lastModified;
+	private final Object	cargo;
+
+	/**
+	 * <p>Constructor if the class.</p>
+	 * @param name file name. Can't be null or empty
+	 * @param path file path. Can't be null or empty
+	 * @param isDirectory is the item directory
+	 * @param size file size
+	 * @param lastModified file last modification time
+	 */
+	public JFileItemDescriptor(final String name, final String path, final boolean isDirectory, final long size, final Date lastModified) throws IllegalArgumentException {
+		this(name, path, isDirectory, size, lastModified, null);
+	}	
 	
-	public JFileItemDescriptor(final String name, final String path, final boolean isDirectory, final long size, final Date lastModified) {
-		this.name = name;
-		this.path = path;
-		this.isDirectory = isDirectory;
-		this.size = size;
-		this.lastModified = lastModified;
+	/**
+	 * <p>Constructor if the class.</p>
+	 * @param name file name. Can't be null or empty
+	 * @param path file path. Can't be null or empty
+	 * @param isDirectory is the item directory
+	 * @param size file size
+	 * @param lastModified file last modification time
+	 * @param cargo cargo associated. Can be null
+	 * @throws IllegalArgumentException on any string parameters null or empty
+	 */
+	public JFileItemDescriptor(final String name, final String path, final boolean isDirectory, final long size, final Date lastModified, final Object cargo) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(name)) {
+			throw new IllegalArgumentException("File name can't be null or empty");
+		}
+		else if (Utils.checkEmptyOrNullString(path)) {
+			throw new IllegalArgumentException("File path can't be null or empty");
+		}
+		else {
+			this.name = name;
+			this.path = path;
+			this.isDirectory = isDirectory;
+			this.size = size;
+			this.lastModified = lastModified;
+			this.cargo = cargo;
+		}
 	}
 
 	/**
@@ -66,9 +100,17 @@ public class JFileItemDescriptor implements Comparable<JFileItemDescriptor>, Clo
 		return lastModified;
 	}
 
+	/**
+	 * <p>Get cargo associated</p>
+	 * @return cargo associated. Can be null
+	 */
+	public Object getCargo() {
+		return cargo;
+	}
+	
 	@Override
 	public String toString() {
-		return "JFileItemDescriptor [name=" + name + ", path=" + path + ", isDirectory=" + isDirectory + ", size=" + size + ", lastModified=" + lastModified + "]";
+		return "JFileItemDescriptor [name=" + name + ", path=" + path + ", isDirectory=" + isDirectory + ", size=" + size + ", lastModified=" + lastModified + ", cargo=" + cargo + "]";
 	}
 
 	@Override

@@ -48,7 +48,7 @@ class FileTransferHandler extends TransferHandler {
 			throw new NullPointerException("Target control can't be null"); 
 		}
 		else {
-			findFileContentKeeper(target,(item)->{
+			findFileContentKeeper(target, (item)->{
 				item.setDropTarget(new DropTarget(target, DnDConstants.ACTION_MOVE, null, true) {
 					private static final long serialVersionUID = 4186663174291662900L;
 
@@ -59,8 +59,13 @@ class FileTransferHandler extends TransferHandler {
 		        			findFileContentKeeper(target,(item)->{
 			                    try{final List<JFileItemDescriptor>	descList = new ArrayList<>();
 			                    	
-			                    	for (File f : (List<File>)evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor)) {
-			                    		descList.add(JFileItemDescriptor.of(f));
+			                    	for (Object f : (List<?>)evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor)) {
+			                    		if (f instanceof JFileItemDescriptor) {
+				                    		descList.add((JFileItemDescriptor)f);
+			                    		}
+			                    		else if (f instanceof File) {
+				                    		descList.add(JFileItemDescriptor.of((File)f));
+			                    		}
 			                    	}
 			                    	
 			                    	((FileContentKeeper)item).placeFileContent(evt.getLocation(), descList);
