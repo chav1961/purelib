@@ -218,7 +218,7 @@ public class AutoBuildFormTest {
 														}
 												};
 													
-										AutoBuiltForm.askInternal((JFrame)null, frame, PureLibSettings.PURELIB_LOCALIZER, abf, buttons);
+										AutoBuiltForm.askInternal((JFrame)null, frame, PureLibSettings.PURELIB_LOCALIZER, abf, buttons, "");
 									} catch (Exception e) {
 										Assert.fail("Exception detected: "+e.getLocalizedMessage());
 									} finally {
