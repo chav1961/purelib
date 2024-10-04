@@ -1,7 +1,6 @@
 package chav1961.purelib.ui.swing.useful;
 
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowListener;
 import java.io.ByteArrayInputStream;
@@ -38,9 +37,9 @@ import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.LocalizerOwner;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.interfaces.LRUPersistence;
 import chav1961.purelib.ui.swing.SwingUtils;
@@ -227,7 +226,9 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 			this.getterOut = getterOut;
 			this.persistence = persistence;
 			this.lru = sharedLRU;
-			try{persistence.loadLRU(name, lru);
+			
+			try{
+				persistence.loadLRU(name, lru);
 			} catch (IOException e) {
 				lru.clear();
 			}
@@ -787,6 +788,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @param l listener to add
 	 * @throws NullPointerException when listener to add is null
 	 * @since 0.0.4
+	 * @last.update 0.0.7
 	 */
 	public void addFileContentChangeListener(final FileContentChangeListener<?> l) throws NullPointerException {
 		if (l == null) {
@@ -794,6 +796,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		}
 		else {
 			listeners.addListener(l);
+			fireEvent(FileContentChangeType.LRU_LIST_REFRESHED);
 		}
 	}
 	
