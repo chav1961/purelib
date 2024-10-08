@@ -40,6 +40,7 @@ import chav1961.purelib.basic.GettersAndSettersFactory.GetterAndSetter;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -466,7 +467,9 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 				add(childPanel,BorderLayout.CENTER);
 				add(buttonPanel,BorderLayout.SOUTH);
 				if (mdi.getRoot().getHelpId() != null) {
-					SwingUtils.assignActionKey(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{callHelp(localizer,mdi.getRoot().getHelpId());}, "help");
+					SwingUtils.assignActionKey(this, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_HELP, (e)->{
+						callHelp(localizer, mdi.getRoot().getHelpId());
+					}, SwingUtils.ACTION_HELP);
 				}
 				InternalUtils.registerAdvancedTooptip(this);
 				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
@@ -699,8 +702,11 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 	}
 
 	private void callHelp(final Localizer localizer, final String helpId) {
-		try{SwingUtils.showCreoleHelpWindow(FocusManager.getCurrentManager().getFocusOwner(), URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(),"UTF-8"));
+		try{
+			SwingUtils.showCreoleHelpWindow(FocusManager.getCurrentManager().getFocusOwner(), 
+					URIUtils.convert2selfURI(new GrowableCharArray<>(false).append(localizer.getContent(helpId)).extract(), PureLibSettings.DEFAULT_CONTENT_ENCODING));
 		} catch (IOException | LocalizationException e) {
+			getLogger().message(Severity.warning, e.getLocalizedMessage());
 		}
 	}
 
@@ -1103,7 +1109,9 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 				}
 				okListener.actionPerformed(e);
 			}, DEFAULT_OK_BUTTON_NAME);
+			
 			SwingUtils.assignActionKey(contentPane, WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, SwingUtils.KS_EXIT, (e)->cancelListener.actionPerformed(e), DEFAULT_CANCEL_BUTTON_NAME);
+			
 			form.mdi.walkDown((mode,applicationPath,uiPath,node)->{
 				if (mode == NodeEnterMode.ENTER) {
 					if(node.getApplicationPath() != null) {
