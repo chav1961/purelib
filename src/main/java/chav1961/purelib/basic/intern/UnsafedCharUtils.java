@@ -1769,7 +1769,7 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		int			amount = 0, lastCompared = Integer.MIN_VALUE;
 		
 		for (int index = 0, maxIndex = source.length; index < maxIndex; index++) {
-			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
+			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitterLen)) {
 				if (!removeTotalEmpty || lastCompared != index - splitterLen) {
 					amount++;
 				}
@@ -1778,10 +1778,10 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 			}
 		}
 		if (removeCornerEmpty || removeTotalEmpty) {
-			if (UnsafedCharUtils.uncheckedCompare(source,0,splitter,0,splitter.length)) {
+			if (UnsafedCharUtils.uncheckedCompare(source,0,splitter,0,splitterLen)) {
 				amount--;
 			}
-			if (UnsafedCharUtils.uncheckedCompare(source,source.length-splitterLen,splitter,0,splitter.length)) {
+			if (UnsafedCharUtils.uncheckedCompare(source,source.length-splitterLen,splitter,0,splitterLen)) {
 				amount--;
 			}
 		}
@@ -1797,7 +1797,7 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 		for (int index = start; index < maxIndex; index++) {
 			if ((current = source[index]) == splitter) {
 				if (!removeTotalEmpty || prev != splitter) {
-					target[targetIndex++] = new String(source,start,index-start);
+					target[targetIndex++] = new String(source, start, index-start);
 				}
 				start = index + 1;
 			}
@@ -1809,11 +1809,11 @@ end:						for (int scan = dollarPos + 1; scan < to; scan++) {
 	private static void split(final char[] source, final char[] splitter, final boolean removeCornerEmpty, final boolean removeTotalEmpty, final String[] target) {
 		final boolean	removeTrims = removeCornerEmpty || removeTotalEmpty;
 		final char		first = splitter[0];
-		final int		splitterLen = splitter.length, maxIndex = removeTrims && UnsafedCharUtils.uncheckedCompare(source,source.length-splitterLen,splitter,0,splitter.length) ? source.length - splitterLen: source.length;
-		int				start = removeTrims && UnsafedCharUtils.uncheckedCompare(source,0,splitter,0,splitter.length) ? splitterLen: 0, targetIndex = 0, lastCompared = Integer.MIN_VALUE;
+		final int		splitterLen = splitter.length, maxIndex = removeTrims && UnsafedCharUtils.uncheckedCompare(source,source.length-splitterLen,splitter,0,splitterLen) ? source.length - splitterLen: source.length;
+		int				start = removeTrims && UnsafedCharUtils.uncheckedCompare(source,0,splitter,0,splitterLen) ? splitterLen: 0, targetIndex = 0, lastCompared = Integer.MIN_VALUE;
 		
 		for (int index = start; index < maxIndex; index++) {
-			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitter.length)) {
+			if (source[index] == first && UnsafedCharUtils.uncheckedCompare(source,index,splitter,0,splitterLen)) {
 				if (!removeTotalEmpty || lastCompared != index - splitterLen) {
 					target[targetIndex++] = new String(source,start,index-start);
 				}

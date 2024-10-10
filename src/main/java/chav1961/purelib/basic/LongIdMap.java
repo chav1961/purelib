@@ -54,30 +54,31 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 		}
 		else {
 			final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+			T[][][][]	temp = content;
 	
-			if (part1 >= content.length) {
-				content = Arrays.copyOf(content,nearest2N(part1));
+			if (part1 >= temp.length) {
+				content = temp = Arrays.copyOf(temp, nearest2N(part1));
 			}
-			if (content[part1] == null) {
-				content[part1] = (T[][][]) Array.newInstance(contentType,nearest2N(part2),0,0);
+			if (temp[part1] == null) {
+				temp[part1] = (T[][][]) Array.newInstance(contentType, nearest2N(part2), 0, 0);
 			}
-			else if (part2 >= content[part1].length) {
-				content[part1] = Arrays.copyOf(content[part1],nearest2N(part2));
+			else if (part2 >= temp[part1].length) {
+				temp[part1] = Arrays.copyOf(temp[part1], nearest2N(part2));
 			}
-			if (content[part1][part2] == null) {
-				content[part1][part2] = (T[][]) Array.newInstance(contentType,nearest2N(part3),0);
+			if (temp[part1][part2] == null) {
+				temp[part1][part2] = (T[][]) Array.newInstance(contentType, nearest2N(part3), 0);
 			}
-			else if (part3 >= content[part1][part2].length) {
-				content[part1][part2] = Arrays.copyOf(content[part1][part2],nearest2N(part3));
+			else if (part3 >= temp[part1][part2].length) {
+				temp[part1][part2] = Arrays.copyOf(temp[part1][part2], nearest2N(part3));
 			}
-			if (content[part1][part2][part3] == null) {
-				content[part1][part2][part3] = (T[]) Array.newInstance(contentType,nearest2N(part4));
+			if (temp[part1][part2][part3] == null) {
+				temp[part1][part2][part3] = (T[]) Array.newInstance(contentType, nearest2N(part4));
 			}
-			else if (part4 >= content[part1][part2][part3].length) {
-				content[part1][part2][part3] = Arrays.copyOf(content[part1][part2][part3],nearest2N(part4));
+			else if (part4 >= temp[part1][part2][part3].length) {
+				temp[part1][part2][part3] = Arrays.copyOf(temp[part1][part2][part3], nearest2N(part4));
 			}
-			content[part1][part2][part3][part4] = cargo;
-			maxValue = Math.max(maxValue,id);
+			temp[part1][part2][part3][part4] = cargo;
+			maxValue = Math.max(maxValue, id);
 			return this;
 		}
 	}
