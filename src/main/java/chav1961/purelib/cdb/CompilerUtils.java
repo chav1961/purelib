@@ -3,7 +3,6 @@ package chav1961.purelib.cdb;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -11,14 +10,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
-import chav1961.purelib.basic.AndOrTree;
-import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
@@ -541,11 +539,13 @@ public class CompilerUtils {
 				case CLASSTYPE_REFERENCE	:
 					final StringBuilder	sb = new StringBuilder("L");
 					
-					for (String item : CharUtils.split(clazz.getPackageName(),'.')) {
+					for (String item : UnsafedCharUtils.split(clazz.getPackageName(), '.', false, false)) {
 						sb.append(item).append('/');
 					}
-					if (clazz.getName().contains("$")) {
-						return sb.append(clazz.getName().substring(clazz.getName().lastIndexOf('.')+1)).append(';').toString();
+					final String	className = clazz.getName();
+					
+					if (className.contains("$")) {
+						return sb.append(className, className.lastIndexOf('.') + 1, className.length()).append(';').toString();
 					}
 					else {
 						return sb.append(clazz.getSimpleName()).append(';').toString();
