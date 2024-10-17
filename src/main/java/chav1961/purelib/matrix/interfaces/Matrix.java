@@ -1,12 +1,13 @@
 package chav1961.purelib.matrix.interfaces;
 
 /**
- * <p>This interface describes matrices. All implementations of this interface must follow some conventions described below.</p>
+ * <p>This interface describes matrices. All implementations of this interface must follow some conventions described below:</p>
  * <ul>
- * <li>Internal matrix representation must be one-dimensional array to increase performance.</p></li>
+ * <li>Internal matrix representation must be one-dimensional array to increase performance, but it's content can be sliced for huge matrices.</p></li>
  * <li>All implementations must support asynchronous/parallel operations inside to increase performance. Start of asynchronous/parallel operations is any 
- * call to arithmetic operations and end of asynchronous/parallel operations is calling {@linkplain #done()} method. Neither getting nor setting matrix values
- * can't be executed before all the asynchronous/parallel operations will be completed, otherwise {@linkplain IllegalStateException} must be fired</li>
+ * call to arithmetic operations and end of asynchronous/parallel operations is calling {@linkplain #done()} method explicitly. Neither getting nor setting
+ * matrix values can't be executed before all the asynchronous/parallel operations will be completed, otherwise {@linkplain IllegalStateException} must be
+ * fired</li>
  * </ul>
  * <p>Matrix implementation is not required to be thread-safe</p> 
  * @author Alexander Chernomyrdin aka chav1961
@@ -899,8 +900,37 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 */
 	public Matrix subtractFromValue(double real, double image);
 	
+	/**
+	 * <p>Multiply current matrix with argument.</p>
+	 * @param content matrix to multiply. Can't be null and must have the same number of rows as current matrix columns. 
+	 * @return production matrix. Can't be null
+	 */
 	public Matrix mul(Matrix content);
+
+	/**
+	 * <p>Multiply and transpose current matrix with argument.</p>
+	 * @param content matrix to multiply. Can't be null and must have the same number of rows as current matrix columns. 
+	 * @return production matrix. Can't be null
+	 */
+	default public Matrix mulAndTranspose(Matrix content) {
+		return mul(content).transpose();
+	}
+
+	/**
+	 * <p>Multiply argument with current matrix.</p>
+	 * @param content matrix to multiply. Can't be null and must have the same number of columns as current matrix rows. 
+	 * @return production matrix. Can't be null
+	 */
 	public Matrix mulFrom(Matrix content);
+	
+	/**
+	 * <p>Multiply and transpose argument with current matrix.</p>
+	 * @param content matrix to multiply. Can't be null and must have the same number of columns as current matrix rows. 
+	 * @return production matrix. Can't be null
+	 */
+	default public Matrix mulFromAndTranspose(Matrix content) {
+		return mulFrom(content).transpose();
+	}
 	
 	/**
 	 * <p>Multiply integer scalar value with matrix content. Bit matrix treats this operation as AND, and treats zero values as 0, and non-zero values as 1. Complex matrix treats this value
@@ -1162,7 +1192,13 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return new transposed matrix. Can't be null.
 	 */
 	public Matrix transpose();
-	
+
+	/**
+	 * <p>Apply aggregate functions to matrix content.</p>
+	 * @param dir apply direction to use aggregate functions. Can't be null
+	 * @param aggType aggregate function type.  Can't be null
+	 * @return new 1-dimension matrix with group values. Can't be null. For {@value AggregateDirection#Total} will contain exactly one element. 
+	 */
 	public Matrix aggregate(AggregateDirection dir, AggregateType aggType);
 	
 	/**

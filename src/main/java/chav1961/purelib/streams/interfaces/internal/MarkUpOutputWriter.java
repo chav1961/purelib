@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.interfaces.intern;
+package chav1961.purelib.streams.interfaces.internal;
 
 import java.io.IOException;
 

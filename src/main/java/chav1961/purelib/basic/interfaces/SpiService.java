@@ -5,10 +5,11 @@ import java.net.URI;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 
 /**
- * <p>This interface describes any SPI member. Every purelib SPI implementation <i>must</i> implements this interface (see META-INF/services for details)</p>
+ * <p>This interface describes any SPI member. Every PureLib SPI implementation <i>must</i> implements this interface (see META-INF/services for details)</p>
  * @param <Type> any type of the SPI service
  * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.7
+ * @since 0.0.5
+ * @last.update 0.0.7
  */
 public interface SpiService<Type> {
 	/**
@@ -18,6 +19,17 @@ public interface SpiService<Type> {
 	 * @throws NullPointerException on null resource URI
 	 */
 	boolean canServe(URI resource) throws NullPointerException;
+	
+	/**
+	 * <p>Explain why this service can't processing this URI.</p> 
+	 * @param resource resource URI to check. Can't be null
+	 * @return explanation string or null, if can't give adequate explanation.
+	 * @throws NullPointerException on null resource URI
+	 * @since 0.0.7
+	 */
+	default String explainWhy(URI resource) throws NullPointerException {
+		return null;
+	}
 	
 	/**
 	 * <p>Get SPI instance to serve the given resource URI</p>

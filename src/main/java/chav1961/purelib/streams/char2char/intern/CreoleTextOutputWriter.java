@@ -10,11 +10,11 @@ import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
-import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
-import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
-import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
-import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
-import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
+import chav1961.purelib.streams.interfaces.internal.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.internal.CreoleFontState;
+import chav1961.purelib.streams.interfaces.internal.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.internal.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.internal.CreoleTerminals;
 
 class CreoleTextOutputWriter extends CreoleOutputWriter {
 	private static final char[][]	UL = {"*".toCharArray(),"**".toCharArray(),"***".toCharArray(),"****".toCharArray(),"*****".toCharArray()};

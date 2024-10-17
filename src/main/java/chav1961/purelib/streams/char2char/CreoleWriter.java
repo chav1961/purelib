@@ -16,8 +16,8 @@ import chav1961.purelib.streams.char2char.intern.CreoleOutputWriterFactory;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack;
 import chav1961.purelib.streams.char2char.intern.ListManipulationStack.ListType;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
-import chav1961.purelib.streams.interfaces.intern.CreoleMarkUpOutputWriter;
-import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
+import chav1961.purelib.streams.interfaces.internal.CreoleMarkUpOutputWriter;
+import chav1961.purelib.streams.interfaces.internal.CreoleTerminals;
 
 /**
  * <p>This class converts CREOLE 1.0 content to the predefined content (see {@linkplain MarkupOutputFormat} description). 

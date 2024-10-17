@@ -6,12 +6,12 @@ import java.io.IOException;
 import chav1961.purelib.basic.FSM;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.streams.interfaces.intern.CreoleFontActions;
-import chav1961.purelib.streams.interfaces.intern.CreoleFontState;
-import chav1961.purelib.streams.interfaces.intern.CreoleMarkUpOutputWriter;
-import chav1961.purelib.streams.interfaces.intern.CreoleSectionActions;
-import chav1961.purelib.streams.interfaces.intern.CreoleSectionState;
-import chav1961.purelib.streams.interfaces.intern.CreoleTerminals;
+import chav1961.purelib.streams.interfaces.internal.CreoleFontActions;
+import chav1961.purelib.streams.interfaces.internal.CreoleFontState;
+import chav1961.purelib.streams.interfaces.internal.CreoleMarkUpOutputWriter;
+import chav1961.purelib.streams.interfaces.internal.CreoleSectionActions;
+import chav1961.purelib.streams.interfaces.internal.CreoleSectionState;
+import chav1961.purelib.streams.interfaces.internal.CreoleTerminals;
 
 abstract class CreoleOutputWriter implements CreoleMarkUpOutputWriter<Long> {
 	@SuppressWarnings("unchecked")

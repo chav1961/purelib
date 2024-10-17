@@ -1,4 +1,4 @@
-package chav1961.purelib.streams.interfaces.intern;
+package chav1961.purelib.streams.interfaces.internal;
 
 public enum CreoleFontActions {
 	BOLD_OPEN, BOLD_CLOSE,

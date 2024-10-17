@@ -10,7 +10,7 @@ import chav1961.purelib.basic.MimeType;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.streams.interfaces.PrologueEpilogueMaster;
-import chav1961.purelib.streams.interfaces.intern.CreoleMarkUpOutputWriter;
+import chav1961.purelib.streams.interfaces.internal.CreoleMarkUpOutputWriter;
 
 public class CreoleOutputWriterFactory {
 	@Deprecated
