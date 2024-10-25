@@ -1,5 +1,7 @@
 package chav1961.purelib.matrix.internal;
 
+import java.io.DataInput;
+import java.io.IOException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.Utils;
@@ -73,11 +75,6 @@ public class FloatComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public int[] extractInts() {
-		return extractInts(getTotalPiece());
-	}
-
-	@Override
 	public int[] extractInts(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -99,11 +96,6 @@ public class FloatComplexMatrix implements Matrix {
 			}
 			return result;
 		}
-	}
-
-	@Override
-	public long[] extractLongs() {
-		return extractLongs(getTotalPiece());
 	}
 
 	@Override
@@ -161,11 +153,6 @@ public class FloatComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public double[] extractDoubles() {
-		return extractDoubles(getTotalPiece());
-	}
-
-	@Override
 	public double[] extractDoubles(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -187,11 +174,6 @@ public class FloatComplexMatrix implements Matrix {
 			}
 			return result;
 		}
-	}
-
-	@Override
-	public Matrix assign(final int... content) {
-		return assign(getTotalPiece(), content);
 	}
 
 	@Override
@@ -223,11 +205,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 			}
 			return this;
 		}
-	}
-
-	@Override
-	public Matrix assign(final long... content) {
-		return assign(getTotalPiece(), content);
 	}
 
 	@Override
@@ -305,11 +282,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix assign(final double... content) {
-		return assign(getTotalPiece(), content);
-	}
-
-	@Override
 	public Matrix assign(final Piece piece, final double... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -367,6 +339,12 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
+	public Matrix assign(Piece piece, DataInput content, Type type) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public Matrix fill(final int value) {
 		return fill((float)value);
 	}
@@ -394,11 +372,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 	@Override
 	public Matrix fill(final Piece piece, final float value) {
 		return fill(piece, value, 0);
-	}
-
-	@Override
-	public Matrix fill(final float real, final float image) {
-		return fill(getTotalPiece(), real, image);
 	}
 
 	@Override
@@ -431,11 +404,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 	@Override
 	public Matrix fill(final Piece piece, final double value) {
 		return fill(piece, (float)value);
-	}
-
-	@Override
-	public Matrix fill(final double real, final double image) {
-		return fill(getTotalPiece(), (float)real, (float)image);
 	}
 
 	@Override
@@ -1779,28 +1747,13 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final ApplyBit callback) {
-		return apply(getTotalPiece(),callback);
-	}
-	
-	@Override
 	public Matrix apply(final Piece piece, final ApplyBit callback) {
 		throw new UnsupportedOperationException("Bit apply can't be used for non-bit matrices");
 	}
 	
 	@Override
-	public Matrix apply(final ApplyInt callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyInt callback) {
 		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final ApplyLong callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -1809,28 +1762,13 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final ApplyFloat callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyFloat callback) {
 		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
 	}
 
 	@Override
-	public Matrix apply(final ApplyDouble callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyDouble callback) {
 		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final ApplyFloat2 callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -1852,7 +1790,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					callback.apply(y0 + y, x0 + x, source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))], source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1], temp);
+					temp[0] = source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
+					temp[1] = source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					callback.apply(y0 + y, x0 + x, temp);
 					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = temp[0];
 					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = temp[1];
 				}
@@ -1863,37 +1803,8 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final ApplyDouble2 callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyDouble2 callback) {
-		if (piece == null) {
-			throw new NullPointerException("Piece can't be null");
-		}
-		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
-		}
-		else {
-			final FloatComplexMatrix	result = new FloatComplexMatrix(numberOfRows(), numberOfColumns()); 
-			final float[]	source = this.content;
-			final float[]	target = result.content;
-			final double[]	temp = new double[2];
-			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
-			
-			ensureCompleted();
-			for(int y = 0; y < maxY; y++) {
-				for(int x = 0; x < maxX; x++) {
-					callback.apply(y0 + y, x0 + x, source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))], source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1], temp);
-					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = (float)temp[0];
-					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = (float)temp[1];
-				}
-			}
-			result.completed = false;
-			return result;
-		}
+		throw new UnsupportedOperationException("Double complex apply is not supported for float complex matrix");
 	}
 	
 	private Piece getTotalPiece() {

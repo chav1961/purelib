@@ -111,28 +111,28 @@ public class FloatComplexMatrixTest {
 			m.assign(1,0,2,0,3,0,4,0,5,0,6,0);
 			Assert.assertArrayEquals(new int[] {1,0,2,0,3,0,4,0,5,0,6,0}, m.extractInts());
 			Assert.assertArrayEquals(new int[] {5,0,6,0}, m.extractInts(Piece.of(1,1,1,2)));
-			try {m.extractInts(null);
+			try {m.extractInts((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			
 			Assert.assertArrayEquals(new long[] {1,0,2,0,3,0,4,0,5,0,6,0}, m.extractLongs());
 			Assert.assertArrayEquals(new long[] {5,0,6,0}, m.extractLongs(Piece.of(1,1,1,2)));
-			try {m.extractLongs(null);
+			try {m.extractLongs((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			Assert.assertArrayEquals(new float[] {1,0,2,0,3,0,4,0,5,0,6,0}, m.extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {5,0,6,0}, m.extractFloats(Piece.of(1,1,1,2)), 0.001f);
-			try {m.extractFloats(null);
+			try {m.extractFloats((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,5,0,6,0}, m.extractDoubles(), 0.001);
 			Assert.assertArrayEquals(new double[] {5,0,6,0}, m.extractDoubles(Piece.of(1,1,1,2)), 0.001d);
-			try {m.extractDoubles(null);
+			try {m.extractDoubles((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}

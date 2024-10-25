@@ -111,28 +111,28 @@ public class LongRealMatrixTest {
 			m.assign(1,2,3,4,5,6);
 			Assert.assertArrayEquals(new int[] {1,2,3,4,5,6}, m.extractInts());
 			Assert.assertArrayEquals(new int[] {5,6}, m.extractInts(Piece.of(1,1,1,2)));
-			try {m.extractInts(null);
+			try {m.extractInts((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			
 			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.extractLongs());
 			Assert.assertArrayEquals(new long[] {5,6}, m.extractLongs(Piece.of(1,1,1,2)));
-			try {m.extractLongs(null);
+			try {m.extractLongs((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			Assert.assertArrayEquals(new float[] {1,2,3,4,5,6}, m.extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {5,6}, m.extractFloats(Piece.of(1,1,1,2)), 0.001f);
-			try {m.extractFloats(null);
+			try {m.extractFloats((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			Assert.assertArrayEquals(new double[] {1,2,3,4,5,6}, m.extractDoubles(), 0.001);
 			Assert.assertArrayEquals(new double[] {5,6}, m.extractDoubles(Piece.of(1,1,1,2)), 0.001d);
-			try {m.extractDoubles(null);
+			try {m.extractDoubles((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}

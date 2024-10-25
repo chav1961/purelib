@@ -1,11 +1,114 @@
 package chav1961.purelib.matrix;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.matrix.interfaces.OldMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
 
 public class MatrixUtils {
+	public static Matrix identity(final Matrix source) {
+		return source;
+	}
+
+	public static int[][] pack(final int[] content) {
+		return null;
+	}
+	
+	public static int[] unpack(final int[][] content) {
+		return null;
+	}
+	
+	public static long[][] pack(final long[] content) {
+		return null;
+	}
+	
+	public static long[] unpack(final long[][] content) {
+		return null;
+	}
+	
+	public static float[][] pack(final float[] content) {
+		return null;
+	}
+	
+	public static float[] unpack(final float[][] content) {
+		return null;
+	}
+
+	public static double[][] pack(final double[] content) {
+		return null;
+	}
+	
+	public static double[] unpack(final double[][] content) {
+		return null;
+	}
+
+	public static float[][][] pack2(final float[] content) {
+		return null;
+	}
+	
+	public static float[] unpack2(final float[][][] content) {
+		return null;
+	}
+
+	public static double[][][] pack2(final double[] content) {
+		return null;
+	}
+	
+	public static double[] unpack2(final double[][][] content) {
+		return null;
+	}
+	
+	public static int[][] downloadInt(final DataInput in, final int rows, final int cols) {
+		return null;
+	}
+
+	public static long[][] downloadLong(final DataInput in, final int rows, final int cols) {
+		return null;
+	}
+
+	public static float[][] downloadFloat(final DataInput in, final int rows, final int cols) {
+		return null;
+	}
+
+	public static double[][] downloadDouble(final DataInput in, final int rows, final int cols) {
+		return null;
+	}
+
+	public static float[][][] downloadFloat2(final DataInput in, final int rows, final int cols) {
+		return null;
+	}
+
+	public static double[][][] downloadDouble2(final DataInput in, final int rows, final int cols) {
+		return null;
+	}
+	
+	public static void upload(final int[][] source, final DataOutput out) {
+		
+	}
+	
+	public static void upload(final long[][] source, final DataOutput out) {
+		
+	}
+
+	public static void upload(final float[][] source, final DataOutput out) {
+		
+	}
+
+	public static void upload(final double[][] source, final DataOutput out) {
+		
+	}
+
+	public static void upload(final float[][][] source, final DataOutput out) {
+		
+	}
+
+	public static void upload(final double[][][] source, final DataOutput out) {
+		
+	}
+	
 	public static OldMatrix<?> zero(final Class<?> type, int size) {
 		return zero(type,size,size);
 	}

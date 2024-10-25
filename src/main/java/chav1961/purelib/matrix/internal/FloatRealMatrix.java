@@ -1,5 +1,7 @@
 package chav1961.purelib.matrix.internal;
 
+import java.io.DataInput;
+import java.io.IOException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.Utils;
@@ -73,11 +75,6 @@ public class FloatRealMatrix implements Matrix {
 	}
 
 	@Override
-	public int[] extractInts() {
-		return extractInts(getTotalPiece());
-	}
-
-	@Override
 	public int[] extractInts(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -98,11 +95,6 @@ public class FloatRealMatrix implements Matrix {
 			}
 			return result;
 		}
-	}
-
-	@Override
-	public long[] extractLongs() {
-		return extractLongs(getTotalPiece());
 	}
 
 	@Override
@@ -158,11 +150,6 @@ public class FloatRealMatrix implements Matrix {
 	}
 
 	@Override
-	public double[] extractDoubles() {
-		return extractDoubles(getTotalPiece());
-	}
-
-	@Override
 	public double[] extractDoubles(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -183,11 +170,6 @@ public class FloatRealMatrix implements Matrix {
 			}
 			return result;
 		}
-	}
-
-	@Override
-	public Matrix assign(final int... content) {
-		return assign(getTotalPiece(), content);
 	}
 
 	@Override
@@ -218,11 +200,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 			}
 			return this;
 		}
-	}
-
-	@Override
-	public Matrix assign(final long... content) {
-		return assign(getTotalPiece(), content);
 	}
 
 	@Override
@@ -298,11 +275,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix assign(final double... content) {
-		return assign(getTotalPiece(), content);
-	}
-
-	@Override
 	public Matrix assign(final Piece piece, final double... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -358,6 +330,12 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 	}
 
+	@Override
+	public Matrix assign(Piece piece, DataInput content, Type type) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public Matrix fill(final int value) {
 		return fill((float)value);
@@ -1821,20 +1799,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final ApplyBit callback) {
-		return apply(getTotalPiece(),callback);
-	}
-	
-	@Override
 	public Matrix apply(final Piece piece, final ApplyBit callback) {
 		throw new UnsupportedOperationException("Bit apply can't be used for non-bit matrices");
 	}
 	
-	@Override
-	public Matrix apply(final ApplyInt callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
 	@Override
 	public Matrix apply(final Piece piece, final ApplyInt callback) {
 		if (piece == null) {
@@ -1859,11 +1827,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 			result.completed = false;
 			return result;
 		}
-	}
-
-	@Override
-	public Matrix apply(final ApplyLong callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -1893,11 +1856,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final ApplyFloat callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyFloat callback) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -1921,11 +1879,6 @@ loop:		for(int y = 0; y < maxY; y++) {
 			result.completed = false;
 			return result;
 		}
-	}
-
-	@Override
-	public Matrix apply(final ApplyDouble callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -1955,18 +1908,8 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final ApplyFloat2 callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyFloat2 callback) {
 		throw new UnsupportedOperationException("Complex apply is not supported for real matrix");
-	}
-
-	@Override
-	public Matrix apply(final ApplyDouble2 callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -2210,4 +2153,5 @@ loop:		for(int y = 0; y < maxY; y++) {
 		result.completed = false;
 		return result;
 	}
+
 }

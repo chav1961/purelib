@@ -1,5 +1,11 @@
 package chav1961.purelib.matrix.interfaces;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.PrintStream;
+
 /**
  * <p>This interface describes matrices. All implementations of this interface must follow some conventions described below:</p>
  * <ul>
@@ -23,40 +29,42 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		/**
 		 * <p>Matrix content is bit (zeroes and ones). This type is used for "connection matrices" only</p>
 		 */
-		BIT(1, 1, "BL"),
+		BIT(1, 1, "BL", boolean.class),
 		/**
 		 * <p>Matrix content is real int</p> 
 		 */
-		REAL_INT(1, 4*8, "RI"),
+		REAL_INT(1, 4*8, "RI", int.class),
 		/**
 		 * <p>MAtrix content is real long</p>
 		 */
-		REAL_LONG(1, 8*8, "RL"),
+		REAL_LONG(1, 8*8, "RL", long.class),
 		/**
 		 * <p>Matrix content is real float</p>
 		 */
-		REAL_FLOAT(1, 4*8, "RF"),
+		REAL_FLOAT(1, 4*8, "RF", float.class),
 		/**
 		 * <p>Matrix content is complex float</p>
 		 */
-		COMPLEX_FLOAT(2, 4*8, "CF"),
+		COMPLEX_FLOAT(2, 4*8, "CF", float.class),
 		/**
 		 * <p>Matrix content is real double</p> 
 		 */
-		REAL_DOUBLE(1, 8*8, "RD"),
+		REAL_DOUBLE(1, 8*8, "RD", double.class),
 		/**
 		 * <p>Matrix content is complex double</p>
 		 */
-		COMPLEX_DOUBLE(2, 8*8, "CD");
+		COMPLEX_DOUBLE(2, 8*8, "CD", double.class);
 		
 		private final int		numberOfItems;
 		private final int		itemSize;
 		private final String	suffix;
+		private final Class<?>	contentClass;
 		
-		private Type(final int numberOfItems, final int itemSize, final String suffix) {
+		private Type(final int numberOfItems, final int itemSize, final String suffix, final Class<?> contentClass) {
 			this.numberOfItems = numberOfItems;
 			this.itemSize = itemSize;
 			this.suffix = suffix;
+			this.contentClass = contentClass;
 		}
 		
 		/**
@@ -71,8 +79,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		 * <p>Get item size in bits</p>
 		 * @return item size in bits
 		 */
-		public int getItemSize() {
+		public int getItemSizeInBits() {
 			return itemSize;
+		}
+
+		/**
+		 * <p>Get item size in bytes</p>
+		 * @return item size in bytes
+		 */
+		public int getItemSize() {
+			return itemSize >> 3;
 		}
 		
 		/**
@@ -81,6 +97,14 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		 */
 		public String getProgramSuffix() {
 			return suffix;
+		}
+		
+		/**
+		 * <p>Get matrix content class.</p>
+		 * @return matrix content class. Can't be null. Complex types returns types of it's real part, not whole type
+		 */
+		public Class<?> getContentClass() {
+			return contentClass; 
 		}
 	}
 	
@@ -171,33 +195,18 @@ public interface Matrix extends AutoCloseable, Cloneable {
 			else if (left < 0) {
 				throw new IllegalArgumentException("Negative left value ["+left+"]");
 			}
-			else if (height < 0) {
-				throw new IllegalArgumentException("Negative height value ["+height+"]");
+			else if (height <= 0) {
+				throw new IllegalArgumentException("Non-positive height value ["+height+"]");
 			}
-			else if (width < 0) {
-				throw new IllegalArgumentException("Negative width value ["+width+"]");
+			else if (width <= 0) {
+				throw new IllegalArgumentException("Non-positive width value ["+width+"]");
 			}
 			else {
 				return new Piece() {
-					@Override
-					public int getWidth() {
-						return width;
-					}
-					
-					@Override
-					public int getTop() {
-						return top;
-					}
-					
-					@Override
-					public int getLeft() {
-						return left;
-					}
-					
-					@Override
-					public int getHeight() {
-						return height;
-					}
+					@Override public int getWidth() {return width;}
+					@Override public int getTop() {return top;}
+					@Override public int getLeft() {return left;}
+					@Override public int getHeight() {return height;}
 					
 					@Override
 					public String toString() {
@@ -304,11 +313,9 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		 * <p>Apply changes for the given item</p>
 		 * @param row item row
 		 * @param col item column
-		 * @param real real part of item value
-		 * @param image image part of item value
-		 * @param result place to store changed result. Can't be null and will have at least 2 elements
+		 * @param values place with current values. You can store changed result in it. Can't be null and will have at least 2 elements
 		 */
-		void apply(int row, int col, float real, float image, float[] result);
+		void apply(int row, int col, float[] values);
 	}
 
 	/**
@@ -322,11 +329,9 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		 * <p>Apply changes for the given item</p>
 		 * @param row item row
 		 * @param col item column
-		 * @param real real part of item value
-		 * @param image image part of item value
-		 * @param result place to store changed result. Can't be null and will have at least 2 elements
+		 * @param values place with current values. You can store changed result in it. Can't be null and will have at least 2 elements
 		 */
-		void apply(int row, int col, double real, double image, double[] result);
+		void apply(int row, int col, double[] values);
 	}
 
 	/**
@@ -363,13 +368,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return true if matrix type, matrix size and matrix content are identical, false otherwise
 	 */
 	public boolean deepEquals(final Matrix another);
-	
-	/**
-	 * <p>Extract matrix content as integer array.</p>
-	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
-	 */
-	public int[] extractInts();
-	
+
 	/**
 	 * <p>Extract matrix content as integer array.</p>
 	 * @param piece piece to extract content from. Can't be null
@@ -378,10 +377,38 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public int[] extractInts(Piece piece);
 	
 	/**
-	 * <p>Extract matrix content as long array.</p>
+	 * <p>Extract matrix content as integer array.</p>
 	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
-	public long[] extractLongs();
+	default public int[] extractInts() {
+		return extractInts(totalPiece());
+	}
+
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param piece piece to extract content from. Can't be null
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractInts(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else {
+			for(int value : extractInts(piece)) {
+				dataOutput.writeInt(value);
+			}
+		}
+	}
+
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractInts(final DataOutput dataOutput) throws IOException {
+		extractInts(totalPiece(), dataOutput);
+	}
 	
 	/**
 	 * <p>Extract matrix content as long array.</p>
@@ -389,13 +416,41 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
 	public long[] extractLongs(Piece piece);
-
+	
 	/**
-	 * <p>Extract matrix content as float array.</p>
+	 * <p>Extract matrix content as long array.</p>
 	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
-	public float[] extractFloats();
-	
+	default public long[] extractLongs() {
+		return extractLongs(totalPiece());
+	}
+
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param piece piece to extract content from. Can't be null
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractLongs(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else {
+			for(long value : extractLongs(piece)) {
+				dataOutput.writeLong(value);
+			}
+		}
+	}
+
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractLongs(final DataOutput dataOutput) throws IOException {
+		extractLongs(totalPiece(), dataOutput);
+	}
+
 	/**
 	 * <p>Extract matrix content as float array.</p>
 	 * @param piece piece to extract content from. Can't be null
@@ -404,11 +459,39 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public float[] extractFloats(Piece piece);
 	
 	/**
-	 * <p>Extract matrix content as double array.</p>
+	 * <p>Extract matrix content as float array.</p>
 	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
-	public double[] extractDoubles();
+	default public float[] extractFloats() {
+		return extractFloats(totalPiece());
+	}
+
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractFloats(final DataOutput dataOutput) throws IOException {
+		extractFloats(totalPiece(), dataOutput);
+	}
 	
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param piece piece to extract content from. Can't be null
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractFloats(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else {
+			for(float value : extractFloats(piece)) {
+				dataOutput.writeFloat(value);
+			}
+		}
+	}
+
 	/**
 	 * <p>Extract matrix content as double array.</p>
 	 * @param piece piece to extract content from. Can't be null
@@ -417,13 +500,38 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public double[] extractDoubles(Piece piece);
 
 	/**
-	 * <p>Assign integer content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
-	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
-	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
-	 * @param content content to fill. Can't be null
-	 * @return this matrix. Can't be null.
+	 * <p>Extract matrix content as double array.</p>
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
-	public Matrix assign(int... content);
+	default public double[] extractDoubles() {
+		return extractDoubles(totalPiece());
+	}
+
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractDoubles(final DataOutput dataOutput) throws IOException {
+		extractDoubles(totalPiece(), dataOutput);
+	}
+	
+	/**
+	 * <p>Extract matrix content into output stream</p> 
+	 * @param piece piece to extract content from. Can't be null
+	 * @param dataOutput stream to extract content. Can't be null
+	 * @throws IOException in any I/O errors
+	 */
+	default public void extractDoubles(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else {
+			for(double value : extractDoubles(piece)) {
+				dataOutput.writeDouble(value);
+			}
+		}
+	}
 	
 	/**
 	 * <p>Assign integer content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
@@ -434,16 +542,18 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix assign(Piece piece, int... content);
-	
+
 	/**
-	 * <p>Assign long content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * <p>Assign integer content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
 	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
 	 * @param content content to fill. Can't be null
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix assign(long... content);
-
+	default public Matrix assign(int... content) {
+		return assign(totalPiece(), content);
+	}
+	
 	/**
 	 * <p>Assign long content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
@@ -453,15 +563,17 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix assign(Piece piece, long... content);
-	
+
 	/**
-	 * <p>Assign float content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * <p>Assign long content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
 	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
 	 * @param content content to fill. Can't be null
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix assign(float... content);
+	default public Matrix assign(long... content) {
+		return assign(totalPiece(), content);
+	}
 	
 	/**
 	 * <p>Assign float content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
@@ -474,13 +586,15 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix assign(Piece piece, float... content);
 
 	/**
-	 * <p>Assign double content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * <p>Assign float content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
 	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
 	 * @param content content to fill. Can't be null
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix assign(double... content);
+	default public Matrix assign(float... content) {
+		return assign(totalPiece(), content);
+	}
 	
 	/**
 	 * <p>Assign double content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
@@ -493,13 +607,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix assign(Piece piece, double... content);
 	
 	/**
-	 * <p>Assign matrix content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
-	 * values will be truncated without any notice. Conversion will be executed if required</p> 
-	 * @param content matrix to fill content from. Can't be null
+	 * <p>Assign double content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
+	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
+	 * @param content content to fill. Can't be null
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix assign(Matrix content);
-
+	default public Matrix assign(double... content) {
+		return assign(totalPiece(), content);
+	}
+	
 	/**
 	 * <p>Assign matrix content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required</p> 
@@ -508,15 +625,38 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix assign(Piece piece, Matrix content);
-	
+
 	/**
-	 * <p>Fill matrix content with integer value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
-	 * Complex matrices treats this value as complex number with zero image part</p>
-	 * @param value value to fill
+	 * <p>Assign matrix content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * values will be truncated without any notice. Conversion will be executed if required</p> 
+	 * @param content matrix to fill content from. Can't be null
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix fill(int value);
+	default public Matrix assign(Matrix content) {
+		return assign(totalPiece(), content);
+	}
 	
+	/**
+	 * <p>Assign any content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
+	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
+	 * @param content content to fill. Can't be null
+	 * @param type input content type. Can't be null
+	 * @return this matrix. Can't be null.
+	 */
+	default Matrix assign(final DataInput content, final Type type) throws IOException {
+		return assign(totalPiece(), content, type);
+	}	
+	
+	/**
+	 * <p>Assign any content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
+	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
+	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
+	 * @param content content to fill. Can't be null
+	 * @return this matrix. Can't be null.
+	 */
+	Matrix assign(final Piece piece, final DataInput content, final Type type) throws IOException; 
+
 	/**
 	 * <p>Fill matrix content with integer value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
 	 * Complex matrices treats this value as complex number with zero image part</p>
@@ -525,14 +665,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix fill(Piece piece, int value);
-	
+
 	/**
-	 * <p>Fill matrix content with long value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
+	 * <p>Fill matrix content with integer value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
 	 * Complex matrices treats this value as complex number with zero image part</p>
 	 * @param value value to fill
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix fill(long value);
+	default public Matrix fill(int value) {
+		return fill(totalPiece(), value);
+	}
 	
 	/**
 	 * <p>Fill matrix content with long value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
@@ -542,15 +684,17 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix fill(Piece piece, long value);
-	
+
 	/**
-	 * <p>Fill matrix content with float value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
+	 * <p>Fill matrix content with long value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
 	 * Complex matrices treats this value as complex number with zero image part</p>
 	 * @param value value to fill
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix fill(float value);
-
+	default public Matrix fill(long value) {
+		return fill(totalPiece(), value);
+	}
+	
 	/**
 	 * <p>Fill matrix content with float value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
 	 * Complex matrices treats this value as complex number with zero image part</p>
@@ -559,14 +703,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix fill(Piece piece, float value);
-	
+
 	/**
-	 * <p>Fill matrix content with complex float value typed. Conversion will be executed if required. Both bit and real matrices don't support this method</p>
-	 * @param real real value to fill
-	 * @param image image value to fill
+	 * <p>Fill matrix content with float value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
+	 * Complex matrices treats this value as complex number with zero image part</p>
+	 * @param value value to fill
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix fill(float real, float image);
+	default public Matrix fill(float value) {
+		return fill(totalPiece(), value);
+	}
 	
 	/**
 	 * <p>Fill matrix content with complex float value typed. Conversion will be executed if required. Both bit and real matrices don't support this method</p>
@@ -576,14 +722,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix fill(Piece piece, float real, float image);
-	
+
 	/**
-	 * <p>Fill matrix content with double value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
-	 * Complex matrices treats this value as complex number with zero image part</p>
-	 * @param value value to fill
+	 * <p>Fill matrix content with complex float value typed. Conversion will be executed if required. Both bit and real matrices don't support this method</p>
+	 * @param real real value to fill
+	 * @param image image value to fill
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix fill(double value);
+	default public Matrix fill(float real, float image) {
+		return fill(totalPiece(), real, image);
+	}
 	
 	/**
 	 * <p>Fill matrix content with double value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
@@ -593,14 +741,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix fill(Piece piece, double value);
-	
+
 	/**
-	 * <p>Fill matrix content with complex double value typed. Conversion will be executed if required. Both bit and real matrices don't support this method</p>
-	 * @param real real value to fill
-	 * @param image image value to fill
+	 * <p>Fill matrix content with double value typed. Conversion will be executed if required. Bit matrix treats zero values as o, non-zero values as 1. 
+	 * Complex matrices treats this value as complex number with zero image part</p>
+	 * @param value value to fill
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix fill(double real, double image);
+	default public Matrix fill(double value) {
+		return fill(totalPiece(), value);
+	}
 	
 	/**
 	 * <p>Fill matrix content with complex double value typed. Conversion will be executed if required. Both bit and real matrices don't support this method</p>
@@ -610,6 +760,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix. Can't be null.
 	 */
 	public Matrix fill(Piece piece, double real, double image);
+
+	/**
+	 * <p>Fill matrix content with complex double value typed. Conversion will be executed if required. Both bit and real matrices don't support this method</p>
+	 * @param real real value to fill
+	 * @param image image value to fill
+	 * @return this matrix. Can't be null.
+	 */
+	default public Matrix fill(double real, double image) {
+		return fill(totalPiece(), real, image);
+	}
 	
 	/**
 	 * <p>Cast matrix to type required. Complex matrices can be casted when all the image parts of complex numbers inside them are zeroes only. Bit and real matrices 
@@ -1230,29 +1390,24 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Number[] track2();
 
 	/**
-	 * <p>Apply changes for bit matrix content.</p>
-	 * @param callback callback to process each matrix element. Can't be null
-	 * @return new matrix with data processed. Can't be null
-	 */
-	public Matrix apply(ApplyBit callback);
-	
-	/**
-	 * <p>Apply changes for bit matrix content.</p>
+	 * <p>Apply changes for bit matrix content. Can be used with bit matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
 	public Matrix apply(Piece piece, ApplyBit callback);
-	
+
 	/**
-	 * <p>Apply changes for integer matrix content.</p>
+	 * <p>Apply changes for bit matrix content. Can be used with bit matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(ApplyInt callback);
+	default public Matrix apply(ApplyBit callback) {
+		return apply(totalPiece(), callback);
+	}
 	
 	/**
-	 * <p>Apply changes for integer matrix content.</p>
+	 * <p>Apply changes for integer matrix content. Can be used with integer matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
@@ -1260,14 +1415,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix apply(Piece piece, ApplyInt callback);
 
 	/**
-	 * <p>Apply changes for long matrix content.</p>
+	 * <p>Apply changes for integer matrix content. Can be used with integer matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(ApplyLong callback);
+	default public Matrix apply(ApplyInt callback) {
+		return apply(totalPiece(), callback);
+	}
 	
 	/**
-	 * <p>Apply changes for long matrix content.</p>
+	 * <p>Apply changes for long matrix content. Can be used with long matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
@@ -1275,29 +1432,33 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix apply(Piece piece, ApplyLong callback);
 	
 	/**
-	 * <p>Apply changes for float real matrix content.</p>
+	 * <p>Apply changes for long matrix content. Can be used with long matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(ApplyFloat callback);
+	default public Matrix apply(ApplyLong callback) {
+		return apply(totalPiece(), callback);
+	}
 	
 	/**
-	 * <p>Apply changes for float real matrix content.</p>
+	 * <p>Apply changes for float real matrix content. Can be used with float real matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
 	public Matrix apply(Piece piece, ApplyFloat callback);
-	
+
 	/**
-	 * <p>Apply changes for double real matrix content.</p>
+	 * <p>Apply changes for float real matrix content. Can be used with float real matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(ApplyDouble callback);
-
+	default public Matrix apply(ApplyFloat callback) {
+		return apply(totalPiece(), callback);
+	}
+	
 	/**
-	 * <p>Apply changes for double real matrix content.</p>
+	 * <p>Apply changes for double real matrix content. Can be used with double real matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
@@ -1305,14 +1466,16 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix apply(Piece piece, ApplyDouble callback);
 
 	/**
-	 * <p>Apply changes for float complex matrix content.</p>
+	 * <p>Apply changes for double real matrix content. Can be used with double real matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(ApplyFloat2 callback);
+	default public Matrix apply(ApplyDouble callback) {
+		return apply(totalPiece(), callback);
+	}
 
 	/**
-	 * <p>Apply changes for float complex matrix content.</p>
+	 * <p>Apply changes for float complex matrix content. Can be used with float complex matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
@@ -1320,29 +1483,65 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix apply(Piece piece, ApplyFloat2 callback);
 	
 	/**
-	 * <p>Apply changes for double complex matrix content.</p>
+	 * <p>Apply changes for float complex matrix content. Can be used with float complex matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(ApplyDouble2 callback);
+	default public Matrix apply(ApplyFloat2 callback) {
+		return apply(totalPiece(), callback);
+	}
 
 	/**
-	 * <p>Apply changes for double complex matrix content.</p>
+	 * <p>Apply changes for double complex matrix content. Can be used with double complex matrices only</p>
 	 * @param piece matrix piece to make changes for. Can't be null
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
 	public Matrix apply(Piece piece, ApplyDouble2 callback);
+
+	/**
+	 * <p>Apply changes for double complex matrix content. Can be used with double complex matrices only</p>
+	 * @param callback callback to process each matrix element. Can't be null
+	 * @return new matrix with data processed. Can't be null
+	 */
+	default public Matrix apply(ApplyDouble2 callback) {
+		return apply(totalPiece(), callback);
+	}
 	
 	/**
 	 * <p>Convert matrix content to human-readable format</p>
 	 * @return
 	 */
 	public String toHumanReadableString();
+
+	/**
+	 * <p>Convert matrix content to human-readable format</p>
+	 * @param ps stream to print content to. Can't be null 
+	 */
+	default public void toHumanReadableString(final PrintStream ps) {
+		if (ps == null) {
+			throw new NullPointerException("Print stream can't be null");
+		}
+		else {
+			ps.println(toHumanReadableString());
+		}
+	}
 	
 	/**
 	 * <p>Completes all internal operations (for example, multi-thread calculations).</p> 
 	 * @return this matrix
 	 */
 	public Matrix done();
+	
+	/**
+	 * <p>Test all asynchronous operations completed</p>
+	 * @return true if completed, false otherwise
+	 */
+	default public boolean areAllAsyncCompleted() {
+		return true;
+	}
+
+	private Piece totalPiece() {
+		return Piece.of(0, 0, numberOfRows(), numberOfColumns());
+	}
 }

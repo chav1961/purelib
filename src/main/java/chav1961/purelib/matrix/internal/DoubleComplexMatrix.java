@@ -1,5 +1,7 @@
 package chav1961.purelib.matrix.internal;
 
+import java.io.DataInput;
+import java.io.IOException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.Utils;
@@ -7,6 +9,7 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.Matrix.ApplyBit;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
+import chav1961.purelib.matrix.interfaces.Matrix.Type;
 
 public class DoubleComplexMatrix implements Matrix {
 	private final int		rows;
@@ -73,11 +76,6 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public int[] extractInts() {
-		return extractInts(getTotalPiece());
-	}
-
-	@Override
 	public int[] extractInts(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -102,11 +100,6 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public long[] extractLongs() {
-		return extractLongs(getTotalPiece());
-	}
-
-	@Override
 	public long[] extractLongs(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -128,11 +121,6 @@ public class DoubleComplexMatrix implements Matrix {
 			}
 			return result;
 		}
-	}
-
-	@Override
-	public float[] extractFloats() {
-		return extractFloats(getTotalPiece());
 	}
 
 	@Override
@@ -190,11 +178,6 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix assign(final int... content) {
-		return assign(getTotalPiece(), content);
-	}
-
-	@Override
 	public Matrix assign(final Piece piece, final int... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -221,11 +204,6 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix assign(final long... content) {
-		return assign(getTotalPiece(), content);
-	}
-
-	@Override
 	public Matrix assign(final Piece piece, final long... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -249,11 +227,6 @@ public class DoubleComplexMatrix implements Matrix {
 			}
 			return this;
 		}
-	}
-
-	@Override
-	public Matrix assign(final float... content) {
-		return assign(getTotalPiece(), content);
 	}
 
 	@Override
@@ -347,6 +320,12 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
+	public Matrix assign(Piece piece, DataInput content, Type type) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}	
+	
+	@Override
 	public Matrix fill(final int value) {
 		return fill((double)value);
 	}
@@ -377,28 +356,13 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix fill(final float real, final float image) {
-		return fill(getTotalPiece(), real, image);
-	}
-
-	@Override
 	public Matrix fill(final Piece piece, final float real, final float image) {
 		return fill(piece, (double)real, (double)image);
 	}
 
 	@Override
-	public Matrix fill(final double value) {
-		return fill(getTotalPiece(), value, 0);
-	}
-
-	@Override
 	public Matrix fill(final Piece piece, final double value) {
 		return fill(piece, value, 0);
-	}
-
-	@Override
-	public Matrix fill(final double real, final double image) {
-		return fill(getTotalPiece(), (float)real, (float)image);
 	}
 
 	@Override
@@ -1759,28 +1723,13 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix apply(final ApplyBit callback) {
-		return apply(getTotalPiece(),callback);
-	}
-	
-	@Override
 	public Matrix apply(final Piece piece, final ApplyBit callback) {
 		throw new UnsupportedOperationException("Bit apply can't be used for non-bit matrices");
 	}
 	
 	@Override
-	public Matrix apply(final ApplyInt callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyInt callback) {
 		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final ApplyLong callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -1789,18 +1738,8 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix apply(final ApplyFloat callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyFloat callback) {
 		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final ApplyDouble callback) {
-		return apply(getTotalPiece(),callback);
 	}
 
 	@Override
@@ -1809,42 +1748,8 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix apply(final ApplyFloat2 callback) {
-		return apply(getTotalPiece(),callback);
-	}
-
-	@Override
 	public Matrix apply(final Piece piece, final ApplyFloat2 callback) {
-		if (piece == null) {
-			throw new NullPointerException("Piece can't be null");
-		}
-		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
-		}
-		else {
-			final DoubleComplexMatrix	result = new DoubleComplexMatrix(numberOfRows(), numberOfColumns()); 
-			final double[]	source = this.content;
-			final double[]	target = result.content;
-			final float[]	temp = new float[2];
-			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
-			
-			ensureCompleted();
-			for(int y = 0; y < maxY; y++) {
-				for(int x = 0; x < maxX; x++) {
-					callback.apply(y0 + y, x0 + x, (float)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))], (float)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1], temp);
-					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = temp[0];
-					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = temp[1];
-				}
-			}
-			result.completed = false;
-			return result;
-		}
-	}
-
-	@Override
-	public Matrix apply(final ApplyDouble2 callback) {
-		return apply(getTotalPiece(),callback);
+		throw new UnsupportedOperationException("Complex float apply is not supported for double complex matrix");
 	}
 
 	@Override
@@ -1866,7 +1771,9 @@ public class DoubleComplexMatrix implements Matrix {
 			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					callback.apply(y0 + y, x0 + x, source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))], source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1], temp);
+					temp[0] = source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
+					temp[1] = source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					callback.apply(y0 + y, x0 + x, temp);
 					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = (double)temp[0];
 					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = (double)temp[1];
 				}
