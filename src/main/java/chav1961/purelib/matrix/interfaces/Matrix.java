@@ -385,6 +385,25 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	}
 
 	/**
+	 * <p>Extract matrix content as integer array.</p>
+	 * @param piece piece to extract content from. Can't be null
+	 * @param target array to store content to. Can't be null or empty.
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public int[] extractInts(Piece piece, int[] target) {
+		return extractInts(piece);
+	}
+	
+	/**
+	 * <p>Extract matrix content as integer array.</p>
+	 * @param target array to store content to. Can't be null or empty.
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public int[] extractInts(int[] target) {
+		return extractInts(totalPiece());
+	}
+
+	/**
 	 * <p>Extract matrix content into output stream</p> 
 	 * @param piece piece to extract content from. Can't be null
 	 * @param dataOutput stream to extract content. Can't be null
@@ -426,6 +445,25 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	}
 
 	/**
+	 * <p>Extract matrix content as long array.</p>
+	 * @param piece piece to extract content from. Can't be null
+	 * @param target array to store content to. Can't be null or empty.
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public long[] extractLongs(Piece piece, long[] target) {
+		return extractLongs(piece);
+	}
+	
+	/**
+	 * <p>Extract matrix content as long array.</p>
+	 * @param target array to store content to. Can't be null or empty.
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public long[] extractLongs(long[] target) {
+		return extractLongs(totalPiece());
+	}
+	
+	/**
 	 * <p>Extract matrix content into output stream</p> 
 	 * @param piece piece to extract content from. Can't be null
 	 * @param dataOutput stream to extract content. Can't be null
@@ -460,9 +498,28 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	
 	/**
 	 * <p>Extract matrix content as float array.</p>
+	 * @param target array to store content to. Can't be null or empty.
 	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
 	default public float[] extractFloats() {
+		return extractFloats(totalPiece());
+	}
+
+	/**
+	 * <p>Extract matrix content as float array.</p>
+	 * @param piece piece to extract content from. Can't be null
+	 * @param target array to store content to. Can't be null or empty.
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public float[] extractFloats(Piece piece, float[] target) {
+		return extractFloats(piece);
+	}
+	
+	/**
+	 * <p>Extract matrix content as float array.</p>
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public float[] extractFloats(float[] target) {
 		return extractFloats(totalPiece());
 	}
 
@@ -501,9 +558,28 @@ public interface Matrix extends AutoCloseable, Cloneable {
 
 	/**
 	 * <p>Extract matrix content as double array.</p>
+	 * @param target array to store content to. Can't be null or empty.
 	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
 	 */
 	default public double[] extractDoubles() {
+		return extractDoubles(totalPiece());
+	}
+
+	/**
+	 * <p>Extract matrix content as double array.</p>
+	 * @param piece piece to extract content from. Can't be null
+	 * @param target array to store content to. Can't be null or empty.
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public double[] extractDoubles(Piece piece, double[] target) {
+		return extractDoubles(piece);
+	}
+
+	/**
+	 * <p>Extract matrix content as double array.</p>
+	 * @return matrix content Can't be null or empty. Complex matrices will return 2 sequential elements for every source item. Value conversion will be executed if required. 
+	 */
+	default public double[] extractDoubles(double[] target) {
 		return extractDoubles(totalPiece());
 	}
 
