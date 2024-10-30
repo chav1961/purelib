@@ -1,39 +1,25 @@
 package chav1961.purelib.matrix.internal;
 
 import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Arrays;
 
-import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.matrix.AbstractMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
-import chav1961.purelib.matrix.interfaces.Matrix.ApplyBit;
-import chav1961.purelib.matrix.interfaces.Matrix.Piece;
-import chav1961.purelib.matrix.interfaces.Matrix.Type;
 
-public class DoubleComplexMatrix implements Matrix {
-	private final int		rows;
-	private final int		cols;
+public class DoubleComplexMatrix extends AbstractMatrix {
 	private final double[]	content;
 	private boolean			completed = true;
 
 	public DoubleComplexMatrix(final int rows, final int columns) {
-		if (rows <= 0) {
-			throw new IllegalArgumentException("Rows ["+rows+"] must be greater than 0");
-		}
-		else if (columns <= 0) {
-			throw new IllegalArgumentException("Columns ["+columns+"] must be greater than 0");
-		}
-		else {
-			this.rows = rows;
-			this.cols = columns;
-			this.content = new double[2 * rows * columns];
-		}
+		super(Type.COMPLEX_DOUBLE, rows, columns);
+		this.content = new double[2 * rows * columns];
 	}
 	
 	@Override
 	public Object clone() throws CloneNotSupportedException {
-		final DoubleComplexMatrix	result = new DoubleComplexMatrix(rows, cols);
+		final DoubleComplexMatrix	result = new DoubleComplexMatrix(numberOfRows(), numberOfColumns());
 		
 		System.arraycopy(this.content, 0, result.content, 0, result.content.length);
 		return result;
@@ -41,21 +27,6 @@ public class DoubleComplexMatrix implements Matrix {
 	
 	@Override
 	public void close() throws RuntimeException {
-	}
-
-	@Override
-	public Type getType() {
-		return Type.COMPLEX_DOUBLE;
-	}
-
-	@Override
-	public int numberOfRows() {
-		return rows;
-	}
-
-	@Override
-	public int numberOfColumns() {
-		return cols;
 	}
 
 	@Override
@@ -100,6 +71,12 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
+	public void extractInts(Piece piece, DataOutput dataOutput) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public long[] extractLongs(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -124,6 +101,12 @@ public class DoubleComplexMatrix implements Matrix {
 	}
 
 	@Override
+	public void extractLongs(Piece piece, DataOutput dataOutput) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
 	public float[] extractFloats(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
@@ -145,6 +128,12 @@ public class DoubleComplexMatrix implements Matrix {
 			}
 			return result;
 		}
+	}
+
+	@Override
+	public void extractFloats(Piece piece, DataOutput dataOutput) throws IOException {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
@@ -177,6 +166,14 @@ public class DoubleComplexMatrix implements Matrix {
 		}
 	}
 
+	@Override
+	public void extractDoubles(Piece piece, DataOutput dataOutput) throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
+	
 	@Override
 	public Matrix assign(final Piece piece, final int... content) {
 		if (piece == null) {
@@ -1720,36 +1717,6 @@ public class DoubleComplexMatrix implements Matrix {
 	public Matrix done() {
 		completed = true;
 		return this;
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyBit callback) {
-		throw new UnsupportedOperationException("Bit apply can't be used for non-bit matrices");
-	}
-	
-	@Override
-	public Matrix apply(final Piece piece, final ApplyInt callback) {
-		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyLong callback) {
-		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyFloat callback) {
-		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyDouble callback) {
-		throw new UnsupportedOperationException("Real apply is not supported for complex matrix");
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyFloat2 callback) {
-		throw new UnsupportedOperationException("Complex float apply is not supported for double complex matrix");
 	}
 
 	@Override

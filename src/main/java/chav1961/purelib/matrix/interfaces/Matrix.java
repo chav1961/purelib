@@ -29,40 +29,42 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		/**
 		 * <p>Matrix content is bit (zeroes and ones). This type is used for "connection matrices" only</p>
 		 */
-		BIT(1, 1, "BL", boolean.class),
+		BIT(1, 1, 1, "BL", boolean.class),
 		/**
 		 * <p>Matrix content is real int</p> 
 		 */
-		REAL_INT(1, 4*8, "RI", int.class),
+		REAL_INT(1, 4*8, 10, "RI", int.class),
 		/**
 		 * <p>MAtrix content is real long</p>
 		 */
-		REAL_LONG(1, 8*8, "RL", long.class),
+		REAL_LONG(1, 8*8, 20, "RL", long.class),
 		/**
 		 * <p>Matrix content is real float</p>
 		 */
-		REAL_FLOAT(1, 4*8, "RF", float.class),
+		REAL_FLOAT(1, 4*8, 10, "RF", float.class),
 		/**
 		 * <p>Matrix content is complex float</p>
 		 */
-		COMPLEX_FLOAT(2, 4*8, "CF", float.class),
+		COMPLEX_FLOAT(2, 4*8, 10, "CF", float.class),
 		/**
 		 * <p>Matrix content is real double</p> 
 		 */
-		REAL_DOUBLE(1, 8*8, "RD", double.class),
+		REAL_DOUBLE(1, 8*8, 20, "RD", double.class),
 		/**
 		 * <p>Matrix content is complex double</p>
 		 */
-		COMPLEX_DOUBLE(2, 8*8, "CD", double.class);
+		COMPLEX_DOUBLE(2, 8*8, 20, "CD", double.class);
 		
 		private final int		numberOfItems;
 		private final int		itemSize;
+		private final int		numberOfSigns;
 		private final String	suffix;
 		private final Class<?>	contentClass;
 		
-		private Type(final int numberOfItems, final int itemSize, final String suffix, final Class<?> contentClass) {
+		private Type(final int numberOfItems, final int itemSize, final int numberOfSigns, final String suffix, final Class<?> contentClass) {
 			this.numberOfItems = numberOfItems;
 			this.itemSize = itemSize;
+			this.numberOfSigns = numberOfSigns;
 			this.suffix = suffix;
 			this.contentClass = contentClass;
 		}
@@ -89,6 +91,14 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		 */
 		public int getItemSize() {
 			return itemSize >> 3;
+		}
+		
+		/**
+		 * <p>Get number of signs in the value</p>
+		 * @return number on signs in the value
+		 */
+		public int getNumberOfSigns() {
+			return numberOfSigns;
 		}
 		
 		/**
@@ -409,16 +419,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @param dataOutput stream to extract content. Can't be null
 	 * @throws IOException in any I/O errors
 	 */
-	default public void extractInts(final Piece piece, final DataOutput dataOutput) throws IOException {
-		if (dataOutput == null) {
-			throw new NullPointerException("Data output can't be null");
-		}
-		else {
-			for(int value : extractInts(piece)) {
-				dataOutput.writeInt(value);
-			}
-		}
-	}
+	public void extractInts(final Piece piece, final DataOutput dataOutput) throws IOException;
 
 	/**
 	 * <p>Extract matrix content into output stream</p> 
@@ -469,16 +470,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @param dataOutput stream to extract content. Can't be null
 	 * @throws IOException in any I/O errors
 	 */
-	default public void extractLongs(final Piece piece, final DataOutput dataOutput) throws IOException {
-		if (dataOutput == null) {
-			throw new NullPointerException("Data output can't be null");
-		}
-		else {
-			for(long value : extractLongs(piece)) {
-				dataOutput.writeLong(value);
-			}
-		}
-	}
+	public void extractLongs(final Piece piece, final DataOutput dataOutput) throws IOException;
 
 	/**
 	 * <p>Extract matrix content into output stream</p> 
@@ -539,16 +531,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @param dataOutput stream to extract content. Can't be null
 	 * @throws IOException in any I/O errors
 	 */
-	default public void extractFloats(final Piece piece, final DataOutput dataOutput) throws IOException {
-		if (dataOutput == null) {
-			throw new NullPointerException("Data output can't be null");
-		}
-		else {
-			for(float value : extractFloats(piece)) {
-				dataOutput.writeFloat(value);
-			}
-		}
-	}
+	public void extractFloats(final Piece piece, final DataOutput dataOutput) throws IOException;
 
 	/**
 	 * <p>Extract matrix content as double array.</p>
@@ -600,16 +583,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @param dataOutput stream to extract content. Can't be null
 	 * @throws IOException in any I/O errors
 	 */
-	default public void extractDoubles(final Piece piece, final DataOutput dataOutput) throws IOException {
-		if (dataOutput == null) {
-			throw new NullPointerException("Data output can't be null");
-		}
-		else {
-			for(double value : extractDoubles(piece)) {
-				dataOutput.writeDouble(value);
-			}
-		}
-	}
+	public void extractDoubles(final Piece piece, final DataOutput dataOutput) throws IOException;
 	
 	/**
 	 * <p>Assign integer content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
