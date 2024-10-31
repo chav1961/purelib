@@ -8,7 +8,8 @@ import chav1961.purelib.streams.DataOutputAdapter;
 public abstract class AbstractMatrix implements Matrix {
 	private final Type	type; 
 	private final int	rows; 
-	private final int	cols; 
+	private final int	cols;
+	private boolean		transactionMode = false;
 
 	protected AbstractMatrix(final Type type, final int rows, final int cols) {
 		if (type == null) {
@@ -73,15 +74,26 @@ public abstract class AbstractMatrix implements Matrix {
 	}
 
 	@Override
-	public Matrix apply(final Piece piece, final ApplyFloat2 callback) {
+	public Matrix apply2(final Piece piece, final ApplyFloat2 callback) {
 		throw new UnsupportedOperationException("This method is not applicable for matrix type ["+getType()+"]");
 	}
 
 	@Override
-	public Matrix apply(final Piece piece, final ApplyDouble2 callback) {
+	public Matrix apply2(final Piece piece, final ApplyDouble2 callback) {
 		throw new UnsupportedOperationException("This method is not applicable for matrix type ["+getType()+"]");
 	}
 
+	@Override
+	public Matrix done() {
+		completeTransaction();
+		return this;
+	}
+
+	@Override
+	public boolean areAllAsyncCompleted() {
+		return !transactionMode;
+	}
+	
 	@Override
 	public String toHumanReadableString() {
 		final StringBuilder	sb = new StringBuilder();
@@ -197,6 +209,56 @@ public abstract class AbstractMatrix implements Matrix {
 
 	protected Piece totalPiece() {
 		return Piece.of(0, 0, rows, cols);
+	}
+
+	protected boolean isOverlaps(final Piece piece) {
+		if (piece.getLeft() >= numberOfColumns()) {
+			return true;
+		}
+		else if (piece.getTop() >= numberOfRows()) {
+			return true;
+		}
+		else if (piece.getLeft() + piece.getWidth() > numberOfColumns()) {
+			return true;
+		}
+		else if (piece.getTop() + piece.getHeight() > numberOfRows()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	
+	protected IllegalArgumentException overlapsError(final Piece piece) {
+		if (piece.getLeft() >= numberOfColumns()) {
+			return new IllegalArgumentException("Left piece location ["+piece.getLeft()+"] outside number of columns ["+numberOfColumns()+"]");
+		}
+		else if (piece.getTop() >= numberOfRows()) {
+			return new IllegalArgumentException("Top piece location ["+piece.getTop()+"] outside number of rows ["+numberOfRows()+"]");
+		}
+		else if (piece.getLeft() + piece.getWidth() > numberOfColumns()) {
+			return new IllegalArgumentException("Right piece location ["+(piece.getLeft()+piece.getWidth())+"] outside number of columns ["+numberOfColumns()+"]");
+		}
+		else if (piece.getTop() + piece.getHeight() > numberOfRows()) {
+			return new IllegalArgumentException("Bottom piece location ["+(piece.getTop()+piece.getHeight())+"] outside number of rows ["+numberOfRows()+"]");
+		}
+		else {
+			return null;
+		}
+	}
+	
+	protected void beginTransaction() {
+		transactionMode = true;
+	}
+
+	protected void completeTransaction() {
+		transactionMode = false;
+	}
+	
+	protected void ensureTransactionCompleted() {
+		if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Attempt to call this method until transaction completed. Call done() before.");
+		}
 	}
 	
 	protected String toString(final float real, final float image) {

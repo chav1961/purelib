@@ -1,38 +1,33 @@
 package chav1961.purelib.matrix.internal;
 
 import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
+import chav1961.purelib.matrix.AbstractMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.Matrix.AggregateDirection;
+import chav1961.purelib.matrix.interfaces.Matrix.AggregateType;
 import chav1961.purelib.matrix.interfaces.Matrix.ApplyBit;
+import chav1961.purelib.matrix.interfaces.Matrix.ApplyDouble;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
+import chav1961.purelib.matrix.interfaces.Matrix.Type;
 
-public class FloatRealMatrix implements Matrix {
-	private final int		rows;
-	private final int		cols;
+public class FloatRealMatrix extends AbstractMatrix {
 	private final float[]	content;
-	private boolean			completed = true;
 
 	public FloatRealMatrix(final int rows, final int columns) {
-		if (rows <= 0) {
-			throw new IllegalArgumentException("Rows ["+rows+"] must be greater than 0");
-		}
-		else if (columns <= 0) {
-			throw new IllegalArgumentException("Columns ["+columns+"] must be greater than 0");
-		}
-		else {
-			this.rows = rows;
-			this.cols = columns;
-			this.content = new float[rows * columns];
-		}
+		super(Type.REAL_FLOAT, rows, columns);
+		this.content = new float[rows * columns];
 	}
 	
 	@Override
 	public Object clone() throws CloneNotSupportedException {
-		final FloatRealMatrix	result = new FloatRealMatrix(rows, cols);
+		final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns());
 		
 		System.arraycopy(this.content, 0, result.content, 0, result.content.length);
 		return result;
@@ -40,21 +35,6 @@ public class FloatRealMatrix implements Matrix {
 	
 	@Override
 	public void close() throws RuntimeException {
-	}
-
-	@Override
-	public Type getType() {
-		return Type.REAL_FLOAT;
-	}
-
-	@Override
-	public int numberOfRows() {
-		return rows;
-	}
-
-	@Override
-	public int numberOfColumns() {
-		return cols;
 	}
 
 	@Override
@@ -68,8 +48,10 @@ public class FloatRealMatrix implements Matrix {
 		else if (another.getType() != this.getType() || this.numberOfRows() != another.numberOfRows() || this.numberOfColumns() != another.numberOfColumns()) {
 			return false;
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureCompleted();
 			return Arrays.equals(content, another.extractFloats());
 		}
 	}
@@ -79,21 +61,52 @@ public class FloatRealMatrix implements Matrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	source = this.content;
 			final int[]		result = new int[piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (int)source[(y0 + y)*numberOfColumns() + (x0 + x)];
+					result[where++] = (int)source[((y0 + y)*cols + (x0 + x))];
 				}
 			}
 			return result;
+		}
+	}
+
+	@Override
+	public void extractInts(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final float[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeInt((int)source[((y0 + y)*cols + (x0 + x))]);
+				}
+			}
 		}
 	}
 
@@ -102,50 +115,116 @@ public class FloatRealMatrix implements Matrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	source = this.content;
 			final long[]	result = new long[piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (long)source[(y0 + y)*numberOfColumns() + (x0 + x)];
+					result[where++] = (long)source[((y0 + y)*cols + (x0 + x))];
 				}
 			}
 			return result;
+		}
+	}
+
+	@Override
+	public void extractLongs(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final float[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeLong((long)source[((y0 + y)*cols + (x0 + x))]);
+				}
+			}
 		}
 	}
 
 	@Override
 	public float[] extractFloats() {
-		ensureCompleted();
-		return content;
+		if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			return content.clone();
+		}
 	}
-
+	
 	@Override
 	public float[] extractFloats(final Piece piece) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	source = this.content;
 			final float[]	result = new float[piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = source[(y0 + y)*numberOfColumns() + (x0 + x)];
+					result[where++] = (float) source[((y0 + y)*cols + (x0 + x))];
 				}
 			}
 			return result;
+		}
+	}
+
+	@Override
+	public void extractFloats(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final float[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeFloat((float) source[((y0 + y)*cols + (x0 + x))]);
+				}
+			}
 		}
 	}
 
@@ -154,18 +233,22 @@ public class FloatRealMatrix implements Matrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	source = this.content;
 			final double[]	result = new double[piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (double)source[(y0 + y)*numberOfColumns() + (x0 + x)];
+					result[where++] = (double)source[((y0 + y)*cols + (x0 + x))];
 				}
 			}
 			return result;
@@ -173,29 +256,52 @@ public class FloatRealMatrix implements Matrix {
 	}
 
 	@Override
+	public void extractDoubles(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final float[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeDouble((double)source[((y0 + y)*cols + (x0 + x))]);
+				}
+			}
+		}
+	}
+	
+	@Override
 	public Matrix assign(final Piece piece, final int... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
-loop:		for(int y = 0; y < maxY; y++) {
+			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					if (where >= content.length) {
-						break loop;
-					}
-					else {
-						result[(y0 + y)*numberOfColumns() + (x0 + x)] = (float)content[where++];
-					}
+					result[((y0 + y)*cols + (x0 + x))] = content[where++];
 				}
 			}
 			return this;
@@ -207,25 +313,24 @@ loop:		for(int y = 0; y < maxY; y++) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
-loop:		for(int y = 0; y < maxY; y++) {
+			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					if (where >= content.length) {
-						break loop;
-					}
-					else {
-						result[(y0 + y)*numberOfColumns() + (x0 + x)] = (float)content[where++];
-					}
+					result[((y0 + y)*cols + (x0 + x))] = content[where++];
 				}
 			}
 			return this;
@@ -237,37 +342,38 @@ loop:		for(int y = 0; y < maxY; y++) {
 		if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureCompleted();
 			System.arraycopy(content, 0, this.content, 0, Math.min(content.length, this.content.length));
 			return this;
 		}		
 	}
-
+	
 	@Override
 	public Matrix assign(final Piece piece, final float... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
-loop:		for(int y = 0; y < maxY; y++) {
+			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					if (where >= content.length) {
-						break loop;
-					}
-					else {
-						result[(y0 + y)*numberOfColumns() + (x0 + x)] = (float)content[where++];
-					}
+					result[((y0 + y)*cols + (x0 + x))] = content[where++];
 				}
 			}
 			return this;
@@ -279,25 +385,24 @@ loop:		for(int y = 0; y < maxY; y++) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
-loop:		for(int y = 0; y < maxY; y++) {
+			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					if (where >= content.length) {
-						break loop;
-					}
-					else {
-						result[(y0 + y)*numberOfColumns() + (x0 + x)] = (float)content[where++];
-					}
+					result[((y0 + y)*cols + (x0 + x))] = (float)content[where++];
 				}
 			}
 			return this;
@@ -305,22 +410,12 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix assign(final Matrix content) {
-		if (content == null) {
-			throw new NullPointerException("Content matrix can't be null");
-		}
-		else if (content.getType() == this.getType()) {
-			return assign(content.extractFloats());
-		}
-		else {
-			return assign(getTotalPiece(), content);
-		}
-	}
-
-	@Override
 	public Matrix assign(final Piece piece, final Matrix content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
 		}
 		else if (content == null) {
 			throw new NullPointerException("Content matrix can't be null");
@@ -331,24 +426,61 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix assign(Piece piece, DataInput content, Type type) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public Matrix assign(final Piece piece, final DataInput content, final Type type) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content can't be null");
+		}
+		else if (type == null) {
+			throw new NullPointerException("Type can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final float[]	result = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					try {
+						switch (type) {
+							case BIT			:
+								break;
+							case COMPLEX_DOUBLE	:
+							case REAL_DOUBLE	:
+								result[((y0 + y)*cols + (x0 + x))] = (float)content.readDouble();
+								break;
+							case COMPLEX_FLOAT	:
+							case REAL_FLOAT		:
+								result[((y0 + y)*cols + (x0 + x))] = content.readFloat();
+								break;
+							case REAL_INT		:
+								result[((y0 + y)*cols + (x0 + x))] = content.readInt();
+								break;
+							case REAL_LONG		:
+								result[((y0 + y)*cols + (x0 + x))] = content.readLong();
+								break;
+							default:
+								break;
+						}
+					} catch (EOFException exc) {
+					}
+				}
+			}
+			return this;
+		}
+	}	
 	
-	@Override
-	public Matrix fill(final int value) {
-		return fill((float)value);
-	}
-
 	@Override
 	public Matrix fill(final Piece piece, final int value) {
 		return fill(piece, (float)value);
-	}
-
-	@Override
-	public Matrix fill(final long value) {
-		return fill((float)value);
 	}
 
 	@Override
@@ -357,26 +489,24 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix fill(final float value) {
-		Utils.fillArray(content, value);
-		return this;
-	}
-
-	@Override
 	public Matrix fill(final Piece piece, final float value) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final float[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), col = numberOfColumns();
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[(y0 + y)*numberOfColumns() + (x0 + x)] = value;
+					result[((y0 + y)*col + (x0 + x))] = value;
 				}
 			}
 			return this;
@@ -384,18 +514,8 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix fill(final float real, final float image) {
-		throw new UnsupportedOperationException("Complex assignment is not supported for real matrix");
-	}
-
-	@Override
 	public Matrix fill(final Piece piece, final float real, final float image) {
-		throw new UnsupportedOperationException("Complex assignment is not supported for real matrix");
-	}
-
-	@Override
-	public Matrix fill(final double value) {
-		return fill((float)value);
+		throw new UnsupportedOperationException("Complex filling is not supported for real matrices");
 	}
 
 	@Override
@@ -404,13 +524,8 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix fill(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex assignment is not supported for real matrix");
-	}
-
-	@Override
-	public Matrix fill(Piece piece, double real, double image) {
-		throw new UnsupportedOperationException("Complex assignment is not supported for real matrix");
+	public Matrix fill(final Piece piece, final double real, double image) {
+		throw new UnsupportedOperationException("Complex filling is not supported for real matrices");
 	}
 
 	@Override
@@ -423,17 +538,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 				case COMPLEX_DOUBLE	:
 					break;
 				case COMPLEX_FLOAT	:
-					final FloatComplexMatrix	fcm = new FloatComplexMatrix(numberOfRows(), numberOfColumns());
-					final float[]				sourceCF = this.content;
-					final float[]				targetCF = fcm.extractFloats();
-					
-					for(int index = 0, maxIndex = targetCF.length; index < maxIndex; index++) {
-						targetCF[2 * index] = (float)sourceCF[index];
-						targetCF[2 * index + 1] = 0;
-					}
-					return fcm;
+					break;
 				case REAL_DOUBLE	:
-					final DoubleRealMatrix	drm = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
+					final FloatRealMatrix	drm = new FloatRealMatrix(numberOfRows(), numberOfColumns());
 					final float[]			sourceD = this.content;
 					final double[]			targetD = drm.extractDoubles();
 					
@@ -470,12 +577,12 @@ loop:		for(int y = 0; y < maxY; y++) {
 		else {
 			final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns());
 			final float[]			target = result.content;
+			final float[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] += content[index]; 
+				target[index] = source[index] + content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -493,7 +600,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] += content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -511,7 +618,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] += content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -529,7 +636,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] += content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -541,8 +648,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to add real and complex matrices");
+				case COMPLEX_DOUBLE : 
+					return add(content.extractDoubles());
+				case COMPLEX_FLOAT 	:
+					return add(content.extractFloats());
 				case REAL_DOUBLE	:
 					return add(content.extractDoubles());
 				case REAL_FLOAT		:
@@ -576,13 +685,13 @@ loop:		for(int y = 0; y < maxY; y++) {
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = source[index] + value; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
 	@Override
-	public Matrix addValue(float real, float image) {
-		throw new UnsupportedOperationException("Complex addition is not supported for real matrix");
+	public Matrix addValue(final float real, final float image) {
+		throw new UnsupportedOperationException("Complex adding is not supported for real matrices");
 	}
 
 	@Override
@@ -592,7 +701,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 
 	@Override
 	public Matrix addValue(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex addition is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex adding is not supported for real matrices");
 	}
 
 	@Override
@@ -608,7 +717,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -626,7 +735,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -644,7 +753,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -662,7 +771,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -674,8 +783,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to subtract real and complex matrices");
+				case COMPLEX_DOUBLE : 
+					return subtract(content.extractDoubles());
+				case COMPLEX_FLOAT :
+					return subtract(content.extractFloats());
 				case REAL_DOUBLE	:
 					return subtract(content.extractDoubles());
 				case REAL_FLOAT		:
@@ -709,13 +820,13 @@ loop:		for(int y = 0; y < maxY; y++) {
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = source[index] - value; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
 	@Override
 	public Matrix subtractValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Complex subtraction is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex subtracting is not supported for real matrices");
 	}
 
 	@Override
@@ -725,7 +836,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 
 	@Override
 	public Matrix subtractValue(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex subtraction is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex subtracting is not supported for real matrices");
 	}
 
 	@Override
@@ -741,7 +852,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -759,7 +870,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -777,7 +888,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -793,9 +904,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 			
 			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = (float)(content[index] - target[index]); 
+				target[index] = (float) (content[index] - target[index]); 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -807,8 +918,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to subtract real and complex matrices");
+				case COMPLEX_DOUBLE : 
+					return subtractFrom(content.extractDoubles());
+				case COMPLEX_FLOAT 	:
+					return subtractFrom(content.extractFloats());
 				case REAL_DOUBLE	:
 					return subtractFrom(content.extractDoubles());
 				case REAL_FLOAT		:
@@ -842,13 +955,13 @@ loop:		for(int y = 0; y < maxY; y++) {
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = value - source[index]; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
 	@Override
 	public Matrix subtractFromValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Complex subtraction is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex subtracting is not supported for real matrices");
 	}
 
 	@Override
@@ -858,7 +971,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 
 	@Override
 	public Matrix subtractFromValue(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex subtraction is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex subtracting is not supported for real matrices");
 	}
 
 	@Override
@@ -871,74 +984,50 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			final FloatRealMatrix	result = new FloatRealMatrix(this.numberOfRows(), content.numberOfColumns());
-			final float[]			source = this.content;
-			final float[]			target = result.content;
-			final int				maxY = this.numberOfRows(), maxX = content.numberOfColumns();
-			final int				colSize = this.numberOfColumns(), maxK = content.numberOfRows(); 
+			final float[]				source = this.content;
+			final float[]				target = result.content;
+			final int					maxY = this.numberOfRows(), maxX = content.numberOfColumns();
+			final int					colSize = this.numberOfColumns(), maxK = content.numberOfRows(); 
 			
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE	:
+				case COMPLEX_DOUBLE : 
 					final double[]	tempD = content.extractDoubles();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
+							float	real = 0, image = 0;
 							
 							for(int k = 0; k < maxK; k++) {
-								sum += source[y * colSize + k] * tempD[k * maxX + x];
+								real += source[2 * (y * colSize + k)] * tempD[2 * (k * maxX + x)] - source[2 * (y * colSize + k) + 1] * tempD[2 * (k * maxX + x) + 1];
+								image += source[2 * (y * colSize + k) + 1] * tempD[2 * (k * maxX + x)] + source[2 * (y * colSize + k)] * tempD[2 * (k * maxX + x) + 1];
 							}
-							target[y * maxX + x] = sum;
+							target[2 * (y * maxX + x)] = real;
+							target[2 * (y * maxX + x) + 1] = image;
 						}
 					}
 					break;
-				case REAL_FLOAT		:
+				case COMPLEX_FLOAT 	:
 					final float[]	tempF = content.extractFloats();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
+							float	real = 0, image = 0;
 							
 							for(int k = 0; k < maxK; k++) {
-								sum += source[y * colSize + k] * tempF[k * maxX + x];
+								real += source[2 * (y * colSize + k)] * tempF[2 * (k * maxX + x)] - source[2 * (y * colSize + k) + 1] * tempF[2 * (k * maxX + x) + 1];
+								image += source[2 * (y * colSize + k) + 1] * tempF[2 * (k * maxX + x)] + source[2 * (y * colSize + k)] * tempF[2 * (k * maxX + x) + 1];
 							}
-							target[y * maxX + x] = sum;
+							target[2 * (y * maxX + x)] = real;
+							target[2 * (y * maxX + x) + 1] = image;
 						}
 					}
 					break;
-				case REAL_INT		:
-					final int[]		tempI = content.extractInts();
-
-					for(int y = 0; y < maxY; y++) {
-						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
-							
-							for(int k = 0; k < maxK; k++) {
-								sum += source[y * colSize + k] * tempI[k * maxX + x];
-							}
-							target[y * maxX + x] = sum;
-						}
-					}
-					break;
-				case REAL_LONG		:
-					final long[]	tempL = content.extractLongs();
-
-					for(int y = 0; y < maxY; y++) {
-						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
-							
-							for(int k = 0; k < maxK; k++) {
-								sum += source[y * colSize + k] * tempL[k * maxX + x];
-							}
-							target[y * maxX + x] = sum;
-						}
-					}
-					break;
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
 				default : 
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -959,68 +1048,44 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final int				colSize = content.numberOfColumns(), maxK = this.numberOfRows(); 
 			
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE	:
+				case COMPLEX_DOUBLE : 
 					final double[]	tempD = content.extractDoubles();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
+							float	real = 0, image = 0;
 							
 							for(int k = 0; k < maxK; k++) {
-								sum += tempD[y * colSize + k] * source[k * maxX + x];
+								real += tempD[2 * (y * colSize + k)] * source[2 * (k * maxX + x)] - tempD[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x) + 1];
+								image += tempD[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x)] + tempD[2 * (y * colSize + k)] * source[2 * (k * maxX + x) + 1];
 							}
-							target[y * maxX + x] = sum;
+							target[2 * (y * maxX + x)] = real;
+							target[2 * (y * maxX + x) + 1] = image;
 						}
 					}
 					break;
-				case REAL_FLOAT		:
+				case COMPLEX_FLOAT 	:
 					final float[]	tempF = content.extractFloats();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
+							float	real = 0, image = 0;
 							
 							for(int k = 0; k < maxK; k++) {
-								sum += tempF[y * colSize + k] * source[k * maxX + x];
+								real += tempF[2 * (y * colSize + k)] * source[2 * (k * maxX + x)] - tempF[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x) + 1];
+								image += tempF[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x)] + tempF[2 * (y * colSize + k)] * source[2 * (k * maxX + x) + 1];
 							}
-							target[y * maxX + x] = sum;
+							target[2 * (y * maxX + x)] = real;
+							target[2 * (y * maxX + x) + 1] = image;
 						}
 					}
 					break;
-				case REAL_INT		:
-					final int[]		tempI = content.extractInts();
-
-					for(int y = 0; y < maxY; y++) {
-						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
-							
-							for(int k = 0; k < maxK; k++) {
-								sum += tempI[y * colSize + k] * source[k * maxX + x];
-							}
-							target[y * maxX + x] = sum;
-						}
-					}
-					break;
-				case REAL_LONG		:
-					final long[]	tempL = content.extractLongs();
-
-					for(int y = 0; y < maxY; y++) {
-						for(int x = 0; x < maxX; x++) {
-							float	sum = 0;
-							
-							for(int k = 0; k < maxK; k++) {
-								sum += tempL[y * colSize + k] * source[k * maxX + x];
-							}
-							target[y * maxX + x] = sum;
-						}
-					}
-					break;
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
 				default : 
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1042,15 +1107,15 @@ loop:		for(int y = 0; y < maxY; y++) {
 		final float[]			target = result.content;
 		
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
-			target[index] = source[index] * value; 
+			target[index] = (float) (source[index] * value); 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
 	@Override
 	public Matrix mulValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Complex multiplication is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex multiplication is not supported for real matrices");
 	}
 
 	@Override
@@ -1060,7 +1125,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 
 	@Override
 	public Matrix mulValue(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex multiplication is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex multiplication is not supported for real matrices");
 	}
 
 	@Override
@@ -1078,18 +1143,18 @@ loop:		for(int y = 0; y < maxY; y++) {
 		final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns());
 		final float[]			source = this.content;
 		final float[]			target = result.content;
-		final float				inv = 1 / value;
+		final float				invValue = 1 / value;
 		
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
-			target[index] = source[index] * inv; 
+			target[index] = source[index] * invValue; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
 	@Override
 	public Matrix divValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Complex division is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex dividion is not supported for real matrices");
 	}
 
 	@Override
@@ -1099,7 +1164,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 
 	@Override
 	public Matrix divValue(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex division is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex dividion is not supported for real matrices");
 	}
 
 	@Override
@@ -1118,16 +1183,16 @@ loop:		for(int y = 0; y < maxY; y++) {
 		final float[]			source = this.content;
 		final float[]			target = result.content;
 		
-		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
+		for(int index = 0, maxIndex = target.length; index < maxIndex; index += 2) {
 			target[index] = value / source[index]; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
 	@Override
 	public Matrix divFromValue(final float real, final float image) {
-		throw new UnsupportedOperationException("Complex division is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex dividion is not supported for real matrices");
 	}
 
 	@Override
@@ -1137,7 +1202,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 
 	@Override
 	public Matrix divFromValue(final double real, final double image) {
-		throw new UnsupportedOperationException("Complex division is not supported for real matrix");
+		throw new UnsupportedOperationException("Complex dividion is not supported for real matrices");
 	}
 
 	@Override
@@ -1153,7 +1218,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = source[index] * content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1171,7 +1236,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = source[index] * content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1189,7 +1254,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = source[index] * content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1207,7 +1272,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = (float) (source[index] * content[index]); 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1219,8 +1284,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
+				case COMPLEX_DOUBLE : 
+					return mulHadamard(content.extractDoubles());
+				case COMPLEX_FLOAT 	:
+					return mulHadamard(content.extractFloats());
 				case REAL_DOUBLE	:
 					return mulHadamard(content.extractDoubles());
 				case REAL_FLOAT		:
@@ -1246,9 +1313,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			target = result.content;
 			
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = source[index] / content[index]; 
+				target[index] = source[index] / content[index];  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1264,9 +1331,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			target = result.content;
 			
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = source[index] / content[index]; 
+				target[index] = source[index] / content[index];  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1282,9 +1349,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			target = result.content;
 			
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = source[index] / content[index]; 
+				target[index] = source[index] / content[index];  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1300,9 +1367,9 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			target = result.content;
 			
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = (float) (source[index] / content[index]); 
+				target[index] = (float) (source[index] / content[index]);  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1314,8 +1381,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
+				case COMPLEX_DOUBLE : 
+					return mulInvHadamard(content.extractDoubles());
+				case COMPLEX_FLOAT 	:
+					return mulInvHadamard(content.extractFloats());
 				case REAL_DOUBLE	:
 					return mulInvHadamard(content.extractDoubles());
 				case REAL_FLOAT		:
@@ -1340,10 +1409,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			source = this.content;
 			final float[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = content[index] / source[index]; 
+			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+				target[index] = content[index] / source[index];  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1358,10 +1427,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			source = this.content;
 			final float[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = content[index] / source[index]; 
+			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+				target[index] = content[index] / source[index];  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1376,10 +1445,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			source = this.content;
 			final float[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = content[index] / source[index]; 
+			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+				target[index] = content[index] / source[index];  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1394,10 +1463,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 			final float[]			source = this.content;
 			final float[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = (float) (content[index] / source[index]); 
+			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+				target[index] = (float) (content[index] / source[index]);  
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1409,8 +1478,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
+				case COMPLEX_DOUBLE : 
+					return mulInvFromHadamard(content.extractDoubles());
+				case COMPLEX_FLOAT 	:
+					return mulInvFromHadamard(content.extractFloats());
 				case REAL_DOUBLE	:
 					return mulInvFromHadamard(content.extractDoubles());
 				case REAL_FLOAT		:
@@ -1432,98 +1503,62 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			final FloatRealMatrix	result = new FloatRealMatrix(this.numberOfRows() * content.numberOfRows(), this.numberOfColumns() * content.numberOfColumns());
-			final float[]			source = this.content;
-			final float[]			target = result.content;
-			final int 				maxY1 = this.numberOfRows(), maxY2 = content.numberOfRows();
-			final int 				maxX1 = this.numberOfColumns(), maxX2 = content.numberOfColumns();
+			final float[]				source = this.content;
+			final float[]				target = result.content;
+			final int 					maxY1 = this.numberOfRows(), maxY2 = content.numberOfRows();
+			final int 					maxX1 = this.numberOfColumns(), maxX2 = content.numberOfColumns();
 			
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE	:
+				case COMPLEX_DOUBLE : 
 					final double[]	tempD = content.extractDoubles();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = source[y1 * maxX1 + x1];
+							final double	real = source[2 * (y1 * maxX1 + x1)];
+							final double	image = source[2 * (y1 * maxX1 + x1) + 1];
 							
-							if (k != 0) {
+							if (real != 0 || image != 0) {
 								for (int y2 = 0; y2 < maxY2; y2++) {
 									for (int x2 = 0; x2 < maxX2; x2++) {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[targetIndex] = (float) (k * tempD[sourceIndex]);
+										target[2 * targetIndex] = (float) (real * tempD[2 * sourceIndex] - image * tempD[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (float) (real * tempD[2 * sourceIndex + 1] + image * tempD[2 * sourceIndex]);
 									}
 								}
 							}
 						}
 					}
 					break;
-				case REAL_FLOAT		:
+				case COMPLEX_FLOAT 	:
 					final float[]	tempF = content.extractFloats();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = source[y1 * maxX1 + x1];
+							final double	real = source[2 * (y1 * maxX1 + x1)];
+							final double	image = source[2 * (y1 * maxX1 + x1) + 1];
 							
-							if (k != 0) {
+							if (real != 0 || image != 0) {
 								for (int y2 = 0; y2 < maxY2; y2++) {
 									for (int x2 = 0; x2 < maxX2; x2++) {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[targetIndex] = k * tempF[sourceIndex];
+										target[2 * targetIndex] = (float) (real * tempF[2 * sourceIndex] - image * tempF[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (float) (real * tempF[2 * sourceIndex + 1] + image * tempF[2 * sourceIndex]);
 									}
 								}
 							}
 						}
 					}
 					break;
-				case REAL_INT		:
-					final int[]		tempI = content.extractInts();
-					
-					for (int y1 = 0; y1 < maxY1; y1++) {
-						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = source[y1 * maxX1 + x1];
-							
-							if (k != 0) {
-								for (int y2 = 0; y2 < maxY2; y2++) {
-									for (int x2 = 0; x2 < maxX2; x2++) {
-										final int 	sourceIndex = y2 * maxX2 + x2; 
-										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
-										
-										target[targetIndex] = k * tempI[sourceIndex];
-									}
-								}
-							}
-						}
-					}
-					break;
-				case REAL_LONG		:
-					final long[]	tempL = content.extractLongs();
-					
-					for (int y1 = 0; y1 < maxY1; y1++) {
-						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = source[y1 * maxX1 + x1];
-							
-							if (k != 0) {
-								for (int y2 = 0; y2 < maxY2; y2++) {
-									for (int x2 = 0; x2 < maxX2; x2++) {
-										final int 	sourceIndex = y2 * maxX2 + x2; 
-										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
-										
-										target[targetIndex] = k * tempL[sourceIndex];
-									}
-								}
-							}
-						}
-					}
-					break;
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1535,98 +1570,62 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 		else {
 			final FloatRealMatrix	result = new FloatRealMatrix(this.numberOfRows() * content.numberOfRows(), this.numberOfColumns() * content.numberOfColumns());
-			final float[]			source = this.content;
-			final float[]			target = result.content;
-			final int 				maxY1 = content.numberOfRows(), maxY2 = this.numberOfRows();
-			final int 				maxX1 = content.numberOfColumns(), maxX2 = this.numberOfColumns();
+			final float[]				source = this.content;
+			final float[]				target = result.content;
+			final int 					maxY1 = content.numberOfRows(), maxY2 = this.numberOfRows();
+			final int 					maxX1 = content.numberOfColumns(), maxX2 = this.numberOfColumns();
 			
 			switch (content.getType()) {
-				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
-					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE	:
+				case COMPLEX_DOUBLE : 
 					final double[]	tempD = content.extractDoubles();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
-							final double	k = tempD[y1 * maxX1 + x1];
+							final double	real = tempD[2 * (y1 * maxX1 + x1)];
+							final double	image = tempD[2 * (y1 * maxX1 + x1) + 1];
 							
-							if (k != 0) {
+							if (real != 0 || image != 0) {
 								for (int y2 = 0; y2 < maxY2; y2++) {
 									for (int x2 = 0; x2 < maxX2; x2++) {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[targetIndex] = (float) (k * source[sourceIndex]);
+										target[2 * targetIndex] = (float) (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (float) (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
 									}
 								}
 							}
 						}
 					}
 					break;
-				case REAL_FLOAT		:
+				case COMPLEX_FLOAT 	:
 					final float[]	tempF = content.extractFloats();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = tempF[y1 * maxX1 + x1];
+							final double	real = tempF[2 * (y1 * maxX1 + x1)];
+							final double	image = tempF[2 * (y1 * maxX1 + x1) + 1];
 							
-							if (k != 0) {
+							if (real != 0 || image != 0) {
 								for (int y2 = 0; y2 < maxY2; y2++) {
 									for (int x2 = 0; x2 < maxX2; x2++) {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[targetIndex] = k * source[sourceIndex];
+										target[2 * targetIndex] = (float) (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (float) (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
 									}
 								}
 							}
 						}
 					}
 					break;
-				case REAL_INT		:
-					final int[]		tempI = content.extractInts();
-					
-					for (int y1 = 0; y1 < maxY1; y1++) {
-						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = tempI[y1 * maxX1 + x1];
-							
-							if (k != 0) {
-								for (int y2 = 0; y2 < maxY2; y2++) {
-									for (int x2 = 0; x2 < maxX2; x2++) {
-										final int 	sourceIndex = y2 * maxX2 + x2; 
-										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
-										
-										target[targetIndex] = k * source[sourceIndex];
-									}
-								}
-							}
-						}
-					}
-					break;
-				case REAL_LONG		:
-					final long[]	tempL = content.extractLongs();
-					
-					for (int y1 = 0; y1 < maxY1; y1++) {
-						for (int x1 = 0; x1 < maxX1; x1++) {
-							final float	k = tempL[y1 * maxX1 + x1];
-							
-							if (k != 0) {
-								for (int y2 = 0; y2 < maxY2; y2++) {
-									for (int x2 = 0; x2 < maxX2; x2++) {
-										final int 	sourceIndex = y2 * maxX2 + x2; 
-										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
-										
-										target[targetIndex] = k * source[sourceIndex];
-									}
-								}
-							}
-						}
-					}
-					break;
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
+					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1637,53 +1636,61 @@ loop:		for(int y = 0; y < maxY; y++) {
 			throw new IllegalStateException("Only square matrix can be inverted");
 		}
 		else {
-			ensureCompleted();
 			final FloatRealMatrix	result = new FloatRealMatrix(this.numberOfRows(), this.numberOfColumns());
-			final float[]	identity = result.content;
-			final float[]	source = this.content.clone();
-			final int		colSize = numberOfColumns();
+			final float[]			identity = result.content;
+			final float[]			source = this.content.clone();
+			final int				colSize = numberOfColumns();
 			
 			for(int index = 0; index < colSize; index++) {	// Make identity matrix
 				identity[index * (colSize + 1)] = 1;
 			}
 			for(int y = 0; y < colSize; y++) {
-				final float	k = 1/ source[y * (colSize + 1)];	// Take diagonal element.
+				final float	real = source[2 * (y * (colSize + 1))];	// Take diagonal element.
+				final float	image = source[2 * (y * (colSize + 1)) + 1];
+				final float	quad = 1 / (real * real + image * image);
 				
-				if (k == 0) {
+				if (quad == 0) {
 					throw new IllegalArgumentException("Matrix has zero element on diagonal");
 				}
 				
 				for(int x = 0; x < colSize; x++) {		// divide all line by diagonal element
-					source[y * colSize + x] *= k;
-					identity[y * colSize + x] *= k;
+					source[2 * (y * colSize + x)] = (source[2 * (y * colSize + x)] * real + source[2 * (y * colSize + x) + 1] * image) * quad; 
+					source[2 * (y * colSize + x) + 1] = (source[2 * (y * colSize + x) + 1] * real - source[2 * (y * colSize + x)] * image) * quad; 
+					identity[2 * (y * colSize + x)] = (identity[2 * (y * colSize + x)] * real + identity[2 * (y * colSize + x) + 1] * image) * quad;
+					identity[2 * (y * colSize + x) + 1] = (identity[2 * (y * colSize + x) + 1] * real - identity[2 * (y * colSize + x)] * image) * quad;
 				}
 				for(int i = y + 1; i < colSize; i++) {	// subtract current line from all lines below to make zeroes at the current column
-					final float	k2 = source[i * colSize + y];
+					final float	real2 = source[2 * (i * colSize + y)];
+					final float	image2 = source[2 * (i * colSize + y) + 1];
 					
 					for(int x = 0; x < colSize; x++) {
-						source[i * colSize + x] -= k2 * source[y * colSize + x];
-						identity[i * colSize + x] -= k2 * identity[y * colSize + x];
+						source[2 * (i * colSize + x)] -= real2 * source[2 * (y * colSize + x)] - image2 * source[2 * (y * colSize + x) + 1];
+						source[2 * (i * colSize + x) + 1] -= real2 * source[2 * (y * colSize + x) + 1] + image2 * source[2 * (y * colSize + x)];
+						identity[2 * (i * colSize + x)] -= real2 * identity[2 * (y * colSize + x)] - image2 * identity[2 * (y * colSize + x) + 1];
+						identity[2 * (i * colSize + x) + 1] -= real2 * identity[2 * (y * colSize + x) + 1] + image2 * identity[2 * (y * colSize + x)];
 					}
 				}
 			}
 			for(int y = colSize-1; y >= 0; y--) {	// subtract current line from all lines above to make zeroes at the current column 
 				for(int i = y - 1; i >= 0; i--) {
-					final float	k2 = source[i * colSize + y];
+					final float	real2 = source[2 * (i * colSize + y)];
+					final float	image2 = source[2 * (i * colSize + y) + 1];
 					
 					for(int x = 0; x < colSize; x++) {
-						source[i * colSize + x] -= k2 * source[y * colSize + x];
-						identity[i * colSize + x] -= k2 * identity[y * colSize + x];
+						source[2 * (i * colSize + x)] -= real2 * source[2 * (y * colSize + x)] - image2 * source[2 * (y * colSize + x) + 1];
+						source[2 * (i * colSize + x) + 1] -= real2 * source[2 * (y * colSize + x) + 1] + image2 * source[2 * (y * colSize + x)];
+						identity[2 * (i * colSize + x)] -= real2 * identity[2 * (y * colSize + x)] - image2 * identity[2 * (y * colSize + x) + 1];
+						identity[2 * (i * colSize + x) + 1] -= real2 * identity[2 * (y * colSize + x) + 1] + image2 * identity[2 * (y * colSize + x)];
 					}
 				}
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
 
 	@Override
 	public Matrix transpose() {
-		ensureCompleted();
 		final FloatRealMatrix	result = new FloatRealMatrix(numberOfColumns(), numberOfRows());
 		final float[]			source = this.content;
 		final float[]			target = result.content;
@@ -1691,10 +1698,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		
 		for(int y = 0; y < rows; y++) {
 			for(int x = 0; x < cols; x++) {
-				target[x*rows + y] = source[y*cols + x]; 
+				target[(x*rows + y)] = source[(y*cols + x)]; 
 			}
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -1706,8 +1713,10 @@ loop:		for(int y = 0; y < maxY; y++) {
 		else if (aggType == null) {
 			throw new NullPointerException("Aggregate type can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureCompleted();
 			switch (aggType) {
 				case Avg	:
 					return aggregateAvg(dir); 
@@ -1723,136 +1732,72 @@ loop:		for(int y = 0; y < maxY; y++) {
 		}
 	}
 
-
 	@Override
 	public Number det() {
 		if (numberOfRows() != numberOfColumns()) {
 			throw new IllegalStateException("Only square matrix can be inverted");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
 			final float[]	source = this.content.clone();
 			final int		colSize = numberOfColumns();
-			float			det = 1;
+			double			detReal = 1, detImage = 0;
 
-			ensureCompleted();
 			for(int y = 0; y < colSize; y++) {
-				final float	k = source[y * (colSize + 1)];		// Take diagonal element.
-				final float	invK = 1 / k;
+				final float	real = source[2 * (y * (colSize + 1))];		// Take diagonal element.
+				final float	image = source[2 * (y * (colSize + 1)) + 1];		// Take diagonal element.
+				final float	quad = 1 / (real * real + image * image);
 
-				det *= k;
+				detReal = detReal * real - detImage * image;
+				detImage = detReal * image + detImage * real;
 				for(int x = 0; x < colSize; x++) {		// divide all line by diagonal element
-					source[y * colSize + x] *= invK;
+					source[2 * (y * colSize + x)] = (source[2 * (y * colSize + x)] * real + source[2 * (y * colSize + x) + 1] * image) * quad;
+					source[2 * (y * colSize + x) + 1] =  (source[2 * (y * colSize + x)] * image - source[2 * (y * colSize + x) + 1] * real) * quad;
 				}
 				for(int i = y + 1; i < colSize; i++) {	// subtract current line from all lines below to make zeroes at the current column
-					final float	k2 = source[i * colSize + y];
+					final float	real2 = source[2 * (i * colSize + y)];
+					final float	image2 = source[2 * (i * colSize + y) + 1];
 					
 					for(int x = 0; x < colSize; x++) {
-						source[i * colSize + x] -= k2 * source[y * colSize + x];
+						source[2 * (i * colSize + x)] -= source[2 * (y * colSize + x)] * real2 - source[2 * (y * colSize + x) + 1] * image2;
+						source[2 * (i * colSize + x) + 1] -= source[2 * (y * colSize + x) + 1] * real2 + source[2 * (y * colSize + x)] * image2;
 					}
 				}
 			}
-			return det;
+			return detReal;
 		}
 	}
 
 	@Override
 	public Number track() {
-		ensureCompleted();
 		final float[]	source = this.content;
 		final int		colSize = numberOfColumns();
-		float	sum = 0;
+		double	real = 0, image = 0;
 		
-		ensureCompleted();
+		areAllAsyncCompleted();
 		for(int index = 0; index < colSize; index++) {	// Calculate diagonal sum
-			sum += source[index * (colSize + 1)];
+			real += source[2 * (index * (colSize + 1))];
+			image += source[2 * (index * (colSize + 1)) + 1];
 		}
-		return sum;
+		return real;
 	}
-
+	
 	@Override
 	public Number[] det2() {
-		return new Number[] {det(), 0};
+		throw new IllegalStateException("Attempt to get complex determinant for real matrix");
 	}
 
 	@Override
 	public Number[] track2() {
-		return new Number[] {track(), 0};
+		throw new IllegalStateException("Attempt to get complex track for real matrix");
 	}
 	
-	@Override
-	public String toHumanReadableString() {
-		final StringBuilder	sb = new StringBuilder();
-		
-		sb.append("Matrix: type=").append(getType()).append(", size=").append(numberOfRows()).append('x').append(numberOfColumns()).append(":\n");
-		for(int y = 0; y < numberOfRows(); y++) {
-			for(int x = 0; x < numberOfColumns(); x++) {
-				sb.append(String.format(" %1$15e",content[y*numberOfColumns()+x]));
-			}
-		}
-		return sb.toString();
-	}
-
 	@Override
 	public Matrix done() {
-		completed = true;
+		completeTransaction();
 		return this;
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyBit callback) {
-		throw new UnsupportedOperationException("Bit apply can't be used for non-bit matrices");
-	}
-	
-	@Override
-	public Matrix apply(final Piece piece, final ApplyInt callback) {
-		if (piece == null) {
-			throw new NullPointerException("Piece can't be null");
-		}
-		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
-		}
-		else {
-			final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns()); 
-			final float[]	source = this.content;
-			final float[]	target = result.content;
-			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
-			
-			ensureCompleted();
-			for(int y = 0; y < maxY; y++) {
-				for(int x = 0; x < maxX; x++) {
-					target[(y0 + y)*numberOfColumns() + (x0 + x)] = callback.apply(y0 + y, x0 + x, (int)source[(y0 + y)*numberOfColumns() + (x0 + x)]);
-				}
-			}
-			result.completed = false;
-			return result;
-		}
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyLong callback) {
-		if (piece == null) {
-			throw new NullPointerException("Piece can't be null");
-		}
-		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
-		}
-		else {
-			final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns()); 
-			final float[]	source = this.content;
-			final float[]	target = result.content;
-			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
-			
-			ensureCompleted();
-			for(int y = 0; y < maxY; y++) {
-				for(int x = 0; x < maxX; x++) {
-					target[(y0 + y)*numberOfColumns() + (x0 + x)] = callback.apply(y0 + y, x0 + x, (long)source[(y0 + y)*numberOfColumns() + (x0 + x)]);
-				}
-			}
-			result.completed = false;
-			return result;
-		}
 	}
 
 	@Override
@@ -1860,93 +1805,34 @@ loop:		for(int y = 0; y < maxY; y++) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
-		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
-		}
-		else {
-			final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns()); 
-			final float[]	source = this.content;
-			final float[]	target = result.content;
-			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
-			
-			ensureCompleted();
-			for(int y = 0; y < maxY; y++) {
-				for(int x = 0; x < maxX; x++) {
-					target[(y0 + y)*numberOfColumns() + (x0 + x)] = callback.apply(y0 + y, x0 + x, source[(y0 + y)*numberOfColumns() + (x0 + x)]);
-				}
-			}
-			result.completed = false;
-			return result;
-		}
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyDouble callback) {
-		if (piece == null) {
-			throw new NullPointerException("Piece can't be null");
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
 		}
 		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
+			throw new NullPointerException("Callback can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
 		}
 		else {
-			final FloatRealMatrix	result = new FloatRealMatrix(numberOfRows(), numberOfColumns()); 
 			final float[]	source = this.content;
-			final float[]	target = result.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					target[(y0 + y)*numberOfColumns() + (x0 + x)] = (float)callback.apply(y0 + y, x0 + x, source[(y0 + y)*numberOfColumns() + (x0 + x)]);
+					source[((y0 + y)*cols + (x0 + x)) + 1] = callback.apply(y0 + y, x0 + x, source[((y0 + y)*cols + (x0 + x))]); 
 				}
 			}
-			result.completed = false;
-			return result;
-		}
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyFloat2 callback) {
-		throw new UnsupportedOperationException("Complex apply is not supported for real matrix");
-	}
-
-	@Override
-	public Matrix apply(final Piece piece, final ApplyDouble2 callback) {
-		throw new UnsupportedOperationException("Complex apply is not supported for real matrix");
-	}
-	
-	private Piece getTotalPiece() {
-		return Piece.of(0, 0, numberOfRows(), numberOfColumns());
-	}
-	
-	private void ensureCompleted() {
-		if (!completed) {
-			throw new IllegalStateException("Matrix is not completed after previous operations. Call done() method before");
-		}
-	}
-
-	private void ensureInside(final Piece piece) {
-		if (piece.getLeft() >= numberOfColumns()) {
-			throw new IllegalArgumentException("Left piece location ["+piece.getLeft()+"] outside number of columns ["+numberOfColumns()+"]");
-		}
-		else if (piece.getTop() >= numberOfRows()) {
-			throw new IllegalArgumentException("Top piece location ["+piece.getTop()+"] outside number of rows ["+numberOfRows()+"]");
-		}
-		else if (piece.getLeft() + piece.getWidth() > numberOfColumns()) {
-			throw new IllegalArgumentException("Right piece location ["+(piece.getLeft()+piece.getWidth())+"] outside number of columns ["+numberOfColumns()+"]");
-		}
-		else if (piece.getTop() + piece.getHeight() > numberOfRows()) {
-			throw new IllegalArgumentException("Bottom piece location ["+(piece.getTop()+piece.getHeight())+"] outside number of rows ["+numberOfRows()+"]");
+			return this;
 		}
 	}
 	
 	private Matrix aggregateAvg(final AggregateDirection dir) {
 		final FloatRealMatrix	result;
-		final float[]			source = this.content;
-		final float[]			target;
-		float	val;
+		final float[]		source = this.content;
+		final float[]		target;
+		float	real, image;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -1954,11 +1840,14 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					val = 0;
+					real = 0;
+					image = 0;
 					for(int x = 0; x < numberOfColumns(); x++) {
-						val += source[y * numberOfColumns() + x];
+						real += source[2 * (y * numberOfColumns() + x)];
+						image += source[2 * (y * numberOfColumns() + x) + 1];
 					}
-					target[y] = val / numberOfColumns();
+					target[2 * y] = real / numberOfColumns();
+					target[2 * y + 1] = image / numberOfColumns();
 				}
 				break;
 			case ByRows		:
@@ -1966,29 +1855,35 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int x = 0; x < numberOfColumns(); x++) {
-					val = 0;
+					real = 0;
+					image = 0;
 					for(int y = 0; y < numberOfRows(); y++) {
-						val += source[y * numberOfColumns() + x];
+						real += source[2 * (y * numberOfColumns() + x)];
+						image += source[2 * (y * numberOfColumns() + x) + 1];
 					}
-					target[x] = val / numberOfRows();
+					target[2 * x] = real / numberOfRows();
+					target[2 * x + 1] = image / numberOfRows();
 				}
 				break;
 			case Total		:
 				result = new FloatRealMatrix(1, 1); 
 				target = result.content;
 				
-				val = 0;
+				real = 0;
+				image = 0;
 				for(int y = 0; y < numberOfRows(); y++) {
 					for(int x = 0; x < numberOfColumns(); x++) {
-						val += source[y * numberOfColumns() + x];
+						real += source[2 * (y * numberOfColumns() + x)];
+						image += source[2 * (y * numberOfColumns() + x) + 1];
 					}
 				}
-				target[0] = val / (numberOfRows() * numberOfColumns());
+				target[0] = real / (numberOfRows() * numberOfColumns());
+				target[1] = image / (numberOfRows() * numberOfColumns());
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 	
@@ -1996,7 +1891,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 		final FloatRealMatrix	result;
 		final float[]			source = this.content;
 		final float[]			target;
-		float	val;
+		float	val, real, image;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -2004,13 +1899,21 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					val = source[y * numberOfColumns() + 0];
+					real = source[2 * (y * numberOfColumns() + 0)]; 
+					image = source[2 * (y * numberOfColumns() + 0) + 1]; 
+					val = real * real + image * image ;
 					for(int x = 0; x < numberOfColumns(); x++) {
-						if (source[y * numberOfColumns() + x] > val) {
-							val = source[y * numberOfColumns() + x]; 
+						final float	tempR = source[2 * (y * numberOfColumns() + x)]; 
+						final float	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						
+						if (tempR * tempR + tempI * tempI > val) {
+							real = tempR;
+							image = tempI;
+							val = tempR * tempR + tempI * tempI;
 						}
 					}
-					target[y] = val;
+					target[2 * y] = real;
+					target[2 * y + 1] = image;
 				}
 				break;
 			case ByRows		:
@@ -2018,33 +1921,49 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int x = 0; x < numberOfColumns(); x++) {
-					val = source[x + 0];
+					real = source[2 * (x * numberOfColumns() + 0)]; 
+					image = source[2 * (x * numberOfColumns() + 0) + 1]; 
+					val = real * real + image * image ;
 					for(int y = 0; y < numberOfRows(); y++) {
-						if (source[y * numberOfColumns() + x] > val) {
-							val = source[y * numberOfColumns() + x]; 
+						final float	tempR = source[2 * (y * numberOfColumns() + x)]; 
+						final float	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						
+						if (tempR * tempR + tempI * tempI > val) {
+							real = tempR;
+							image = tempI;
+							val = tempR * tempR + tempI * tempI;
 						}
 					}
-					target[x] = val;
+					target[2 * x] = real;
+					target[2 * x + 1] = image;
 				}
 				break;
 			case Total		:
 				result = new FloatRealMatrix(1, 1); 
 				target = result.content;
 				
-				val = source[0];
+				real = source[0]; 
+				image = source[1]; 
+				val = real * real + image * image ;
 				for(int y = 0; y < numberOfRows(); y++) {
 					for(int x = 0; x < numberOfColumns(); x++) {
-						if (source[y * numberOfColumns() + x] > val) {
-							val = source[y * numberOfColumns() + x]; 
+						final float	tempR = source[2 * (y * numberOfColumns() + x)]; 
+						final float	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						
+						if (tempR * tempR + tempI * tempI > val) {
+							real = tempR;
+							image = tempI;
+							val = tempR * tempR + tempI * tempI;
 						}
 					}
 				}
-				target[0] = val;
+				target[0] = real;
+				target[1] = image;
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -2052,7 +1971,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 		final FloatRealMatrix	result;
 		final float[]			source = this.content;
 		final float[]			target;
-		float	val;
+		float	val, real, image;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -2060,13 +1979,21 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					val = source[y * numberOfColumns() + 0];
+					real = source[2 * (y * numberOfColumns() + 0)]; 
+					image = source[2 * (y * numberOfColumns() + 0) + 1]; 
+					val = real * real + image * image ;
 					for(int x = 0; x < numberOfColumns(); x++) {
-						if (source[y * numberOfColumns() + x] < val) {
-							val = source[y * numberOfColumns() + x]; 
+						final float	tempR = source[2 * (y * numberOfColumns() + x)]; 
+						final float	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						
+						if (tempR * tempR + tempI * tempI < val) {
+							real = tempR;
+							image = tempI;
+							val = tempR * tempR + tempI * tempI;
 						}
 					}
-					target[y] = val;
+					target[2 * y] = real;
+					target[2 * y + 1] = image;
 				}
 				break;
 			case ByRows		:
@@ -2074,33 +2001,49 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int x = 0; x < numberOfColumns(); x++) {
-					val = source[x + 0];
+					real = source[2 * (x * numberOfColumns() + 0)]; 
+					image = source[2 * (x * numberOfColumns() + 0) + 1]; 
+					val = real * real + image * image ;
 					for(int y = 0; y < numberOfRows(); y++) {
-						if (source[y * numberOfColumns() + x] < val) {
-							val = source[y * numberOfColumns() + x]; 
+						final float	tempR = source[2 * (y * numberOfColumns() + x)]; 
+						final float	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						
+						if (tempR * tempR + tempI * tempI < val) {
+							real = tempR;
+							image = tempI;
+							val = tempR * tempR + tempI * tempI;
 						}
 					}
-					target[x] = val;
+					target[2 * x] = real;
+					target[2 * x + 1] = image;
 				}
 				break;
 			case Total		:
 				result = new FloatRealMatrix(1, 1); 
 				target = result.content;
 				
-				val = source[0];
+				real = source[0]; 
+				image = source[1]; 
+				val = real * real + image * image ;
 				for(int y = 0; y < numberOfRows(); y++) {
 					for(int x = 0; x < numberOfColumns(); x++) {
-						if (source[y * numberOfColumns() + x] < val) {
-							val = source[y * numberOfColumns() + x]; 
+						final float	tempR = source[2 * (y * numberOfColumns() + x)]; 
+						final float	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						
+						if (tempR * tempR + tempI * tempI < val) {
+							real = tempR;
+							image = tempI;
+							val = tempR * tempR + tempI * tempI;
 						}
 					}
 				}
-				target[0] = val;
+				target[0] = real;
+				target[1] = image;
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -2108,7 +2051,7 @@ loop:		for(int y = 0; y < maxY; y++) {
 		final FloatRealMatrix	result;
 		final float[]			source = this.content;
 		final float[]			target;
-		float	val;
+		float	real, image;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -2116,11 +2059,14 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					val = 0;
+					real = 0;
+					image = 0;
 					for(int x = 0; x < numberOfColumns(); x++) {
-						val += source[y * numberOfColumns() + x];
+						real += source[2 * (y * numberOfColumns() + x)];
+						image += source[2 * (y * numberOfColumns() + x) + 1];
 					}
-					target[y] = val;
+					target[2 * y] = real;
+					target[2 * y + 1] = image;
 				}
 				break;
 			case ByRows		:
@@ -2128,30 +2074,35 @@ loop:		for(int y = 0; y < maxY; y++) {
 				target = result.content;
 				
 				for(int x = 0; x < numberOfColumns(); x++) {
-					val = 0;
+					real = 0;
+					image = 0;
 					for(int y = 0; y < numberOfRows(); y++) {
-						val += source[y * numberOfColumns() + x];
+						real += source[2 * (y * numberOfColumns() + x)];
+						image += source[2 * (y * numberOfColumns() + x) + 1];
 					}
-					target[x] = val;
+					target[2 * x] = real;
+					target[2 * x + 1] = image;
 				}
 				break;
 			case Total		:
 				result = new FloatRealMatrix(1, 1); 
 				target = result.content;
 				
-				val = 0;
+				real = 0;
+				image = 0;
 				for(int y = 0; y < numberOfRows(); y++) {
 					for(int x = 0; x < numberOfColumns(); x++) {
-						val += source[y * numberOfColumns() + x];
+						real += source[2 * (y * numberOfColumns() + x)];
+						image += source[2 * (y * numberOfColumns() + x) + 1];
 					}
 				}
-				target[0] = val;
+				target[0] = real;
+				target[1] = image;
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
-
 }

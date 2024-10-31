@@ -2,6 +2,7 @@ package chav1961.purelib.matrix.internal;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -10,7 +11,6 @@ import chav1961.purelib.matrix.interfaces.Matrix;
 
 public class DoubleComplexMatrix extends AbstractMatrix {
 	private final double[]	content;
-	private boolean			completed = true;
 
 	public DoubleComplexMatrix(final int rows, final int columns) {
 		super(Type.COMPLEX_DOUBLE, rows, columns);
@@ -40,8 +40,10 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		else if (another.getType() != this.getType() || this.numberOfRows() != another.numberOfRows() || this.numberOfColumns() != another.numberOfColumns()) {
 			return false;
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureCompleted();
 			return Arrays.equals(content, another.extractDoubles());
 		}
 	}
@@ -51,19 +53,23 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	source = this.content;
 			final int[]		result = new int[2 * piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (int)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
-					result[where++] = (int)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					result[where++] = (int)source[2 * ((y0 + y)*cols + (x0 + x))];
+					result[where++] = (int)source[2 * ((y0 + y)*cols + (x0 + x)) + 1];
 				}
 			}
 			return result;
@@ -71,9 +77,31 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public void extractInts(Piece piece, DataOutput dataOutput) throws IOException {
-		// TODO Auto-generated method stub
-		
+	public void extractInts(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final double[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeInt((int)source[2 * ((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeInt((int)source[2 * ((y0 + y)*cols + (x0 + x)) + 1]);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -81,19 +109,23 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	source = this.content;
 			final long[]	result = new long[2 * piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (long)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
-					result[where++] = (long)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					result[where++] = (long)source[2 * ((y0 + y)*cols + (x0 + x))];
+					result[where++] = (long)source[2 * ((y0 + y)*cols + (x0 + x)) + 1];
 				}
 			}
 			return result;
@@ -101,9 +133,31 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public void extractLongs(Piece piece, DataOutput dataOutput) throws IOException {
-		// TODO Auto-generated method stub
-		
+	public void extractLongs(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final double[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeLong((long)source[2 * ((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeLong((long)source[2 * ((y0 + y)*cols + (x0 + x)) + 1]);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -111,19 +165,23 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	source = this.content;
 			final float[]	result = new float[2 * piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (float) source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
-					result[where++] = (float) source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					result[where++] = (float) source[2 * ((y0 + y)*cols + (x0 + x))];
+					result[where++] = (float) source[2 * ((y0 + y)*cols + (x0 + x)) + 1];
 				}
 			}
 			return result;
@@ -131,15 +189,41 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public void extractFloats(Piece piece, DataOutput dataOutput) throws IOException {
-		// TODO Auto-generated method stub
-		
+	public void extractFloats(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (dataOutput == null) {
+			throw new NullPointerException("Data output can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final double[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeFloat((float) source[2 * ((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeFloat((float) source[2 * ((y0 + y)*cols + (x0 + x)) + 1]);
+				}
+			}
+		}
 	}
 
 	@Override
 	public double[] extractDoubles() {
-		ensureCompleted();
-		return content;
+		if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			return content.clone();
+		}
 	}
 
 	@Override
@@ -147,19 +231,23 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	source = this.content;
 			final double[]	result = new double[2 * piece.getWidth() * piece.getHeight()];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (double)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
-					result[where++] = (double)source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					result[where++] = (double)source[2 * ((y0 + y)*cols + (x0 + x))];
+					result[where++] = (double)source[2 * ((y0 + y)*cols + (x0 + x)) + 1];
 				}
 			}
 			return result;
@@ -167,33 +255,54 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public void extractDoubles(Piece piece, DataOutput dataOutput) throws IOException {
-		// TODO Auto-generated method stub
-		
+	public void extractDoubles(final Piece piece, final DataOutput dataOutput) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final double[]	source = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					dataOutput.writeDouble((double)source[2 * ((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeDouble((double)source[2 * ((y0 + y)*cols + (x0 + x)) + 1]);
+				}
+			}
+		}
 	}
-	
-	
 	
 	@Override
 	public Matrix assign(final Piece piece, final int... content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = (float)content[where++];
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = (float)content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x))] = (float)content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = (float)content[where++];
 				}
 			}
 			return this;
@@ -205,21 +314,25 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = (float)content[where++];
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = (float)content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x))] = (float)content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = (float)content[where++];
 				}
 			}
 			return this;
@@ -231,21 +344,25 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = content[where++];
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x))] = content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = content[where++];
 				}
 			}
 			return this;
@@ -257,8 +374,10 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureCompleted();
 			System.arraycopy(content, 0, this.content, 0, Math.min(content.length, this.content.length));
 			return this;
 		}		
@@ -269,21 +388,25 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			int				where = 0;
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = (float)content[where++];
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = (float)content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x))] = content[where++];
+					result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = content[where++];
 				}
 			}
 			return this;
@@ -291,22 +414,12 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix assign(final Matrix content) {
-		if (content == null) {
-			throw new NullPointerException("Content matrix can't be null");
-		}
-		else if (content.getType() == this.getType()) {
-			return assign(content.extractFloats());
-		}
-		else {
-			return assign(getTotalPiece(), content);
-		}
-	}
-
-	@Override
 	public Matrix assign(final Piece piece, final Matrix content) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
 		}
 		else if (content == null) {
 			throw new NullPointerException("Content matrix can't be null");
@@ -317,34 +430,70 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix assign(Piece piece, DataInput content, Type type) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+	public Matrix assign(final Piece piece, final DataInput content, final Type type) throws IOException {
+		if (piece == null) {
+			throw new NullPointerException("Piece can't be null");
+		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (content == null) {
+			throw new NullPointerException("Content can't be null");
+		}
+		else if (type == null) {
+			throw new NullPointerException("Type can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
+		else {
+			final double[]	result = this.content;
+			final int		x0 = piece.getLeft(), y0 = piece.getTop();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
+			
+			for(int y = 0; y < maxY; y++) {
+				for(int x = 0; x < maxX; x++) {
+					try {
+						switch (type) {
+							case BIT			:
+								break;
+							case COMPLEX_DOUBLE	:
+							case REAL_DOUBLE	:
+								result[2 * ((y0 + y)*cols + (x0 + x))] = content.readDouble();
+								result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = content.readDouble();
+								break;
+							case COMPLEX_FLOAT	:
+							case REAL_FLOAT		:
+								result[2 * ((y0 + y)*cols + (x0 + x))] = content.readFloat();
+								result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = content.readFloat();
+								break;
+							case REAL_INT		:
+								result[2 * ((y0 + y)*cols + (x0 + x))] = content.readInt();
+								result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = content.readInt();
+								break;
+							case REAL_LONG		:
+								result[2 * ((y0 + y)*cols + (x0 + x))] = content.readLong();
+								result[2 * ((y0 + y)*cols + (x0 + x)) + 1] = content.readLong();
+								break;
+							default:
+								break;
+						}
+					} catch (EOFException exc) {
+					}
+				}
+			}
+			return this;
+		}
 	}	
 	
-	@Override
-	public Matrix fill(final int value) {
-		return fill((double)value);
-	}
-
 	@Override
 	public Matrix fill(final Piece piece, final int value) {
 		return fill(piece, (double)value);
 	}
 
 	@Override
-	public Matrix fill(final long value) {
-		return fill((double)value);
-	}
-
-	@Override
 	public Matrix fill(final Piece piece, final long value) {
 		return fill(piece, (double)value);
-	}
-
-	@Override
-	public Matrix fill(final float value) {
-		return fill((double)value);
 	}
 
 	@Override
@@ -367,17 +516,21 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureInside(piece);
 			final double[]	result = this.content;
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), col = numberOfColumns();
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = real;
-					result[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = image;
+					result[2 * ((y0 + y)*col + (x0 + x))] = real;
+					result[2 * ((y0 + y)*col + (x0 + x)) + 1] = image;
 				}
 			}
 			return this;
@@ -433,12 +586,12 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		else {
 			final DoubleComplexMatrix	result = new DoubleComplexMatrix(numberOfRows(), numberOfColumns());
 			final double[]				target = result.content;
+			final double[]				source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] += content[index]; 
+				target[index] = source[index] + content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -456,7 +609,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] += content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -474,7 +627,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] += content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -492,7 +645,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] += content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -556,7 +709,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = source[index] + ((index & 0x01) == 0 ? real : image); 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -573,7 +726,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -591,7 +744,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -609,7 +762,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -627,7 +780,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] -= content[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -691,7 +844,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = source[index] - ((index & 0x01) == 0 ? real : image); 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -708,7 +861,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -726,7 +879,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -744,7 +897,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -760,9 +913,9 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			
 			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = (float)(content[index] - target[index]); 
+				target[index] = content[index] - target[index]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -826,7 +979,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = ((index & 0x01) == 0 ? real : image) - source[index]; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -883,7 +1036,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				default : 
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -941,7 +1094,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				default : 
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -981,7 +1134,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			target[index] = source[index] * real - source[index + 1] * image; 
 			target[index + 1] = source[index + 1] * real + source[index] * image; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -1021,7 +1174,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			target[index] = (source[index] * real + source[index + 1] * image) * quad; 
 			target[index + 1] = (source[index + 1] * real - source[index] * image) * quad; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -1062,7 +1215,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			target[index] = (real * source[index] + image * source[index + 1]) * quad; 
 			target[index + 1] = (image * source[index] - real * source[index + 1]) * quad; 
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -1080,7 +1233,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = source[2 * index] * content[2 * index] - source[2 * index + 1] * content[2 * index + 1]; 
 				target[2 * index + 1] = source[2 * index + 1] * content[2 * index] + source[2 * index] * content[2 * index + 1]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1099,7 +1252,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = source[2 * index] * content[2 * index] - source[2 * index + 1] * content[2 * index + 1]; 
 				target[2 * index + 1] = source[2 * index + 1] * content[2 * index] + source[2 * index] * content[2 * index + 1]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1118,7 +1271,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = source[2 * index] * content[2 * index] - source[2 * index + 1] * content[2 * index + 1]; 
 				target[2 * index + 1] = source[2 * index + 1] * content[2 * index] + source[2 * index] * content[2 * index + 1]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1137,7 +1290,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = source[2 * index] * content[2 * index] - source[2 * index + 1] * content[2 * index + 1]; 
 				target[2 * index + 1] = source[2 * index + 1] * content[2 * index] + source[2 * index] * content[2 * index + 1]; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1185,7 +1338,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (source[2 * index] * real + source[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (source[2 * index] * image - source[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1208,7 +1361,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (source[2 * index] * real + source[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (source[2 * index] * image - source[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1231,7 +1384,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (source[2 * index] * real + source[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (source[2 * index] * image - source[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1254,7 +1407,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (source[2 * index] * real + source[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (source[2 * index] * image - source[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1302,7 +1455,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (content[2 * index] * real + content[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (content[2 * index] * image - content[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1325,7 +1478,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (content[2 * index] * real + content[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (content[2 * index] * image - content[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1348,7 +1501,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (content[2 * index] * real + content[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (content[2 * index] * image - content[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1371,7 +1524,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * index] = (content[2 * index] * real + content[2 * index + 1] * image) * quad;  
 				target[2 * index + 1] =  (content[2 * index] * image - content[2 * index + 1] * real) * quad; 
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1428,8 +1581,8 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[2 * targetIndex] = (float) (real * tempD[2 * sourceIndex] - image * tempD[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * tempD[2 * sourceIndex + 1] + image * tempD[2 * sourceIndex]);
+										target[2 * targetIndex] = (real * tempD[2 * sourceIndex] - image * tempD[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (real * tempD[2 * sourceIndex + 1] + image * tempD[2 * sourceIndex]);
 									}
 								}
 							}
@@ -1450,8 +1603,8 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[2 * targetIndex] = (float) (real * tempF[2 * sourceIndex] - image * tempF[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * tempF[2 * sourceIndex + 1] + image * tempF[2 * sourceIndex]);
+										target[2 * targetIndex] = (real * tempF[2 * sourceIndex] - image * tempF[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (real * tempF[2 * sourceIndex + 1] + image * tempF[2 * sourceIndex]);
 									}
 								}
 							}
@@ -1463,7 +1616,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1495,8 +1648,8 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[2 * targetIndex] = (float) (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
+										target[2 * targetIndex] = (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
 									}
 								}
 							}
@@ -1517,8 +1670,8 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[2 * targetIndex] = (float) (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
+										target[2 * targetIndex] = (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
+										target[2 * targetIndex + 1] = (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
 									}
 								}
 							}
@@ -1530,7 +1683,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
@@ -1541,7 +1694,6 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			throw new IllegalStateException("Only square matrix can be inverted");
 		}
 		else {
-			ensureCompleted();
 			final DoubleComplexMatrix	result = new DoubleComplexMatrix(this.numberOfRows(), this.numberOfColumns());
 			final double[]				identity = result.content;
 			final double[]				source = this.content.clone();
@@ -1591,14 +1743,13 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 					}
 				}
 			}
-			result.completed = false;
+			result.beginTransaction();
 			return result;
 		}
 	}
 
 	@Override
 	public Matrix transpose() {
-		ensureCompleted();
 		final DoubleComplexMatrix	result = new DoubleComplexMatrix(numberOfColumns(), numberOfRows());
 		final double[]				source = this.content;
 		final double[]				target = result.content;
@@ -1610,7 +1761,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 				target[2 * (x*rows + y) + 1] = source[2 * (y*cols + x) + 1]; 
 			}
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -1622,8 +1773,10 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		else if (aggType == null) {
 			throw new NullPointerException("Aggregate type can't be null");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
-			ensureCompleted();
 			switch (aggType) {
 				case Avg	:
 					return aggregateAvg(dir); 
@@ -1654,12 +1807,14 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 		if (numberOfRows() != numberOfColumns()) {
 			throw new IllegalStateException("Only square matrix can be inverted");
 		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
+		}
 		else {
 			final double[]	source = this.content.clone();
 			final int		colSize = numberOfColumns();
 			double			detReal = 1, detImage = 0;
 
-			ensureCompleted();
 			for(int y = 0; y < colSize; y++) {
 				final double	real = source[2 * (y * (colSize + 1))];		// Take diagonal element.
 				final double	image = source[2 * (y * (colSize + 1)) + 1];		// Take diagonal element.
@@ -1687,12 +1842,11 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 
 	@Override
 	public Number[] track2() {
-		ensureCompleted();
 		final double[]	source = this.content;
 		final int		colSize = numberOfColumns();
 		double	real = 0, image = 0;
 		
-		ensureCompleted();
+		areAllAsyncCompleted();
 		for(int index = 0; index < colSize; index++) {	// Calculate diagonal sum
 			real += source[2 * (index * (colSize + 1))];
 			image += source[2 * (index * (colSize + 1)) + 1];
@@ -1701,77 +1855,41 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 	}
 	
 	@Override
-	public String toHumanReadableString() {
-		final StringBuilder	sb = new StringBuilder();
-		
-		sb.append("Matrix: type=").append(getType()).append(", size=").append(numberOfRows()).append('x').append(numberOfColumns()).append(":\n");
-		for(int y = 0; y < numberOfRows(); y++) {
-			for(int x = 0; x < numberOfColumns(); x++) {
-				sb.append(String.format(" %1$15e %2$15ei", content[2 * (y*numberOfColumns()+x)], content[2 * (y*numberOfColumns()+x)]));
-			}
-		}
-		return sb.toString();
-	}
-
-	@Override
 	public Matrix done() {
-		completed = true;
+		completeTransaction();
 		return this;
 	}
 
 	@Override
-	public Matrix apply(final Piece piece, final ApplyDouble2 callback) {
+	public Matrix apply2(final Piece piece, final ApplyDouble2 callback) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
+		else if (isOverlaps(piece)) {
+			throw overlapsError(piece);
+		}
 		else if (callback == null) {
-			throw new NullPointerException("Ccan't be null");
+			throw new NullPointerException("Callback can't be null");
+		}
+		else if (!areAllAsyncCompleted()) {
+			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
 		}
 		else {
-			final DoubleComplexMatrix	result = new DoubleComplexMatrix(numberOfRows(), numberOfColumns()); 
 			final double[]	source = this.content;
-			final double[]	target = result.content;
 			final double[]	temp = new double[2];
 			final int		x0 = piece.getLeft(), y0 = piece.getTop();
-			final int		maxX = piece.getWidth(), maxY = piece.getHeight();
+			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			
-			ensureCompleted();
 			for(int y = 0; y < maxY; y++) {
 				for(int x = 0; x < maxX; x++) {
-					temp[0] = source[2 * ((y0 + y)*numberOfColumns() + (x0 + x))];
-					temp[1] = source[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1];
+					temp[0] = source[2 * ((y0 + y)*cols + (x0 + x))];
+					temp[1] = source[2 * ((y0 + y)*cols + (x0 + x)) + 1];
 					callback.apply(y0 + y, x0 + x, temp);
-					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x))] = (double)temp[0];
-					target[2 * ((y0 + y)*numberOfColumns() + (x0 + x)) + 1] = (double)temp[1];
+					source[2 * ((y0 + y)*cols + (x0 + x))] = (double)temp[0];
+					source[2 * ((y0 + y)*cols + (x0 + x)) + 1] = (double)temp[1];
 				}
 			}
-			result.completed = false;
-			return result;
-		}
-	}
-	
-	private Piece getTotalPiece() {
-		return Piece.of(0, 0, numberOfRows(), numberOfColumns());
-	}
-	
-	private void ensureCompleted() {
-		if (!completed) {
-			throw new IllegalStateException("Matrix is not completed after previous operations. Call done() method before");
-		}
-	}
-
-	private void ensureInside(final Piece piece) {
-		if (piece.getLeft() >= numberOfColumns()) {
-			throw new IllegalArgumentException("Left piece location ["+piece.getLeft()+"] outside number of columns ["+numberOfColumns()+"]");
-		}
-		else if (piece.getTop() >= numberOfRows()) {
-			throw new IllegalArgumentException("Top piece location ["+piece.getTop()+"] outside number of rows ["+numberOfRows()+"]");
-		}
-		else if (piece.getLeft() + piece.getWidth() > numberOfColumns()) {
-			throw new IllegalArgumentException("Right piece location ["+(piece.getLeft()+piece.getWidth())+"] outside number of columns ["+numberOfColumns()+"]");
-		}
-		else if (piece.getTop() + piece.getHeight() > numberOfRows()) {
-			throw new IllegalArgumentException("Bottom piece location ["+(piece.getTop()+piece.getHeight())+"] outside number of rows ["+numberOfRows()+"]");
+			return this;
 		}
 	}
 	
@@ -1830,7 +1948,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 	
@@ -1910,7 +2028,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -1990,7 +2108,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 
@@ -2049,7 +2167,7 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
 		}
-		result.completed = false;
+		result.beginTransaction();
 		return result;
 	}
 

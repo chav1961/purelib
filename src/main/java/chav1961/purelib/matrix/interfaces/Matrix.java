@@ -219,6 +219,35 @@ public interface Matrix extends AutoCloseable, Cloneable {
 					@Override public int getHeight() {return height;}
 					
 					@Override
+					public boolean equals(final Object obj) {
+						if (obj == this) {
+							return true;
+						}
+						else if (obj == null) {
+							return false;
+						}
+						else if (!(obj instanceof Piece)) {
+							return false;
+						}
+						else {
+							final Piece	piece = (Piece)obj;
+							
+							return getTop() == piece.getTop() && getLeft() == piece.getLeft() && getWidth() == piece.getWidth() && getHeight() == piece.getHeight(); 
+						}
+					}
+					
+					@Override
+					public int hashCode() {
+						int	value = 7;
+						
+						value = 31 * value + getTop();
+						value = 31 * value + getLeft();
+						value = 31 * value + getHeight();
+						value = 31 * value + getWidth();
+						return value;
+					}
+					
+					@Override
 					public String toString() {
 						return "Piece[top="+top+",left="+left+",height="+height+",width="+width+"]";
 					}
@@ -1532,15 +1561,15 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(Piece piece, ApplyFloat2 callback);
+	public Matrix apply2(Piece piece, ApplyFloat2 callback);
 	
 	/**
 	 * <p>Apply changes for float complex matrix content. Can be used with float complex matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	default public Matrix apply(ApplyFloat2 callback) {
-		return apply(totalPiece(), callback);
+	default public Matrix apply2(ApplyFloat2 callback) {
+		return apply2(totalPiece(), callback);
 	}
 
 	/**
@@ -1549,15 +1578,15 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	public Matrix apply(Piece piece, ApplyDouble2 callback);
+	public Matrix apply2(Piece piece, ApplyDouble2 callback);
 
 	/**
 	 * <p>Apply changes for double complex matrix content. Can be used with double complex matrices only</p>
 	 * @param callback callback to process each matrix element. Can't be null
 	 * @return new matrix with data processed. Can't be null
 	 */
-	default public Matrix apply(ApplyDouble2 callback) {
-		return apply(totalPiece(), callback);
+	default public Matrix apply2(ApplyDouble2 callback) {
+		return apply2(totalPiece(), callback);
 	}
 	
 	/**

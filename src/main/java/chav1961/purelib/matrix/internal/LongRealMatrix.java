@@ -1853,12 +1853,12 @@ loop:		for(int y = 0; y < maxY; y++) {
 	}
 
 	@Override
-	public Matrix apply(final Piece piece, final ApplyFloat2 callback) {
+	public Matrix apply2(final Piece piece, final ApplyFloat2 callback) {
 		throw new UnsupportedOperationException("Complex apply is not supported for real matrix");
 	}
 
 	@Override
-	public Matrix apply(final Piece piece, final ApplyDouble2 callback) {
+	public Matrix apply2(final Piece piece, final ApplyDouble2 callback) {
 		throw new UnsupportedOperationException("Complex apply is not supported for real matrix");
 	}
 	

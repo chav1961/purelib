@@ -1,27 +1,35 @@
 package chav1961.purelib.matrix.internal;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateDirection;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateType;
+import chav1961.purelib.matrix.interfaces.Matrix.ApplyDouble2;
+import chav1961.purelib.matrix.interfaces.Matrix.ApplyFloat2;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
+import chav1961.purelib.streams.DataOutputAdapter;
 
 public class FloatComplexMatrixTest {
 
 	@Test
-	public void basicTest() {
+	public void basicTest() throws RuntimeException, CloneNotSupportedException, IOException {
+		final float[]	sum = new float[1];
+		
 		try(final FloatComplexMatrix	m = new FloatComplexMatrix(2, 3)) {
 			Assert.assertEquals(Matrix.Type.COMPLEX_FLOAT, m.getType());
 			Assert.assertEquals(2, m.numberOfRows());
 			Assert.assertEquals(3, m.numberOfColumns());
 			
-			try{new FloatComplexMatrix(0, 2);
+			try{new FloatComplexMatrix(0, 2).close();
 				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 			} catch (IllegalArgumentException exc) {
 			}
-			try{new FloatComplexMatrix(3, 0);
+			try{new FloatComplexMatrix(3, 0).close();
 				Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 			} catch (IllegalArgumentException exc) {
 			}
@@ -30,6 +38,21 @@ public class FloatComplexMatrixTest {
 			
 			m.assign(1,0,2,0,3,0,4,0,5,0,6,0);
 			Assert.assertArrayEquals(new float[] {1,0,2,0,3,0,4,0,5,0,6,0}, m.extractFloats(), 0.001f);
+
+			sum[0] = 0;
+			m.extractInts(new DataOutputAdapter() {
+				@Override
+				public void writeInt(int v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(21, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -45,11 +68,26 @@ public class FloatComplexMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
-			
+
 			// assign longs
 			
 			m.assign(6L,0L,5L,0L,4L,0L,3L,0L,2L,0L,1L,0L);
 			Assert.assertArrayEquals(new float[] {6,0,5,0,4,0,3,0,2,0,1,0}, m.extractFloats(), 0.001f);
+			
+			sum[0] = 0;
+			m.extractLongs(new DataOutputAdapter() {
+				@Override
+				public void writeLong(long v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(21, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -70,6 +108,21 @@ public class FloatComplexMatrixTest {
 			
 			m.assign(1f,0f,3f,0f,5f,0f,7f,0f,9f,0f,11f,0f);
 			Assert.assertArrayEquals(new float[] {1,0,3,0,5,0,7,0,9,0,11,0}, m.extractFloats(), 0.001f);
+			
+			sum[0] = 0;
+			m.extractFloats(new DataOutputAdapter() {
+				@Override
+				public void writeFloat(float v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(36, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -90,6 +143,21 @@ public class FloatComplexMatrixTest {
 			
 			m.assign(11d,0d,9d,0d,7d,0d,5d,0d,3d,0d,1d,0d);
 			Assert.assertArrayEquals(new float[] {11,0,9,0,7,0,5,0,3,0,1,0}, m.extractFloats(), 0.001f);
+			
+			sum[0] = 0;
+			m.extractDoubles(new DataOutputAdapter() {
+				@Override
+				public void writeDouble(double v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(36, sum[0], 0.001); 
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -150,6 +218,12 @@ public class FloatComplexMatrixTest {
 			Assert.assertFalse(m3.deepEquals(m));
 			Assert.assertTrue(m.deepEquals(m));
 			Assert.assertFalse(m.deepEquals(null));
+
+			// Test clone()
+			
+			try(final FloatComplexMatrix	dcm = (FloatComplexMatrix)m.clone()) {
+				Assert.assertTrue(m.deepEquals(dcm));
+			}
 			
 			// assign matrix
 			
@@ -235,6 +309,15 @@ public class FloatComplexMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			
+			// Apply test
+			
+			m.apply2((int x, int y, float[] val)->{val[0] = 0; val[1] = 0;});
+			Assert.assertArrayEquals(new float[] {0,0,0,0,0,0,0,0,0,0,0,0}, m.extractFloats(), 0.001f);
+			try {m.apply2((ApplyFloat2)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
 		}
 	}
 
@@ -254,14 +337,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1,2,3,4,5,6).extractFloats();
+				m1.add(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {11,0,12,0,13,0,14,0,15,0,16,0}, m1.addValue(10).done().extractFloats(), 0.001f);
 			try {
-				m1.addValue(10).extractFloats();
+				m1.addValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -275,14 +358,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1L,2L,3L,4L,5L,6L).extractFloats();
+				m1.add(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {11,0,12,0,13,0,14,0,15,0,16,0}, m1.addValue(10L).done().extractFloats(), 0.001f);
 			try {
-				m1.addValue(10L).extractFloats();
+				m1.addValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -296,7 +379,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.add(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -304,7 +387,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {11,0,12,0,13,0,14,0,15,0,16,0}, m1.addValue(10f).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {11,20,12,20,13,20,14,20,15,20,16,20}, m1.addValue(10f, 20f).done().extractFloats(), 0.001f);
 			try {
-				m1.addValue(10f).extractFloats();
+				m1.addValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -318,7 +401,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.add(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -365,14 +448,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1,2,3,4,5,0).extractFloats();
+				m1.subtract(1,2,3,4,5,0).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {-9,0,-8,0,-7,0,-6,0,-5,0,-4,0}, m1.subtractValue(10).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractValue(10).extractFloats();
+				m1.subtractValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -386,14 +469,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1L,2L,3L,4L,5L,0L).extractFloats();
+				m1.subtract(1L,2L,3L,4L,5L,0L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {-9,0,-8,0,-7,0,-6,0,-5,0,-4,0}, m1.subtractValue(10L).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractValue(10L).extractFloats();
+				m1.subtractValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -407,7 +490,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.subtract(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -415,7 +498,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {-9,0,-8,0,-7,0,-6,0,-5,0,-4,0}, m1.subtractValue(10f).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {-9,-10,-8,-10,-7,-10,-6,-10,-5,-10,-4,-10}, m1.subtractValue(10f, 10f).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractValue(10f).extractFloats();
+				m1.subtractValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -429,14 +512,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.subtract(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			Assert.assertArrayEquals(new float[] {-9,-10,-8,-10,-7,-10,-6,-10,-5,-10,-4,-10}, m1.subtractValue(10d, 10d).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractValue(10d).extractFloats();
+				m1.subtractValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -475,14 +558,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1,2,3,4,5,0).extractFloats();
+				m1.subtractFrom(1,2,3,4,5,0).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {9,5,8,5,7,5,6,5,5,5,4,5}, m1.subtractFromValue(10, 5).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractFromValue(10).extractFloats();
+				m1.subtractFromValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -496,14 +579,14 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1L,2L,3L,4L,5L,0L).extractFloats();
+				m1.subtractFrom(1L,2L,3L,4L,5L,0L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {9,0,8,0,7,0,6,0,5,0,4,0}, m1.subtractFromValue(10L).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractFromValue(10L).extractFloats();
+				m1.subtractFromValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -517,7 +600,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.subtractFrom(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -525,7 +608,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {9,0,8,0,7,0,6,0,5,0,4,0}, m1.subtractFromValue(10f).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {9,5,8,5,7,5,6,5,5,5,4,5}, m1.subtractFromValue(10f, 5f).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractFromValue(10f).extractFloats();
+				m1.subtractFromValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -539,7 +622,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.subtractFrom(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -547,7 +630,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {9,0,8,0,7,0,6,0,5,0,4,0}, m1.subtractFromValue(10d).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {9,5,8,5,7,5,6,5,5,5,4,5}, m1.subtractFromValue(10d, 5d).done().extractFloats(), 0.001f);
 			try {
-				m1.subtractFromValue(10d).extractFloats();
+				m1.subtractFromValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -578,21 +661,21 @@ public class FloatComplexMatrixTest {
 			
 			Assert.assertArrayEquals(new float[] {10,10,20,20,30,30,40,40,50,50,60,60}, m.mulValue(10).done().extractFloats(), 0.001f);
 			try {
-				m.mulValue(10).extractFloats();
+				m.mulValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			Assert.assertArrayEquals(new float[] {0.5f,0.5f,1f,1f,1.5f,1.5f,2f,2f,2.5f,2.5f,3f,3f}, m.divValue(2).done().extractFloats(), 0.001f);
 			try {
-				m.divValue(10).extractFloats();
+				m.divValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {1f,-1f,0.5f,-0.5f,0.333333f,-0.333333f,0.25f,-0.25f,0.2f,-0.2f,0.166666f,-0.166666f}, m.divFromValue(2).done().extractFloats(), 0.001f);
 			try {
-				m.divFromValue(10).extractFloats();
+				m.divFromValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -601,21 +684,21 @@ public class FloatComplexMatrixTest {
 			
 			Assert.assertArrayEquals(new float[] {10,10,20,20,30,30,40,40,50,50,60,60}, m.mulValue(10L).done().extractFloats(), 0.001f);
 			try {
-				m.mulValue(10L).extractFloats();
+				m.mulValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			Assert.assertArrayEquals(new float[] {0.5f,0.5f,1f,1f,1.5f,1.5f,2f,2f,2.5f,2.5f,3f,3f}, m.divValue(2L).done().extractFloats(), 0.001f);
 			try {
-				m.divValue(10L).extractFloats();
+				m.divValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {1f,-1f,0.5f,-0.5f,0.333333f,-0.333333f,0.25f,-0.25f,0.2f,-0.2f,0.166666f,-0.166666f}, m.divFromValue(2L).done().extractFloats(), 0.001f);
 			try {
-				m.divFromValue(10L).extractFloats();
+				m.divFromValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -625,7 +708,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {10,10,20,20,30,30,40,40,50,50,60,60}, m.mulValue(10f).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {0,10,0,20,0,30,0,40,0,50,0,60}, m.mulValue(5f, 5f).done().extractFloats(), 0.001f);
 			try {
-				m.mulValue(10f).extractFloats();
+				m.mulValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -633,7 +716,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {0.5f,0.5f,1f,1f,1.5f,1.5f,2f,2f,2.5f,2.5f,3f,3f}, m.divValue(2f).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {0.5f,0f,1f,0f,1.5f,0,2f,0f,2.5f,0f,3f,0f}, m.divValue(2f, 2f).done().extractFloats(), 0.001f);
 			try {
-				m.divValue(10f).extractFloats();
+				m.divValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -641,7 +724,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {1f,-1f,0.5f,-0.5f,0.333333f,-0.333333f,0.25f,-0.25f,0.2f,-0.2f,0.166666f,-0.166666f}, m.divFromValue(2f).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {2f,0f,1f,0,0.666666f,0,0.5f,0f,0.4f,0f,0.333333f,0f}, m.divFromValue(2d, 2d).done().extractFloats(), 0.001f);
 			try {
-				m.divFromValue(10f).extractFloats();
+				m.divFromValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -651,7 +734,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {10,10,20,20,30,30,40,40,50,50,60,60}, m.mulValue(10d).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {0,10,0,20,0,30,0,40,0,50,0,60}, m.mulValue(5d, 5d).done().extractFloats(), 0.001f);
 			try {
-				m.mulValue(10d).extractFloats();
+				m.mulValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -659,7 +742,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {0.5f,0.5f,1f,1f,1.5f,1.5f,2f,2f,2.5f,2.5f,3f,3f}, m.divValue(2d).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {0.5f,0f,1f,0f,1.5f,0,2f,0f,2.5f,0f,3f,0f}, m.divValue(2d, 2d).done().extractFloats(), 0.001f);
 			try {
-				m.divValue(10d).extractFloats();
+				m.divValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -667,7 +750,7 @@ public class FloatComplexMatrixTest {
 			Assert.assertArrayEquals(new float[] {1f,-1f,0.5f,-0.5f,0.333333f,-0.333333f,0.25f,-0.25f,0.2f,-0.2f,0.166666f,-0.166666f}, m.divFromValue(2d).done().extractFloats(), 0.001f);
 			Assert.assertArrayEquals(new float[] {2f,0f,1f,0,0.666666f,0,0.5f,0f,0.4f,0f,0.333333f,0f}, m.divFromValue(2d, 2d).done().extractFloats(), 0.001f);
 			try {
-				m.divFromValue(10d).extractFloats();
+				m.divFromValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -689,7 +772,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1,2,3,4,5,6).extractFloats();
+				m1.mulHadamard(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -701,7 +784,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1,2,3,4,5,6).extractFloats();
+				m1.mulInvHadamard(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -713,7 +796,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1,2,3,4,5,6).extractFloats();
+				m1.mulInvFromHadamard(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -727,7 +810,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1L,2L,3L,4L,5L,6L).extractFloats();
+				m1.mulHadamard(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -739,7 +822,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1L,2L,3L,4L,5L,6L).extractFloats();
+				m1.mulInvHadamard(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -751,7 +834,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L).extractFloats();
+				m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -765,7 +848,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.mulHadamard(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -777,7 +860,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.mulInvHadamard(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -789,7 +872,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -803,7 +886,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.mulHadamard(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -815,7 +898,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.mulInvHadamard(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -827,7 +910,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -842,7 +925,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(m2).extractFloats();
+				m1.mulHadamard(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -854,7 +937,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(m2).extractFloats();
+				m1.mulInvHadamard(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -867,7 +950,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(m2).extractFloats();
+				m1.mulInvFromHadamard(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -895,7 +978,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mul(m2).extractFloats();
+				m1.mul(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -917,7 +1000,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulFrom(m2).extractFloats();
+				m1.mulFrom(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -956,7 +1039,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.tensorMul(m2).extractFloats();
+				m1.tensorMul(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -978,7 +1061,7 @@ public class FloatComplexMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.tensorMulFrom(m2).extractFloats();
+				m1.tensorMulFrom(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -992,14 +1075,14 @@ public class FloatComplexMatrixTest {
 			m.assign(1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,10,0);
 			Assert.assertArrayEquals(new float[] {1,0,4,0,7,0,2,0,5,0,8,0,3,0,6,0,10,0}, m.transpose().done().extractFloats(), 0.001f);
 			try {
-				m.transpose().extractFloats();
+				m.transpose().extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			Assert.assertArrayEquals(new float[] {-0.666666f,0,-1.333333f,0,1,0,-0.666666f,0,3.66666f,0,-2,0,1,0,-2,0,1,0}, m.invert().done().extractFloats(), 0.001f);
 			try {
-				m.invert().extractFloats();
+				m.invert().extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -1009,21 +1092,20 @@ public class FloatComplexMatrixTest {
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new Number[] {-3.0f, -0.0f}, m.det2());
+			Assert.assertArrayEquals(new Number[] {-3.0d, -0.0d}, m.det2());
 			try{
 				new FloatComplexMatrix(3, 2).det2();
 				Assert.fail("Mandatory exception was not detected (non-square matrix)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new Number[] {16.0f, 0.0f}, m.track2());
+			Assert.assertArrayEquals(new Number[] {16.0d, 0.0d}, m.track2());
 		}
 	}
 
 	@Test
 	public void aggregateTest() {
 		try(final FloatComplexMatrix	m = new FloatComplexMatrix(3, 3)) {
-			Matrix	res;
 			
 			m.assign(1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9,0);
 			Assert.assertArrayEquals(new float[] {6,0, 15,0, 24,0}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Sum).done().extractFloats(), 0.001f);
@@ -1050,7 +1132,7 @@ public class FloatComplexMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
-			try{m.aggregate(AggregateDirection.ByColumns, AggregateType.Avg).extractFloats();
+			try{m.aggregate(AggregateDirection.ByColumns, AggregateType.Avg).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}

@@ -1,27 +1,34 @@
 package chav1961.purelib.matrix.internal;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateDirection;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateType;
+import chav1961.purelib.matrix.interfaces.Matrix.ApplyDouble2;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
+import chav1961.purelib.streams.DataOutputAdapter;
 
 public class DoubleComplexMatrixTest {
 
 	@Test
-	public void basicTest() {
+	public void basicTest() throws RuntimeException, CloneNotSupportedException, IOException {
+		final double[]	sum = new double[1];
+		
 		try(final DoubleComplexMatrix	m = new DoubleComplexMatrix(2, 3)) {
 			Assert.assertEquals(Matrix.Type.COMPLEX_DOUBLE, m.getType());
 			Assert.assertEquals(2, m.numberOfRows());
 			Assert.assertEquals(3, m.numberOfColumns());
 			
-			try{new DoubleComplexMatrix(0, 2);
+			try{new DoubleComplexMatrix(0, 2).close();
 				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 			} catch (IllegalArgumentException exc) {
 			}
-			try{new DoubleComplexMatrix(3, 0);
+			try{new DoubleComplexMatrix(3, 0).close();
 				Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 			} catch (IllegalArgumentException exc) {
 			}
@@ -30,6 +37,21 @@ public class DoubleComplexMatrixTest {
 			
 			m.assign(1,0,2,0,3,0,4,0,5,0,6,0);
 			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,5,0,6,0}, m.extractDoubles(), 0.001f);
+
+			sum[0] = 0;
+			m.extractInts(new DataOutputAdapter() {
+				@Override
+				public void writeInt(int v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(21, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -45,11 +67,26 @@ public class DoubleComplexMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
-			
+
 			// assign longs
 			
 			m.assign(6L,0L,5L,0L,4L,0L,3L,0L,2L,0L,1L,0L);
 			Assert.assertArrayEquals(new double[] {6,0,5,0,4,0,3,0,2,0,1,0}, m.extractDoubles(), 0.001f);
+			
+			sum[0] = 0;
+			m.extractLongs(new DataOutputAdapter() {
+				@Override
+				public void writeLong(long v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(21, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -70,6 +107,21 @@ public class DoubleComplexMatrixTest {
 			
 			m.assign(1f,0f,3f,0f,5f,0f,7f,0f,9f,0f,11f,0f);
 			Assert.assertArrayEquals(new double[] {1,0,3,0,5,0,7,0,9,0,11,0}, m.extractDoubles(), 0.001f);
+			
+			sum[0] = 0;
+			m.extractFloats(new DataOutputAdapter() {
+				@Override
+				public void writeFloat(float v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(36, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -90,6 +142,21 @@ public class DoubleComplexMatrixTest {
 			
 			m.assign(11d,0d,9d,0d,7d,0d,5d,0d,3d,0d,1d,0d);
 			Assert.assertArrayEquals(new double[] {11,0,9,0,7,0,5,0,3,0,1,0}, m.extractDoubles(), 0.001f);
+			
+			sum[0] = 0;
+			m.extractDoubles(new DataOutputAdapter() {
+				@Override
+				public void writeDouble(double v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(36, sum[0], 0.001); 
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -150,6 +217,12 @@ public class DoubleComplexMatrixTest {
 			Assert.assertFalse(m3.deepEquals(m));
 			Assert.assertTrue(m.deepEquals(m));
 			Assert.assertFalse(m.deepEquals(null));
+
+			// Test clone()
+			
+			try(final DoubleComplexMatrix	dcm = (DoubleComplexMatrix)m.clone()) {
+				Assert.assertTrue(m.deepEquals(dcm));
+			}
 			
 			// assign matrix
 			
@@ -232,6 +305,15 @@ public class DoubleComplexMatrixTest {
 			m.fill(Piece.of(1,1,1,2), 40d, 50d);
 			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,40,50,40,50}, m.extractDoubles(), 0.001f);
 			try {m.fill(null, 40d);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
+			// Apply test
+			
+			m.apply2((int x, int y, double[] val)->{val[0] = 0; val[1] = 0;});
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,0,0,0,0,0,0,0}, m.extractDoubles(), 0.001f);
+			try {m.apply2((ApplyDouble2)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
@@ -1023,7 +1105,6 @@ public class DoubleComplexMatrixTest {
 	@Test
 	public void aggregateTest() {
 		try(final DoubleComplexMatrix	m = new DoubleComplexMatrix(3, 3)) {
-			Matrix	res;
 			
 			m.assign(1,0,2,0,3,0,4,0,5,0,6,0,7,0,8,0,9,0);
 			Assert.assertArrayEquals(new double[] {6,0, 15,0, 24,0}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Sum).done().extractDoubles(), 0.001f);
