@@ -10,7 +10,7 @@ import chav1961.purelib.matrix.AbstractMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
 
 public class DoubleComplexMatrix extends AbstractMatrix {
-	private final double[]	content;
+	final double[]	content;
 
 	public DoubleComplexMatrix(final int rows, final int columns) {
 		super(Type.COMPLEX_DOUBLE, rows, columns);
@@ -543,38 +543,58 @@ public class DoubleComplexMatrix extends AbstractMatrix {
 			throw new NullPointerException("Cast type can't be null");
 		}
 		else {
+			final double[]	sourceD = this.content;
+			
 			switch (type) {
 				case COMPLEX_DOUBLE	:
-					break;
+					try {
+						return (Matrix) this.clone();
+					} catch (CloneNotSupportedException e) {
+						return this;
+					}
 				case COMPLEX_FLOAT	:
-					break;
+					final FloatComplexMatrix	fcm = new FloatComplexMatrix(numberOfRows(), numberOfColumns());
+					final float[]				targetCF = fcm.content;
+					
+					for(int index = 0, maxIndex = sourceD.length; index < maxIndex; index++) {
+						targetCF[index] = (float)sourceD[index];
+					}
+					return fcm;
 				case REAL_DOUBLE	:
 					final DoubleRealMatrix	drm = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
-					final double[]			sourceD = this.content;
-					final double[]			targetD = drm.extractDoubles();
+					final double[]			targetD = drm.content;
 					
 					for(int index = 0, maxIndex = targetD.length; index < maxIndex; index++) {
-						targetD[index] = sourceD[index];
+						targetD[index] = sourceD[2 * index];
 					}
 					return drm;
 				case REAL_FLOAT		:
-					return this;
+					final FloatRealMatrix	frm = new FloatRealMatrix(numberOfRows(), numberOfColumns());
+					final float[]			targetF = frm.content;
+					
+					for(int index = 0, maxIndex = targetF.length; index < maxIndex; index++) {
+						targetF[index] = (float)sourceD[2 * index];
+					}
+					return frm;
 				case REAL_INT		:
-					final IntRealMatrix		irm = new IntRealMatrix(numberOfRows(), numberOfColumns());
-					final double[]			sourceI = this.content;
-					final int[]				targetI = irm.extractInts();
+					final IntRealMatrix	irm = new IntRealMatrix(numberOfRows(), numberOfColumns());
+					final int[]			targetI = irm.content;
 					
 					for(int index = 0, maxIndex = targetI.length; index < maxIndex; index++) {
-						targetI[index] = (int) sourceI[index];
+						targetI[index] = (int)sourceD[2 * index];
 					}
 					return irm;
 				case REAL_LONG		:
-					break;
+					final LongRealMatrix	lrm = new LongRealMatrix(numberOfRows(), numberOfColumns());
+					final long[]			targetL = lrm.content;
+					
+					for(int index = 0, maxIndex = targetL.length; index < maxIndex; index++) {
+						targetL[index] = (long)sourceD[2 * index];
+					}
+					return lrm;
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+type+"] is not supported yet");
 			}
-			// TODO Auto-generated method stub
-			return null;
 		}
 	}
 

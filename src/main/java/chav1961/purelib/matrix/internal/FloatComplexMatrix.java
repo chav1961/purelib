@@ -6,19 +6,11 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
-import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.matrix.AbstractMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
-import chav1961.purelib.matrix.interfaces.Matrix.AggregateDirection;
-import chav1961.purelib.matrix.interfaces.Matrix.AggregateType;
-import chav1961.purelib.matrix.interfaces.Matrix.ApplyBit;
-import chav1961.purelib.matrix.interfaces.Matrix.ApplyDouble2;
-import chav1961.purelib.matrix.interfaces.Matrix.Piece;
-import chav1961.purelib.matrix.interfaces.Matrix.Type;
 
 public class FloatComplexMatrix extends AbstractMatrix {
-	private final float[]	content;
+	final float[]	content;
 
 	public FloatComplexMatrix(final int rows, final int columns) {
 		super(Type.COMPLEX_FLOAT, rows, columns);
@@ -551,38 +543,58 @@ public class FloatComplexMatrix extends AbstractMatrix {
 			throw new NullPointerException("Cast type can't be null");
 		}
 		else {
+			final float[]	sourceF = this.content;
+			
 			switch (type) {
 				case COMPLEX_DOUBLE	:
-					break;
+					final DoubleComplexMatrix	dcm = new DoubleComplexMatrix(numberOfRows(), numberOfColumns());
+					final double[]				targetCD = dcm.content;
+					
+					for(int index = 0, maxIndex = sourceF.length; index < maxIndex; index++) {
+						targetCD[index] = sourceF[index];
+					}
+					return dcm;
 				case COMPLEX_FLOAT	:
-					break;
+					try {
+						return (Matrix) this.clone();
+					} catch (CloneNotSupportedException e) {
+						return this;
+					}
 				case REAL_DOUBLE	:
 					final DoubleRealMatrix	drm = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
-					final float[]			sourceD = this.content;
-					final double[]			targetD = drm.extractDoubles();
+					final double[]			targetD = drm.content;
 					
 					for(int index = 0, maxIndex = targetD.length; index < maxIndex; index++) {
-						targetD[index] = sourceD[index];
+						targetD[index] = sourceF[2 * index];
 					}
 					return drm;
 				case REAL_FLOAT		:
-					return this;
+					final FloatRealMatrix	frm = new FloatRealMatrix(numberOfRows(), numberOfColumns());
+					final float[]			targetF = frm.content;
+					
+					for(int index = 0, maxIndex = targetF.length; index < maxIndex; index++) {
+						targetF[index] = (float)sourceF[2 * index];
+					}
+					return frm;
 				case REAL_INT		:
-					final IntRealMatrix		irm = new IntRealMatrix(numberOfRows(), numberOfColumns());
-					final float[]			sourceI = this.content;
-					final int[]				targetI = irm.extractInts();
+					final IntRealMatrix	irm = new IntRealMatrix(numberOfRows(), numberOfColumns());
+					final int[]			targetI = irm.content;
 					
 					for(int index = 0, maxIndex = targetI.length; index < maxIndex; index++) {
-						targetI[index] = (int) sourceI[index];
+						targetI[index] = (int)sourceF[2 * index];
 					}
 					return irm;
 				case REAL_LONG		:
-					break;
+					final LongRealMatrix	lrm = new LongRealMatrix(numberOfRows(), numberOfColumns());
+					final long[]			targetL = lrm.content;
+					
+					for(int index = 0, maxIndex = targetL.length; index < maxIndex; index++) {
+						targetL[index] = (long)sourceF[2 * index];
+					}
+					return lrm;
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+type+"] is not supported yet");
 			}
-			// TODO Auto-generated method stub
-			return null;
 		}
 	}
 

@@ -1,27 +1,34 @@
 package chav1961.purelib.matrix.internal;
 
+import java.io.DataOutput;
+import java.io.IOException;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateDirection;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateType;
+import chav1961.purelib.matrix.interfaces.Matrix.ApplyLong;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
+import chav1961.purelib.streams.DataOutputAdapter;
 
 public class LongRealMatrixTest {
 
 	@Test
-	public void basicTest() {
+	public void basicTest() throws RuntimeException, CloneNotSupportedException, IOException {
+		final double[]	sum = new double[1];
+		
 		try(final LongRealMatrix	m = new LongRealMatrix(2, 3)) {
 			Assert.assertEquals(Matrix.Type.REAL_LONG, m.getType());
 			Assert.assertEquals(2, m.numberOfRows());
 			Assert.assertEquals(3, m.numberOfColumns());
 			
-			try{new LongRealMatrix(0, 2);
+			try{new LongRealMatrix(0, 2).close();
 				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 			} catch (IllegalArgumentException exc) {
 			}
-			try{new LongRealMatrix(3, 0);
+			try{new LongRealMatrix(3, 0).close();
 				Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 			} catch (IllegalArgumentException exc) {
 			}
@@ -29,14 +36,29 @@ public class LongRealMatrixTest {
 			// assign ints 
 			
 			m.assign(1,2,3,4,5,6);
-			Assert.assertArrayEquals(new float[] {1,2,3,4,5,6}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.extractLongs());
+
+			sum[0] = 0;
+			m.extractInts(new DataOutputAdapter() {
+				@Override
+				public void writeInt(int v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(21, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10, 20);
-			Assert.assertArrayEquals(new float[] {1,2,3,4,10,20}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {1,2,3,4,10,20}, m.extractLongs());
 			try {m.assign(null, 10, 20);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -45,18 +67,33 @@ public class LongRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
-			
+
 			// assign longs
 			
 			m.assign(6L,5L,4L,3L,2L,1L);
-			Assert.assertArrayEquals(new float[] {6,5,4,3,2,1}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {6,5,4,3,2,1}, m.extractLongs());
+			
+			sum[0] = 0;
+			m.extractLongs(new DataOutputAdapter() {
+				@Override
+				public void writeLong(long v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(21, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10L, 20L);
-			Assert.assertArrayEquals(new float[] {6,5,4,3,10,20}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {6,5,4,3,10,20}, m.extractLongs());
 			try {m.assign(null, 10L, 20L);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -69,14 +106,29 @@ public class LongRealMatrixTest {
 			// assign floats
 			
 			m.assign(1f,3f,5f,7f,9f,11f);
-			Assert.assertArrayEquals(new float[] {1,3,5,7,9,11}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {1,3,5,7,9,11}, m.extractLongs());
+			
+			sum[0] = 0;
+			m.extractFloats(new DataOutputAdapter() {
+				@Override
+				public void writeFloat(float v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(36, sum[0], 0.001);
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10f, 20f);
-			Assert.assertArrayEquals(new float[] {1,3,5,7,10,20}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {1,3,5,7,10,20}, m.extractLongs());
 			try {m.assign(null, 10f, 20f);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -89,14 +141,29 @@ public class LongRealMatrixTest {
 			// assign doubles
 			
 			m.assign(11d,9d,7d,5d,3d,1d);
-			Assert.assertArrayEquals(new float[] {11,9,7,5,3,1}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {11,9,7,5,3,1}, m.extractLongs());
+			
+			sum[0] = 0;
+			m.extractDoubles(new DataOutputAdapter() {
+				@Override
+				public void writeDouble(double v) throws IOException {
+					sum[0] += v;
+				}
+			});
+			Assert.assertEquals(36, sum[0], 0.001); 
+
+			try {m.extractDoubles((DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			
 			try {m.assign((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10d, 20d);
-			Assert.assertArrayEquals(new float[] {11,9,7,5,10,20}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {11,9,7,5,10,20}, m.extractLongs());
 			try {m.assign(null, 10d, 20d);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -150,11 +217,17 @@ public class LongRealMatrixTest {
 			Assert.assertFalse(m3.deepEquals(m));
 			Assert.assertTrue(m.deepEquals(m));
 			Assert.assertFalse(m.deepEquals(null));
+
+			// Test clone()
+			
+			try(final LongRealMatrix	dcm = (LongRealMatrix)m.clone()) {
+				Assert.assertTrue(m.deepEquals(dcm));
+			}
 			
 			// assign matrix
 			
 			m.assign(m2);
-			Assert.assertArrayEquals(new float[] {6,5,4,3,2,1}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {6,5,4,3,2,1}, m.extractLongs());
 			
 			try {m.assign((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -165,7 +238,7 @@ public class LongRealMatrixTest {
 			
 			m4.assign(10,20);
 			m.assign(Piece.of(1, 1, 1, 2), m4);
-			Assert.assertArrayEquals(new float[] {6,5,4,3,10,20}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {6,5,4,3,10,20}, m.extractLongs());
 			try {m.assign(null, m4);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
@@ -195,66 +268,50 @@ public class LongRealMatrixTest {
 			
 			m.assign(1,2,3,4,5,6);
 			m.fill(10);
-			Assert.assertArrayEquals(new float[] {10,10,10,10,10,10}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {10,10,10,10,10,10}, m.extractLongs());
 			m.fill(20L);
-			Assert.assertArrayEquals(new float[] {20,20,20,20,20,20}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {20,20,20,20,20,20}, m.extractLongs());
 			m.fill(30f);
-			Assert.assertArrayEquals(new float[] {30,30,30,30,30,30}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {30,30,30,30,30,30}, m.extractLongs());
 			m.fill(40d);
-			Assert.assertArrayEquals(new float[] {40,40,40,40,40,40}, m.extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {40,40,40,40,40,40}, m.extractLongs());
 	
-			m.assign(1,2,3,4,5,6);
-			m.fill(Piece.of(1,1,1,2), 10);
-			Assert.assertArrayEquals(new float[] {1,2,3,4,10,10}, m.extractFloats(), 0.001f);
-			try {m.fill(null, 10);
+//			m.assign(1,2,3,4,5,6);
+//			m.fill(Piece.of(1,1,1,2), 10, 20);
+//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,10,20,10,20}, m.extractDoubles(), 0.001f);
+//			try {m.fill(null, 10);
+//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+//			} catch (NullPointerException exc) {
+//			}
+//	
+//			m.fill(Piece.of(1,1,1,2), 20L, 30L);
+//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,20,30,20,30}, m.extractDoubles(), 0.001f);
+//			try {m.fill(null, 20L);
+//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+//			} catch (NullPointerException exc) {
+//			}
+//	
+//			m.fill(Piece.of(1,1,1,2), 30f, 40f);
+//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,30,40,30,40}, m.extractDoubles(), 0.001f);
+//			try {m.fill(null, 30f);
+//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+//			} catch (NullPointerException exc) {
+//			}
+//	
+//			m.fill(Piece.of(1,1,1,2), 40d, 50d);
+//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,40,50,40,50}, m.extractDoubles(), 0.001f);
+//			try {m.fill(null, 40d);
+//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+//			} catch (NullPointerException exc) {
+//			}
+			
+			// Apply test
+			
+			m.apply((int x, int y, long val)->0L);
+			Assert.assertArrayEquals(new long[] {0,0,0,0,0,0}, m.extractLongs());
+			try {m.apply((ApplyLong)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
-			}
-	
-			m.fill(Piece.of(1,1,1,2), 20L);
-			Assert.assertArrayEquals(new float[] {1,2,3,4,20,20}, m.extractFloats(), 0.001f);
-			try {m.fill(null, 20L);
-				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-			} catch (NullPointerException exc) {
-			}
-	
-			m.fill(Piece.of(1,1,1,2), 30f);
-			Assert.assertArrayEquals(new float[] {1,2,3,4,30,30}, m.extractFloats(), 0.001f);
-			try {m.fill(null, 30f);
-				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-			} catch (NullPointerException exc) {
-			}
-	
-			m.fill(Piece.of(1,1,1,2), 40d);
-			Assert.assertArrayEquals(new float[] {1,2,3,4,40,40}, m.extractFloats(), 0.001f);
-			try {m.fill(null, 40d);
-				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-			} catch (NullPointerException exc) {
-			}
-	
-			try {m.fill(0f,0f);
-				Assert.fail("Mandatory exception was not detected (unsupported fill)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {m.fill(null, 0f,0f);
-				Assert.fail("Mandatory exception was not detected (unsupported fill)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {m.fill(Piece.of(1, 1, 1, 2), 0f, 0f);
-				Assert.fail("Mandatory exception was not detected (unsupported fill)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {m.fill(0d,0d);
-				Assert.fail("Mandatory exception was not detected (unsupported fill)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {m.fill(null, 0d,0d);
-				Assert.fail("Mandatory exception was not detected (unsupported fill)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {m.fill(Piece.of(1, 1, 1, 2), 0d, 0d);
-				Assert.fail("Mandatory exception was not detected (unsupported fill)");
-			} catch (UnsupportedOperationException exc) {
 			}
 		}
 	}
@@ -268,82 +325,97 @@ public class LongRealMatrixTest {
 
 			// add ints
 			
-			Assert.assertArrayEquals(new int[] {2,4,6,8,10,12}, m1.add(1,2,3,4,5,6).done().extractInts());
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(1,2,3,4,5,6).done().extractDoubles(), 0.001f);
 			try {
 				m1.add((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1,2,3,4,5,6).extractInts();
+				m1.add(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {11,12,13,14,15,16}, m1.addValue(10).done().extractInts());
+			Assert.assertArrayEquals(new double[] {11,12,13,14,15,16}, m1.addValue(10).done().extractDoubles(), 0.001f);
 			try {
-				m1.addValue(10).extractFloats();
+				m1.addValue(5d, 5d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m1.addValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// add longs
 			
-			Assert.assertArrayEquals(new int[] {2,4,6,8,10,12}, m1.add(1L,2L,3L,4L,5L,6L).done().extractInts());
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(1L,2L,3L,4L,5L,6L).done().extractDoubles(), 0.001f);
 			try {
 				m1.add((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1L,2L,3L,4L,5L,6L).extractFloats();
+				m1.add(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {11,12,13,14,15,16}, m1.addValue(10L).done().extractInts());
+			Assert.assertArrayEquals(new double[] {11,12,13,14,15,16}, m1.addValue(10L).done().extractDoubles(), 0.001f);
 			try {
-				m1.addValue(10L).extractFloats();
+				m1.addValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// add floats
 			
-			Assert.assertArrayEquals(new int[] {2,4,6,8,10,12}, m1.add(1f,2f,3f,4f,5f,6f).done().extractInts());
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(1f,2f,3f,4f,5f,6f).done().extractDoubles(), 0.001f);
 			try {
 				m1.add((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1f,2f,3f,4f,5f,6f).extractFloats();
+				m1.add(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {11,12,13,14,15,16}, m1.addValue(10f).done().extractInts());
+			Assert.assertArrayEquals(new double[] {11,12,13,14,15,16}, m1.addValue(10f).done().extractDoubles(), 0.001f);
 			try {
-				m1.addValue(10f).extractFloats();
+				m1.addValue(10f, 20f);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m1.addValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// add doubles
 			
-			Assert.assertArrayEquals(new int[] {2,4,6,8,10,12}, m1.add(1d,2d,3d,4d,5d,6d).done().extractInts());
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(1d,2d,3d,4d,5d,6d).done().extractDoubles(), 0.001f);
 			try {
 				m1.add((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.add(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.add(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {11,12,13,14,15,16}, m1.addValue(10d).done().extractInts());
+			Assert.assertArrayEquals(new double[] {11,12,13,14,15,16}, m1.addValue(10d).done().extractDoubles(), 0.001f);
+			try {
+				m1.addValue(10d, 20d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
 			try {
 				m1.addValue(10d).extractFloats();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
@@ -353,7 +425,7 @@ public class LongRealMatrixTest {
 			// add matrix
 
 			m2.assign(1,2,3,4,5,6);
-			Assert.assertArrayEquals(new int[] {2,4,6,8,10,12}, m1.add(m2).done().extractInts());
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(m2).done().extractDoubles(), 0.001f);
 
 			try {
 				m1.add((Matrix)null);
@@ -364,19 +436,6 @@ public class LongRealMatrixTest {
 				m1.add(m2).extractFloats();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
-			}
-			
-			// unsupported ops
-			
-			try {
-				m1.addValue(1f, 1f);
-				Assert.fail("Mandatory exception was not detected (unsupported add)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m1.addValue(1d, 1d);
-				Assert.fail("Mandatory exception was not detected (unsupported add)");
-			} catch (UnsupportedOperationException exc) {
 			}
 		}
 	}
@@ -390,84 +449,94 @@ public class LongRealMatrixTest {
 
 			// subtract ints
 			
-			Assert.assertArrayEquals(new int[] {0,0,0,0,0,6}, m1.subtract(1,2,3,4,5,0).done().extractInts());
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(1,2,3,4,5,0).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtract((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1,2,3,4,5,0).extractInts();
+				m1.subtract(1,2,3,4,5,0).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10).done().extractInts());
+			Assert.assertArrayEquals(new double[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10).done().extractDoubles(), 0.001f);
 			try {
-				m1.subtractValue(10).extractInts();
+				m1.subtractValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// subtract longs
 			
-			Assert.assertArrayEquals(new int[] {0,0,0,0,0,6}, m1.subtract(1L,2L,3L,4L,5L,0L).done().extractInts());
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(1L,2L,3L,4L,5L,0L).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtract((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1L,2L,3L,4L,5L,0L).extractInts();
+				m1.subtract(1L,2L,3L,4L,5L,0L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10L).done().extractInts());
+			Assert.assertArrayEquals(new double[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10L).done().extractDoubles(), 0.001f);
 			try {
-				m1.subtractValue(10L).extractInts();
+				m1.subtractValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// subtract floats
 			
-			Assert.assertArrayEquals(new int[] {0,0,0,0,0,6}, m1.subtract(1f,2f,3f,4f,5f,0f).done().extractInts());
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(1f,2f,3f,4f,5f,0f).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtract((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1f,2f,3f,4f,5f,6f).extractInts();
+				m1.subtract(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10f).done().extractInts());
+			Assert.assertArrayEquals(new double[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10f).done().extractDoubles(), 0.001f);
 			try {
-				m1.subtractValue(10f).extractInts();
+				m1.subtractValue(10f, 10f);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m1.subtractValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// subtract doubles
 			
-			Assert.assertArrayEquals(new int[] {0,0,0,0,0,6}, m1.subtract(1d,2d,3d,4d,5d,0d).done().extractInts());
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(1d,2d,3d,4d,5d,0d).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtract((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(1d,2d,3d,4d,5d,6d).extractInts();
+				m1.subtract(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10d).done().extractInts());
+			Assert.assertArrayEquals(new double[] {-9,-8,-7,-6,-5,-4}, m1.subtractValue(10d).done().extractDoubles(), 0.001f);
 			try {
-				m1.subtractValue(10d).extractInts();
+				m1.subtractValue(10d, 10d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m1.subtractValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -475,7 +544,7 @@ public class LongRealMatrixTest {
 			// subtract matrix
 
 			m2.assign(1,2,3,4,5,0);
-			Assert.assertArrayEquals(new int[] {0,0,0,0,0,6}, m1.subtract(m2).done().extractInts());
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(m2).done().extractDoubles(), 0.001f);
 
 			try {
 				m1.subtract((Matrix)null);
@@ -483,22 +552,9 @@ public class LongRealMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtract(m2).extractInts();
+				m1.subtract(m2).extractFloats();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
-			}
-			
-			// unsupported ops
-			
-			try {
-				m1.subtractValue(1f, 1f);
-				Assert.fail("Mandatory exception was not detected (unsupported subtract)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m1.subtractValue(1d, 1d);
-				Assert.fail("Mandatory exception was not detected (unsupported subtract)");
-			} catch (UnsupportedOperationException exc) {
 			}
 		}
 	}
@@ -512,84 +568,96 @@ public class LongRealMatrixTest {
 
 			// subtract ints
 			
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFrom(10,10,10,10,10,10).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(10,10,10,10,10,10).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtractFrom((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1,2,3,4,5,0).extractInts();
+				m1.subtractFrom(1,2,3,4,5,0).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFromValue(10).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFromValue(10).done().extractDoubles(), 0.001f);
 			try {
-				m1.subtractFromValue(10).extractInts();
+				m1.subtractFromValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// subtract longs
 			
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFrom(10L,10L,10L,10L,10L,10L).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(10L,10L,10L,10L,10L,10L).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtractFrom((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1L,2L,3L,4L,5L,0L).extractInts();
+				m1.subtractFrom(1L,2L,3L,4L,5L,0L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFromValue(10L).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFromValue(10L).done().extractDoubles(), 0.001f);
 			try {
-				m1.subtractFromValue(10L).extractInts();
+				m1.subtractFromValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// subtract floats
 			
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFrom(10f,10f,10f,10f,10f,10f).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(10f,10f,10f,10f,10f,10f).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtractFrom((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1f,2f,3f,4f,5f,6f).extractInts();
+				m1.subtractFrom(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFromValue(10f).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFromValue(10f).done().extractDoubles(), 0.001f);
+
 			try {
-				m1.subtractFromValue(10f).extractInts();
+				m1.subtractFromValue(10f, 5f);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m1.subtractFromValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// subtract doubles
 			
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFrom(10d,10d,10d,10d,10d,10d).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(10d,10d,10d,10d,10d,10d).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtractFrom((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(1d,2d,3d,4d,5d,6d).extractInts();
+				m1.subtractFrom(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFromValue(10d).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFromValue(10d).done().extractDoubles(), 0.001f);
+			
 			try {
-				m1.subtractFromValue(10d).extractInts();
+				m1.subtractFromValue(10d, 5d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m1.subtractFromValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -597,29 +665,16 @@ public class LongRealMatrixTest {
 			// subtract matrix
 
 			m2.assign(10,10,10,10,10,10);
-			Assert.assertArrayEquals(new int[] {9,8,7,6,5,4}, m1.subtractFrom(m2).done().extractInts());
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(m2).done().extractDoubles(), 0.001f);
 			try {
 				m1.subtractFrom((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.subtractFrom(m2).extractInts();
+				m1.subtractFrom(m2).extractFloats();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
-			}
-			
-			// unsupported ops
-			
-			try {
-				m1.subtractFromValue(1f, 1f);
-				Assert.fail("Mandatory exception was not detected (unsupported subtract)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m1.subtractFromValue(1d, 1d);
-				Assert.fail("Mandatory exception was not detected (unsupported subtract)");
-			} catch (UnsupportedOperationException exc) {
 			}
 		}
 	}
@@ -627,132 +682,128 @@ public class LongRealMatrixTest {
 	@Test
 	public void mulValueTest() {
 		try(final LongRealMatrix	m = new LongRealMatrix(2, 3)) {
-			m.assign(1,2,3,4,5,6);
+			m.assign(10,20,30,40,50,60);
 			
 			// int muls
 			
-			Assert.assertArrayEquals(new int[] {10,20,30,40,50,60}, m.mulValue(10).done().extractInts());
+			Assert.assertArrayEquals(new long[] {100,200,300,400,500,600}, m.mulValue(10).done().extractLongs());
 			try {
-				m.mulValue(10).extractInts();
+				m.mulValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {0,1,1,2,2,3}, m.divValue(2).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.divValue(10).done().extractLongs());
 			try {
-				m.divValue(10).extractInts();
+				m.divValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {100,50,33,25,20,16}, m.divFromValue(100).done().extractInts());
+			Assert.assertArrayEquals(new long[] {20,10,6,5,4,3}, m.divFromValue(200).done().extractLongs());
 			try {
-				m.divFromValue(10).extractInts();
+				m.divFromValue(10).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// long muls
 			
-			Assert.assertArrayEquals(new int[] {10,20,30,40,50,60}, m.mulValue(10L).done().extractInts());
+			Assert.assertArrayEquals(new long[] {100,200,300,400,500,600}, m.mulValue(10L).done().extractLongs());
 			try {
-				m.mulValue(10L).extractInts();
+				m.mulValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {0,1,1,2,2,3}, m.divValue(2L).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.divValue(10L).done().extractLongs());
 			try {
-				m.divValue(10L).extractInts();
+				m.divValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {100,50,33,25,20,16}, m.divFromValue(100L).done().extractInts());
+			Assert.assertArrayEquals(new long[] {20,10,6,5,4,3}, m.divFromValue(200L).done().extractLongs());
 			try {
-				m.divFromValue(10L).extractInts();
+				m.divFromValue(10L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// float muls
 			
-			Assert.assertArrayEquals(new int[] {10,20,30,40,50,60}, m.mulValue(10f).done().extractInts());
+			Assert.assertArrayEquals(new long[] {100,200,300,400,500,600}, m.mulValue(10f).done().extractLongs());
 			try {
-				m.mulValue(10f).extractInts();
+				m.mulValue(5f, 5f);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m.mulValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {0,1,1,2,2,3}, m.divValue(2f).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.divValue(10f).done().extractLongs());
 			try {
-				m.divValue(10f).extractInts();
+				m.divValue(2f, 2f);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m.divValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {100,50,33,25,20,16}, m.divFromValue(100f).done().extractInts());
+			Assert.assertArrayEquals(new long[] {20,10,6,5,4,3}, m.divFromValue(200f).done().extractLongs());
 			try {
-				m.divFromValue(10f).extractFloats();
+				m.divFromValue(2d, 2d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m.divFromValue(10f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// double muls			
 			
-			Assert.assertArrayEquals(new float[] {10,20,30,40,50,60}, m.mulValue(10d).done().extractFloats(), 0.001f);
+			Assert.assertArrayEquals(new long[] {100,200,300,400,500,600}, m.mulValue(10d).done().extractLongs());
 			try {
-				m.mulValue(10d).extractFloats();
+				m.mulValue(5d, 5d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m.mulValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {0,1,1,2,2,3}, m.divValue(2d).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.divValue(10d).done().extractLongs());
 			try {
-				m.divValue(10d).extractInts();
+				m.divValue(2d, 2d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m.divValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {100,50,33,25,20,16}, m.divFromValue(100d).done().extractInts());
+			Assert.assertArrayEquals(new long[] {20,10,6,5,4,3}, m.divFromValue(200d).done().extractLongs());
 			try {
-				m.divFromValue(10d).extractFloats();
+				m.divFromValue(2d, 2d);
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
+			try {
+				m.divFromValue(10d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
-			}
-
-			// unsupported ops
-			
-			try {
-				m.mulValue(10f, 10f).extractInts();
-				Assert.fail("Mandatory exception was not detected (unsupported mul)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m.divValue(10f, 10f).extractInts();
-				Assert.fail("Mandatory exception was not detected (unsupported mul)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m.divFromValue(10f, 10f).extractInts();
-				Assert.fail("Mandatory exception was not detected (unsupported mul)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			
-			try {
-				m.mulValue(10d, 10d).extractInts();
-				Assert.fail("Mandatory exception was not detected (unsupported mul)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m.divValue(10d, 10d).extractInts();
-				Assert.fail("Mandatory exception was not detected (unsupported mul)");
-			} catch (UnsupportedOperationException exc) {
-			}
-			try {
-				m.divFromValue(10d, 10d).extractInts();
-				Assert.fail("Mandatory exception was not detected (unsupported mul)");
-			} catch (UnsupportedOperationException exc) {
 			}
 		}
 	}
@@ -761,156 +812,157 @@ public class LongRealMatrixTest {
 	public void mulHadamardTest() {
 		try(final LongRealMatrix	m1 = new LongRealMatrix(2, 3);
 			final LongRealMatrix	m2 = new LongRealMatrix(2, 3)) {
+			
 			m1.assign(1,2,3,4,5,6);
 			
 			// int muls
 			
-			Assert.assertArrayEquals(new int[] {1,4,9,16,25,36}, m1.mulHadamard(1,2,3,4,5,6).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,4,9,16,25,36}, m1.mulHadamard(1,2,3,4,5,6).done().extractLongs());
 			try {
 				m1.mulHadamard((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1,2,3,4,5,6).extractInts();
+				m1.mulHadamard(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {1,1,1,1,1,1}, m1.mulInvHadamard(1,2,3,4,5,6).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,1,1,1,1,1}, m1.mulInvHadamard(1,2,3,4,5,6).done().extractLongs());
 			try {
 				m1.mulInvHadamard((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1,2,3,4,5,6).extractInts();
+				m1.mulInvHadamard(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(10,20,30,40,50,60).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,1,1,1,1,1}, m1.mulInvFromHadamard(1,2,3,4,5,6).done().extractLongs());
 			try {
 				m1.mulInvFromHadamard((int[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1,2,3,4,5,6).extractInts();
+				m1.mulInvFromHadamard(1,2,3,4,5,6).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			// long muls
 			
-			Assert.assertArrayEquals(new int[] {1,4,9,16,25,36}, m1.mulHadamard(1L,2L,3L,4L,5L,6L).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,4,9,16,25,36}, m1.mulHadamard(1L,2L,3L,4L,5L,6L).done().extractLongs());
 			try {
 				m1.mulHadamard((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1L,2L,3L,4L,5L,6L).extractInts();
+				m1.mulHadamard(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {1,1,1,1,1,1}, m1.mulInvHadamard(1L,2L,3L,4L,5L,6L).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,1,1,1,1,1}, m1.mulInvHadamard(1L,2L,3L,4L,5L,6L).done().extractLongs());
 			try {
 				m1.mulInvHadamard((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1L,2L,3L,4L,5L,6L).extractInts();
+				m1.mulInvHadamard(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(10L,20L,30L,40L,50L,60L).done().extractInts());
+			Assert.assertArrayEquals(new long[] {10L,10L,10L,10L,10L,10L}, m1.mulInvFromHadamard(10L,20L,30L,40L,50L,60L).done().extractLongs());
 			try {
 				m1.mulInvFromHadamard((long[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L).extractInts();
+				m1.mulInvFromHadamard(1L,2L,3L,4L,5L,6L).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// float muls
 			
-			Assert.assertArrayEquals(new int[] {1,4,9,16,25,36}, m1.mulHadamard(1f,2f,3f,4f,5f,6f).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,4,9,16,25,36}, m1.mulHadamard(1f,2f,3f,4f,5f,6f).done().extractLongs());
 			try {
 				m1.mulHadamard((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1f,2f,3f,4f,5f,6f).extractInts();
+				m1.mulHadamard(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {1,1,1,1,1,1}, m1.mulInvHadamard(1f,2f,3f,4f,5f,6f).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,1,1,1,1,1}, m1.mulInvHadamard(1f,2f,3f,4f,5f,6f).done().extractLongs());
 			try {
 				m1.mulInvHadamard((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1f,2f,3f,4f,5f,6f).extractInts();
+				m1.mulInvHadamard(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(10f,20f,30f,40f,50f,60f).done().extractInts());
+			Assert.assertArrayEquals(new long[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(10f,20f,30f,40f,50f,60f).done().extractLongs());
 			try {
 				m1.mulInvFromHadamard((float[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f).extractInts();
+				m1.mulInvFromHadamard(1f,2f,3f,4f,5f,6f).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			// double muls
 			
-			Assert.assertArrayEquals(new int[] {1,4,9,16,25,36}, m1.mulHadamard(1d,2d,3d,4d,5d,6d).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,4,9,16,25,36}, m1.mulHadamard(1d,2d,3d,4d,5d,6d).done().extractLongs());
 			try {
 				m1.mulHadamard((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(1d,2d,3d,4d,5d,6d).extractInts();
+				m1.mulHadamard(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {1,1,1,1,1,1}, m1.mulInvHadamard(1d,2d,3d,4d,5d,6d).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,1,1,1,1,1}, m1.mulInvHadamard(1d,2d,3d,4d,5d,6d).done().extractLongs());
 			try {
 				m1.mulInvHadamard((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(1d,2d,3d,4d,5d,6d).extractInts();
+				m1.mulInvHadamard(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
-			Assert.assertArrayEquals(new int[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(10d,20d,30d,40d,50d,60d).done().extractInts());
+			Assert.assertArrayEquals(new long[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(10d,20d,30d,40d,50d,60d).done().extractLongs());
 			try {
 				m1.mulInvFromHadamard((double[])null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d).extractFloats();
+				m1.mulInvFromHadamard(1d,2d,3d,4d,5d,6d).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -918,39 +970,39 @@ public class LongRealMatrixTest {
 			// matrix muls
 			
 			m2.assign(1,2,3,4,5,6);
-			Assert.assertArrayEquals(new int[] {1,4,9,16,25,36}, m1.mulHadamard(m2).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,4,9,16,25,36}, m1.mulHadamard(m2).done().extractLongs());
 			try {
 				m1.mulHadamard((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulHadamard(m2).extractInts();
+				m1.mulHadamard(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
-			Assert.assertArrayEquals(new int[] {1,1,1,1,1,1}, m1.mulInvHadamard(m2).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1,1,1,1,1,1}, m1.mulInvHadamard(m2).done().extractLongs());
 			try {
 				m1.mulInvHadamard((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvHadamard(m2).extractInts();
+				m1.mulInvHadamard(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 			
 			m2.assign(10,20,30,40,50,60);
-			Assert.assertArrayEquals(new int[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(m2).done().extractInts());
+			Assert.assertArrayEquals(new long[] {10,10,10,10,10,10}, m1.mulInvFromHadamard(m2).done().extractLongs());
 	 		try {
 				m1.mulInvFromHadamard((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulInvFromHadamard(m2).extractInts();
+				m1.mulInvFromHadamard(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -970,7 +1022,7 @@ public class LongRealMatrixTest {
 			
 			Assert.assertEquals(2, m3.numberOfRows());
 			Assert.assertEquals(2, m3.numberOfColumns());
-			Assert.assertArrayEquals(new int[] {220,280,490,640}, m3.extractInts());
+			Assert.assertArrayEquals(new double[] {220,280,490,640}, m3.extractDoubles(), 0.001f);
 			
 	 		try {
 				m1.mul((Matrix)null);
@@ -978,7 +1030,7 @@ public class LongRealMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mul(m2).extractFloats();
+				m1.mul(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -992,7 +1044,7 @@ public class LongRealMatrixTest {
 			
 			Assert.assertEquals(3, m3.numberOfRows());
 			Assert.assertEquals(3, m3.numberOfColumns());
-			Assert.assertArrayEquals(new int[] {90,120,150,190,260,330,290,400,510}, m3.extractInts());
+			Assert.assertArrayEquals(new double[] {90,120,150,190,260,330,290,400,510}, m3.extractDoubles(), 0.001f);
 			
 	 		try {
 				m1.mulFrom((Matrix)null);
@@ -1000,7 +1052,7 @@ public class LongRealMatrixTest {
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.mulFrom(m2).extractFloats();
+				m1.mulFrom(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -1026,19 +1078,20 @@ public class LongRealMatrixTest {
 			
 			Assert.assertEquals(6, m3.numberOfRows());
 			Assert.assertEquals(6, m3.numberOfColumns());
-			Assert.assertArrayEquals(new int[] {10,20,20,40,30,60,
+			Assert.assertArrayEquals(new double[] {10,20,20,40,30,60,
 												  30,40,60,80,90,120,
 												  40,80,50,100,60,120,
 												  120,160,150,200,180,240,
 												  70,140,80,160,90,180,
-												  210,280,240,320,270,360}, m3.extractInts());
+												  210,280,240,320,270,360},
+					                            m3.extractDoubles(), 0.001f);
 	 		try {
 				m1.tensorMul((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.tensorMul(m2).extractFloats();
+				m1.tensorMul(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -1047,19 +1100,20 @@ public class LongRealMatrixTest {
 			
 			Assert.assertEquals(6, m3.numberOfRows());
 			Assert.assertEquals(6, m3.numberOfColumns());
-			Assert.assertArrayEquals(new int[] {10,20,30,20,40,60,
+			Assert.assertArrayEquals(new double[] {10,20,30,20,40,60,
 												  40,50,60,80,100,120,
 												  70,80,90,140,160,180,
 												  30,60,90,40,80,120,
 												  120,150,180,160,200,240,
-												  210,240,270,280,320,360}, m3.extractInts());
+												  210,240,270,280,320,360}, 
+					 							m3.extractDoubles(), 0.001f);
 	 		try {
 				m1.tensorMulFrom((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
 			try {
-				m1.tensorMulFrom(m2).extractFloats();
+				m1.tensorMulFrom(m2).extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
@@ -1071,50 +1125,59 @@ public class LongRealMatrixTest {
 		try(final LongRealMatrix	m = new LongRealMatrix(3, 3)) {
 				
 			m.assign(1,2,3,4,5,6,7,8,10);
-			Assert.assertArrayEquals(new int[] {1,4,7,2,5,8,3,6,10}, m.transpose().done().extractInts());
+			Assert.assertArrayEquals(new double[] {1,4,7,2,5,8,3,6,10}, m.transpose().done().extractDoubles(), 0.001f);
 			try {
-				m.transpose().extractFloats();
+				m.transpose().extractDoubles();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}
 
 			try {
 				m.invert();
-				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (UnsupportedOperationException exc) {
 			}
 			
-			try{
-				m.det();
+			try {
+				m.det2();
 				Assert.fail("Mandatory exception was not detected (unsupported operation)");
 			} catch (UnsupportedOperationException exc) {
 			}
+			try{
+				m.det();
+			} catch (UnsupportedOperationException exc) {
+			}
 
-			Assert.assertEquals(16, m.track().intValue());
+			Assert.assertEquals(16L, m.track());
+			try {
+				m.track2();
+				Assert.fail("Mandatory exception was not detected (unsupported operation)");
+			} catch (UnsupportedOperationException exc) {
+			}
 		}
 	}
 
 	@Test
 	public void aggregateTest() {
 		try(final LongRealMatrix	m = new LongRealMatrix(3, 3)) {
-			Matrix	res;
 			
 			m.assign(1,2,3,4,5,6,7,8,9);
-			Assert.assertArrayEquals(new int[] {6, 15, 24}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Sum).done().extractInts());
-			Assert.assertArrayEquals(new int[] {12, 15, 18}, m.aggregate(AggregateDirection.ByRows, AggregateType.Sum).done().extractInts());
-			Assert.assertArrayEquals(new int[] {45}, m.aggregate(AggregateDirection.Total, AggregateType.Sum).done().extractInts());
+			Assert.assertArrayEquals(new long[] {6, 15, 24}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Sum).done().extractLongs());
+			Assert.assertArrayEquals(new long[] {12, 15, 18}, m.aggregate(AggregateDirection.ByRows, AggregateType.Sum).done().extractLongs());
+			Assert.assertArrayEquals(new long[] {45}, m.aggregate(AggregateDirection.Total, AggregateType.Sum).done().extractLongs());
 
-			Assert.assertArrayEquals(new int[] {1, 4, 7}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Min).done().extractInts());
-			Assert.assertArrayEquals(new int[] {1, 2, 3}, m.aggregate(AggregateDirection.ByRows, AggregateType.Min).done().extractInts());
-			Assert.assertArrayEquals(new int[] {1}, m.aggregate(AggregateDirection.Total, AggregateType.Min).done().extractInts());
+			Assert.assertArrayEquals(new long[] {1, 4, 7}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Min).done().extractLongs());
+			Assert.assertArrayEquals(new long[] {1, 2, 3}, m.aggregate(AggregateDirection.ByRows, AggregateType.Min).done().extractLongs());
+			Assert.assertArrayEquals(new long[] {1}, m.aggregate(AggregateDirection.Total, AggregateType.Min).done().extractLongs());
 
-			Assert.assertArrayEquals(new int[] {3, 6, 9}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Max).done().extractInts());
-			Assert.assertArrayEquals(new int[] {7, 8, 9}, m.aggregate(AggregateDirection.ByRows, AggregateType.Max).done().extractInts());
-			Assert.assertArrayEquals(new int[] {9}, m.aggregate(AggregateDirection.Total, AggregateType.Max).done().extractInts());
+			Assert.assertArrayEquals(new long[] {3, 6, 9}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Max).done().extractLongs());
+			Assert.assertArrayEquals(new long[] {7, 8, 9}, m.aggregate(AggregateDirection.ByRows, AggregateType.Max).done().extractLongs());
+			Assert.assertArrayEquals(new long[] {9}, m.aggregate(AggregateDirection.Total, AggregateType.Max).done().extractLongs());
 
-			Assert.assertArrayEquals(new int[] {2, 5, 8}, m.aggregate(AggregateDirection.ByColumns, AggregateType.Avg).done().extractInts());
-			Assert.assertArrayEquals(new int[] {4, 5, 6}, m.aggregate(AggregateDirection.ByRows, AggregateType.Avg).done().extractInts());
-			Assert.assertArrayEquals(new int[] {5}, m.aggregate(AggregateDirection.Total, AggregateType.Avg).done().extractInts());
+			try{m.aggregate(AggregateDirection.Total, AggregateType.Avg);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (UnsupportedOperationException exc) {
+			}
 			
 			try{m.aggregate(null, AggregateType.Avg);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -1124,7 +1187,7 @@ public class LongRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
-			try{m.aggregate(AggregateDirection.ByColumns, AggregateType.Avg).extractFloats();
+			try{m.aggregate(AggregateDirection.ByColumns, AggregateType.Sum).extractLongs();
 				Assert.fail("Mandatory exception was not detected (done() call is missing)");
 			} catch (IllegalStateException exc) {
 			}

@@ -5,7 +5,7 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({ DoubleComplexMatrixTest.class, DoubleRealMatrixTest.class, FloatComplexMatrixTest.class,
-		FloatRealMatrixTest.class, IntRealMatrixTest.class, LongRealMatrixTest.class })
+		FloatRealMatrixTest.class, IntRealMatrixTest.class, LongRealMatrixTest.class, MatricesCastTest.class })
 public class AllTests {
 
 }

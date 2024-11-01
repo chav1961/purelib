@@ -10,7 +10,7 @@ import chav1961.purelib.matrix.AbstractMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
 
 public class DoubleRealMatrix extends AbstractMatrix {
-	private final double[]	content;
+	final double[]	content;
 
 	public DoubleRealMatrix(final int rows, final int columns) {
 		super(Type.REAL_DOUBLE, rows, columns);
@@ -527,38 +527,60 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			throw new NullPointerException("Cast type can't be null");
 		}
 		else {
+			final double[]	sourceD = this.content;
+			
 			switch (type) {
 				case COMPLEX_DOUBLE	:
-					break;
-				case COMPLEX_FLOAT	:
-					break;
-				case REAL_DOUBLE	:
-					final DoubleRealMatrix	drm = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
-					final double[]			sourceD = this.content;
-					final double[]			targetD = drm.extractDoubles();
+					final DoubleComplexMatrix	dcm = new DoubleComplexMatrix(numberOfRows(), numberOfColumns());
+					final double[]				targetCD = dcm.content;
 					
-					for(int index = 0, maxIndex = targetD.length; index < maxIndex; index++) {
-						targetD[index] = sourceD[index];
+					for(int index = 0, maxIndex = sourceD.length; index < maxIndex; index++) {
+						targetCD[2 * index] = sourceD[index];
+						targetCD[2 * index + 1] = 0;
 					}
-					return drm;
+					return dcm;
+				case COMPLEX_FLOAT	:
+					final FloatComplexMatrix	fcm = new FloatComplexMatrix(numberOfRows(), numberOfColumns());
+					final float[]				targetCF = fcm.content;
+					
+					for(int index = 0, maxIndex = sourceD.length; index < maxIndex; index++) {
+						targetCF[2 * index] = (float)sourceD[index];
+						targetCF[2 * index + 1] = 0;
+					}
+					return fcm;
+				case REAL_DOUBLE	:
+					try {
+						return (Matrix) this.clone();
+					} catch (CloneNotSupportedException e) {
+						return this;
+					}
 				case REAL_FLOAT		:
-					return this;
+					final FloatRealMatrix	frm = new FloatRealMatrix(numberOfRows(), numberOfColumns());
+					final float[]			targetF = frm.content;
+					
+					for(int index = 0, maxIndex = targetF.length; index < maxIndex; index++) {
+						targetF[index] = (float)sourceD[index];
+					}
+					return frm;
 				case REAL_INT		:
-					final IntRealMatrix		irm = new IntRealMatrix(numberOfRows(), numberOfColumns());
-					final double[]			sourceI = this.content;
-					final int[]				targetI = irm.extractInts();
+					final IntRealMatrix	irm = new IntRealMatrix(numberOfRows(), numberOfColumns());
+					final int[]			targetI = irm.content;
 					
 					for(int index = 0, maxIndex = targetI.length; index < maxIndex; index++) {
-						targetI[index] = (int) sourceI[index];
+						targetI[index] = (int)sourceD[index];
 					}
 					return irm;
 				case REAL_LONG		:
-					break;
+					final LongRealMatrix	lrm = new LongRealMatrix(numberOfRows(), numberOfColumns());
+					final long[]			targetL = lrm.content;
+					
+					for(int index = 0, maxIndex = targetL.length; index < maxIndex; index++) {
+						targetL[index] = (long)sourceD[index];
+					}
+					return lrm;
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+type+"] is not supported yet");
 			}
-			// TODO Auto-generated method stub
-			return null;
 		}
 	}
 
@@ -977,46 +999,29 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		}
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows(), content.numberOfColumns());
-			final double[]				source = this.content;
-			final double[]				target = result.content;
-			final int					maxY = this.numberOfRows(), maxX = content.numberOfColumns();
-			final int					colSize = this.numberOfColumns(), maxK = content.numberOfRows(); 
+			final double[]			source = this.content;
+			final double[]			target = result.content;
+			final int				maxY = this.numberOfRows(), maxX = content.numberOfColumns();
+			final int				colSize = this.numberOfColumns(), maxK = content.numberOfRows(); 
 			
 			switch (content.getType()) {
 				case COMPLEX_DOUBLE : 
+				case COMPLEX_FLOAT 	:
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
 					final double[]	tempD = content.extractDoubles();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
-							float	real = 0, image = 0;
+							double	sum = 0;
 							
 							for(int k = 0; k < maxK; k++) {
-								real += source[2 * (y * colSize + k)] * tempD[2 * (k * maxX + x)] - source[2 * (y * colSize + k) + 1] * tempD[2 * (k * maxX + x) + 1];
-								image += source[2 * (y * colSize + k) + 1] * tempD[2 * (k * maxX + x)] + source[2 * (y * colSize + k)] * tempD[2 * (k * maxX + x) + 1];
+								sum += source[(y * colSize + k)] * tempD[(k * maxX + x)];
 							}
-							target[2 * (y * maxX + x)] = real;
-							target[2 * (y * maxX + x) + 1] = image;
+							target[(y * maxX + x)] = sum;
 						}
 					}
 					break;
-				case COMPLEX_FLOAT 	:
-					final float[]	tempF = content.extractFloats();
-
-					for(int y = 0; y < maxY; y++) {
-						for(int x = 0; x < maxX; x++) {
-							float	real = 0, image = 0;
-							
-							for(int k = 0; k < maxK; k++) {
-								real += source[2 * (y * colSize + k)] * tempF[2 * (k * maxX + x)] - source[2 * (y * colSize + k) + 1] * tempF[2 * (k * maxX + x) + 1];
-								image += source[2 * (y * colSize + k) + 1] * tempF[2 * (k * maxX + x)] + source[2 * (y * colSize + k)] * tempF[2 * (k * maxX + x) + 1];
-							}
-							target[2 * (y * maxX + x)] = real;
-							target[2 * (y * maxX + x) + 1] = image;
-						}
-					}
-					break;
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
 				default : 
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
@@ -1042,39 +1047,22 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			
 			switch (content.getType()) {
 				case COMPLEX_DOUBLE : 
+				case COMPLEX_FLOAT 	:
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
 					final double[]	tempD = content.extractDoubles();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
-							float	real = 0, image = 0;
+							double	sum = 0;
 							
 							for(int k = 0; k < maxK; k++) {
-								real += tempD[2 * (y * colSize + k)] * source[2 * (k * maxX + x)] - tempD[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x) + 1];
-								image += tempD[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x)] + tempD[2 * (y * colSize + k)] * source[2 * (k * maxX + x) + 1];
+								sum += tempD[(y * colSize + k)] * source[(k * maxX + x)];
 							}
-							target[2 * (y * maxX + x)] = real;
-							target[2 * (y * maxX + x) + 1] = image;
+							target[(y * maxX + x)] = sum;
 						}
 					}
 					break;
-				case COMPLEX_FLOAT 	:
-					final float[]	tempF = content.extractFloats();
-
-					for(int y = 0; y < maxY; y++) {
-						for(int x = 0; x < maxX; x++) {
-							float	real = 0, image = 0;
-							
-							for(int k = 0; k < maxK; k++) {
-								real += tempF[2 * (y * colSize + k)] * source[2 * (k * maxX + x)] - tempF[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x) + 1];
-								image += tempF[2 * (y * colSize + k) + 1] * source[2 * (k * maxX + x)] + tempF[2 * (y * colSize + k)] * source[2 * (k * maxX + x) + 1];
-							}
-							target[2 * (y * maxX + x)] = real;
-							target[2 * (y * maxX + x) + 1] = image;
-						}
-					}
-					break;
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
 				default : 
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
@@ -1186,7 +1174,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		final double[]			source = this.content;
 		final double[]			target = result.content;
 		
-		for(int index = 0, maxIndex = target.length; index < maxIndex; index += 2) {
+		for(int index = 0, maxIndex = target.length; index < maxIndex; index++) {
 			target[index] = value / source[index]; 
 		}
 		result.beginTransaction();
@@ -1402,7 +1390,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final double[]			source = this.content;
 			final double[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] / source[index];  
 			}
 			result.beginTransaction();
@@ -1420,7 +1408,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final double[]			source = this.content;
 			final double[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] / source[index];  
 			}
 			result.beginTransaction();
@@ -1438,7 +1426,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final double[]			source = this.content;
 			final double[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] / source[index];  
 			}
 			result.beginTransaction();
@@ -1456,7 +1444,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final double[]			source = this.content;
 			final double[]			target = result.content;
 			
-			for(int index = 0, maxIndex = Math.min(content.length, target.length) / 2; index < maxIndex; index++) {
+			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
 				target[index] = content[index] / source[index];  
 			}
 			result.beginTransaction();
@@ -1503,51 +1491,28 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			
 			switch (content.getType()) {
 				case COMPLEX_DOUBLE : 
+				case COMPLEX_FLOAT 	:
+					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
 					final double[]	tempD = content.extractDoubles();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
-							final double	real = source[2 * (y1 * maxX1 + x1)];
-							final double	image = source[2 * (y1 * maxX1 + x1) + 1];
+							final double	value = source[(y1 * maxX1 + x1)];
 							
-							if (real != 0 || image != 0) {
+							if (value != 0) {
 								for (int y2 = 0; y2 < maxY2; y2++) {
 									for (int x2 = 0; x2 < maxX2; x2++) {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[2 * targetIndex] = (float) (real * tempD[2 * sourceIndex] - image * tempD[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * tempD[2 * sourceIndex + 1] + image * tempD[2 * sourceIndex]);
+										target[targetIndex] = value * tempD[sourceIndex];
 									}
 								}
 							}
 						}
 					}
 					break;
-				case COMPLEX_FLOAT 	:
-					final float[]	tempF = content.extractFloats();
-					
-					for (int y1 = 0; y1 < maxY1; y1++) {
-						for (int x1 = 0; x1 < maxX1; x1++) {
-							final double	real = source[2 * (y1 * maxX1 + x1)];
-							final double	image = source[2 * (y1 * maxX1 + x1) + 1];
-							
-							if (real != 0 || image != 0) {
-								for (int y2 = 0; y2 < maxY2; y2++) {
-									for (int x2 = 0; x2 < maxX2; x2++) {
-										final int 	sourceIndex = y2 * maxX2 + x2; 
-										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
-										
-										target[2 * targetIndex] = (float) (real * tempF[2 * sourceIndex] - image * tempF[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * tempF[2 * sourceIndex + 1] + image * tempF[2 * sourceIndex]);
-									}
-								}
-							}
-						}
-					}
-					break;
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
@@ -1570,51 +1535,28 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			
 			switch (content.getType()) {
 				case COMPLEX_DOUBLE : 
+				case COMPLEX_FLOAT 	:
+					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
+				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
 					final double[]	tempD = content.extractDoubles();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
-							final double	real = tempD[2 * (y1 * maxX1 + x1)];
-							final double	image = tempD[2 * (y1 * maxX1 + x1) + 1];
+							final double	value = tempD[(y1 * maxX1 + x1)];
 							
-							if (real != 0 || image != 0) {
+							if (value != 0) {
 								for (int y2 = 0; y2 < maxY2; y2++) {
 									for (int x2 = 0; x2 < maxX2; x2++) {
 										final int 	sourceIndex = y2 * maxX2 + x2; 
 										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
 										
-										target[2 * targetIndex] = (float) (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
+										target[targetIndex] = value * source[sourceIndex];
 									}
 								}
 							}
 						}
 					}
 					break;
-				case COMPLEX_FLOAT 	:
-					final float[]	tempF = content.extractFloats();
-					
-					for (int y1 = 0; y1 < maxY1; y1++) {
-						for (int x1 = 0; x1 < maxX1; x1++) {
-							final double	real = tempF[2 * (y1 * maxX1 + x1)];
-							final double	image = tempF[2 * (y1 * maxX1 + x1) + 1];
-							
-							if (real != 0 || image != 0) {
-								for (int y2 = 0; y2 < maxY2; y2++) {
-									for (int x2 = 0; x2 < maxX2; x2++) {
-										final int 	sourceIndex = y2 * maxX2 + x2; 
-										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
-										
-										target[2 * targetIndex] = (float) (real * source[2 * sourceIndex] - image * source[2 * sourceIndex + 1]);
-										target[2 * targetIndex + 1] = (float) (real * source[2 * sourceIndex + 1] + image * source[2 * sourceIndex]);
-									}
-								}
-							}
-						}
-					}
-					break;
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
 				default:
 					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
 			}
@@ -1638,42 +1580,35 @@ public class DoubleRealMatrix extends AbstractMatrix {
 				identity[index * (colSize + 1)] = 1;
 			}
 			for(int y = 0; y < colSize; y++) {
-				final double	real = source[2 * (y * (colSize + 1))];	// Take diagonal element.
-				final double	image = source[2 * (y * (colSize + 1)) + 1];
-				final double	quad = 1 / (real * real + image * image);
+				final double	diag = source[(y * (colSize + 1))];	// Take diagonal element.
 				
-				if (quad == 0) {
+				if (diag == 0) {
 					throw new IllegalArgumentException("Matrix has zero element on diagonal");
 				}
-				
-				for(int x = 0; x < colSize; x++) {		// divide all line by diagonal element
-					source[2 * (y * colSize + x)] = (source[2 * (y * colSize + x)] * real + source[2 * (y * colSize + x) + 1] * image) * quad; 
-					source[2 * (y * colSize + x) + 1] = (source[2 * (y * colSize + x) + 1] * real - source[2 * (y * colSize + x)] * image) * quad; 
-					identity[2 * (y * colSize + x)] = (identity[2 * (y * colSize + x)] * real + identity[2 * (y * colSize + x) + 1] * image) * quad;
-					identity[2 * (y * colSize + x) + 1] = (identity[2 * (y * colSize + x) + 1] * real - identity[2 * (y * colSize + x)] * image) * quad;
-				}
-				for(int i = y + 1; i < colSize; i++) {	// subtract current line from all lines below to make zeroes at the current column
-					final double	real2 = source[2 * (i * colSize + y)];
-					final double	image2 = source[2 * (i * colSize + y) + 1];
+				else {
+					final double	inv = 1 / diag;
 					
-					for(int x = 0; x < colSize; x++) {
-						source[2 * (i * colSize + x)] -= real2 * source[2 * (y * colSize + x)] - image2 * source[2 * (y * colSize + x) + 1];
-						source[2 * (i * colSize + x) + 1] -= real2 * source[2 * (y * colSize + x) + 1] + image2 * source[2 * (y * colSize + x)];
-						identity[2 * (i * colSize + x)] -= real2 * identity[2 * (y * colSize + x)] - image2 * identity[2 * (y * colSize + x) + 1];
-						identity[2 * (i * colSize + x) + 1] -= real2 * identity[2 * (y * colSize + x) + 1] + image2 * identity[2 * (y * colSize + x)];
+					for(int x = 0; x < colSize; x++) {		// divide all line by diagonal element
+						source[(y * colSize + x)] = source[(y * colSize + x)] * inv; 
+						identity[(y * colSize + x)] = identity[(y * colSize + x)] * inv;
+					}
+					for(int i = y + 1; i < colSize; i++) {	// subtract current line from all lines below to make zeroes at the current column
+						final double	value = source[(i * colSize + y)];
+						
+						for(int x = 0; x < colSize; x++) {
+							source[(i * colSize + x)] -= value * source[(y * colSize + x)];
+							identity[(i * colSize + x)] -= value * identity[(y * colSize + x)];
+						}
 					}
 				}
 			}
 			for(int y = colSize-1; y >= 0; y--) {	// subtract current line from all lines above to make zeroes at the current column 
 				for(int i = y - 1; i >= 0; i--) {
-					final double	real2 = source[2 * (i * colSize + y)];
-					final double	image2 = source[2 * (i * colSize + y) + 1];
+					final double	value = source[(i * colSize + y)];
 					
 					for(int x = 0; x < colSize; x++) {
-						source[2 * (i * colSize + x)] -= real2 * source[2 * (y * colSize + x)] - image2 * source[2 * (y * colSize + x) + 1];
-						source[2 * (i * colSize + x) + 1] -= real2 * source[2 * (y * colSize + x) + 1] + image2 * source[2 * (y * colSize + x)];
-						identity[2 * (i * colSize + x)] -= real2 * identity[2 * (y * colSize + x)] - image2 * identity[2 * (y * colSize + x) + 1];
-						identity[2 * (i * colSize + x) + 1] -= real2 * identity[2 * (y * colSize + x) + 1] + image2 * identity[2 * (y * colSize + x)];
+						source[(i * colSize + x)] -= value * source[(y * colSize + x)];
+						identity[(i * colSize + x)] -= value * identity[(y * colSize + x)];
 					}
 				}
 			}
@@ -1736,26 +1671,27 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final double[]	source = this.content.clone();
 			final int		colSize = numberOfColumns();
-			double			detReal = 1, detImage = 0;
+			double			detReal = 1;
 
 			for(int y = 0; y < colSize; y++) {
-				final double	real = source[2 * (y * (colSize + 1))];		// Take diagonal element.
-				final double	image = source[2 * (y * (colSize + 1)) + 1];		// Take diagonal element.
-				final double	quad = 1 / (real * real + image * image);
-
-				detReal = detReal * real - detImage * image;
-				detImage = detReal * image + detImage * real;
-				for(int x = 0; x < colSize; x++) {		// divide all line by diagonal element
-					source[2 * (y * colSize + x)] = (source[2 * (y * colSize + x)] * real + source[2 * (y * colSize + x) + 1] * image) * quad;
-					source[2 * (y * colSize + x) + 1] =  (source[2 * (y * colSize + x)] * image - source[2 * (y * colSize + x) + 1] * real) * quad;
+				final double	diag = source[(y * (colSize + 1))];		// Take diagonal element.
+				
+				if (diag == 0) {
+					return 0;
 				}
-				for(int i = y + 1; i < colSize; i++) {	// subtract current line from all lines below to make zeroes at the current column
-					final double	real2 = source[2 * (i * colSize + y)];
-					final double	image2 = source[2 * (i * colSize + y) + 1];
+				else {
+					final double	inv = 1 / diag;
 					
-					for(int x = 0; x < colSize; x++) {
-						source[2 * (i * colSize + x)] -= source[2 * (y * colSize + x)] * real2 - source[2 * (y * colSize + x) + 1] * image2;
-						source[2 * (i * colSize + x) + 1] -= source[2 * (y * colSize + x) + 1] * real2 + source[2 * (y * colSize + x)] * image2;
+					detReal = detReal * diag;
+					for(int x = 0; x < colSize; x++) {		// divide all line by diagonal element
+						source[(y * colSize + x)] = source[(y * colSize + x)] * inv;
+					}
+					for(int i = y + 1; i < colSize; i++) {	// subtract current line from all lines below to make zeroes at the current column
+						final double	value = source[(i * colSize + y)];
+						
+						for(int x = 0; x < colSize; x++) {
+							source[(i * colSize + x)] -= source[(y * colSize + x)] * value;
+						}
 					}
 				}
 			}
@@ -1767,24 +1703,23 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	public Number track() {
 		final double[]	source = this.content;
 		final int		colSize = numberOfColumns();
-		double	real = 0, image = 0;
+		double	sum = 0;
 		
 		areAllAsyncCompleted();
 		for(int index = 0; index < colSize; index++) {	// Calculate diagonal sum
-			real += source[2 * (index * (colSize + 1))];
-			image += source[2 * (index * (colSize + 1)) + 1];
+			sum += source[(index * (colSize + 1))];
 		}
-		return real;
+		return sum;
 	}
 	
 	@Override
 	public Number[] det2() {
-		throw new IllegalStateException("Attempt to get complex determinant for real matrix");
+		throw new UnsupportedOperationException("Attempt to get complex determinant for real matrix");
 	}
 
 	@Override
 	public Number[] track2() {
-		throw new IllegalStateException("Attempt to get complex track for real matrix");
+		throw new UnsupportedOperationException("Attempt to get complex track for real matrix");
 	}
 	
 	@Override
@@ -1825,7 +1760,8 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		final DoubleRealMatrix	result;
 		final double[]		source = this.content;
 		final double[]		target;
-		double	real, image;
+		final int			cols = numberOfColumns();
+		double	value;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -1833,45 +1769,37 @@ public class DoubleRealMatrix extends AbstractMatrix {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					real = 0;
-					image = 0;
-					for(int x = 0; x < numberOfColumns(); x++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
+					value = 0;
+					
+					for(int x = 0; x < cols; x++) {
+						value += source[(y * cols + x)];
 					}
-					target[2 * y] = real / numberOfColumns();
-					target[2 * y + 1] = image / numberOfColumns();
+					target[y] = value / cols;
 				}
 				break;
 			case ByRows		:
-				result = new DoubleRealMatrix(1, numberOfColumns()); 
+				result = new DoubleRealMatrix(1, cols); 
 				target = result.content;
 				
-				for(int x = 0; x < numberOfColumns(); x++) {
-					real = 0;
-					image = 0;
+				for(int x = 0; x < cols; x++) {
+					value = 0;
 					for(int y = 0; y < numberOfRows(); y++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
+						value += source[(y * cols + x)];
 					}
-					target[2 * x] = real / numberOfRows();
-					target[2 * x + 1] = image / numberOfRows();
+					target[x] = value / numberOfRows();
 				}
 				break;
 			case Total		:
 				result = new DoubleRealMatrix(1, 1); 
 				target = result.content;
 				
-				real = 0;
-				image = 0;
+				value = 0;
 				for(int y = 0; y < numberOfRows(); y++) {
-					for(int x = 0; x < numberOfColumns(); x++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
+					for(int x = 0; x < cols; x++) {
+						value += source[(y * cols + x)];
 					}
 				}
-				target[0] = real / (numberOfRows() * numberOfColumns());
-				target[1] = image / (numberOfRows() * numberOfColumns());
+				target[0] = value / (numberOfRows() * cols);
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
@@ -1884,7 +1812,8 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		final DoubleRealMatrix	result;
 		final double[]			source = this.content;
 		final double[]			target;
-		double	val, real, image;
+		final int				cols = numberOfColumns();
+		double	val;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -1892,66 +1821,50 @@ public class DoubleRealMatrix extends AbstractMatrix {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					real = source[2 * (y * numberOfColumns() + 0)]; 
-					image = source[2 * (y * numberOfColumns() + 0) + 1]; 
-					val = real * real + image * image ;
-					for(int x = 0; x < numberOfColumns(); x++) {
-						final double	tempR = source[2 * (y * numberOfColumns() + x)]; 
-						final double	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+					val = source[(y * cols + 0)]; 
+					
+					for(int x = 0; x < cols; x++) {
+						final double	current = source[(y * cols + x)]; 
 						
-						if (tempR * tempR + tempI * tempI > val) {
-							real = tempR;
-							image = tempI;
-							val = tempR * tempR + tempI * tempI;
+						if (current > val) {
+							val = current;
 						}
 					}
-					target[2 * y] = real;
-					target[2 * y + 1] = image;
+					target[y] = val;
 				}
 				break;
 			case ByRows		:
-				result = new DoubleRealMatrix(1, numberOfColumns()); 
+				result = new DoubleRealMatrix(1, cols); 
 				target = result.content;
 				
-				for(int x = 0; x < numberOfColumns(); x++) {
-					real = source[2 * (x * numberOfColumns() + 0)]; 
-					image = source[2 * (x * numberOfColumns() + 0) + 1]; 
-					val = real * real + image * image ;
+				for(int x = 0; x < cols; x++) {
+					val = source[(x * cols + 0)]; 
+					
 					for(int y = 0; y < numberOfRows(); y++) {
-						final double	tempR = source[2 * (y * numberOfColumns() + x)]; 
-						final double	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						final double	current = source[(y * cols + x)]; 
 						
-						if (tempR * tempR + tempI * tempI > val) {
-							real = tempR;
-							image = tempI;
-							val = tempR * tempR + tempI * tempI;
+						if (current > val) {
+							val = current;
 						}
 					}
-					target[2 * x] = real;
-					target[2 * x + 1] = image;
+					target[x] = val;
 				}
 				break;
 			case Total		:
 				result = new DoubleRealMatrix(1, 1); 
 				target = result.content;
 				
-				real = source[0]; 
-				image = source[1]; 
-				val = real * real + image * image ;
+				val = source[0]; 
 				for(int y = 0; y < numberOfRows(); y++) {
-					for(int x = 0; x < numberOfColumns(); x++) {
-						final double	tempR = source[2 * (y * numberOfColumns() + x)]; 
-						final double	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+					for(int x = 0; x < cols; x++) {
+						final double	current = source[(y * cols + x)]; 
 						
-						if (tempR * tempR + tempI * tempI > val) {
-							real = tempR;
-							image = tempI;
-							val = tempR * tempR + tempI * tempI;
+						if (current > val) {
+							val = current;
 						}
 					}
 				}
-				target[0] = real;
-				target[1] = image;
+				target[0] = val;
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
@@ -1964,7 +1877,8 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		final DoubleRealMatrix	result;
 		final double[]			source = this.content;
 		final double[]			target;
-		double	val, real, image;
+		final int				cols = numberOfColumns();
+		double	val;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -1972,66 +1886,50 @@ public class DoubleRealMatrix extends AbstractMatrix {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					real = source[2 * (y * numberOfColumns() + 0)]; 
-					image = source[2 * (y * numberOfColumns() + 0) + 1]; 
-					val = real * real + image * image ;
-					for(int x = 0; x < numberOfColumns(); x++) {
-						final double	tempR = source[2 * (y * numberOfColumns() + x)]; 
-						final double	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+					val = source[(y * cols + 0)]; 
+					
+					for(int x = 0; x < cols; x++) {
+						final double	current = source[(y * cols + x)]; 
 						
-						if (tempR * tempR + tempI * tempI < val) {
-							real = tempR;
-							image = tempI;
-							val = tempR * tempR + tempI * tempI;
+						if (current < val) {
+							val = current;
 						}
 					}
-					target[2 * y] = real;
-					target[2 * y + 1] = image;
+					target[y] = val;
 				}
 				break;
 			case ByRows		:
-				result = new DoubleRealMatrix(1, numberOfColumns()); 
+				result = new DoubleRealMatrix(1, cols); 
 				target = result.content;
 				
-				for(int x = 0; x < numberOfColumns(); x++) {
-					real = source[2 * (x * numberOfColumns() + 0)]; 
-					image = source[2 * (x * numberOfColumns() + 0) + 1]; 
-					val = real * real + image * image ;
+				for(int x = 0; x < cols; x++) {
+					val = source[(x * cols + 0)]; 
+					
 					for(int y = 0; y < numberOfRows(); y++) {
-						final double	tempR = source[2 * (y * numberOfColumns() + x)]; 
-						final double	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+						final double	current = source[(y * cols + x)]; 
 						
-						if (tempR * tempR + tempI * tempI < val) {
-							real = tempR;
-							image = tempI;
-							val = tempR * tempR + tempI * tempI;
+						if (current < val) {
+							val = current;
 						}
 					}
-					target[2 * x] = real;
-					target[2 * x + 1] = image;
+					target[x] = val;
 				}
 				break;
 			case Total		:
 				result = new DoubleRealMatrix(1, 1); 
 				target = result.content;
 				
-				real = source[0]; 
-				image = source[1]; 
-				val = real * real + image * image ;
+				val = source[0]; 
 				for(int y = 0; y < numberOfRows(); y++) {
-					for(int x = 0; x < numberOfColumns(); x++) {
-						final double	tempR = source[2 * (y * numberOfColumns() + x)]; 
-						final double	tempI = source[2 * (y * numberOfColumns() + x) + 1];
+					for(int x = 0; x < cols; x++) {
+						final double	current = source[(y * cols + x)]; 
 						
-						if (tempR * tempR + tempI * tempI < val) {
-							real = tempR;
-							image = tempI;
-							val = tempR * tempR + tempI * tempI;
+						if (current < val) {
+							val = current;
 						}
 					}
 				}
-				target[0] = real;
-				target[1] = image;
+				target[0] = val;
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
@@ -2044,7 +1942,8 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		final DoubleRealMatrix	result;
 		final double[]			source = this.content;
 		final double[]			target;
-		double	real, image;
+		final int				cols = numberOfColumns();
+		double	sum;
 		
 		switch (dir) {
 			case ByColumns	:
@@ -2052,45 +1951,36 @@ public class DoubleRealMatrix extends AbstractMatrix {
 				target = result.content;
 				
 				for(int y = 0; y < numberOfRows(); y++) {
-					real = 0;
-					image = 0;
-					for(int x = 0; x < numberOfColumns(); x++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
+					sum = 0;
+					for(int x = 0; x < cols; x++) {
+						sum += source[(y * cols + x)];
 					}
-					target[2 * y] = real;
-					target[2 * y + 1] = image;
+					target[y] = sum;
 				}
 				break;
 			case ByRows		:
-				result = new DoubleRealMatrix(1, numberOfColumns()); 
+				result = new DoubleRealMatrix(1, cols); 
 				target = result.content;
 				
-				for(int x = 0; x < numberOfColumns(); x++) {
-					real = 0;
-					image = 0;
+				for(int x = 0; x < cols; x++) {
+					sum = 0;
 					for(int y = 0; y < numberOfRows(); y++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
+						sum += source[(y * cols + x)];
 					}
-					target[2 * x] = real;
-					target[2 * x + 1] = image;
+					target[x] = sum;
 				}
 				break;
 			case Total		:
 				result = new DoubleRealMatrix(1, 1); 
 				target = result.content;
 				
-				real = 0;
-				image = 0;
+				sum = 0;
 				for(int y = 0; y < numberOfRows(); y++) {
-					for(int x = 0; x < numberOfColumns(); x++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
+					for(int x = 0; x < cols; x++) {
+						sum += source[(y * cols + x)];
 					}
 				}
-				target[0] = real;
-				target[1] = image;
+				target[0] = sum;
 				break;
 			default:
 				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
