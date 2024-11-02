@@ -44,7 +44,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			throw new IllegalStateException("Calling this method inside transaction. Call done() before.");
 		}
 		else {
-			return Arrays.equals(content, another.extractDoubles());
+			return Arrays.equals(content, (another instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)another).content : another.extractDoubles());
 		}
 	}
 
@@ -67,8 +67,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (int)source[((y0 + y)*cols + (x0 + x))];
+					result[where++] = (int)source[index++];
 				}
 			}
 			return result;
@@ -95,8 +97,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					dataOutput.writeInt((int)source[((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeInt((int)source[index++]);
 				}
 			}
 		}
@@ -121,8 +125,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (long)source[((y0 + y)*cols + (x0 + x))];
+					result[where++] = (long)source[index++];
 				}
 			}
 			return result;
@@ -149,8 +155,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					dataOutput.writeLong((long)source[((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeLong((long)source[index++]);
 				}
 			}
 		}
@@ -175,8 +183,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (float) source[((y0 + y)*cols + (x0 + x))];
+					result[where++] = (float) source[index++];
 				}
 			}
 			return result;
@@ -203,8 +213,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					dataOutput.writeFloat((float) source[((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeFloat((float) source[index++]);
 				}
 			}
 		}
@@ -239,8 +251,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[where++] = (double)source[((y0 + y)*cols + (x0 + x))];
+					result[where++] = source[index++];
 				}
 			}
 			return result;
@@ -264,8 +278,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			final int		maxX = piece.getWidth(), maxY = piece.getHeight(), cols = numberOfColumns();
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					dataOutput.writeDouble((double)source[((y0 + y)*cols + (x0 + x))]);
+					dataOutput.writeDouble((double)source[index++]);
 				}
 			}
 		}
@@ -292,8 +308,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[((y0 + y)*cols + (x0 + x))] = content[where++];
+					result[index++] = content[where++];
 				}
 			}
 			return this;
@@ -321,8 +339,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[((y0 + y)*cols + (x0 + x))] = content[where++];
+					result[index++] = content[where++];
 				}
 			}
 			return this;
@@ -350,8 +370,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[((y0 + y)*cols + (x0 + x))] = content[where++];
+					result[index++] = content[where++];
 				}
 			}
 			return this;
@@ -394,8 +416,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 			int				where = 0;
 			
 			for(int y = 0; y < maxY; y++) {
+				int index = ((y0 + y)*cols + x0);
+				
 				for(int x = 0; x < maxX; x++) {
-					result[((y0 + y)*cols + (x0 + x))] = (float)content[where++];
+					result[index++] = (float)content[where++];
 				}
 			}
 			return this;
@@ -403,18 +427,39 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix assign(final Piece piece, final Matrix content) {
+	public Matrix assign(final Piece piece, final Matrix matrix) {
 		if (piece == null) {
 			throw new NullPointerException("Piece can't be null");
 		}
 		else if (isOverlaps(piece)) {
 			throw overlapsError(piece);
 		}
-		else if (content == null) {
+		else if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			return assign(piece, content.extractDoubles());
+			switch (matrix.getType()) {
+				case COMPLEX_DOUBLE : case COMPLEX_FLOAT :
+					throw new IllegalArgumentException("Attempt to assign real matrix with complex matrix. Use cast() before");
+				case REAL_DOUBLE	:
+					assign(piece, (matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
+					break;
+				case REAL_FLOAT		:
+					assign(piece, (matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
+					break;
+				case REAL_INT		:
+					assign(piece, (matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
+					break;
+				case REAL_LONG		:
+					assign(piece, (matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+					break;
+				case BIT 			:
+					assign(matrix.extractInts());
+					break;
+				default :
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
+			}
+			return this;
 		}
 	}
 
@@ -445,6 +490,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 					try {
 						switch (type) {
 							case BIT			:
+								result[((y0 + y)*cols + (x0 + x))] = content.readBoolean() ? 1 : 0;
 								break;
 							case COMPLEX_DOUBLE	:
 							case REAL_DOUBLE	:
@@ -461,7 +507,7 @@ public class DoubleRealMatrix extends AbstractMatrix {
 								result[((y0 + y)*cols + (x0 + x))] = content.readLong();
 								break;
 							default:
-								break;
+								throw new UnsupportedOperationException("Matrix type ["+type+"] is not supported yet");
 						}
 					} catch (EOFException exc) {
 					}
@@ -610,10 +656,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] += content[index]; 
+				target[index] = source[index] + content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -628,10 +674,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] += content[index]; 
+				target[index] = source[index] + content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -646,10 +692,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] += content[index]; 
+				target[index] = source[index] + content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -657,26 +703,27 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix add(final Matrix content) {
-		if (content == null) {
+	public Matrix add(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
-					return add(content.extractDoubles());
 				case COMPLEX_FLOAT 	:
-					return add(content.extractFloats());
+					throw new IllegalArgumentException("Attempt to add real and complex matrix. Use cast() before");
 				case REAL_DOUBLE	:
-					return add(content.extractDoubles());
+					return add((matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
 				case REAL_FLOAT		:
-					return add(content.extractFloats());
+					return add((matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
 				case REAL_INT		:
-					return add(content.extractInts());
+					return add((matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
 				case REAL_LONG		:
-					return add(content.extractLongs());
+					return add((matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+				case BIT			:
+					return add(matrix.extractInts());
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 		}
 	}
@@ -727,10 +774,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] -= content[index]; 
+				target[index] = source[index] - content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -745,10 +792,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] -= content[index]; 
+				target[index] = source[index] - content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -763,10 +810,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] -= content[index]; 
+				target[index] = source[index] - content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -781,10 +828,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] -= content[index]; 
+				target[index] = source[index] - content[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -792,26 +839,27 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix subtract(final Matrix content) {
-		if (content == null) {
+	public Matrix subtract(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
-					return subtract(content.extractDoubles());
 				case COMPLEX_FLOAT :
-					return subtract(content.extractFloats());
+					throw new IllegalArgumentException("Attempt to subtract real and complex matrix. Use cast(0 before");
 				case REAL_DOUBLE	:
-					return subtract(content.extractDoubles());
+					return subtract((matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
 				case REAL_FLOAT		:
-					return subtract(content.extractFloats());
+					return subtract((matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
 				case REAL_INT		:
-					return subtract(content.extractInts());
+					return subtract((matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
 				case REAL_LONG		:
-					return subtract(content.extractLongs());
+					return subtract((matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+				case BIT			:
+					return subtract(matrix.extractInts());
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 		}
 	}
@@ -862,10 +910,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = content[index] - target[index]; 
+				target[index] = content[index] - source[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -880,10 +928,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = content[index] - target[index]; 
+				target[index] = content[index] - source[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -898,10 +946,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = content[index] - target[index]; 
+				target[index] = content[index] - source[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -916,10 +964,10 @@ public class DoubleRealMatrix extends AbstractMatrix {
 		else {
 			final DoubleRealMatrix	result = new DoubleRealMatrix(numberOfRows(), numberOfColumns());
 			final double[]			target = result.content;
+			final double[]			source = this.content;
 			
-			System.arraycopy(this.content, 0, target, 0, target.length);
 			for(int index = 0, maxIndex = Math.min(content.length, target.length); index < maxIndex; index++) {
-				target[index] = (content[index] - target[index]); 
+				target[index] = content[index] - source[index]; 
 			}
 			result.beginTransaction();
 			return result;
@@ -927,26 +975,27 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix subtractFrom(final Matrix content) {
-		if (content == null) {
+	public Matrix subtractFrom(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
-					return subtractFrom(content.extractDoubles());
 				case COMPLEX_FLOAT 	:
-					return subtractFrom(content.extractFloats());
+					throw new IllegalArgumentException("Attempt to subtract real and complex matrix. Use cast() before");
 				case REAL_DOUBLE	:
-					return subtractFrom(content.extractDoubles());
+					return subtractFrom((matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
 				case REAL_FLOAT		:
-					return subtractFrom(content.extractFloats());
+					return subtractFrom((matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
 				case REAL_INT		:
-					return subtractFrom(content.extractInts());
+					return subtractFrom((matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
 				case REAL_LONG		:
-					return subtractFrom(content.extractLongs());
+					return subtractFrom((matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+				case BIT :
+					return subtractFrom(matrix.extractInts());
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 		}
 	}
@@ -990,26 +1039,26 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix mul(final Matrix content) {
-		if (content == null) {
+	public Matrix mul(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
-		else if (content.numberOfRows() != this.numberOfColumns()) {
-			throw new IllegalArgumentException("Content number of rows ["+content.numberOfRows()+"] differ from current number of columns ["+this.numberOfColumns()+"]");
+		else if (matrix.numberOfRows() != this.numberOfColumns()) {
+			throw new IllegalArgumentException("Content number of rows ["+matrix.numberOfRows()+"] differ from current number of columns ["+this.numberOfColumns()+"]");
 		}
 		else {
-			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows(), content.numberOfColumns());
+			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows(), matrix.numberOfColumns());
 			final double[]			source = this.content;
 			final double[]			target = result.content;
-			final int				maxY = this.numberOfRows(), maxX = content.numberOfColumns();
-			final int				colSize = this.numberOfColumns(), maxK = content.numberOfRows(); 
+			final int				maxY = this.numberOfRows(), maxX = matrix.numberOfColumns();
+			final int				colSize = this.numberOfColumns(), maxK = matrix.numberOfRows(); 
 			
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
 				case COMPLEX_FLOAT 	:
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					final double[]	tempD = content.extractDoubles();
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices. Use cast() before");
+				case REAL_DOUBLE : 
+					final double[]	tempD = (matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
@@ -1022,8 +1071,64 @@ public class DoubleRealMatrix extends AbstractMatrix {
 						}
 					}
 					break;
+				case REAL_FLOAT : 
+					final float[]	tempF = (matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += source[(y * colSize + k)] * tempF[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
+				case REAL_INT : 
+					final int[]		tempI = (matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += source[(y * colSize + k)] * tempI[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
+				case REAL_LONG :
+					final long[]	tempL = (matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += source[(y * colSize + k)] * tempL[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
+				case BIT	:
+					final int[]		tempB = matrix.extractInts();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += source[(y * colSize + k)] * tempB[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 			result.beginTransaction();
 			return result;
@@ -1031,26 +1136,26 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix mulFrom(final Matrix content) {
-		if (content == null) {
+	public Matrix mulFrom(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
-		else if (this.numberOfRows() != content.numberOfColumns()) {
-			throw new IllegalArgumentException("Content number of columns ["+content.numberOfColumns()+"] differ from current number of rows ["+this.numberOfRows()+"]");
+		else if (this.numberOfRows() != matrix.numberOfColumns()) {
+			throw new IllegalArgumentException("Content number of columns ["+matrix.numberOfColumns()+"] differ from current number of rows ["+this.numberOfRows()+"]");
 		}
 		else {
-			final DoubleRealMatrix	result = new DoubleRealMatrix(content.numberOfRows(), this.numberOfColumns());
+			final DoubleRealMatrix	result = new DoubleRealMatrix(matrix.numberOfRows(), this.numberOfColumns());
 			final double[]			source = this.content;
 			final double[]			target = result.content;
-			final int				maxY = content.numberOfRows(), maxX = this.numberOfColumns();
-			final int				colSize = content.numberOfColumns(), maxK = this.numberOfRows(); 
+			final int				maxY = matrix.numberOfRows(), maxX = this.numberOfColumns();
+			final int				colSize = matrix.numberOfColumns(), maxK = this.numberOfRows(); 
 			
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
 				case COMPLEX_FLOAT 	:
-					throw new IllegalArgumentException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					final double[]	tempD = content.extractDoubles();
+					throw new IllegalArgumentException("Attempt to multiply real and complex matrices. Use cast() before");
+				case REAL_DOUBLE 	: 
+					final double[]	tempD = (matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles();
 
 					for(int y = 0; y < maxY; y++) {
 						for(int x = 0; x < maxX; x++) {
@@ -1063,8 +1168,64 @@ public class DoubleRealMatrix extends AbstractMatrix {
 						}
 					}
 					break;
+				case REAL_FLOAT 	: 
+					final float[]	tempF = (matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += tempF[(y * colSize + k)] * source[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
+				case REAL_INT 		: 
+					final int[]		tempI = (matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += tempI[(y * colSize + k)] * source[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
+				case REAL_LONG 		:
+					final long[]	tempL = (matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += tempL[(y * colSize + k)] * source[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
+				case BIT	:
+					final int[]		tempB = matrix.extractInts();
+
+					for(int y = 0; y < maxY; y++) {
+						for(int x = 0; x < maxX; x++) {
+							double	sum = 0;
+							
+							for(int k = 0; k < maxK; k++) {
+								sum += tempB[(y * colSize + k)] * source[(k * maxX + x)];
+							}
+							target[(y * maxX + x)] = sum;
+						}
+					}
+					break;
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 			result.beginTransaction();
 			return result;
@@ -1259,26 +1420,27 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix mulHadamard(final Matrix content) {
-		if (content == null) {
+	public Matrix mulHadamard(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
-					return mulHadamard(content.extractDoubles());
 				case COMPLEX_FLOAT 	:
-					return mulHadamard(content.extractFloats());
+					throw new UnsupportedOperationException("Attempt to multiply real and compex matrix. Use cast() before");
 				case REAL_DOUBLE	:
-					return mulHadamard(content.extractDoubles());
+					return mulHadamard((matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
 				case REAL_FLOAT		:
-					return mulHadamard(content.extractFloats());
+					return mulHadamard((matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
 				case REAL_INT		:
-					return mulHadamard(content.extractInts());
+					return mulHadamard((matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
 				case REAL_LONG		:
-					return mulHadamard(content.extractLongs());
+					return mulHadamard((matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+				case BIT 	:
+					return mulHadamard(matrix.extractInts());
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 		}
 	}
@@ -1356,26 +1518,27 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix mulInvHadamard(final Matrix content) {
-		if (content == null) {
+	public Matrix mulInvHadamard(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
-					return mulInvHadamard(content.extractDoubles());
 				case COMPLEX_FLOAT 	:
-					return mulInvHadamard(content.extractFloats());
+					throw new UnsupportedOperationException("Attempt to multiply real and compex matrix. Use cast() before");
 				case REAL_DOUBLE	:
-					return mulInvHadamard(content.extractDoubles());
+					return mulInvHadamard((matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
 				case REAL_FLOAT		:
-					return mulInvHadamard(content.extractFloats());
+					return mulInvHadamard((matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
 				case REAL_INT		:
-					return mulInvHadamard(content.extractInts());
+					return mulInvHadamard((matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
 				case REAL_LONG		:
-					return mulInvHadamard(content.extractLongs());
+					return mulInvHadamard((matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+				case BIT :
+					return mulInvHadamard(matrix.extractInts());
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 		}
 	}
@@ -1453,48 +1616,49 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix mulInvFromHadamard(final Matrix content) {
-		if (content == null) {
+	public Matrix mulInvFromHadamard(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Content matrix can't be null");
 		}
 		else {
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
-					return mulInvFromHadamard(content.extractDoubles());
 				case COMPLEX_FLOAT 	:
-					return mulInvFromHadamard(content.extractFloats());
+					throw new UnsupportedOperationException("Attempt to multiply real and compex matrix. Use cast() before");
 				case REAL_DOUBLE	:
-					return mulInvFromHadamard(content.extractDoubles());
+					return mulInvFromHadamard((matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles());
 				case REAL_FLOAT		:
-					return mulInvFromHadamard(content.extractFloats());
+					return mulInvFromHadamard((matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats());
 				case REAL_INT		:
-					return mulInvFromHadamard(content.extractInts());
+					return mulInvFromHadamard((matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts());
 				case REAL_LONG		:
-					return mulInvFromHadamard(content.extractLongs());
+					return mulInvFromHadamard((matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs());
+				case BIT :
+					return mulInvFromHadamard(matrix.extractInts());
 				default : 
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 		}
 	}
 
 	@Override
-	public Matrix tensorMul(final Matrix content) {
-		if (content == null) {
+	public Matrix tensorMul(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Matrix content can't be null");
 		}
 		else {
-			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows() * content.numberOfRows(), this.numberOfColumns() * content.numberOfColumns());
+			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows() * matrix.numberOfRows(), this.numberOfColumns() * matrix.numberOfColumns());
 			final double[]				source = this.content;
 			final double[]				target = result.content;
-			final int 					maxY1 = this.numberOfRows(), maxY2 = content.numberOfRows();
-			final int 					maxX1 = this.numberOfColumns(), maxX2 = content.numberOfColumns();
+			final int 					maxY1 = this.numberOfRows(), maxY2 = matrix.numberOfRows();
+			final int 					maxX1 = this.numberOfColumns(), maxX2 = matrix.numberOfColumns();
 			
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
 				case COMPLEX_FLOAT 	:
-					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					final double[]	tempD = content.extractDoubles();
+					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices. Use cast() before");
+				case REAL_DOUBLE 	: 
+					final double[]	tempD = (matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
@@ -1513,8 +1677,88 @@ public class DoubleRealMatrix extends AbstractMatrix {
 						}
 					}
 					break;
+				case REAL_FLOAT 	: 
+					final float[]	tempF = (matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = source[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * tempF[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
+				case REAL_INT 		: 
+					final int[]		tempI = (matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = source[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * tempI[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
+				case REAL_LONG 		:
+					final long[]	tempL = (matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = source[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * tempL[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
+				case BIT :
+					final int[]		tempB = matrix.extractInts();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = source[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * tempB[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
 				default:
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 			result.beginTransaction();
 			return result;
@@ -1522,23 +1766,23 @@ public class DoubleRealMatrix extends AbstractMatrix {
 	}
 
 	@Override
-	public Matrix tensorMulFrom(final Matrix content) {
-		if (content == null) {
+	public Matrix tensorMulFrom(final Matrix matrix) {
+		if (matrix == null) {
 			throw new NullPointerException("Matrix content can't be null");
 		}
 		else {
-			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows() * content.numberOfRows(), this.numberOfColumns() * content.numberOfColumns());
+			final DoubleRealMatrix	result = new DoubleRealMatrix(this.numberOfRows() * matrix.numberOfRows(), this.numberOfColumns() * matrix.numberOfColumns());
 			final double[]				source = this.content;
 			final double[]				target = result.content;
-			final int 					maxY1 = content.numberOfRows(), maxY2 = this.numberOfRows();
-			final int 					maxX1 = content.numberOfColumns(), maxX2 = this.numberOfColumns();
+			final int 					maxY1 = matrix.numberOfRows(), maxY2 = this.numberOfRows();
+			final int 					maxX1 = matrix.numberOfColumns(), maxX2 = this.numberOfColumns();
 			
-			switch (content.getType()) {
+			switch (matrix.getType()) {
 				case COMPLEX_DOUBLE : 
 				case COMPLEX_FLOAT 	:
-					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices");
-				case REAL_DOUBLE : case REAL_FLOAT : case REAL_INT : case REAL_LONG :
-					final double[]	tempD = content.extractDoubles();
+					throw new UnsupportedOperationException("Attempt to multiply real and complex matrices. Use cast() before");
+				case REAL_DOUBLE 	: 
+					final double[]	tempD = (matrix instanceof DoubleRealMatrix) ? ((DoubleRealMatrix)matrix).content : matrix.extractDoubles();
 					
 					for (int y1 = 0; y1 < maxY1; y1++) {
 						for (int x1 = 0; x1 < maxX1; x1++) {
@@ -1557,8 +1801,88 @@ public class DoubleRealMatrix extends AbstractMatrix {
 						}
 					}
 					break;
+				case REAL_FLOAT 	: 
+					final float[]	tempF = (matrix instanceof FloatRealMatrix) ? ((FloatRealMatrix)matrix).content : matrix.extractFloats();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = tempF[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * source[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
+				case REAL_INT 		: 
+					final int[]		tempI = (matrix instanceof IntRealMatrix) ? ((IntRealMatrix)matrix).content : matrix.extractInts();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = tempI[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * source[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
+				case REAL_LONG 		:
+					final long[]	tempL = (matrix instanceof LongRealMatrix) ? ((LongRealMatrix)matrix).content : matrix.extractLongs();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = tempL[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * source[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
+				case BIT	:
+					final int[]		tempB = matrix.extractInts();
+					
+					for (int y1 = 0; y1 < maxY1; y1++) {
+						for (int x1 = 0; x1 < maxX1; x1++) {
+							final double	value = tempB[(y1 * maxX1 + x1)];
+							
+							if (value != 0) {
+								for (int y2 = 0; y2 < maxY2; y2++) {
+									for (int x2 = 0; x2 < maxX2; x2++) {
+										final int 	sourceIndex = y2 * maxX2 + x2; 
+										final int	targetIndex = y1 * maxX2 * maxX1 * maxY2 + y2 * maxX1 * maxY2 + x1 * maxX2 + x2; 
+										
+										target[targetIndex] = value * source[sourceIndex];
+									}
+								}
+							}
+						}
+					}
+					break;
 				default:
-					throw new UnsupportedOperationException("Matrix type ["+content.getType()+"] is not supported yet");
+					throw new UnsupportedOperationException("Matrix type ["+matrix.getType()+"] is not supported yet");
 			}
 			result.beginTransaction();
 			return result;

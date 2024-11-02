@@ -11,7 +11,10 @@ import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateDirection;
 import chav1961.purelib.matrix.interfaces.Matrix.AggregateType;
 import chav1961.purelib.matrix.interfaces.Matrix.ApplyDouble;
+import chav1961.purelib.matrix.interfaces.Matrix.ApplyDouble2;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
+import chav1961.purelib.matrix.interfaces.Matrix.Type;
+import chav1961.purelib.streams.DataInputAdapter;
 import chav1961.purelib.streams.DataOutputAdapter;
 
 public class DoubleRealMatrixTest {
@@ -23,7 +26,7 @@ public class DoubleRealMatrixTest {
 		try(final DoubleRealMatrix	m = new DoubleRealMatrix(2, 3)) {
 			Assert.assertEquals(Matrix.Type.REAL_DOUBLE, m.getType());
 			Assert.assertEquals(2, m.numberOfRows());
-			Assert.assertEquals(3, m.numberOfColumns());
+			Assert.assertEquals(3, m.numberOfColumns()); 
 			
 			try{new DoubleRealMatrix(0, 2).close();
 				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
@@ -48,14 +51,40 @@ public class DoubleRealMatrixTest {
 			});
 			Assert.assertEquals(21, sum[0], 0.001);
 
-			try {m.extractDoubles((DataOutput)null);
+			try {m.extractInts(null, new DataOutputAdapter());
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			try {m.extractInts(Piece.of(0, 0, 100, 100), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.extractInts(Piece.of(1, 1, 1, 1), (DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().extractInts(Piece.of(1, 1, 1, 1), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 			
-			try {m.assign((int[])null);
+			try {m.assign(null, 0);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 100, 100), 0);
+				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(1, 1, 1, 1), (int[])null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().assign(Piece.of(1, 1, 1, 1), 0);
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10, 20);
@@ -68,7 +97,62 @@ public class DoubleRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
+			
+			m.assign(Piece.of(1, 1, 1, 2), new DataInputAdapter() {
+									@Override 
+									public int readInt() throws IOException {
+										return 100;
+									}
+								}, Type.REAL_INT);
+			Assert.assertArrayEquals(new double[] {1,2,3,4,100,100}, m.extractDoubles(), 0.001f);
 
+			try {
+				m.assign(null, new DataInputAdapter() {
+						@Override 
+						public int readInt() throws IOException {
+							return 100;
+						}
+					}, Type.REAL_INT);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {
+				m.assign(Piece.of(0, 0, 100, 100), new DataInputAdapter() {
+						@Override 
+						public int readInt() throws IOException {
+							return 100;
+						}
+					}, Type.REAL_INT);
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {
+				m.assign(Piece.of(1, 1, 1, 2), null, Type.REAL_INT);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {
+				m.assign(Piece.of(1, 1, 1, 2), new DataInputAdapter() {
+						@Override 
+						public int readInt() throws IOException {
+							return 100;
+						}
+					}, null);
+				Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {
+				m.add().assign(Piece.of(1, 1, 1, 2), new DataInputAdapter() {
+						@Override 
+						public int readInt() throws IOException {
+							return 100;
+						}
+					}, Type.REAL_INT);
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
+			
 			// assign longs
 			
 			m.assign(6L,5L,4L,3L,2L,1L);
@@ -83,14 +167,40 @@ public class DoubleRealMatrixTest {
 			});
 			Assert.assertEquals(21, sum[0], 0.001);
 
-			try {m.extractDoubles((DataOutput)null);
+			try {m.extractLongs(null, new DataOutputAdapter());
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			try {m.extractLongs(Piece.of(0, 0, 100, 100), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.extractLongs(Piece.of(1, 1, 1, 1), (DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().extractLongs(Piece.of(1, 1, 1, 1), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 			
-			try {m.assign((long[])null);
+			try {m.assign(null, 0L);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 100, 100), 0L);
+				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(1, 1, 1, 1), (long[])null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().assign(Piece.of(1, 1, 1, 1), 0L);
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10L, 20L);
@@ -103,6 +213,14 @@ public class DoubleRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
+
+			m.assign(Piece.of(1, 1, 1, 2), new DataInputAdapter() {
+							@Override 
+							public long readLong() throws IOException {
+								return 200;
+							}
+						}, Type.REAL_LONG);
+			Assert.assertArrayEquals(new double[] {6,5,4,3,200,200}, m.extractDoubles(), 0.001f);
 			
 			// assign floats
 			
@@ -115,17 +233,43 @@ public class DoubleRealMatrixTest {
 				public void writeFloat(float v) throws IOException {
 					sum[0] += v;
 				}
-			});
+			}); 
 			Assert.assertEquals(36, sum[0], 0.001);
 
-			try {m.extractDoubles((DataOutput)null);
+			try {m.extractFloats(null, new DataOutputAdapter());
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			try {m.extractFloats(Piece.of(0, 0, 100, 100), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.extractFloats(Piece.of(1, 1, 1, 1), (DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().extractFloats(Piece.of(1, 1, 1, 1), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 			
-			try {m.assign((float[])null);
+			try {m.assign(null, 0f);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 100, 100), 0f);
+				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(1, 1, 1, 1), (float[])null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().assign(Piece.of(1, 1, 1, 1), 0f);
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10f, 20f);
@@ -138,6 +282,14 @@ public class DoubleRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
+
+			m.assign(Piece.of(1, 1, 1, 2), new DataInputAdapter() {
+							@Override 
+							public float readFloat() throws IOException {
+								return 300;
+							}
+						}, Type.REAL_FLOAT);
+			Assert.assertArrayEquals(new double[] {1,3,5,7,300,300}, m.extractDoubles(), 0.001f);
 			
 			// assign doubles
 			
@@ -153,14 +305,40 @@ public class DoubleRealMatrixTest {
 			});
 			Assert.assertEquals(36, sum[0], 0.001); 
 
-			try {m.extractDoubles((DataOutput)null);
+			try {m.extractDoubles(null, new DataOutputAdapter());
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			try {m.extractDoubles(Piece.of(0, 0, 100, 100), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.extractDoubles(Piece.of(1, 1, 1, 1), (DataOutput)null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().extractDoubles(Piece.of(1, 1, 1, 1), new DataOutputAdapter());
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 			
-			try {m.assign((double[])null);
+			try {m.assign(null, 0d);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
+			}
+			try {m.assign(Piece.of(0, 0, 100, 100), 0d);
+				Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.assign(Piece.of(1, 1, 1, 1), (double[])null);
+				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
+			} catch (NullPointerException exc) {
+			}
+			try {m.add().assign(Piece.of(1, 1, 1, 1), 0d);
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
 			}
 	
 			m.assign(Piece.of(1,1,1,2), 10d, 20d);
@@ -173,8 +351,16 @@ public class DoubleRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 2-nd argument)");
 			} catch (NullPointerException exc) {
 			}
-	
-			// extract and convert
+
+			m.assign(Piece.of(1, 1, 1, 2), new DataInputAdapter() {
+							@Override 
+							public double readDouble() throws IOException {
+								return 400;
+							}
+						}, Type.REAL_DOUBLE);
+			Assert.assertArrayEquals(new double[] {11,9,7,5,400,400}, m.extractDoubles(), 0.001f);
+			
+			// extract and convert 
 			
 			m.assign(1,2,3,4,5,6);
 			Assert.assertArrayEquals(new int[] {1,2,3,4,5,6}, m.extractInts());
@@ -183,12 +369,30 @@ public class DoubleRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			try {m.extractInts(Piece.of(0, 0, 100, 100));
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.add().extractInts(Piece.of(1, 1, 1, 2));
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 			
 			Assert.assertArrayEquals(new long[] {1,2,3,4,5,6}, m.extractLongs());
 			Assert.assertArrayEquals(new long[] {5,6}, m.extractLongs(Piece.of(1,1,1,2)));
 			try {m.extractLongs((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
+			}
+			try {m.extractLongs(Piece.of(0, 0, 100, 100));
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.add().extractLongs(Piece.of(1, 1, 1, 2));
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
 			}
 	
 			Assert.assertArrayEquals(new float[] {1,2,3,4,5,6}, m.extractFloats(), 0.001f);
@@ -197,12 +401,30 @@ public class DoubleRealMatrixTest {
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
 			}
+			try {m.extractFloats(Piece.of(0, 0, 100, 100));
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.add().extractFloats(Piece.of(1, 1, 1, 2));
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 	
 			Assert.assertArrayEquals(new double[] {1,2,3,4,5,6}, m.extractDoubles(), 0.001);
 			Assert.assertArrayEquals(new double[] {5,6}, m.extractDoubles(Piece.of(1,1,1,2)), 0.001d);
 			try {m.extractDoubles((Piece)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 			} catch (NullPointerException exc) {
+			}
+			try {m.extractDoubles(Piece.of(0, 0, 100, 100));
+				Assert.fail("Mandatory exception was not detected (1-st argument overlap)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try {m.add().extractDoubles(Piece.of(1, 1, 1, 2));
+				Assert.fail("Mandatory exception was not detected (call inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
 			}
 	
 			// deep equals
@@ -218,6 +440,13 @@ public class DoubleRealMatrixTest {
 			Assert.assertFalse(m3.deepEquals(m));
 			Assert.assertTrue(m.deepEquals(m));
 			Assert.assertFalse(m.deepEquals(null));
+			
+			try {
+				m.add().deepEquals(m2);
+				Assert.fail("Mandatory exception was not detected (calling method inside transaction)");
+			} catch (IllegalStateException exc) {
+				m.done();
+			}
 
 			// Test clone()
 			
@@ -276,43 +505,39 @@ public class DoubleRealMatrixTest {
 			Assert.assertArrayEquals(new double[] {30,30,30,30,30,30}, m.extractDoubles(), 0.001f);
 			m.fill(40d);
 			Assert.assertArrayEquals(new double[] {40,40,40,40,40,40}, m.extractDoubles(), 0.001f);
-//			m.fill(50f, 60f);
-//			Assert.assertArrayEquals(new double[] {50,60,50,60,50,60,50,60,50,60,50,60}, m.extractDoubles(), 0.001f);
-//			m.fill(70d, 80d);
-//			Assert.assertArrayEquals(new double[] {70,80,70,80,70,80,70,80,70,80,70,80}, m.extractDoubles(), 0.001f);
 	
-//			m.assign(1,2,3,4,5,6);
-//			m.fill(Piece.of(1,1,1,2), 10, 20);
-//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,10,20,10,20}, m.extractDoubles(), 0.001f);
-//			try {m.fill(null, 10);
-//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-//			} catch (NullPointerException exc) {
-//			}
-//	
-//			m.fill(Piece.of(1,1,1,2), 20L, 30L);
-//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,20,30,20,30}, m.extractDoubles(), 0.001f);
-//			try {m.fill(null, 20L);
-//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-//			} catch (NullPointerException exc) {
-//			}
-//	
-//			m.fill(Piece.of(1,1,1,2), 30f, 40f);
-//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,30,40,30,40}, m.extractDoubles(), 0.001f);
-//			try {m.fill(null, 30f);
-//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-//			} catch (NullPointerException exc) {
-//			}
-//	
-//			m.fill(Piece.of(1,1,1,2), 40d, 50d);
-//			Assert.assertArrayEquals(new double[] {1,0,2,0,3,0,4,0,40,50,40,50}, m.extractDoubles(), 0.001f);
-//			try {m.fill(null, 40d);
-//				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-//			} catch (NullPointerException exc) {
-//			}
+			m.assign(1,2,3,4,5,6);
+			m.fill(Piece.of(1,1,1,2), 10);
+			Assert.assertArrayEquals(new double[] {1,2,3,4,10,10}, m.extractDoubles(), 0.001f);
+			try {m.fill(null, 10);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+	
+			m.fill(Piece.of(1,1,1,2), 20L);
+			Assert.assertArrayEquals(new double[] {1,2,3,4,20,20}, m.extractDoubles(), 0.001f);
+			try {m.fill(null, 20L);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+	
+			m.fill(Piece.of(1,1,1,2), 30f);
+			Assert.assertArrayEquals(new double[] {1,2,3,4,30,30}, m.extractDoubles(), 0.001f);
+			try {m.fill(null, 30f);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
+	
+			m.fill(Piece.of(1,1,1,2), 40d);
+			Assert.assertArrayEquals(new double[] {1,2,3,4,40,40}, m.extractDoubles(), 0.001f);
+			try {m.fill(null, 40d);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (NullPointerException exc) {
+			}
 			
 			// Apply test
 			
-			m.apply((int x, int y, double val)->0d);
+			m.apply((int x, int y, double val)->0);
 			Assert.assertArrayEquals(new double[] {0,0,0,0,0,0}, m.extractDoubles(), 0.001f);
 			try {m.apply((ApplyDouble)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -431,6 +656,9 @@ public class DoubleRealMatrixTest {
 
 			m2.assign(1,2,3,4,5,6);
 			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(m2).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(m2.cast(Type.REAL_FLOAT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(m2.cast(Type.REAL_INT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {2,4,6,8,10,12}, m1.add(m2.cast(Type.REAL_LONG)).done().extractDoubles(), 0.001f);
 
 			try {
 				m1.add((Matrix)null);
@@ -550,6 +778,9 @@ public class DoubleRealMatrixTest {
 
 			m2.assign(1,2,3,4,5,0);
 			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(m2).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(m2.cast(Type.REAL_FLOAT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(m2.cast(Type.REAL_INT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {0,0,0,0,0,6}, m1.subtract(m2.cast(Type.REAL_LONG)).done().extractDoubles(), 0.001f);
 
 			try {
 				m1.subtract((Matrix)null);
@@ -671,6 +902,10 @@ public class DoubleRealMatrixTest {
 
 			m2.assign(10,10,10,10,10,10);
 			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(m2).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(m2.cast(Type.REAL_FLOAT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(m2.cast(Type.REAL_INT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {9,8,7,6,5,4}, m1.subtractFrom(m2.cast(Type.REAL_LONG)).done().extractDoubles(), 0.001f);
+
 			try {
 				m1.subtractFrom((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -976,6 +1211,10 @@ public class DoubleRealMatrixTest {
 			
 			m2.assign(1,2,3,4,5,6);
 			Assert.assertArrayEquals(new double[] {1,4,9,16,25,36}, m1.mulHadamard(m2).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {1,4,9,16,25,36}, m1.mulHadamard(m2.cast(Type.REAL_FLOAT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {1,4,9,16,25,36}, m1.mulHadamard(m2.cast(Type.REAL_INT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {1,4,9,16,25,36}, m1.mulHadamard(m2.cast(Type.REAL_LONG)).done().extractDoubles(), 0.001f);
+			
 			try {
 				m1.mulHadamard((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -988,6 +1227,10 @@ public class DoubleRealMatrixTest {
 			}
 
 			Assert.assertArrayEquals(new double[] {1,1,1,1,1,1}, m1.mulInvHadamard(m2).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {1,1,1,1,1,1}, m1.mulInvHadamard(m2.cast(Type.REAL_FLOAT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {1,1,1,1,1,1}, m1.mulInvHadamard(m2.cast(Type.REAL_INT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {1,1,1,1,1,1}, m1.mulInvHadamard(m2.cast(Type.REAL_LONG)).done().extractDoubles(), 0.001f);
+			
 			try {
 				m1.mulInvHadamard((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -1001,6 +1244,10 @@ public class DoubleRealMatrixTest {
 			
 			m2.assign(10,10,10,10,10,10);
 			Assert.assertArrayEquals(new double[] {10,5,3.333333f,2.5f,2,1.666666f}, m1.mulInvFromHadamard(m2).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {10,5,3.333333f,2.5f,2,1.666666f}, m1.mulInvFromHadamard(m2.cast(Type.REAL_FLOAT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {10,5,3.333333f,2.5f,2,1.666666f}, m1.mulInvFromHadamard(m2.cast(Type.REAL_INT)).done().extractDoubles(), 0.001f);
+			Assert.assertArrayEquals(new double[] {10,5,3.333333f,2.5f,2,1.666666f}, m1.mulInvFromHadamard(m2.cast(Type.REAL_LONG)).done().extractDoubles(), 0.001f);
+			
 	 		try {
 				m1.mulInvFromHadamard((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -1028,6 +1275,13 @@ public class DoubleRealMatrixTest {
 			Assert.assertEquals(2, m3.numberOfRows());
 			Assert.assertEquals(2, m3.numberOfColumns());
 			Assert.assertArrayEquals(new double[] {220,280,490,640}, m3.extractDoubles(), 0.001f);
+
+			m3 = m1.mul(m2.cast(Type.REAL_FLOAT)).done();
+			Assert.assertArrayEquals(new double[] {220,280,490,640}, m3.extractDoubles(), 0.001f);
+			m3 = m1.mul(m2.cast(Type.REAL_INT)).done();
+			Assert.assertArrayEquals(new double[] {220,280,490,640}, m3.extractDoubles(), 0.001f);
+			m3 = m1.mul(m2.cast(Type.REAL_LONG)).done();
+			Assert.assertArrayEquals(new double[] {220,280,490,640}, m3.extractDoubles(), 0.001f);
 			
 	 		try {
 				m1.mul((Matrix)null);
@@ -1049,6 +1303,13 @@ public class DoubleRealMatrixTest {
 			
 			Assert.assertEquals(3, m3.numberOfRows());
 			Assert.assertEquals(3, m3.numberOfColumns());
+			Assert.assertArrayEquals(new double[] {90,120,150,190,260,330,290,400,510}, m3.extractDoubles(), 0.001f);
+
+			m3 = m1.mulFrom(m2.cast(Type.REAL_FLOAT)).done();
+			Assert.assertArrayEquals(new double[] {90,120,150,190,260,330,290,400,510}, m3.extractDoubles(), 0.001f);
+			m3 = m1.mulFrom(m2.cast(Type.REAL_INT)).done();
+			Assert.assertArrayEquals(new double[] {90,120,150,190,260,330,290,400,510}, m3.extractDoubles(), 0.001f);
+			m3 = m1.mulFrom(m2.cast(Type.REAL_LONG)).done();
 			Assert.assertArrayEquals(new double[] {90,120,150,190,260,330,290,400,510}, m3.extractDoubles(), 0.001f);
 			
 	 		try {
@@ -1090,6 +1351,32 @@ public class DoubleRealMatrixTest {
 												  70,140,80,160,90,180,
 												  210,280,240,320,270,360},
 					                            m3.extractDoubles(), 0.001f);
+			
+			m3 = m1.tensorMul(m2.cast(Type.REAL_FLOAT)).done();
+			Assert.assertArrayEquals(new double[] {10,20,20,40,30,60,
+												  30,40,60,80,90,120,
+												  40,80,50,100,60,120,
+												  120,160,150,200,180,240,
+												  70,140,80,160,90,180,
+												  210,280,240,320,270,360},
+							                  m3.extractDoubles(), 0.001f);
+			m3 = m1.tensorMul(m2.cast(Type.REAL_INT)).done();
+			Assert.assertArrayEquals(new double[] {10,20,20,40,30,60,
+												  30,40,60,80,90,120,
+												  40,80,50,100,60,120,
+												  120,160,150,200,180,240,
+												  70,140,80,160,90,180,
+												  210,280,240,320,270,360},
+							                  m3.extractDoubles(), 0.001f);
+			m3 = m1.tensorMul(m2.cast(Type.REAL_LONG)).done();
+			Assert.assertArrayEquals(new double[] {10,20,20,40,30,60,
+												  30,40,60,80,90,120,
+												  40,80,50,100,60,120,
+												  120,160,150,200,180,240,
+												  70,140,80,160,90,180,
+												  210,280,240,320,270,360},
+							                  m3.extractDoubles(), 0.001f);
+			
 	 		try {
 				m1.tensorMul((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
@@ -1112,6 +1399,32 @@ public class DoubleRealMatrixTest {
 												  120,150,180,160,200,240,
 												  210,240,270,280,320,360}, 
 					 							m3.extractDoubles(), 0.001f);
+			
+			m3 = m1.tensorMulFrom(m2.cast(Type.REAL_FLOAT)).done();
+			Assert.assertArrayEquals(new double[] {10,20,30,20,40,60,
+												  40,50,60,80,100,120,
+												  70,80,90,140,160,180,
+												  30,60,90,40,80,120,
+												  120,150,180,160,200,240,
+												  210,240,270,280,320,360}, 
+												m3.extractDoubles(), 0.001f);
+			m3 = m1.tensorMulFrom(m2.cast(Type.REAL_INT)).done();
+			Assert.assertArrayEquals(new double[] {10,20,30,20,40,60,
+												  40,50,60,80,100,120,
+												  70,80,90,140,160,180,
+												  30,60,90,40,80,120,
+												  120,150,180,160,200,240,
+												  210,240,270,280,320,360}, 
+												m3.extractDoubles(), 0.001f);
+			m3 = m1.tensorMulFrom(m2.cast(Type.REAL_LONG)).done();
+			Assert.assertArrayEquals(new double[] {10,20,30,20,40,60,
+												  40,50,60,80,100,120,
+												  70,80,90,140,160,180,
+												  30,60,90,40,80,120,
+												  120,150,180,160,200,240,
+												  210,240,270,280,320,360}, 
+												m3.extractDoubles(), 0.001f);
+			
 	 		try {
 				m1.tensorMulFrom((Matrix)null);
 				Assert.fail("Mandatory exception was not detected (null 1-st argument)");

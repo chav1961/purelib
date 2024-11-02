@@ -701,20 +701,20 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	/**
 	 * <p>Assign matrix content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required</p> 
-	 * @param piece piece to fill content into. Can't be null
-	 * @param content matrix to fill content from. Can't be null
+	 * @param piece piece to fill content into. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
+	 * @param matrix matrix to fill content from. Can't be null
 	 * @return this matrix. Can't be null.
 	 */
-	public Matrix assign(Piece piece, Matrix content);
+	public Matrix assign(Piece piece, Matrix matrix);
 
 	/**
 	 * <p>Assign matrix content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required</p> 
-	 * @param content matrix to fill content from. Can't be null
+	 * @param matrix matrix to fill content from. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
 	 * @return this matrix. Can't be null.
 	 */
-	default public Matrix assign(Matrix content) {
-		return assign(totalPiece(), content);
+	default public Matrix assign(Matrix matrix) {
+		return assign(totalPiece(), matrix);
 	}
 	
 	/**
@@ -900,10 +900,10 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * <p>Add another matrix content to matrix content. Another matrix dimensions must be the same as current ones. Conversion will be executed if required. 
 	 * Bit matrix treats this operation as bit OR and treats zero values as 0, and non-zero values as 1. Complex matrices treat bit and real matrices as complex matrices with zero image parts 
 	 * of the complex numbers. Real and bit matrices don't support this method for complex matrices.</p> 
-	 * @param content content to add. Can't be null
+	 * @param matrix content to add. Can't be null
 	 * @return new matrix with sum. Can't be null
 	 */
-	public Matrix add(Matrix content);
+	public Matrix add(Matrix matrix);
 
 	/**
 	 * <p>Add integer scalar value to matrix content. Bit matrix treats this operation as fill, and treats zero values as 0, and non-zero values as 1. Complex matrix treats this value
@@ -993,10 +993,10 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * <p>Subtract another matrix content from current matrix content. Conversion will be executed if required. 
 	 * Bit matrix treats this operation as bit MINUS and treats zero values as 0, and non-zero values as 1. Complex matrices treat bit and real matrices as complex matrices with zero image parts 
 	 * of the complex numbers. Real and bit matrices don't support this method for complex matrices.</p> 
-	 * @param content content to subtract. Can't be null
+	 * @param matrix content to subtract. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
 	 * @return new matrix with subtraction. Can't be null
 	 */
-	public Matrix subtract(Matrix content);
+	public Matrix subtract(Matrix matrix);
 
 	/**
 	 * <p>Subtract integer scalar value from matrix content. Bit matrix treats this operation as conditional fill (non-zero value clears matrix content, zero remains content unchanged). Complex matrix treats this value
@@ -1086,10 +1086,10 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * <p>Subtract current matrix content from another matrix content. Conversion will be executed if required. 
 	 * Bit matrix treats this operation as bit MINUS and treats zero values as 0, and non-zero values as 1. Complex matrices treat bit and real matrices as complex matrices with zero image parts 
 	 * of the complex numbers. Real and bit matrices don't support this method for complex matrices.</p> 
-	 * @param content content to subtract. Can't be null
+	 * @param matrix content to subtract. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
 	 * @return new matrix with subtraction. Can't be null
 	 */
-	public Matrix subtractFrom(Matrix content);
+	public Matrix subtractFrom(Matrix matrix);
 
 	/**
 	 * <p>Subtract matrix content from integer scalar value. Bit matrix treats this operation as NOT (non-zero value inverts matrix content, zero remains content unchanged). Complex matrix treats this value
@@ -1143,34 +1143,34 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	
 	/**
 	 * <p>Multiply current matrix with argument.</p>
-	 * @param content matrix to multiply. Can't be null and must have the same number of rows as current matrix columns. 
+	 * @param matrix matrix to multiply. Can't be null and must have the same number of rows as current matrix columns. 
 	 * @return production matrix. Can't be null
 	 */
-	public Matrix mul(Matrix content);
+	public Matrix mul(Matrix matrix);
 
 	/**
 	 * <p>Multiply and transpose current matrix with argument.</p>
-	 * @param content matrix to multiply. Can't be null and must have the same number of rows as current matrix columns. 
+	 * @param matrix matrix to multiply. Can't be null and must have the same number of rows as current matrix columns. 
 	 * @return production matrix. Can't be null
 	 */
-	default public Matrix mulAndTranspose(Matrix content) {
-		return mul(content).transpose();
+	default public Matrix mulAndTranspose(Matrix matrix) {
+		return mul(matrix).transpose();
 	}
 
 	/**
 	 * <p>Multiply argument with current matrix.</p>
-	 * @param content matrix to multiply. Can't be null and must have the same number of columns as current matrix rows. 
+	 * @param matrix matrix to multiply. Can't be null and must have the same number of columns as current matrix rows. 
 	 * @return production matrix. Can't be null
 	 */
-	public Matrix mulFrom(Matrix content);
+	public Matrix mulFrom(Matrix matrix);
 	
 	/**
 	 * <p>Multiply and transpose argument with current matrix.</p>
-	 * @param content matrix to multiply. Can't be null and must have the same number of columns as current matrix rows. 
+	 * @param matrix matrix to multiply. Can't be null and must have the same number of columns as current matrix rows. 
 	 * @return production matrix. Can't be null
 	 */
-	default public Matrix mulFromAndTranspose(Matrix content) {
-		return mulFrom(content).transpose();
+	default public Matrix mulFromAndTranspose(Matrix matrix) {
+		return mulFrom(matrix).transpose();
 	}
 	
 	/**
@@ -1341,7 +1341,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	public Matrix mulHadamard(float... content);
 
 	/**
-	 * <p>Multiply current matrix content with double content element-by-element. Content will be multiplied from left to right and from top to bottom. If content size is too short, only first matrix items will be multiplied.
+	 * <p>Multiply current matrix content with double content element-by-element. Content will be multiplied from left to right and from top to bottom. If content size is too short, only first matrix items will be multiplied.</p>
 	 * Extra values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats this operation as bit AND and treats zero values as 0, and non-zero values as 1.
 	 * Complex matrix treats 2 sequential elements as one complex number.</p>
 	 * @param content content to multiply. Can't be null
@@ -1349,7 +1349,12 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 */
 	public Matrix mulHadamard(double... content);
 	
-	public Matrix mulHadamard(Matrix content);
+	/**
+	 * <p>Multiply current matrix content with another matrix content element-by-element. Content will be processed from left to right and from top to bottom. If content size is too short, only first matrix items will be processed.</p> 
+	 * @param matrix matrix to multiply. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
+	 * @return new matrix with multiplication. Can't be null
+	 */
+	public Matrix mulHadamard(Matrix matrix);
 
 	/**
 	 * <p>Divide current matrix content with integer content element-by-element. Content will be divided from left to right and from top to bottom. If content size is too short, only first matrix items will be divided.
@@ -1383,7 +1388,12 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 */
 	public Matrix mulInvHadamard(double... content);
 	
-	public Matrix mulInvHadamard(Matrix content);
+	/**
+	 * <p>Divide current matrix content with another matrix content element-by-element. Content will be processed from left to right and from top to bottom. If content size is too short, only first matrix items will be processed.</p> 
+	 * @param matrix matrix to divide. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
+	 * @return new matrix with division. Can't be null
+	 */
+	public Matrix mulInvHadamard(Matrix matrix);
 
 	/**
 	 * <p>Divide integer content with current matrix content element-by-element. Content will be divided from left to right and from top to bottom. If content size is too short, only first matrix items will be divided.
@@ -1417,10 +1427,26 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 */
 	public Matrix mulInvFromHadamard(double... content);
 	
-	public Matrix mulInvFromHadamard(Matrix content);
+	/**
+	 * <P>Divide another matrix content with current matrix content with element-by-element. Content will be processed from left to right and from top to bottom. If content size is too short, only first matrix items will be processed.</p> 
+	 * @param matrix matrix to divide. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
+	 * @return new matrix with division. Can't be null
+	 */
+	public Matrix mulInvFromHadamard(Matrix matrix);
 	
-	public Matrix tensorMul(Matrix content);
-	public Matrix tensorMulFrom(Matrix content);
+	/**
+	 * <p>Make tensor (Kroneker) multiplication current matrix with another one.</p> 
+	 * @param matrix matrix to multiply. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
+	 * @return new matrix with multiplication. Can't be null
+	 */
+	public Matrix tensorMul(Matrix matrix);
+	
+	/**
+	 * <p>Make tensor (Kroneker) multiplication another matrix with current  one.</p> 
+	 * @param matrix matrix to multiply. Can't be null. Mixing complex and real matrices will throw {@linkplain IllegalArgumentException}
+	 * @return new matrix with multiplication. Can't be null
+	 */
+	public Matrix tensorMulFrom(Matrix matrix);
 
 	/**
 	 * <p>Calculate matrix inversion. Bit, integer and long matrices don't support this operation. Matrix must be square</p>
