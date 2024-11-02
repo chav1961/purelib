@@ -1,15 +1,18 @@
 package chav1961.purelib.matrix;
 
 import java.io.IOException;
+import java.lang.ref.Cleaner.Cleanable;
 
+import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.streams.DataOutputAdapter;
 
 public abstract class AbstractMatrix implements Matrix {
-	private final Type	type; 
-	private final int	rows; 
-	private final int	cols;
-	private boolean		transactionMode = false;
+	private final Type				type; 
+	private final int				rows; 
+	private final int				cols;
+	private final Cleanable			cleanable = PureLibSettings.getCleaner().register(this, ()->lastCall());
+	private boolean					transactionMode = false;
 
 	protected AbstractMatrix(final Type type, final int rows, final int cols) {
 		if (type == null) {
@@ -26,6 +29,13 @@ public abstract class AbstractMatrix implements Matrix {
 			this.rows = rows;
 			this.cols = cols;
 		}
+	}
+
+	protected abstract void lastCall();
+	
+	@Override
+	public void close() throws RuntimeException {
+		cleanable.clean();
 	}
 	
 	@Override

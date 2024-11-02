@@ -1672,64 +1672,9 @@ public class IntRealMatrix extends AbstractMatrix {
 			return this;
 		}
 	}
-	
-	private Matrix aggregateAvg(final AggregateDirection dir) {
-		final IntRealMatrix	result;
-		final int[]		source = this.content;
-		final int[]		target;
-		int	real, image;
-		
-		switch (dir) {
-			case ByColumns	:
-				result = new IntRealMatrix(numberOfRows(), 1);
-				target = result.content;
-				
-				for(int y = 0; y < numberOfRows(); y++) {
-					real = 0;
-					image = 0;
-					for(int x = 0; x < numberOfColumns(); x++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
-					}
-					target[2 * y] = real / numberOfColumns();
-					target[2 * y + 1] = image / numberOfColumns();
-				}
-				break;
-			case ByRows		:
-				result = new IntRealMatrix(1, numberOfColumns()); 
-				target = result.content;
-				
-				for(int x = 0; x < numberOfColumns(); x++) {
-					real = 0;
-					image = 0;
-					for(int y = 0; y < numberOfRows(); y++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
-					}
-					target[2 * x] = real / numberOfRows();
-					target[2 * x + 1] = image / numberOfRows();
-				}
-				break;
-			case Total		:
-				result = new IntRealMatrix(1, 1); 
-				target = result.content;
-				
-				real = 0;
-				image = 0;
-				for(int y = 0; y < numberOfRows(); y++) {
-					for(int x = 0; x < numberOfColumns(); x++) {
-						real += source[2 * (y * numberOfColumns() + x)];
-						image += source[2 * (y * numberOfColumns() + x) + 1];
-					}
-				}
-				target[0] = real / (numberOfRows() * numberOfColumns());
-				target[1] = image / (numberOfRows() * numberOfColumns());
-				break;
-			default:
-				throw new UnsupportedOperationException("Aggregate direction ["+dir+"] is not supported yet");
-		}
-		result.beginTransaction();
-		return result;
+
+	@Override
+	protected void lastCall() {
 	}
 	
 	private Matrix aggregateMax(final AggregateDirection dir) {

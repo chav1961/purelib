@@ -12,6 +12,7 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.lang.management.ManagementFactory;
+import java.lang.ref.Cleaner;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -76,6 +77,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  */
 
 public final class PureLibSettings {
+	private static final Cleaner					CLEANER = Cleaner.create();	
 	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
 	
@@ -512,6 +514,14 @@ public final class PureLibSettings {
 		return PROPS;
 	}
 
+	/**
+	 * <p>Get {@linkplain Cleaner} shared instance for Pure Library</p>
+	 * @return cleaner instance. Can't be null.
+	 * @since 0.0.7
+	 */
+	public static Cleaner getCleaner() {
+		return CLEANER;
+	}
 	
 	/**
 	 * <p>Get well-known schemas in the Pure Library</p> 

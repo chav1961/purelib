@@ -1754,6 +1754,10 @@ public class FloatRealMatrix extends AbstractMatrix {
 			return this;
 		}
 	}
+
+	@Override
+	protected void lastCall() {
+	}
 	
 	private Matrix aggregateAvg(final AggregateDirection dir) {
 		final FloatRealMatrix	result;

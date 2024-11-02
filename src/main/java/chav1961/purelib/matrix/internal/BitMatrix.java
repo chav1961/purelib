@@ -1637,6 +1637,10 @@ public class BitMatrix extends AbstractMatrix {
 			return this;
 		}
 	}
+
+	@Override
+	protected void lastCall() {
+	}
 	
 	private Matrix aggregateAvg(final AggregateDirection dir) {
 		final BitMatrix	result;

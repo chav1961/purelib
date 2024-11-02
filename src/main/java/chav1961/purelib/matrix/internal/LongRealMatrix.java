@@ -1673,6 +1673,10 @@ public class LongRealMatrix extends AbstractMatrix {
 			return this;
 		}
 	}
+
+	@Override
+	protected void lastCall() {
+	}
 	
 	private Matrix aggregateMax(final AggregateDirection dir) {
 		final LongRealMatrix	result;

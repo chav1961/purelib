@@ -168,4 +168,5 @@ class PseudoMarix extends AbstractMatrix {
 	@Override public Number track() {return null;}
 	@Override public Number[] det2() {return null;}
 	@Override public Number[] track2() {return null;}
+	@Override protected void lastCall() {}
 }
