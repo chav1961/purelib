@@ -9,7 +9,9 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.MatrixCalc;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
 import chav1961.purelib.matrix.interfaces.Matrix.Type;
 
@@ -169,4 +171,5 @@ class PseudoMarix extends AbstractMatrix {
 	@Override public Number[] det2() {return null;}
 	@Override public Number[] track2() {return null;}
 	@Override protected void lastCall() {}
+	@Override protected MatrixCalc buildMatrixCalc(Command... cmds) throws SyntaxException {return null;}
 }

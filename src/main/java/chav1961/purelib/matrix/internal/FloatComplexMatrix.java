@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.ArgParser;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.matrix.AbstractMatrix;
 import chav1961.purelib.matrix.interfaces.Matrix;
+import chav1961.purelib.matrix.interfaces.MatrixCalc;
 
 public class FloatComplexMatrix extends AbstractMatrix {
 	final float[]	content;
@@ -1917,6 +1919,11 @@ public class FloatComplexMatrix extends AbstractMatrix {
 	
 	@Override
 	protected void lastCall() {
+	}
+	
+	@Override
+	protected MatrixCalc buildMatrixCalc(final Command... cmds) throws SyntaxException {
+		throw new UnsupportedOperationException("Not implemented yet");
 	}
 	
 	private Matrix aggregateAvg(final AggregateDirection dir) {

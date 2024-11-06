@@ -2,9 +2,11 @@ package chav1961.purelib.matrix.interfaces;
 
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintStream;
+
+import chav1961.purelib.basic.exceptions.CalculationException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 
 /**
  * <p>This interface describes matrices. All implementations of this interface must follow some conventions described below:</p>
@@ -115,6 +117,21 @@ public interface Matrix extends AutoCloseable, Cloneable {
 		 */
 		public Class<?> getContentClass() {
 			return contentClass; 
+		}
+		
+		/**
+		 * <p>Get matrix type by it's ordinal number.</p>
+		 * @param ordinal ordinal number to get type for.
+		 * @return type for the given ordinal. Can't be null
+		 * @throws IllegalArgumentException ordinal number out of range
+		 */
+		public static Type byOrdinal(final int ordinal) throws IllegalArgumentException {
+			if (ordinal < 0 || ordinal >= values().length) {
+				throw new IllegalArgumentException("Ordinal value ["+ordinal+"] out of range 0.."+(values().length-1));
+			}
+			else {
+				return values()[ordinal];
+			}
 		}
 	}
 	
@@ -1639,6 +1656,42 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	 * @return this matrix
 	 */
 	public Matrix done();
+
+
+	/**
+	 * <p>Calculate matrix expression.</p>
+	 * @param expression expression to calculate. Can't be null or empty.
+	 * @param parameters advanced parameters to calculate. Can't be null and can't contain nulls inside
+	 * @return matrix calculated. Can't be null. Calling ZZZ.done() before getting results  is not required for this matrix.
+	 * @throws SyntaxException on any syntax errors in the expression
+	 * @throws CalculationException on any calculation errors
+	 * @see #prepare(String)
+	 */
+	default Matrix calculate(String expression, Object... parameters) throws SyntaxException, CalculationException {
+		throw new UnsupportedOperationException("This method is not implemented yet");
+	}
+
+	/**
+	 * <p>Prepare matrix expression calculator for repeatable matrix calculations. Expression to prepare can contains:</p>
+	 * <ul>
+	 * <li>numeric and complex constants (complex constants presents as '('&lt;real&gt;{'+'|'-'}&lt;image&gt;<b>'i'</b>')' </li>
+	 * <li>reference to matrix parameter as '%NNN' (NNN - sequential number of the parameter in the {@linkplain MatrixCalc#execute(Object...)} method)
+	 * <li>arithmetic operations ('+', '-', '*', '/')</li>
+	 * <li>comparison operations ('>', '>=', '<', '<=', '==', '!=')</li>
+	 * <li>brackets '(' and ')'</li>
+	 * <li>matrix casts as '('&lt;type&gt;')' (see {@linkplain Type} values</li>
+	 * <li>functions ('abs', 'conj', 'tran', 'inv', 'det', 'track', 'sin', 'cos', 'tan', 'sqrt', 'exp', 'ln', 'sh', 'ch', 'th', and 'arcZZZ')</li>
+	 * </ul>
+	 * @param expression expression to calculate. Can't be null or empty.
+	 * @return matrix calculator. Can't be null.
+	 * @throws SyntaxException on any syntax errors in the expression
+	 * @see MatrixCalc
+	 * @see #calculate(String, Object...)
+	 */
+	default MatrixCalc prepare(String expression) throws SyntaxException {
+		throw new UnsupportedOperationException("This method is not implemented yet");
+	}
+	
 	
 	/**
 	 * <p>Test all asynchronous operations completed</p>
