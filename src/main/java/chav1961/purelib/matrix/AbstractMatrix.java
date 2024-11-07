@@ -2,8 +2,10 @@ package chav1961.purelib.matrix;
 
 import java.io.IOException;
 import java.lang.ref.Cleaner.Cleanable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
@@ -19,6 +21,7 @@ import chav1961.purelib.streams.DataOutputAdapter;
 
 public abstract class AbstractMatrix implements Matrix {
 	private static final SyntaxTreeInterface<FunctionType>	FUNCTIONS = new AndOrTree<>();
+	private static final char	EOF = '\0';
 	
 	static {
 		for(FunctionType item : FunctionType.values()) {
@@ -242,7 +245,7 @@ public abstract class AbstractMatrix implements Matrix {
 			throw new IllegalArgumentException("Expession string can't be null or empty");
 		}
 		else {
-			final char[]		content = CharUtils.terminateAndConvert2CharArray(expression, '\0');
+			final char[]		content = CharUtils.terminateAndConvert2CharArray(expression, EOF);
 			final List<Lexema>	lexemas = new ArrayList<>();
 			final SyntaxNode<SyntaxNodeType, SyntaxNode<?,?>>	root = new SyntaxNode(0, 0, SyntaxNodeType.ROOT, 0, null);
 			
@@ -392,6 +395,54 @@ public abstract class AbstractMatrix implements Matrix {
 		CALL_FUNCTION,
 	}
 
+	protected static enum FunctionType {
+		ABS("abs", ArgumentType.VALUE, ArgumentType.VALUE),
+		CONJ("conj", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ZERO("zero", ArgumentType.MATRIX, ArgumentType.VALUE, ArgumentType.VALUE),
+		IDENTITY("identity", ArgumentType.MATRIX, ArgumentType.VALUE, ArgumentType.VALUE),
+		TRAN("tran", ArgumentType.MATRIX, ArgumentType.MATRIX),
+		INV("inv", ArgumentType.MATRIX, ArgumentType.MATRIX),
+		DET("det", ArgumentType.VALUE, ArgumentType.MATRIX),
+		TRACK("track", ArgumentType.VALUE, ArgumentType.MATRIX),
+		SIN("sin", ArgumentType.SAMEAS, ArgumentType.ANY),
+		COS("cos", ArgumentType.SAMEAS, ArgumentType.ANY),
+		TAN("tan", ArgumentType.SAMEAS, ArgumentType.ANY),
+		SQRT("sqrt", ArgumentType.SAMEAS, ArgumentType.ANY),
+		EXP("exp", ArgumentType.SAMEAS, ArgumentType.ANY),
+		LN("ln", ArgumentType.SAMEAS, ArgumentType.ANY),
+		SH("sh", ArgumentType.SAMEAS, ArgumentType.ANY),
+		CH("ch", ArgumentType.SAMEAS, ArgumentType.ANY),
+		TH("th", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ARCSIN("arcsin", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ARCCOS("arccos", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ARCTAN("arctan", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ARCSH("arcsh", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ARCCH("arcch", ArgumentType.SAMEAS, ArgumentType.ANY),
+		ARCTH("arcth", ArgumentType.SAMEAS, ArgumentType.ANY);
+		
+		private final String			abbr;
+		private final ArgumentType[]	args;
+		private final ArgumentType		result;
+		
+		private FunctionType(final String abbr, final ArgumentType result, final ArgumentType... args) {
+			this.abbr = abbr;
+			this.args = args;
+			this.result = result;
+		}
+		
+		public String getAbbr() {
+			return abbr;
+		}
+
+		public ArgumentType[] getArgs() {
+			return args;
+		}
+		
+		public ArgumentType getResult() {
+			return result;
+		}
+	}
+	
 	protected static class Command {
 		public final CommandTypes	cmd;
 		public final Object			cargo;
@@ -404,6 +455,45 @@ public abstract class AbstractMatrix implements Matrix {
 		public Command(final CommandTypes cmd, final Object cargo) {
 			this.cmd = cmd;
 			this.cargo = cargo;
+		}
+		
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((cargo == null) ? 0 : cargo.hashCode());
+			result = prime * result + ((cmd == null) ? 0 : cmd.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Command other = (Command) obj;
+			if (cargo == null) {
+				if (other.cargo != null) return false;
+			} else if (cargo.getClass().isArray()) {
+				if (!other.cargo.getClass().isArray()) {
+					return false;
+				}
+				else if (cargo.getClass().getComponentType() != other.cargo.getClass().getComponentType()) {
+					return false;
+				}
+				else if (Array.getLength(cargo) != Array.getLength(other.cargo)) {
+					return false;
+				}
+				else {
+					for(int index = 0, maxIndex = Array.getLength(cargo); index < maxIndex; index++) {
+						if (!Objects.equals(Array.get(cargo, index), Array.get(other.cargo, index))) {
+							return false;
+						}
+					}
+				}
+			} else if (!cargo.equals(other.cargo)) return false;
+			if (cmd != other.cmd) return false;
+			return true;
 		}
 
 		@Override
@@ -423,23 +513,23 @@ all:	for (;;) {
 			int	begin = from;
 			
 			switch (source[from]) {
-				case '\0'	:
+				case EOF	:
 					list.add(new Lexema(begin, LexType.EOF));
 					break all;
 				case '(' :
 					int		temp = ++from;
 					
-					while (source[temp] <= ' ' && source[temp] != '\n') {
+					while (source[temp] <= ' ' && source[temp] != EOF) {
 						temp++;
 					}
 					if (Character.isLetter(source[temp])) {
 						temp = CharUtils.parseName(source, temp, forInt);
-						while (source[temp] <= ' ' && source[temp] != '\n') {
+						while (source[temp] <= ' ' && source[temp] != EOF) {
 							temp++;
 						}
 						if (source[temp] == ')') {
 							temp++;
-							final String	cast = new String(source, forInt[0], forInt[1] - forInt[0]);
+							final String	cast = new String(source, forInt[0], forInt[1] - forInt[0] + 1);
 							
 							for(Type type : Type.values()) {
 								if (cast.equalsIgnoreCase(type.name())) {
@@ -488,7 +578,7 @@ all:	for (;;) {
 					break;
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
 					from = CharUtils.parseDouble(source, from, forDouble, false);
-					while (source[from] <= ' ' && source[from] != '\n') {
+					while (source[from] <= ' ' && source[from] != EOF) {
 						from++;
 					}
 					if (source[from] == 'i' || source[from] == 'I') {
@@ -502,10 +592,10 @@ all:	for (;;) {
 				default :
 					if (Character.isLetter(source[from])) {
 						from = CharUtils.parseName(source, from, forInt);
-						final long	id = FUNCTIONS.seekName(source, forInt[0], forInt[1]);
+						final long	id = FUNCTIONS.seekNameI(source, forInt[0], forInt[1]+1);
 						
 						if (id < 0) {
-							if (source[from] == 'x' && forInt[0] == forInt[1] - 1) {
+							if (source[begin] == 'x' && forInt[0] == forInt[1]) {
 								list.add(new Lexema(begin, LexType.OPERATOR, 'x'));
 							}
 							else {
@@ -579,12 +669,13 @@ all:	for (;;) {
 				break;
 			case CAST	:
 				if (source[from].type == LexType.CAST) {
-					SyntaxNode<SyntaxNodeType, SyntaxNode<?,?>> clone = (SyntaxNode<SyntaxNodeType, SyntaxNode<?, ?>>) node.clone(); 
+					final SyntaxNode<SyntaxNodeType, SyntaxNode<?,?>> clone = (SyntaxNode<SyntaxNodeType, SyntaxNode<?, ?>>) node.clone();
+					final Type	type = (Type)source[from].cargo; 
 
 					node.col = source[from].pos;
 					node.type = SyntaxNodeType.CAST;
 					from = buildTree(Priority.TERM, source, from + 1, clone);
-					node.value = ((Type)source[from].cargo).ordinal();
+					node.value = type.ordinal();
 					node.cargo = clone;
 				}
 				else {
@@ -600,10 +691,10 @@ all:	for (;;) {
 						final List<SyntaxNode<SyntaxNodeType, SyntaxNode<?,?>>>	temp = new ArrayList<>();
 						SyntaxNode<SyntaxNodeType, SyntaxNode<?,?>> clone; 
 						
-						node.cargo = type.ordinal();
+						node.cargo = type;
 						do {
 							clone = (SyntaxNode<SyntaxNodeType, SyntaxNode<?, ?>>) node.clone();
-							from = buildTree(Priority.ADD, source, from + 1, node);
+							from = buildTree(Priority.ADD, source, from + 1, clone);
 							temp.add(clone);
 						} while (source[from].type == LexType.DIV);
 						if (source[from].type == LexType.CLOSE) {
@@ -619,11 +710,6 @@ all:	for (;;) {
 							throw new SyntaxException(0, node.col, "Missing ')'");
 						}
 						break;
-					case IMAGE_CONSTANT	:
-						node.col = source[from].pos;
-						node.type = SyntaxNodeType.CONST;
-						node.cargo = new double[] {0, source[from++].value};
-						break;
 					case MATRIX_REF		:
 						node.col = source[from].pos;
 						node.type = SyntaxNodeType.MATRIX;
@@ -638,20 +724,15 @@ all:	for (;;) {
 							throw new SyntaxException(0, node.col, "Missing ')'");
 						}
 						break;
+					case IMAGE_CONSTANT	:
+						node.col = source[from].pos;
+						node.type = SyntaxNodeType.CONST;
+						node.cargo = new double[] {0, source[from++].value};
+						break;
 					case REAL_CONSTANT	:
-						final double	real = source[from++].value;
-						
-						if (source[from].type == LexType.OPERATOR && (source[from].index == '+' || source[from].index == '-') && source[from+1].type == LexType.IMAGE_CONSTANT) {
-							node.col = source[from].pos;
-							node.type = SyntaxNodeType.CONST;
-							node.cargo = new double[] {real, source[from].index == '-' ? -source[from+1].value : source[from+1].value};
-							from += 2;
-						}
-						else {
-							node.col = source[from].pos;
-							node.type = SyntaxNodeType.CONST;
-							node.cargo = new double[] {real, 0};
-						}
+						node.col = source[from].pos;
+						node.type = SyntaxNodeType.CONST;
+						node.cargo = new double[] {source[from++].value, 0};
 						break;
 					default :
 						throw new SyntaxException(0, node.col, "Operand is missing");
@@ -682,13 +763,13 @@ all:	for (;;) {
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.MATRIX && stack.get(1) == ArgumentType.VALUE) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_ADD_RIGHT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_ADD_LEFT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.VALUE && stack.get(1) == ArgumentType.MATRIX) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_ADD_LEFT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_ADD_RIGHT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
@@ -713,13 +794,13 @@ all:	for (;;) {
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.MATRIX && stack.get(1) == ArgumentType.VALUE) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_SUBTRACT_RIGHT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_SUBTRACT_LEFT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.VALUE && stack.get(1) == ArgumentType.MATRIX) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_SUBTRACT_LEFT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_SUBTRACT_RIGHT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
@@ -757,13 +838,13 @@ all:	for (;;) {
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.MATRIX && stack.get(1) == ArgumentType.VALUE) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_MUL_RIGHT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_MUL_LEFT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.VALUE && stack.get(1) == ArgumentType.MATRIX) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_MUL_LEFT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_MUL_RIGHT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
@@ -782,13 +863,13 @@ all:	for (;;) {
 							case '/' :
 								if (stack.size() >= 2) {
 									if (stack.get(0) == ArgumentType.MATRIX && stack.get(1) == ArgumentType.VALUE) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_DIV_RIGHT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_DIV_LEFT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
 									}
 									else if (stack.get(0) == ArgumentType.VALUE && stack.get(1) == ArgumentType.MATRIX) {
-										commands.add(new Command(CommandTypes.MATRIX_VALUE_DIV_LEFT));
+										commands.add(new Command(CommandTypes.MATRIX_VALUE_DIV_RIGHT));
 										stack.remove(0);
 										stack.remove(0);
 										stack.add(0, ArgumentType.MATRIX);
@@ -806,7 +887,6 @@ all:	for (;;) {
 								else {
 									throw new SyntaxException(0, node.col, "Illegal stack content, must contain at least 2 operands");
 								}
-								commands.add(new Command(CommandTypes.DIVIDE, node.cargo));
 								break;
 							case '^' :
 								if (stack.size() >= 2 && stack.get(0) == ArgumentType.MATRIX && stack.get(1) == ArgumentType.MATRIX) {
@@ -873,8 +953,8 @@ all:	for (;;) {
 				}
 				break;
 			case MATRIX		:
-				commands.add(new Command(CommandTypes.LOAD_MATRIX, node.value));
-				stack.add(0, ArgumentType.VALUE);
+				commands.add(new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf((int)node.value)));
+				stack.add(0, ArgumentType.MATRIX);
 				break;
 			case NEG		:
 				buildCommands((SyntaxNode<SyntaxNodeType, SyntaxNode<?, ?>>) node.cargo, commands, stack);
@@ -914,54 +994,6 @@ all:	for (;;) {
 		MATRIX,
 		ANY,
 		SAMEAS;
-	}
-	
-	private static enum FunctionType {
-		ABS("abs", ArgumentType.VALUE, ArgumentType.VALUE),
-		CONJ("conj", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ZERO("zero", ArgumentType.MATRIX, ArgumentType.VALUE, ArgumentType.VALUE),
-		IDENTITY("identity", ArgumentType.MATRIX, ArgumentType.VALUE, ArgumentType.VALUE),
-		TRAN("tran", ArgumentType.MATRIX, ArgumentType.MATRIX),
-		INV("inv", ArgumentType.MATRIX, ArgumentType.MATRIX),
-		DET("det", ArgumentType.VALUE, ArgumentType.MATRIX),
-		TRACK("track", ArgumentType.VALUE, ArgumentType.MATRIX),
-		SIN("sin", ArgumentType.SAMEAS, ArgumentType.ANY),
-		COS("cos", ArgumentType.SAMEAS, ArgumentType.ANY),
-		TAN("tan", ArgumentType.SAMEAS, ArgumentType.ANY),
-		SQRT("sqrt", ArgumentType.SAMEAS, ArgumentType.ANY),
-		EXP("exp", ArgumentType.SAMEAS, ArgumentType.ANY),
-		LN("ln", ArgumentType.SAMEAS, ArgumentType.ANY),
-		SH("sh", ArgumentType.SAMEAS, ArgumentType.ANY),
-		CH("ch", ArgumentType.SAMEAS, ArgumentType.ANY),
-		TH("th", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ARCSIN("arcsin", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ARCCOS("arccos", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ARCTAN("arctan", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ARCSH("arcsh", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ARCCH("arcch", ArgumentType.SAMEAS, ArgumentType.ANY),
-		ARCTH("arcth", ArgumentType.SAMEAS, ArgumentType.ANY);
-		
-		private final String			abbr;
-		private final ArgumentType[]	args;
-		private final ArgumentType		result;
-		
-		private FunctionType(final String abbr, final ArgumentType result, final ArgumentType... args) {
-			this.abbr = abbr;
-			this.args = args;
-			this.result = result;
-		}
-		
-		public String getAbbr() {
-			return abbr;
-		}
-
-		public ArgumentType[] getArgs() {
-			return args;
-		}
-		
-		public ArgumentType getResult() {
-			return result;
-		}
 	}
 	
 	private static class Lexema {

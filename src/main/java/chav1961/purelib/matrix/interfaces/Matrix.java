@@ -749,7 +749,7 @@ public interface Matrix extends AutoCloseable, Cloneable {
 	/**
 	 * <p>Assign any content to matrix. Content will be filled from left to right and from top to bottom. If content size is too short, only first matrix items will be replaced. Extra
 	 * values will be truncated without any notice. Conversion will be executed if required. Bit matrix treats zero values as 0, and non-zero values as 1.
-	 * Complex matrices will pack 2 sequential elements into one matrix item.</p> 
+	 * Both real and complex content must pack 2 sequential elements into one matrix item.</p> 
 	 * @param content content to fill. Can't be null
 	 * @return this matrix. Can't be null.
 	 */

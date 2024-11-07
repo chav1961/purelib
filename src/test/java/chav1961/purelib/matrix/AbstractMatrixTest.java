@@ -1,6 +1,5 @@
 package chav1961.purelib.matrix;
 
-import static org.junit.Assert.assertThat;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -10,10 +9,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.matrix.AbstractMatrix.Command;
+import chav1961.purelib.matrix.AbstractMatrix.CommandTypes;
+import chav1961.purelib.matrix.AbstractMatrix.FunctionType;
 import chav1961.purelib.matrix.interfaces.Matrix;
-import chav1961.purelib.matrix.interfaces.MatrixCalc;
 import chav1961.purelib.matrix.interfaces.Matrix.Piece;
 import chav1961.purelib.matrix.interfaces.Matrix.Type;
+import chav1961.purelib.matrix.interfaces.MatrixCalc;
 
 public class AbstractMatrixTest {
 
@@ -52,12 +54,123 @@ public class AbstractMatrixTest {
 		try {
 			new PseudoMarix(null, 10, 20);
 			Assert.fail("Mandatory exception is not detected detected (null 1-st argument)");
-		} catch (IllegalStateException t) {
+		} catch (NullPointerException t) {
+		}
+	}
+
+	@Test
+	public void parsingTest() throws SyntaxException {
+		try(final PseudoMarix	am = new PseudoMarix(Type.REAL_INT, 10, 20)) {
+			am.prepare("10+3i");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {0,3}), new Command(CommandTypes.ADD)}, am.cmds);
+			am.prepare("10-2i");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {0,2}), new Command(CommandTypes.SUBTRACT)}, am.cmds);
+			am.prepare("-10");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.NEGATE)}, am.cmds);
+			am.prepare("-3i");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {0,3}), new Command(CommandTypes.NEGATE)}, am.cmds);
+			am.prepare("%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1))}, am.cmds);
+			am.prepare("-%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.MATRIX_NEGATE)}, am.cmds);
+			
+			am.prepare("%1+%2");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(2)), new Command(CommandTypes.MATRIX_ADD)}, am.cmds);
+			am.prepare("%1+10");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.MATRIX_VALUE_ADD_RIGHT)}, am.cmds);
+			am.prepare("10+%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.MATRIX_VALUE_ADD_LEFT)}, am.cmds);
+
+			am.prepare("%1-%2");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(2)), new Command(CommandTypes.MATRIX_SUBTRACT)}, am.cmds);
+			am.prepare("%1-10");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.MATRIX_VALUE_SUBTRACT_RIGHT)}, am.cmds);
+			am.prepare("10-%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.MATRIX_VALUE_SUBTRACT_LEFT)}, am.cmds);
+
+			am.prepare("%1*%2");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(2)), new Command(CommandTypes.MATRIX_MUL)}, am.cmds);
+			am.prepare("%1*10");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.MATRIX_VALUE_MUL_RIGHT)}, am.cmds);
+			am.prepare("10*%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.MATRIX_VALUE_MUL_LEFT)}, am.cmds);
+			am.prepare("10*20");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {20,0}), new Command(CommandTypes.MULTIPLY)}, am.cmds);
+
+			am.prepare("%1/10");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.MATRIX_VALUE_DIV_RIGHT)}, am.cmds);
+			am.prepare("10/%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.MATRIX_VALUE_DIV_LEFT)}, am.cmds);
+			am.prepare("10/20");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {20,0}), new Command(CommandTypes.DIVIDE)}, am.cmds);
+
+			am.prepare("%1x%2");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(2)), new Command(CommandTypes.HADAMARD_MUL)}, am.cmds);
+			am.prepare("%1^%2");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(2)), new Command(CommandTypes.KRONEKER_MUL)}, am.cmds);
+
+			am.prepare("(complex_float)%1");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.CAST, Type.COMPLEX_FLOAT)}, am.cmds);
+
+			am.prepare("sin(%1)");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_MATRIX, Integer.valueOf(1)), new Command(CommandTypes.CALL_FUNCTION, FunctionType.SIN)}, am.cmds);
+			am.prepare("zero(2,3)");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {2,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {3,0}), new Command(CommandTypes.CALL_FUNCTION, FunctionType.ZERO)}, am.cmds);
+
+			am.prepare("(10+3i)*(20-6i)");
+			Assert.assertArrayEquals(new Command[] {new Command(CommandTypes.LOAD_VALUE, new double[] {10,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {0,3}), new Command(CommandTypes.ADD), new Command(CommandTypes.LOAD_VALUE, new double[] {20,0}), new Command(CommandTypes.LOAD_VALUE, new double[] {0,6}), new Command(CommandTypes.SUBTRACT), new Command(CommandTypes.MULTIPLY)}, am.cmds);
+			
+			try{am.prepare(null);
+				Assert.fail("Mandatory exception was not detected (null 1-st argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			try{am.prepare("");
+				Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
+			} catch (IllegalArgumentException exc) {
+			}
+			
+			try{am.prepare("@");
+				Assert.fail("Mandatory exception was not detected (unknown lexema)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("xx");
+				Assert.fail("Mandatory exception was not detected (unknown function)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("1+");
+				Assert.fail("Mandatory exception was not detected (missing operand)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("(1+2");
+				Assert.fail("Mandatory exception was not detected (missing close bracket)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("sin(1");
+				Assert.fail("Mandatory exception was not detected (missing close bracket)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("sin(1,2)");
+				Assert.fail("Mandatory exception was not detected (too many arguments)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("zero(1)");
+				Assert.fail("Mandatory exception was not detected (too few arguments)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("zero(1,%1)");
+				Assert.fail("Mandatory exception was not detected (illgal argument types)");
+			} catch (SyntaxException exc) {
+			}
+			try{am.prepare("%1/%2");
+				Assert.fail("Mandatory exception was not detected (illegal operand types)");
+			} catch (SyntaxException exc) {
+			}
 		}
 	}
 }
 
 class PseudoMarix extends AbstractMatrix {
+	Command[]	cmds;
 
 	PseudoMarix(Type type, int rows, int cols) {
 		super(type, rows, cols);
@@ -171,5 +284,10 @@ class PseudoMarix extends AbstractMatrix {
 	@Override public Number[] det2() {return null;}
 	@Override public Number[] track2() {return null;}
 	@Override protected void lastCall() {}
-	@Override protected MatrixCalc buildMatrixCalc(Command... cmds) throws SyntaxException {return null;}
+	
+	@Override 
+	protected MatrixCalc buildMatrixCalc(final Command... cmds) throws SyntaxException {
+		this.cmds = cmds;
+		return null;
+	}
 }
