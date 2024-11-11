@@ -837,11 +837,19 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	public FilterCallback[] getFilters() {
 		return getFileDesc().filters;
 	}
-	
+
+	/**
+	 * <p>Get file support count.</p>
+	 * @return file support count.
+	 */
 	public int getFileSupportCount() {
 		return files.size();
 	}
 
+	/**
+	 * <p>Append new file support.</p>
+	 * @return unique number to file support. Must be used in {@linkplain #setCurrentFileSupport(int)} method to select required file support.</p>
+	 */
 	public int appendNewFileSupport() {
 		final FileDesc	fd = new FileDesc(); 
 		
@@ -849,10 +857,18 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		return fd.id;
 	}
 	
+	/**
+	 * <p>Get current file support number.</p>
+	 * @return current file support number.
+	 */
 	public int getCurrentFileSupport() {
 		return files.get(filesIndex).id;
 	}
 	
+	/**
+	 * <p>Set current file support number.</p>
+	 * @param id current file support number (see {@linkplain #appendNewFileSupport()} method).
+	 */
 	public void setCurrentFileSupport(final int id) {
 		if (id == -1) {
 			filesIndex = -1;
@@ -869,6 +885,10 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 		}
 	}
 	
+	/**
+	 * <p>Remove file support.</p>
+	 * @param id file support number to remove (see {@linkplain #appendNewFileSupport()} method).
+	 */
 	public void removeFileSupport(final int id) {
 		for(int index = files.size() - 1; index >= 0; index--) {
 			if (files.get(index).id == id) {

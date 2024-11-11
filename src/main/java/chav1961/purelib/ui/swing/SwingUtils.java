@@ -1423,9 +1423,9 @@ loop:			for (Component comp : children(node)) {
 				else {
 					final ActionListener	al = (e)-> listener.actionPerformed(new ActionEvent(e.getSource(), e.getID() 
 														, preprocess.process(e.getActionCommand()
-														, node
-														, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
-														, listener
+															, node
+															, node instanceof NodeMetadataOwner ? ((NodeMetadataOwner)node).getNodeMetadata() : null
+															, listener
 														), e.getWhen(), e.getModifiers()));
 					
 					try{

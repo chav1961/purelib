@@ -4,6 +4,7 @@ package chav1961.purelib.ui.swing;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Window;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
@@ -79,6 +80,9 @@ class JMenuPopupWithMeta extends JPopupMenu implements NodeMetadataOwner, Locale
 					((JMenuItem)item).setIcon(((JMenuItem)ref).getIcon());
 					((JMenuItem)item).setToolTipText(((JMenuItem)ref).getToolTipText());
 					((JMenuItem)item).setEnabled(((JMenuItem)ref).isEnabled());
+					for (ActionListener listener : ((JMenuItem)item).getActionListeners()) {
+						((JMenuItem)item).removeActionListener(listener);
+					}
 					((JMenuItem)item).addActionListener((e)->((JMenuItem)ref).doClick());
 				}
 				else if ((item instanceof JMenu) && (ref instanceof JMenu)) {
