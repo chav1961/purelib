@@ -1769,7 +1769,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			return 3;
 		}
 	}
-	
+
 	@FunctionalInterface
 	public interface DirectProxyExecutor {
 		Object exec(Object owner, Object[] parameters) throws Exception;
