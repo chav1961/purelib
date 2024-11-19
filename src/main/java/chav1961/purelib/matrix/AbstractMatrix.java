@@ -286,44 +286,40 @@ public abstract class AbstractMatrix implements Matrix {
 		}
 	}
 	
+	public static boolean isOverlaps(final Matrix source, final Piece piece) {
+		if (source == null) {
+			throw new NullPointerException("Source matrix can't be null");
+		}
+		else if (piece == null) {
+			throw new NullPointerException("Matrix piece can't be null");
+		}
+		else {
+			return isOverlapsInternal(source, piece);
+		}
+	}
+	
+	public static IllegalArgumentException overlapsError(final Matrix source, final Piece piece) {
+		if (source == null) {
+			throw new NullPointerException("Source matrix can't be null");
+		}
+		else if (piece == null) {
+			throw new NullPointerException("Matrix piece can't be null");
+		}
+		else {
+			return overlapsErrorInternal(source, piece);
+		}
+	}
+	
 	protected Piece totalPiece() {
 		return Piece.of(0, 0, rows, cols);
 	}
 
 	protected boolean isOverlaps(final Piece piece) {
-		if (piece.getLeft() >= numberOfColumns()) {
-			return true;
-		}
-		else if (piece.getTop() >= numberOfRows()) {
-			return true;
-		}
-		else if (piece.getLeft() + piece.getWidth() > numberOfColumns()) {
-			return true;
-		}
-		else if (piece.getTop() + piece.getHeight() > numberOfRows()) {
-			return true;
-		}
-		else {
-			return false;
-		}
+		return isOverlapsInternal(this, piece);
 	}
 	
 	protected IllegalArgumentException overlapsError(final Piece piece) {
-		if (piece.getLeft() >= numberOfColumns()) {
-			return new IllegalArgumentException("Left piece location ["+piece.getLeft()+"] outside number of columns ["+numberOfColumns()+"]");
-		}
-		else if (piece.getTop() >= numberOfRows()) {
-			return new IllegalArgumentException("Top piece location ["+piece.getTop()+"] outside number of rows ["+numberOfRows()+"]");
-		}
-		else if (piece.getLeft() + piece.getWidth() > numberOfColumns()) {
-			return new IllegalArgumentException("Right piece location ["+(piece.getLeft()+piece.getWidth())+"] outside number of columns ["+numberOfColumns()+"]");
-		}
-		else if (piece.getTop() + piece.getHeight() > numberOfRows()) {
-			return new IllegalArgumentException("Bottom piece location ["+(piece.getTop()+piece.getHeight())+"] outside number of rows ["+numberOfRows()+"]");
-		}
-		else {
-			return null;
-		}
+		return overlapsErrorInternal(this, piece);
 	}
 	
 	protected void beginTransaction() {
@@ -364,6 +360,42 @@ public abstract class AbstractMatrix implements Matrix {
 		}
 	}
 
+	protected static boolean isOverlapsInternal(final Matrix source, final Piece piece) {
+		if (piece.getLeft() >= source.numberOfColumns()) {
+			return true;
+		}
+		else if (piece.getTop() >= source.numberOfRows()) {
+			return true;
+		}
+		else if (piece.getLeft() + piece.getWidth() > source.numberOfColumns()) {
+			return true;
+		}
+		else if (piece.getTop() + piece.getHeight() > source.numberOfRows()) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}	
+
+	protected static IllegalArgumentException overlapsErrorInternal(final Matrix source, final Piece piece) {
+		if (piece.getLeft() >= source.numberOfColumns()) {
+			return new IllegalArgumentException("Left piece location ["+piece.getLeft()+"] outside number of columns ["+source.numberOfColumns()+"]");
+		}
+		else if (piece.getTop() >= source.numberOfRows()) {
+			return new IllegalArgumentException("Top piece location ["+piece.getTop()+"] outside number of rows ["+source.numberOfRows()+"]");
+		}
+		else if (piece.getLeft() + piece.getWidth() > source.numberOfColumns()) {
+			return new IllegalArgumentException("Right piece location ["+(piece.getLeft()+piece.getWidth())+"] outside number of columns ["+source.numberOfColumns()+"]");
+		}
+		else if (piece.getTop() + piece.getHeight() > source.numberOfRows()) {
+			return new IllegalArgumentException("Bottom piece location ["+(piece.getTop()+piece.getHeight())+"] outside number of rows ["+source.numberOfRows()+"]");
+		}
+		else {
+			return null;
+		}
+	}
+	
 	protected static enum CommandTypes {
 		LOAD_MATRIX,
 		LOAD_VALUE,
