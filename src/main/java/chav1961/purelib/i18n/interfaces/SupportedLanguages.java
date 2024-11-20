@@ -19,9 +19,9 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 
 @LocaleResourceLocation("i18n:xml:root://chav1961.purelib.i18n.interfaces.SupportedLanguages/chav1961/purelib/i18n/localization.xml")
 public enum SupportedLanguages {
-	@LocaleResource(value="en",tooltip="en.tt")
+	@LocaleResource(value="en",tooltip="en.tt",icon="root://chav1961.purelib.i18n.interfaces.SupportedLanguages/chav1961/purelib/i18n/interfaces/en.png")
 	en(Locale.forLanguageTag("en")), 
-	@LocaleResource(value="ru",tooltip="ru.tt")
+	@LocaleResource(value="ru",tooltip="ru.tt",icon="root://chav1961.purelib.i18n.interfaces.SupportedLanguages/chav1961/purelib/i18n/interfaces/ru.png")
 	ru(Locale.forLanguageTag("ru"));
 	
 	private final Locale	locale;

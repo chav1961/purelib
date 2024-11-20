@@ -1,6 +1,5 @@
 package chav1961.purelib.ui.swing.useful.renderers;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -10,10 +9,8 @@ import java.util.Set;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.ListCellRenderer;
 import javax.swing.border.LineBorder;
@@ -22,16 +19,12 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.ColorUtils;
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.interfaces.NodeMetadataOwner;
-import chav1961.purelib.ui.interfaces.ItemAndSelection;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 
 public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
