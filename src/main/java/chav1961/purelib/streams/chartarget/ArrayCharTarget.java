@@ -79,7 +79,7 @@ public class ArrayCharTarget implements CharacterTarget {
 	}
 
 	@Override
-	public CharacterTarget put(final String source) throws PrintingException {
+	public CharacterTarget put(final CharSequence source) throws PrintingException {
 		if (source == null) {
 			throw new NullPointerException("Source can't be null"); 
 		}
@@ -89,14 +89,16 @@ public class ArrayCharTarget implements CharacterTarget {
 	}
 
 	@Override
-	public CharacterTarget put(final String source, final int from, final int to) throws PrintingException {
+	public CharacterTarget put(final CharSequence source, final int from, final int to) throws PrintingException {
 		final int	delta = to - from;
 		
 		if (source == null) {
 			throw new NullPointerException("Source can't be null"); 
 		}
 		else if (actual + delta < max) {
-			source.getChars(from,to,target,actual);
+			for(int index = 0; index < delta; index++) {
+				target[actual+index] = source.charAt(from + index);
+			}
 			actual += delta;
 			written += delta; 
 			return this;
@@ -123,7 +125,7 @@ public class ArrayCharTarget implements CharacterTarget {
 		}
 		else {
 			try{for(int index=start; index < end; index++) {
-						put(csq.charAt(index));
+					put(csq.charAt(index));
 				}
 				return this;
 			} catch (PrintingException e) {

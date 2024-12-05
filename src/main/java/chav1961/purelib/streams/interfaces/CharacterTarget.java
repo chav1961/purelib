@@ -45,7 +45,7 @@ public interface CharacterTarget extends Appendable, Flushable {
 	 * @return self
 	 * @throws PrintingException any printing exceptions
 	 */
-	CharacterTarget put(String source) throws PrintingException;
+	CharacterTarget put(CharSequence source) throws PrintingException;
 	
 	/**
 	 * <p>Put part of string into the target</p>
@@ -55,7 +55,7 @@ public interface CharacterTarget extends Appendable, Flushable {
 	 * @return self
 	 * @throws PrintingException any printing exceptions
 	 */
-	CharacterTarget put(String source, int from, int to) throws PrintingException;
+	CharacterTarget put(CharSequence source, int from, int to) throws PrintingException;
 	
 	/**
 	 * <p>Get count of the total written data</p>

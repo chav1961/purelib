@@ -19,6 +19,7 @@ public class WriterCharTarget implements CharacterTarget {
 	private final Writer		targetWr;
 	private final PrintStream	targetPs;
 	private final boolean		charByChar;
+	private final char[]		buffer = new char[16];
 	private int					written = 0;
 
 	/**
@@ -83,10 +84,10 @@ public class WriterCharTarget implements CharacterTarget {
 		}
 		else if (charByChar) {
 			try{if (targetWr != null) {
-					targetWr.write(symbols,from,to);
+					writeWr(symbols, from, to);
 				}
 				else {
-					targetPs.print(new String(symbols,from,to));
+					writePs(symbols, from, to);
 				}
 				written += to - from;
 				return this;
@@ -96,10 +97,10 @@ public class WriterCharTarget implements CharacterTarget {
 		}
 		else {
 			try{if (targetWr != null) {
-					targetWr.write(symbols,from,to);
+					writeWr(symbols, from, to);
 				}
 				else {
-					targetPs.print(new String(symbols,from,to));
+					writePs(symbols, from, to);
 				}
 				written += to - from;
 				return this;
@@ -110,16 +111,16 @@ public class WriterCharTarget implements CharacterTarget {
 	}
 
 	@Override
-	public CharacterTarget put(final String source) throws PrintingException {
+	public CharacterTarget put(final CharSequence source) throws PrintingException {
 		if (source == null) {
 			throw new NullPointerException("Source can't be null"); 
 		}
 		else if (charByChar) {
 			try{if (targetWr != null) {
-					targetWr.write(source);
+					writeWr(source, 0, source.length());
 				}
 				else {
-					targetPs.print(source);
+					writePs(source, 0, source.length());
 				}
 				written += source.length();
 				return this;
@@ -129,10 +130,10 @@ public class WriterCharTarget implements CharacterTarget {
 		}
 		else {
 			try{if (targetWr != null) {
-					targetWr.write(source);
+					writeWr(source, 0, source.length());
 				}
 				else {
-					targetPs.print(source);
+					writePs(source, 0, source.length());
 				}
 				written += source.length();
 				return this;
@@ -143,16 +144,16 @@ public class WriterCharTarget implements CharacterTarget {
 	}
 
 	@Override
-	public CharacterTarget put(String source, int from, int to) throws PrintingException {
+	public CharacterTarget put(final CharSequence source, int from, int to) throws PrintingException {
 		if (source == null) {
 			throw new NullPointerException("Source can't be null"); 
 		}
 		else if (charByChar) {
 			try{if (targetWr != null) {
-					targetWr.write(source.substring(from, to));
+					writeWr(source, from, to);
 				}
 				else {
-					targetPs.print(source.substring(from, to));
+					writePs(source, from, to);
 				}
 				written += to - from;
 				return this;
@@ -162,10 +163,10 @@ public class WriterCharTarget implements CharacterTarget {
 		}
 		else {
 			try{if (targetWr != null) {
-					targetWr.write(source.substring(from, to));
+					writeWr(source, from, to);
 				}
 				else {
-					targetPs.print(source.substring(from, to));
+					writePs(source, from, to);
 				}
 				written += to - from;
 				return this;
@@ -192,7 +193,7 @@ public class WriterCharTarget implements CharacterTarget {
 		}
 		else {
 			try{for(int index=start; index < end; index++) {
-						put(csq.charAt(index));
+					put(csq.charAt(index));
 				}
 				return this;
 			} catch (PrintingException e) {
@@ -229,4 +230,36 @@ public class WriterCharTarget implements CharacterTarget {
 	@Override public int atRow() {return 0;}
 	@Override public int atColumn() {return 0;}
 
+	private void writeWr(final CharSequence seq, final int from, final int to) throws IOException {
+		for(int index = from; index < to; index++) {
+			targetWr.write(seq.charAt(index));
+		}
+	}
+
+	private void writeWr(final char[] seq, final int from, final int to) throws IOException {
+		for(int index = from; index < to; index++) {
+			targetWr.write(seq[index]);
+		}
+	}
+	
+	private void writePs(final CharSequence seq, final int from, final int to) throws IOException {
+		int	 bufIndex = 0;
+		
+		for(int index = from; index < to; index++) {
+			if (bufIndex >= buffer.length) {
+				targetPs.print(buffer);
+				bufIndex = 0;
+			}
+			buffer[bufIndex++] = seq.charAt(index);
+		}
+		for(int index = 0; index < bufIndex; index++) {
+			targetPs.print(buffer[index]);
+		}
+	}
+
+	private void writePs(final char[] seq, final int from, final int to) throws IOException {
+		for(int index = from; index < to; index++) {
+			targetPs.print(seq[index]);
+		}
+	}
 }

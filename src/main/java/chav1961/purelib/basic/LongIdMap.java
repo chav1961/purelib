@@ -15,7 +15,7 @@ import chav1961.purelib.basic.interfaces.LongIdTreeInterface;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.6
+ * @last.update 0.0.7
  */
 public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	private static final int	RANGE_STEP = 64;
@@ -36,7 +36,7 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 		}
 		else {
 			this.contentType = contentType;
-			this.content = (T[][][][]) Array.newInstance(contentType,RANGE_STEP,0,0,0);
+			this.content = (T[][][][]) Array.newInstance(contentType, RANGE_STEP, 0, 0, 0);
 		}
 	}
 	
@@ -89,22 +89,35 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	 * @return true if contains
 	 */
 	public boolean contains(final long id) {
-		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+		final int		part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+		final T[][][][]	root = content;
 		
-		if (part1 >= content.length || content[part1] == null) {
-			return false;
-		}
-		if (part2 >= content[part1].length || content[part1][part2] == null) {
-			return false;
-		}
-		if (part3 >= content[part1][part2].length || content[part1][part2][part3] == null) {
-			return false;
-		}
-		if (part4 >= content[part1][part2][part3].length) {
+		if (part1 >= root.length || root[part1] == null) {
 			return false;
 		}
 		else {
-			return content[part1][part2][part3][part4] != null; 
+			final T[][][]	level1 = root[part1];
+			
+			if (part2 >= level1.length || level1[part2] == null) {
+				return false;
+			}
+			else {
+				final T[][]	level2 = level1[part2];
+				
+				if (part3 >= level2.length || level2[part3] == null) {
+					return false;
+				}
+				else {
+					final T[]	level3 = level2[part3];
+					
+					if (part4 >= level3.length) {
+						return false;
+					}
+					else {
+						return level3[part4] != null; 
+					}
+				}
+			}
 		}
 	}
 	
@@ -115,44 +128,70 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	 */
 	public T get(final long id) {
 		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+		final T[][][][]	root = content;
 		
-		if (part1 >= content.length || content[part1] == null) {
-			return null;
-		}
-		if (part2 >= content[part1].length || content[part1][part2] == null) {
-			return null;
-		}
-		if (part3 >= content[part1][part2].length || content[part1][part2][part3] == null) {
-			return null;
-		}
-		if (part4 >= content[part1][part2][part3].length) {
+		if (part1 >= root.length || root[part1] == null) {
 			return null;
 		}
 		else {
-			return content[part1][part2][part3][part4]; 
+			final T[][][]	level1 = root[part1];
+			
+			if (part2 >= level1.length || level1[part2] == null) {
+				return null;
+			}
+			else {
+				final T[][]	level2 = level1[part2];
+				
+				if (part3 >= level2.length || level2[part3] == null) {
+					return null;
+				}
+				else {
+					final T[]	level3 = level2[part3];
+					
+					if (part4 >= level3.length) {
+						return null;
+					}
+					else {
+						return level3[part4]; 
+					}
+				}
+			}
 		}
 	}
 
 	public T remove(final long id) {
 		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+		final T[][][][]	root = content;
 		
-		if (part1 >= content.length || content[part1] == null) {
-			return null;
-		}
-		if (part2 >= content[part1].length || content[part1][part2] == null) {
-			return null;
-		}
-		if (part3 >= content[part1][part2].length || content[part1][part2][part3] == null) {
-			return null;
-		}
-		if (part4 >= content[part1][part2][part3].length) {
+		if (part1 >= root.length || root[part1] == null) {
 			return null;
 		}
 		else {
-			final T	result = content[part1][part2][part3][part4]; 
+			final T[][][]	level1 = root[part1];
 			
-			content[part1][part2][part3][part4] = null;
-			return result;
+			if (part2 >= level1.length || level1[part2] == null) {
+				return null;
+			}
+			else {
+				final T[][]	level2 = level1[part2];
+				
+				if (part3 >= level2.length || level2[part3] == null) {
+					return null;
+				}
+				else {
+					final T[]	level3 = level2[part3];
+					
+					if (part4 >= level3.length) {
+						return null;
+					}
+					else {
+						final T	result = level3[part4]; 
+						
+						level3[part4] = null;
+						return result;
+					}
+				}
+			}
 		}
 	}
 	

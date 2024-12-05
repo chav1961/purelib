@@ -294,13 +294,15 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			}
 			else {
 				final char[]	result = new char[((TermNode)node).nameLen];
-				
-				getName(id, result, 0);
+				final int		returned = getNameInternal(node, result, 0);
+
+//				
+//				getName(id, result, 0);
 				return new String(result);
 			}
 		}
 	}
-	
+
 	@Override
 	public int getName(final long id, final char[] where, final int from) {
 		final int	len;
@@ -321,18 +323,37 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 				return 0;
 			}
 			else {
-				final int	nameLen = ((TermNode)node).nameLen;
-				
-				if (len-from < nameLen) {
-					return -nameLen;
-				}
-				else {
-					fillName(node, where, from + nameLen);
-					return from+nameLen;
-				}
+				return getNameInternal(node, where, from);
+//				
+//				
+//				final int	nameLen = ((TermNode)node).nameLen;
+//				
+//				if (len-from < nameLen) {
+//					return -nameLen;
+//				}
+//				else {
+//					fillName(node, where, from + nameLen);
+//					return from+nameLen;
+//				}
 			}
 		}
 	}
+
+	private int getNameInternal(final Node node, final char[] where, final int from) {
+		final int	len = where.length;
+		final int	nameLen = ((TermNode)node).nameLen;
+		
+		if (len-from < nameLen) {
+			return -nameLen;
+		}
+		else {
+			fillName(node, where, from + nameLen);
+			return from+nameLen;
+		}
+	}
+	
+	
+	
 	
 	@SuppressWarnings("unchecked")
 	@Override
@@ -1552,8 +1573,10 @@ seek:	while (root != null && from < to) {
 	private static void fillName(Node node, final char[] where, int endPoz) {
 		while (node != null) {
 			if (node.type == TYPE_AND) {
-				final int	len = ((AndNode)node).chars.length;
-				System.arraycopy(((AndNode)node).chars,0,where,endPoz-len,len);
+				final char[]	array = ((AndNode)node).chars;
+				final int		len = array.length;
+				
+				System.arraycopy(array, 0, where, endPoz-len, len);
 				endPoz -= len;
 			}
 			node = node.parent;

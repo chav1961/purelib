@@ -63,7 +63,7 @@ public class StringBuilderCharTarget implements CharacterTarget {
 	}
 
 	@Override
-	public CharacterTarget put(final String source) throws PrintingException {
+	public CharacterTarget put(final CharSequence source) throws PrintingException {
 		if (source == null) {
 			throw new IllegalArgumentException("Source can't be null"); 
 		}
@@ -75,7 +75,7 @@ public class StringBuilderCharTarget implements CharacterTarget {
 	}
 
 	@Override
-	public CharacterTarget put(final String source, final int from, final int to) throws PrintingException {
+	public CharacterTarget put(final CharSequence source, final int from, final int to) throws PrintingException {
 		if (source == null) {
 			throw new IllegalArgumentException("Source can't be null"); 
 		}
