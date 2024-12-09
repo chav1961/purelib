@@ -43,6 +43,13 @@ public interface RuleBasedParser<NodeType extends Enum<?>, Cargo> {
 	 */
 	SyntaxTreeInterface<Cargo> getNamesTree();
 
+	/**
+	 * <p>Test input content according to rules</p>
+	 * @param content input content to test. Can't be null or empty array.
+	 * @param from start position to test. Must be inside the content. 
+	 * @return end position after test. Can be used in subsequent calls
+	 * @throws SyntaxException on any syntax errors in the input content
+	 */
 	boolean test(char [] content, int from) throws SyntaxException;
 	
 	/**

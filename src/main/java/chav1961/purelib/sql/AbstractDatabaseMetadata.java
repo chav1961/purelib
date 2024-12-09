@@ -21,7 +21,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.sql.interfaces.SQLMeta;
 
-public abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
+abstract class AbstractDatabaseMetadata implements DatabaseMetaData {
 	public static final String[]				ANY_CONTENT = new String[0];
 	
 	public static final String					ALIAS_SORT = "ALIAS";

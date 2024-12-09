@@ -12,15 +12,15 @@ import java.util.function.BiConsumer;
  * @since 0.0.7
  * @param <Content> content item type inside the tree
  * @param <Cargo> any object associated with the item
- * @see https://en.wikipedia.org/wiki/BK-tree
+ * @see <a href="https://en.wikipedia.org/wiki/BK-tree">Burkhrdt-Keller tree</a>
  */
 public class BKTree<Content, Cargo> {
 	/**
 	 * <p>This interface describes function to calculate metrics (for example, Levenstein distance) for tree element pairs</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.7
-	 * @see https://en.wikipedia.org/wiki/Levenshtein_distance
 	 * @param <Content> content to calculate metrics
+	 * @see <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenstein distance</a>
 	 */
 	@FunctionalInterface
 	public static interface BiIntFunction<Content> {

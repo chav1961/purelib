@@ -13,7 +13,7 @@ import chav1961.purelib.cdb.intern.BNFParserStack;
 import chav1961.purelib.cdb.intern.EntityType;
 import chav1961.purelib.cdb.intern.Predefines;
 
-public abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> implements RuleBasedParser<NodeType, Cargo>, Cloneable {
+abstract class AbstractBNFParser<NodeType extends Enum<?>, Cargo> implements RuleBasedParser<NodeType, Cargo>, Cloneable {
 	protected static final Object[]					EMPTY_PARAMETERS = new Object[0];
 	protected static final SyntaxNode				TEMPLATE = new SyntaxNode(0, 0, EntityType.Root, 0, null);
 	private static final Appendable					NULL_APPENDABLE = new Appendable() {

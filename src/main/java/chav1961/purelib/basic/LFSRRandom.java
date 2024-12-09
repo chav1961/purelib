@@ -4,7 +4,7 @@ package chav1961.purelib.basic;
  * <p>This class is a random generator based on linear feedback shift register.</p>
  * 
  * @author Alexander Chernomyrdin aka chav1961
- * @see https://microsin.net/programming/avr/lfsr-pseudo-random-number-generator.html
+ * @see <a href="https://microsin.net/programming/avr/lfsr-pseudo-random-number-generator.html">Pseudo-random number generator</a>
  * @since 0.0.7 
  */
 public class LFSRRandom {

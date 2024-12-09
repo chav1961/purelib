@@ -24,7 +24,7 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
  * <p>This class is a placeholder for different purposes. This class supports:</p>
  * <ul>
  * <li>focusing mechanism (gain and loose focus)</li>
- * <li>Drag&Drop ability (implements by {@linkplain DnDManager})</li>
+ * <li>Drag&amp;Drop ability (implements by {@linkplain DnDManager})</li>
  * <li>Localizable title and tool tip for it's content (implemented by {@linkplain Localizer})</li>
  * </ul> 
  * <p>This class is not thread-safe</p>

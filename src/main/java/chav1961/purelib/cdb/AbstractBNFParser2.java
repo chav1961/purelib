@@ -9,7 +9,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 import chav1961.purelib.cdb.intern.Predefines;
 
-public abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implements RuleBasedParser<NodeType, Cargo> {
+abstract class AbstractBNFParser2<NodeType extends Enum<?>, Cargo> implements RuleBasedParser<NodeType, Cargo> {
 	protected static final int		EOF = 0;
 	protected static final int		ILLEGAL = 1;
 	protected static final int		FIRST_FREE  = 2;

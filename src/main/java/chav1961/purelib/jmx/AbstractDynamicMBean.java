@@ -40,9 +40,10 @@ import java.lang.reflect.Method;
  * mark it's constructors/getters/setters/actions and the self class with {@linkplain JMXItemType} annotation. All the entities marked will be included in the MBean. 
  * Annotation mast contain string descriptions for all entities to include, and type for getter/setter methods:</p>
  * 
- * <code>
- * @JMXItemType(description="My class")
- * class	ZZZ {
+ * <pre>
+ * {@code
+ * 	@JMXItemType(description="My class")
+ * 	class	ZZZ {
  * 		@JMXItemType(description="Constructor")
  * 		public ZZZ() {
  * 			. . .
@@ -64,8 +65,9 @@ import java.lang.reflect.Method;
  * 			. . .
  * 		}
  * 			. . .
+ * 	}
  * }
- * </code>
+ * </pre>
  * 
  * <p>This class can be used in multi-tasking environment</p> 
  * 

@@ -16,7 +16,7 @@
  * <li> {@link chav1961.purelib.basic.LineByLineProcessor} class for quick splitting input source to <i>lines</i> and support it's line-by-line processing</li> 
  * <li> {@link chav1961.purelib.basic.LongIdMap} class to implement quick tree with long ID as key</li> 
  * <li> {@link chav1961.purelib.basic.MemorySize} class to work with string representation of the memory size</li> 
- * <li> {@link chav1961.purelib.basic.MimeTypee} class to represent MIME type</li> 
+ * <li> {@link chav1961.purelib.basic.MimeType} class to represent MIME type</li> 
  * <li> {@link chav1961.purelib.basic.PluggableClassLoader} class to implement simple plug-in mechanism in your application</li> 
  * <li> {@link chav1961.purelib.basic.PureLibSettings} class as a center of all the Pure Library settings</li> 
  * <li> {@link chav1961.purelib.basic.ReusableInstances} class to support cache of reusable class instances for reducing memory allocations in your application</li> 

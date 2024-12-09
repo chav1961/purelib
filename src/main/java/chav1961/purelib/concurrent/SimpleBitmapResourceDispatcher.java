@@ -16,8 +16,9 @@ import chav1961.purelib.concurrent.interfaces.ResourceDispatcherLock;
 /**
  * <p>This class implements simple resource dispatcher. It supports locking and unlocking a <b>group</b> of resources, up to 64 items in the group.
  * Every resource in the dispatcher identifies by it's index (0..63). There is an example to use this class:</p>
- * <code>
- * try(final SimpleBitmapResourceDispatcher disp = new SimpleBitmapResourceDispatcher((1L << 0) | (1L << 1))) { // initially register resources with index 0 and 1
+ * <pre>
+ * {@code
+ * 	try(final SimpleBitmapResourceDispatcher disp = new SimpleBitmapResourceDispatcher((1L << 0) | (1L << 1))) { // initially register resources with index 0 and 1
  *    disp.start();
  *    . . .
  *    try(final ResourceDispatcherLock lock = disp.lock((1L << 0) | (1L << 1))) { // lock group of two resources with index 0 and 1
@@ -33,8 +34,9 @@ import chav1961.purelib.concurrent.interfaces.ResourceDispatcherLock;
  *    disp.unregisterResourceIndex(2);
  *    . . .
  *    disp.stop();
+ * 	}
  * }
- * <code>
+ * </pre>
  * <p>The main usage of this class is to avoid deadlocks, when more than one resource locking is required. It works similar to:</p>
  * <code>
  * synchronized(resourceIndex0) {

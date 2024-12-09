@@ -11,7 +11,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 /**
  * <p>This interface describes matrices. All implementations of this interface must follow some conventions described below:</p>
  * <ul>
- * <li>Internal matrix representation must be one-dimensional array to increase performance, but it's content can be sliced for huge matrices.</p></li>
+ * <li>Internal matrix representation must be one-dimensional array to increase performance, but it's content can be sliced for huge matrices.</li>
  * <li>All implementations must support asynchronous/parallel operations inside to increase performance. Start of asynchronous/parallel operations is any 
  * call to arithmetic operations and end of asynchronous/parallel operations is calling {@linkplain #done()} method explicitly. Neither getting nor setting
  * matrix values can't be executed before all the asynchronous/parallel operations will be completed, otherwise {@linkplain IllegalStateException} must be

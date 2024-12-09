@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public abstract class AbstractConnection implements Connection {
+abstract class AbstractConnection implements Connection {
 	protected final Properties				props = new Properties();
 	protected final Map<String, Class<?>>	types = new HashMap<>();
 

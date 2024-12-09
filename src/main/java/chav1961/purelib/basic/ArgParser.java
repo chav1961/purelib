@@ -50,7 +50,7 @@ import chav1961.purelib.sql.SQLUtils;
  * <li>{@linkplain StringArg} - string argument</li>
  * <li>{@linkplain EnumArg} - any enumeration argument</li>
  * <li>{@linkplain URIArg} - {@linkplain URI} argument</li>
- * <li>{@linkplain {@link FileArg} - file/directory path argument</li>
+ * <li>{@linkplain FileArg} - file/directory path argument</li>
  * <li>{@linkplain StringListArg} - list of string argument(s)</li>
  * <li>{@linkplain ConfigArg} - configuration source argument</li>
  * <li>{@linkplain PatternArg} - pattern source argument</li>

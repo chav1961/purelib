@@ -23,7 +23,7 @@ import java.util.Map;
 
 import chav1961.purelib.sql.interfaces.QueryExecutor;
 
-public abstract class AbstractCallableStatement extends AbstractPreparedStatement implements CallableStatement {
+abstract class AbstractCallableStatement extends AbstractPreparedStatement implements CallableStatement {
 	private final QueryExecutor			sqe;
 	private final Object[]				parm;
 	private final Class<?>[]			result;
