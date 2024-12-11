@@ -13,6 +13,11 @@ import java.util.logging.Level;
 import chav1961.purelib.ui.ColorScheme;
 import chav1961.purelib.ui.swing.SwingUtils;
 
+/**
+ * <p>This class is used to manipulate colors.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.9
+ */
 public class ColorUtils {
 	private static final Map<Color,String>			COLOR2NAME = new HashMap<>();
 	private static final Map<String,Color>			NAME2COLOR = new HashMap<>();

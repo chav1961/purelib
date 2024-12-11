@@ -4,23 +4,40 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
 
-public class DottedVersion extends ArrayList<Integer> implements Comparable<DottedVersion> {
+/**
+ * <p>This class manipulates with dot-splitten version strings. Supports {@linkplain Comparable} interface.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ */
+public class DottedVersion extends ArrayList<Integer> implements Comparable<DottedVersion>, Cloneable {
 	private static final long 	serialVersionUID = -2071809269597291921L;
 	
 	public static final DottedVersion 				ZERO = new DottedVersion("0");
     public static final Comparator<DottedVersion> 	COMPARATOR = new VersionComparator();
     private static final Integer 					ZERO_INT = Integer.valueOf(0);
 
+    /**
+     * <p>Constructor of the class.</p>
+     */
     public DottedVersion() {
         super(3);
         innerSetZero();
     }
 
+    /**
+     * <p>Constructor of the class.</p>
+     * @param ver another dotted version to make clone from it. Can't be null.
+     */
     public DottedVersion(final DottedVersion ver) {
         super(ver);
     }
 
-    public DottedVersion(final String version) {
+    /**
+     * <p>Constructor of the class.</p>
+     * @param version string representation of dotted version. Can't be null or empty.
+     * @throws IllegalArgumentException string is null, empty or has invalid syntax
+     */
+    public DottedVersion(final String version) throws IllegalArgumentException {
         if (Utils.checkEmptyOrNullString(version)) {
             throw new IllegalArgumentException("Version string can't be null or empty"); 
         } 
@@ -34,10 +51,20 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
             }
         }
     }
+    
+    @Override
+    public Object clone() {
+    	return fork();
+    }
 
+    /**
+     * <p>Can the version string be parsed correctly</p> 
+     * @param version service string to parsed.
+     * @return true is string can be parsed, false otherwise
+     */
     public static boolean isParsed(final String version) {
         if (Utils.checkEmptyOrNullString(version)) {
-            throw new IllegalArgumentException("Version string can't be null or empty"); 
+            return false; 
         } 
         else {
             try {            
@@ -48,10 +75,18 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
         }
     }
 
+    /**
+     * <p>This in a typified version of the {@linkplain #clone()} methos</p>
+     * @return see {@linkplain #clone()}
+     */
     public DottedVersion fork() {
         return new DottedVersion(this);
     }
 
+    /**
+     * <p>Get parent version from current one</p>
+     * @return parent version. Can't be null
+     */
     public DottedVersion getParent() {
         final DottedVersion v = new DottedVersion();
         
@@ -62,14 +97,25 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
         return v;
     }
 
+    /**
+     * <p>Is the version zero (same first)</p>
+     * @return true if yes, false otherwise.
+     */
     public boolean isZero() {
         return size() == 1 && get(0).equals(ZERO_INT);
     }
     
+    /**
+     * <p>Reset current version to zero.</p>
+     */
     public void setZero() {
         innerSetZero();
     }
 
+    /**
+     * <p>Increment last number of version</p>
+     * @return new version instance. Can't be null.
+     */
     public DottedVersion inc() {
         final DottedVersion ver = new DottedVersion(this);
         
@@ -100,6 +146,15 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
         }
     }
 
+    /**
+     * <p>Does the version to test equals with starting sequence of the current version:</p>
+     * <ul>
+     * <li>"1.2.3.4.5" starts with "1.2.3"</li> 
+     * <li>"1.2.3.4.5" doesn't start with "1.2.2"</li> 
+     * </ul> 
+     * @param ver version to test. If null, false will be returned.
+     * @return true if current versions 'starts with' version to test, false otherwise
+     */
     public boolean startFrom(final DottedVersion ver) {
         if (ver == null || this.size() < ver.size()){
             return false;
@@ -141,8 +196,6 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
         }
         return 0;
     }
-    
-    
     
     private static final class VersionComparator implements Comparator<DottedVersion> {
         @Override
@@ -186,6 +239,13 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
         }
     }
 
+    /**
+     * <p>Is version to test between version ranges.</p>
+     * @param version version to test. If null, false will be returned.
+     * @param fromInclusive lower version of the range (inclusive). If null, lower version check is not processed
+     * @param toExclusive higher version of the range (exclusive). If null, high version check is not processed
+     * @return true if version to test in the testing range, false otherwise.
+     */
     public static boolean isBetween(final DottedVersion version, final DottedVersion fromInclusive, final DottedVersion toExclusive) {
         if (version == null) {
             return false;

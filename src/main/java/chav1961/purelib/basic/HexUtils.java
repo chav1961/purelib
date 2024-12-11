@@ -1,9 +1,20 @@
 package chav1961.purelib.basic;
 
+/**
+ * <p>This utility class is used to convert hexadecimal representations into bytes and bytes into hexadecimal representations.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ */
 public class HexUtils {
 	private static final char[]	HEX_DIGITS = "0123456789ABCDEF".toCharArray();
-	
-    public static final char[] encode(final byte[] bytes) {
+
+	/**
+	 * <p>Encode byte array to it's hexadecimal representation</p>
+	 * @param bytes array to encode. Can't be null.
+	 * @return char representation of the byte array. Can't be null.
+	 * @throws NullPointerException array to encode is null
+	 */
+    public static final char[] encode(final byte[] bytes) throws NullPointerException {
     	if (bytes == null) {
     		throw new NullPointerException("Array to encode can't be null");
     	}
@@ -19,7 +30,14 @@ public class HexUtils {
     	}
     }
 
-    public static final byte[] decode(final char[] str) {
+    /**
+     * <p>Decode character representations to byte array</p> 
+     * @param str character representation to decode. Can't be null.
+     * @return byte array decoded. Can't be null.
+	 * @throws NullPointerException array to encode is null
+	 * @throws IllegalArgumentException invalid characters in the character representation
+     */
+    public static final byte[] decode(final char[] str) throws NullPointerException, IllegalArgumentException {
     	if (str == null) {
     		throw new NullPointerException("Array to decode can't be null");
     	}
@@ -37,7 +55,14 @@ public class HexUtils {
     	}
     }    
     
-    public static final byte[] decode(final CharSequence str) {
+    /**
+     * <p>Decode character representations to byte array</p> 
+     * @param str character representation to decode. Can't be null.
+     * @return byte array decoded. Can't be null.
+	 * @throws NullPointerException array to encode is null
+	 * @throws IllegalArgumentException invalid characters in the character representation
+     */
+    public static final byte[] decode(final CharSequence str) throws NullPointerException, IllegalArgumentException {
     	if (str == null) {
     		throw new NullPointerException("Array to decode can't be null");
     	}
@@ -66,7 +91,7 @@ public class HexUtils {
     		return hexDigit - 'a' + 10;
     	}
     	else {
-    		throw new IllegalArgumentException("Wring hex digit representation ["+hexDigit+"], content=[0x"+Integer.toHexString(hexDigit)+"]");
+    		throw new IllegalArgumentException("Wrong hex digit representation ["+hexDigit+"], content=[0x"+Integer.toHexString(hexDigit)+"]");
     	}
     }
 }

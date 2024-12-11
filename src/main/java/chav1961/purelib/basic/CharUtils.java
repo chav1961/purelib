@@ -6,7 +6,6 @@ import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.math.BigDecimal;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;

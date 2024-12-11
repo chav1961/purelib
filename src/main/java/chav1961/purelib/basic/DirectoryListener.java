@@ -18,6 +18,12 @@ import chav1961.purelib.basic.interfaces.WatchServiceMaintenanceCallback;
 import chav1961.purelib.basic.interfaces.WatchServiceMaintenanceCallback.EventType;
 import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 
+/**
+ * <p>This class is used to listen in the directories changes. It implements {@linkplain ExecutionControl} service to start/stop/suspend/resume watching. Any changes when watcher is started and
+ * not suspended. will produce call {@linkplain WatchServiceMaintenanceCallback#process(EventType, File)} method. It's strongly recommended to use this class in </b>try-with-resource</b> statement.</p>  
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ */
 public class DirectoryListener implements ExecutionControl, Closeable {
 	private static final long		WATCH_PERIOD = 5000;
 	
@@ -28,10 +34,29 @@ public class DirectoryListener implements ExecutionControl, Closeable {
 	private volatile SimpleTimerTask				tt = null;
 	private volatile boolean						started = false, suspended = false; 
 
+	/**
+	 * <p>Constructor of the class instance.</p>
+	 * @param callback callback to process directory changes. Can't be null.
+	 * @param directories directories to watch. Can't be neither null nor empty, and can't contains nulls inside.
+	 * @throws NullPointerException callback is null
+	 * @throws IllegalArgumentException directories list is null, empty, contains nulls inside, contains files instead of directories or has non-accessible items for current user. 
+	 * @throws IOException on any I/O errors.
+	 */
 	public DirectoryListener(final WatchServiceMaintenanceCallback callback, final File... directories) throws NullPointerException, IllegalArgumentException, IOException {
 		this(callback, true, true, WATCH_PERIOD, directories);
 	}
 
+	/**
+	 * <p>Constructor of the class instance.</p>
+	 * @param callback callback to process directory changes. Can't be null.
+	 * @param watchSubdir watch sub-directories too.
+	 * @param skipNotAccessible skip non-accessible directories instead of throwing exception
+	 * @param watchPeriod minimal watch period to observe. 
+	 * @param directories directories to watch. Can't be neither null nor empty, and can't contains nulls inside.
+	 * @throws NullPointerException callback is null
+	 * @throws IllegalArgumentException directories list is null, empty, contains nulls inside, contains files instead of directories or has non-accessible items for current user. 
+	 * @throws IOException on any I/O errors.
+	 */
 	public DirectoryListener(final WatchServiceMaintenanceCallback callback, final boolean watchSubdir, final boolean skipNotAccessible, final long watchPeriod, final File... directories) throws NullPointerException, IllegalArgumentException, IOException {
 		if (callback == null) {
 			throw new NullPointerException("Callback can't be null"); 
@@ -179,6 +204,7 @@ public class DirectoryListener implements ExecutionControl, Closeable {
 				}
 				break;
 			case OVERFOW	:
+				callback.process(type, null);
 				break;
 			default:
 				throw new UnsupportedOperationException("Event type ["+type+"] is not supported yet"); 
@@ -216,7 +242,7 @@ public class DirectoryListener implements ExecutionControl, Closeable {
 		});
 	}
 	
-	public static class DirectoryWatchDescriptor implements Closeable {
+	static class DirectoryWatchDescriptor implements Closeable {
 		private final File			dir;
 		private final Path			dirPath;
 		private final WatchService 	watcher;		
