@@ -191,7 +191,7 @@ public class InternalUtilsTest {
 	
 	
 	@Test
-	@Ignore
+	@Disabled
 	public void buildTestTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		testTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
 		testTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
@@ -215,7 +215,7 @@ public class InternalUtilsTest {
 	}	
 	
 	@Test
-	@Ignore
+	@Disabled
 	public void buildSkipTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		skipTest("<Test1>::='1'", " 1 \n", 2, " 2\n", 1);
 		skipTest("<Test1>::='1':<Test2>", " 1 \n", 2, " 2\n", 1);
@@ -239,7 +239,7 @@ public class InternalUtilsTest {
 	}	
 
 	@Test
-	@Ignore
+	@Disabled
 	public void buildParseTest() throws SyntaxException, IOException, InstantiationException, IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		SyntaxNode<TestType,SyntaxNode> node;
 		
