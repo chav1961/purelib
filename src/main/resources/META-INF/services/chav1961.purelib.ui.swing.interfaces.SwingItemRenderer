@@ -1,3 +1,4 @@
+chav1961.purelib.ui.swing.useful.renderers.PrimitiveArrayRenderer
 chav1961.purelib.ui.swing.useful.renderers.IconAndTextKeeperRenderer
 chav1961.purelib.ui.swing.useful.renderers.FilterCallbackRenderer
 chav1961.purelib.ui.swing.useful.renderers.JFileItemDescriptorRenderer
@@ -8,3 +9,4 @@ chav1961.purelib.ui.swing.useful.renderers.ReferenceAndCommentRenderer
 chav1961.purelib.ui.swing.useful.renderers.LongItemAndReferenceRenderer
 chav1961.purelib.ui.swing.useful.renderers.ContentNodeMetadataRenderer
 chav1961.purelib.ui.swing.useful.renderers.StringRenderer
+chav1961.purelib.ui.swing.useful.renderers.IconRenderer

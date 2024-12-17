@@ -1,14 +1,11 @@
 package chav1961.purelib.ui.swing.useful.renderers;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.net.MalformedURLException;
 import java.util.Set;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JTree;
 import javax.swing.ListCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -16,12 +13,10 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.LocalizerOwner;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 

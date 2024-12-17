@@ -112,6 +112,7 @@ module chav1961.purelib {
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with 
 			  chav1961.purelib.ui.swing.useful.renderers.EnumRenderer
+			, chav1961.purelib.ui.swing.useful.renderers.PrimitiveArrayRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.FilterCallbackRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.IconAndTextKeeperRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.JFileItemDescriptorRenderer
@@ -120,7 +121,8 @@ module chav1961.purelib {
 			, chav1961.purelib.ui.swing.useful.renderers.ReferenceAndCommentRenderer
 			, chav1961.purelib.ui.swing.useful.renderers.LongItemAndReferenceRenderer			
 			, chav1961.purelib.ui.swing.useful.renderers.ContentNodeMetadataRenderer			
-			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
+			, chav1961.purelib.ui.swing.useful.renderers.StringRenderer
+			, chav1961.purelib.ui.swing.useful.renderers.IconRenderer;
 
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemEditor;
 	provides chav1961.purelib.ui.swing.interfaces.SwingItemEditor with 

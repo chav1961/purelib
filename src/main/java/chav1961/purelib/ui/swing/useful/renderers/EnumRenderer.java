@@ -58,48 +58,13 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 			return (R) new DefaultListCellRenderer() {
 				private static final long serialVersionUID = 0L;
 				
-				private final Map<Class<?>, ListCellRenderer>	nestedRenderers = new HashMap<>();
-
 				@Override
 				public Component getListCellRendererComponent(final JList list, final Object val, final int index, final boolean isSelected, final boolean cellHasFocus) {
-					if (val == null) {
-						return new JLabel("unselected");
-					}
-					else {
-						final Enum<?>				value = (Enum<?>)val;
-						final JLabel				label = new JLabel();
+					final JLabel	label = (JLabel)super.getListCellRendererComponent(list, val, index, isSelected, cellHasFocus);
+					final Enum<?>	value = (Enum<?>)val;
 
-						label.setOpaque(true);
-						if (list.isEnabled()) {
-							label.setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
-							label.setForeground(isSelected ?  list.getSelectionForeground() : list.getForeground());
-						}
-						else {
-							label.setBackground((isSelected ? list.getSelectionBackground() : list.getBackground()).darker());
-							label.setForeground((isSelected ?  list.getSelectionForeground() : list.getForeground()).brighter());
-						}
-						if (cellHasFocus) {
-							label.setBorder(new LineBorder(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
-						}
-						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
-								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
-								final Localizer			localizer = LocalizerFactory.getLocalizer(URI.create(value.getClass().getAnnotation(LocaleResourceLocation.class).value())); 
-							
-								label.setText(localizer.getValue(res.value()));
-								label.setToolTipText(localizer.getValue(res.tooltip()));
-								if (!res.icon().isEmpty()) {
-									label.setIcon(new ImageIcon(URI.create(res.icon()).toURL()));
-								}
-							}
-							else {
-								label.setText(value.name());
-								label.setToolTipText(value.name());
-							}
-						} catch (NoSuchFieldException | LocalizationException | MalformedURLException e) {
-							label.setText(value.name());
-						}
-						return label;
-					}
+					fillLabel(label, value);
+					return label;
 				}
 			};
 		}
@@ -107,53 +72,44 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 			return (R) new DefaultTableCellRenderer() {
 				private static final long serialVersionUID = 0L;
 				
-				private final Map<Class<?>, ListCellRenderer>	nestedRenderers = new HashMap<>();
-
 				@Override
 				public Component getTableCellRendererComponent(final JTable table, final Object val, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
-					if (val == null) {
-						return new JLabel("unselected");
-					}
-					else {
-						final Enum<?>	value = (Enum<?>)val;
-						final JLabel	label = new JLabel();
+					final JLabel	label = (JLabel)super.getTableCellRendererComponent(table, val, isSelected, hasFocus, row, column);
+					final Enum<?>	value = (Enum<?>)val;
 
-						label.setOpaque(true);
-						if (table.isEnabled()) {
-							label.setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
-							label.setForeground(isSelected ?  table.getSelectionForeground() : table.getForeground());
-						}
-						else {
-							label.setBackground((isSelected ? table.getSelectionBackground() : table.getBackground()).darker());
-							label.setForeground((isSelected ?  table.getSelectionForeground() : table.getForeground()).brighter());
-						}
-						if (hasFocus) {
-							label.setBorder(new LineBorder(ColorUtils.defaultColorScheme().MANDATORY_SELECTION_FOREGROUND));
-						}
-						try{if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
-								final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
-								final Localizer			localizer = LocalizerFactory.getLocalizer(URI.create(value.getClass().getAnnotation(LocaleResourceLocation.class).value())); 
-							
-								label.setText(localizer.getValue(res.value()));
-								label.setToolTipText(localizer.getValue(res.tooltip()));
-								if (!res.icon().isEmpty()) {
-									label.setIcon(new ImageIcon(URI.create(res.icon()).toURL()));
-								}
-							}
-							else {
-								label.setText(value.name());
-								label.setToolTipText(value.name());
-							}
-						} catch (NoSuchFieldException | LocalizationException | MalformedURLException e) {
-							label.setText(value.name());
-						}
-						return label;
-					}
+					fillLabel(label, value);
+					return label;
 				}
 			};
 		}
 		else {
 			throw new UnsupportedOperationException("Required cell renderer ["+rendererType+"] is not supported yet");
+		}
+	}
+	
+	private static void fillLabel(final JLabel label, final Enum<?> value) {
+		if (value == null) {
+			label.setText("unselected");
+		}
+		else {
+			try{
+				if (value.getClass().getField(value.name()).isAnnotationPresent(LocaleResource.class)) {
+					final LocaleResource	res = value.getClass().getField(value.name()).getAnnotation(LocaleResource.class);
+					final Localizer			localizer = LocalizerFactory.getLocalizer(URI.create(value.getClass().getAnnotation(LocaleResourceLocation.class).value())); 
+				
+					label.setText(localizer.getValue(res.value()));
+					label.setToolTipText(localizer.getValue(res.tooltip()));
+					if (!res.icon().isEmpty()) {
+						label.setIcon(new ImageIcon(URI.create(res.icon()).toURL()));
+					}
+				}
+				else {
+					label.setText(value.name());
+					label.setToolTipText(value.name());
+				}
+			} catch (NoSuchFieldException | LocalizationException | MalformedURLException e) {
+				label.setText(value.name());
+			}
 		}
 	}
 }
