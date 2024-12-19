@@ -16,6 +16,8 @@ public class PseudoLuceneMatcher {
 	private static final String	KWD_NOT = "NOT";
 	private static final String	KWD_TO = "TO";
 	
+	private final Executor[]	commands;
+	
 	public PseudoLuceneMatcher(final String expression) throws IllegalArgumentException, SyntaxException {
 		if (Utils.checkEmptyOrNullString(expression)) {
 			throw new IllegalArgumentException("Expression can't be null or empty");
@@ -26,10 +28,10 @@ public class PseudoLuceneMatcher {
 			final SyntaxNode<NodeType, SyntaxNode>	root = new SyntaxNode<>(0, 0, NodeType.ROOT, 0, null); 
 			
 			parse(content, 0, parsed);
-			final int	where = buildTree(Depth.OR, parsed.toArray(new Lexema[parsed.size()]), 0, root); 
+			final int	where = buildTree(Depth.OR, parsed.toArray(new Lexema[parsed.size()]), 0, root);
+			this.commands = new Executor[0];
 		}
 	}
-	
 
 	public boolean matches(final Map<String, ?> values) {
 		if (values == null) {
@@ -45,7 +47,14 @@ public class PseudoLuceneMatcher {
 			throw new NullPointerException("Getter can't be null");
 		}
 		else {
-			return false;
+			final List<Object>	stack = new ArrayList<>();
+			int	pc = 0;
+			
+			while (pc < commands.length) {
+				pc = commands[pc].execute(stack, getter);
+			}
+			
+			return (Boolean)stack.get(0);
 		}
 	}
 
@@ -177,116 +186,180 @@ loop:	for(;;) {
 				}
 				break;
 			case AND	:
-				from = buildTree(Depth.NOT, content, from, node);
+				from = buildTree(Depth.SEQUENCE, content, from, node);
 				if (content[from].type == LexType.AND) {
 					final List<SyntaxNode<NodeType, SyntaxNode>>	list = new ArrayList<>();
 					
 					list.add((SyntaxNode<NodeType, SyntaxNode>)node.clone());
 					do {final SyntaxNode<NodeType, SyntaxNode>	right = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
 					
-						from = buildTree(Depth.NOT, content, from + 1, node);
+						from = buildTree(Depth.SEQUENCE, content, from + 1, node);
 					} while (content[from].type == LexType.AND);
 					
 					node.type = NodeType.AND;
 					node.children = list.toArray(new SyntaxNode[list.size()]); 
 				}
 				break;
-			case NOT	:
-				if (content[from].type == LexType.NOT) {
-					final SyntaxNode<NodeType, SyntaxNode>	operand = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-					
-					from = buildTree(Depth.COLON, content, from, operand);
-					node.type = NodeType.NOT;
-					node.cargo = operand;
-				}
-				else {
-					from = buildTree(Depth.COLON, content, from, node);
-				}
-				break;
-			case COLON	:
-				from = buildTree(Depth.RANGE, content, from, node);
-				if (content[from].type == LexType.COLON) {
-					if (node.getType() == NodeType.VALUE) {
-						final SyntaxNode<NodeType, SyntaxNode>	right = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-						
-						from = buildTree(Depth.RANGE, content, from + 1, right);
-						node.type = NodeType.CALCULATE;
-						node.children = new SyntaxNode[] {right};
-					}
-					else {
-						throw new SyntaxException(from, from, KWD_AND);
-					}
-				}
-				else {
-					final SyntaxNode<NodeType, SyntaxNode>	right = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-					
-					node.type = NodeType.CALCULATE;
-					node.cargo = "text";
-					node.children = new SyntaxNode[] {right}; 
-				}
-				break;
-			case RANGE	:
-				if (content[from].type == LexType.OPENB) {
-					final SyntaxNode<NodeType, SyntaxNode>	left = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-					
-					from = buildTree(Depth.TERM, content, from + 1, left);
-					if (content[from].type == LexType.TO) {
-						final SyntaxNode<NodeType, SyntaxNode>	right = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-						
-						from = buildTree(Depth.TERM, content, from + 1, right);
-						if (content[from].type == LexType.CLOSEB) {
-							from++;
-							node.type = NodeType.RANGE_DATE;
-							node.children = new SyntaxNode[] {left, right};
-						}
-						else {
-							throw new SyntaxException(from, from, KWD_AND);
-						}
-					}
-				}
-				else if (content[from].type == LexType.OPENF) {
-					final SyntaxNode<NodeType, SyntaxNode>	left = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-					
-					from = buildTree(Depth.TERM, content, from + 1, left);
-					if (content[from].type == LexType.TO) {
-						final SyntaxNode<NodeType, SyntaxNode>	right = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
-						
-						from = buildTree(Depth.TERM, content, from + 1, right);
-						if (content[from].type == LexType.CLOSEF) {
-							from++;
-							node.type = NodeType.RANGE_STRING;
-							node.children = new SyntaxNode[] {left, right};
-						}
-						else {
-							throw new SyntaxException(from, from, KWD_AND);
-						}
-					}
-				}
-				else {
+			case SEQUENCE	:
+				final List<SyntaxNode<NodeType, SyntaxNode>>	list = new ArrayList<>();
+				
+				do {
 					from = buildTree(Depth.PREFIX, content, from, node);
+					list.add((SyntaxNode<NodeType, SyntaxNode>) node.clone());
+				} while (content[from].type != LexType.EOF && content[from].type != LexType.OR && content[from].type != LexType.AND);
+				if (list.isEmpty()) {
+					throw new SyntaxException(from, from, KWD_AND);
+				}
+				else if (list.size() > 1) {
+					node.type = NodeType.SEQUENCE;
+					node.children = list.toArray(new SyntaxNode[list.size()]);
 				}
 				break;
 			case PREFIX	:
-				if (content[from].type == LexType.PLUS) {
-					
-				}
-				else if (content[from].type == LexType.MINUS) {
-					
-				}
-				else {
-					from = buildTree(Depth.POSTFIX, content, from, node);
+				switch (content[from].type) {
+					case PLUS 	:
+						final SyntaxNode<NodeType, SyntaxNode>	plusNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						
+						from = buildTree(Depth.SUFFIX, content, from, plusNode);
+						node.type = NodeType.PLUS;
+						node.children = new SyntaxNode[] {plusNode};
+						break;
+					case MINUS	:
+						final SyntaxNode<NodeType, SyntaxNode>	minusNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						
+						from = buildTree(Depth.SUFFIX, content, from, minusNode);
+						node.type = NodeType.MINUS;
+						node.children = new SyntaxNode[] {minusNode};
+						break;
+					case NOT	:
+						final SyntaxNode<NodeType, SyntaxNode>	notNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						
+						from = buildTree(Depth.SUFFIX, content, from, notNode);
+						node.type = NodeType.NOT;
+						node.children = new SyntaxNode[] {notNode};
+						break;
+					default :
+						from = buildTree(Depth.SUFFIX, content, from, node);
 				}
 				break;
-			case POSTFIX:
+			case SUFFIX	:
 				from = buildTree(Depth.TERM, content, from, node);
-				if (content[from].type == LexType.TILDE) {
-					
-				}
-				else if (content[from].type == LexType.POWER) {
-					
+				switch (content[from].type) {
+					case TILDE	:
+						final SyntaxNode<NodeType, SyntaxNode>	tildeNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						
+						if (content[from+1].type == LexType.INTEGER) {
+							node.type = NodeType.PROXIMITY;
+							node.value = content[from+1].constValue;  
+							node.children = new SyntaxNode[] {tildeNode};
+							from += 2;
+						}
+						else if (content[from+1].type == LexType.NUMBER) {
+							node.type = NodeType.FUZZY;
+							node.value = content[from+1].constValue;  
+							node.children = new SyntaxNode[] {tildeNode};
+							from += 2;
+						}
+						else {
+							node.type = NodeType.FUZZY;
+							node.value = Double.doubleToLongBits(0.5);  
+							node.children = new SyntaxNode[] {tildeNode};
+							from++;
+						}
+						break;
+					case POWER	:
+						final SyntaxNode<NodeType, SyntaxNode>	powerNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						
+						if (content[from+1].type == LexType.INTEGER) {
+							node.type = NodeType.RELEVANCE;
+							node.value = content[from+1].constValue;  
+							node.children = new SyntaxNode[] {powerNode};
+							from += 2;
+						}
+						else {
+							throw new SyntaxException(from, from, KWD_AND);
+						}
+						break;
+					default :
+						break;
 				}
 				break;
 			case TERM	:
+				switch (content[from].type) {
+					case OPEN 		:
+						from = buildTree(Depth.OR, content, from + 1, node);
+						if (content[from].type == LexType.CLOSE) {
+							from++;
+						}
+						else {
+							throw new SyntaxException(from, from, KWD_AND);
+						}
+						break;
+					case OPENB : case OPENF	:
+						final SyntaxNode<NodeType, SyntaxNode>	lowNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						final SyntaxNode<NodeType, SyntaxNode>	highNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+						final boolean	lowInclusive = content[from].type == LexType.OPENB;
+						final NodeType	type;
+						
+						if (content[from+1].type == LexType.INTEGER && content[from+2].type == LexType.TO && content[from+3].type == LexType.INTEGER) {
+							lowNode.type = NodeType.INTEGER;
+							lowNode.value = content[from+1].constValue; 
+							highNode.type = NodeType.INTEGER;
+							highNode.value = content[from+3].constValue;
+							type = NodeType.NUM_RANGE;
+						}
+						else if (content[from+1].type == LexType.TEXT && content[from+2].type == LexType.TO && content[from+3].type == LexType.TEXT) {
+							lowNode.type = NodeType.TEXT;
+							lowNode.value = content[from+1].constValue; 
+							highNode.type = NodeType.TEXT;
+							highNode.value = content[from+3].constValue; 
+							type = NodeType.TEXT_RANGE;
+						}
+						else {
+							throw new SyntaxException(from, from, KWD_AND);
+						}
+						if (content[from].type == LexType.CLOSEB || content[from].type == LexType.CLOSEF) {
+							final boolean	highInclusive = content[from].type == LexType.CLOSEB; 
+							node.type = type;
+							node.children = new SyntaxNode[] {lowNode, highNode};
+							node.value = (lowInclusive ? 1 : 0) + (highInclusive ? 2 : 0); 
+							from++;
+						}
+						else {
+							throw new SyntaxException(from, from, KWD_AND);
+						}
+						break;
+					case TEXT		:
+						if (content[from+1].type == LexType.COLON) {
+							final SyntaxNode<NodeType, SyntaxNode>	compareNode = (SyntaxNode<NodeType, SyntaxNode>)node.clone();
+							final String	field = content[from].content; 
+							
+							from = buildTree(Depth.TERM, content, from + 2, node);
+							node.type = NodeType.EXTRACT;
+							node.cargo = field;
+							node.children = new SyntaxNode[] {compareNode};
+						}
+						else {
+							node.type = NodeType.TEXT;
+							node.cargo = content[from].content;
+							from++;
+						}
+						break;
+					case QUOTED		:
+						node.type = NodeType.QUOTED;
+						node.cargo = content[from].content;
+						from++;
+						break;
+					case WILDCARD	:
+						node.type = NodeType.WILDCARD;
+						node.cargo = content[from].content;
+						from++;
+						break;
+					case EOF : case OR : case AND :
+						break;
+					default :
+						throw new SyntaxException(from, from, KWD_AND);
+				}
 				break;
 			default:
 				throw new UnsupportedOperationException("Depth ["+depth+"] is not supported yet");
@@ -294,6 +367,7 @@ loop:	for(;;) {
 		return from;
 	}
 	
+
 	
 	static enum LexType {
 		EOF,
@@ -362,27 +436,33 @@ loop:	for(;;) {
 		ROOT,
 		OR,
 		AND,
+		SEQUENCE,
 		NOT,
-		CALCULATE,
-		RANGE_DATE,
-		RANGE_STRING,
+		PLUS,
+		MINUS,
 		PROXIMITY,
 		FUZZY,
-		REGEX,
-		VALUE,
+		RELEVANCE,
+		INTEGER,
 		NUMBER,
-		MANDATORY,
-		EXCLUDE;
+		QUOTED,
+		WILDCARD,
+		TEXT,
+		EXTRACT,
+		NUM_RANGE,
+		TEXT_RANGE;
 	}
 	
 	static enum Depth {
 		OR,
 		AND,
-		NOT,
-		COLON,
-		RANGE,
+		SEQUENCE,
 		PREFIX,
-		POSTFIX,
+		SUFFIX,
 		TERM
+	}
+
+	static interface Executor {
+		int execute(List<Object> content, Function<String, Object> getter);
 	}
 }
