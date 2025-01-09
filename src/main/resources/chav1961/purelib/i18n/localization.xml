@@ -277,6 +277,15 @@
 		<key name="menu.fileSystemNavigator.removeItem.tt">Remove file or directory</key>
 
 <!-- Localizer content editor localization  -->
+		<key name="menu.JLocalizerContentEditor.insert">Insert key</key>
+		<key name="menu.JLocalizerContentEditor.insert.tt">Insert new localization key</key>
+		<key name="menu.JLocalizerContentEditor.duplicate">Duplicate key</key>
+		<key name="menu.JLocalizerContentEditor.duplicate.tt">Duplicate localization key</key>
+		<key name="menu.JLocalizerContentEditor.remove">remove key</key>
+		<key name="menu.JLocalizerContentEditor.remove.tt">Remove localization key</key>
+
+		<key name="JLocalizerContentEditor.message.duplicate.key">Duplicate key [%1$s]</key>		
+
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Select fields to load</key>
 		<key name="JLocalizerContentEditor.selectFields.field">Field name</key>
 		<key name="JLocalizerContentEditor.selectFields.static">Include static</key>
@@ -669,6 +678,15 @@
 		<key name="menu.fileSystemNavigator.removeItem.tt">Удалить папку или файл</key>
 
 <!-- Локализация редактора содержимого локализатора  -->
+		<key name="menu.JLocalizerContentEditor.insert">Добавить ключ</key>
+		<key name="menu.JLocalizerContentEditor.insert.tt">Добавить новый ключ локализации</key>
+		<key name="menu.JLocalizerContentEditor.duplicate">Дублировать ключ</key>
+		<key name="menu.JLocalizerContentEditor.duplicate.tt">Дублировать новый ключ локализации</key>
+		<key name="menu.JLocalizerContentEditor.remove">Удалитьк ключ</key>
+		<key name="menu.JLocalizerContentEditor.remove.tt">Удалить ключ локализации</key>
+		
+		<key name="JLocalizerContentEditor.message.duplicate.key">Дублированный ключ [%1$s]</key>		
+
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Выбор полей для загрузки</key>
 		<key name="JLocalizerContentEditor.selectFields.field">Имя поля</key>
 		<key name="JLocalizerContentEditor.selectFields.static">Включить статические</key>

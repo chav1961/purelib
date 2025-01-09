@@ -397,6 +397,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			
 			if (node != null) {
 				((TermNode)node).id = -1;
+				amount--;
 				return true;
 			}
 			else {

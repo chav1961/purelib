@@ -327,7 +327,8 @@ public class JFreezableTable extends JTable {
 			final Class<?>	cl = CompilerUtils.toWrappedClass(model.getColumnClass(index));
 			
 			if (!processed.contains(cl)) {
-				try{table.setDefaultRenderer(cl, SwingUtils.getCellRenderer(cl, new FieldFormat(cl), TableCellRenderer.class));
+				try{
+					table.setDefaultRenderer(cl, SwingUtils.getCellRenderer(cl, new FieldFormat(cl), TableCellRenderer.class));
 				} catch (EnvironmentException e) {
 					throw new IllegalArgumentException("No appropriative cell renderer for field ["+model.getColumnName(index)+"] with type ["+cl.getCanonicalName()+"]: "+e.getLocalizedMessage());
 				}
