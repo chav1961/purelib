@@ -8,7 +8,10 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CSSUtils.Distance;
@@ -505,6 +508,79 @@ loop:		for (;;) {
 		}
 	}	
 
+	static <T> T extractInstrument(final String[] propNames, final Map<String,Object> attributes, final Class<T> instrumentType) throws SyntaxException {
+		final Set<Class<?>>	awaitedClasses = new HashSet<>();
+		
+		for(String propName : propNames) {
+			switch (propName) {
+				case "stroke" : case "fill" :
+					awaitedClasses.add(Color.class);
+					break;
+				case "stroke-width"	: case "stroke-dasharray" :
+					awaitedClasses.add(Stroke.class);
+					break;
+				case "transform"	:
+					awaitedClasses.add(AffineTransform.class);
+					break;
+				case "font"	:
+					awaitedClasses.add(Font.class);
+					break;
+				default : 
+			}
+		}
+		if (awaitedClasses.isEmpty()) {
+			return null;
+		}
+		else if (awaitedClasses.size() > 1) {
+			throw new IllegalArgumentException("Attribute set "+Arrays.toString(propNames)+" defines more than one instrument class");
+		}
+		else {
+			for(String propName : propNames) {
+				switch (propName) {
+					case "stroke"	:
+						if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
+							return instrumentType.cast(convertTo(Color.class,attributes.get(propName).toString()));
+						}
+						else {
+							return instrumentType.cast(Color.BLACK);
+						}
+					case "fill"	:
+						if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
+							return instrumentType.cast(convertTo(Color.class,attributes.get(propName).toString()));
+						}
+						else {
+							return null;
+						}
+					case "stroke-width"	:
+						if (attributes.containsKey(propName)) {
+							return instrumentType.cast(convertTo(Stroke.class,attributes.get(propName).toString()));
+						}
+						else {
+							return (T) new BasicStroke(1f);
+						}
+					case "transform"	:
+						if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
+							return instrumentType.cast(convertTo(AffineTransform.class,attributes.get(propName).toString()));
+						}
+						else {
+							return (T) new AffineTransform();
+						}
+					case "font"	:
+						final String	fontFamily = (String)(attributes.containsKey("font-family") ? attributes.get("font-family").toString() : "Courier");
+						final String	fontSize = (String)(attributes.containsKey("font-size") ? attributes.get("font-size").toString() : "12pt");
+						final String	fontWeight = (String)(attributes.containsKey("font-weight") ? attributes.get("font-weight").toString() : "normal");
+						final String	fontStyle = (String)(attributes.containsKey("font-style") ? attributes.get("font-style").toString() : "normal");
+						final int		size = (int)CSSUtils.asDistance(fontSize).getValueAs(CSSUtils.Distance.Units.pt);
+						
+						return instrumentType.cast(new Font(fontFamily,Font.PLAIN,size));
+					default : 
+						return null;
+				}
+			}
+		}
+		return null;
+	}	
+	
 	static boolean hasSubstitutionInside(final CharSequence content) {
 		if (content == null) {
 			throw new NullPointerException("Content to test can't be null");

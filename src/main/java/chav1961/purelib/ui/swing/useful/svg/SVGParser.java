@@ -58,7 +58,8 @@ public class SVGParser {
 	private static final String		LINE_ATTR_Y2 = "y2";
 	private static final String		LINE_ATTR_STROKE = "stroke";
 	private static final String		LINE_ATTR_STROKE_WIDTH = "stroke-width";
-	private static final String[]	LINE_ATTRIBUTES = {LINE_ATTR_X1,LINE_ATTR_Y1,LINE_ATTR_X2,LINE_ATTR_Y2,LINE_ATTR_STROKE,LINE_ATTR_STROKE_WIDTH};
+	private static final String		LINE_ATTR_STROKE_DASH_ARRAY = "stroke-dasharray";
+	private static final String[]	LINE_ATTRIBUTES = {LINE_ATTR_X1,LINE_ATTR_Y1,LINE_ATTR_X2,LINE_ATTR_Y2,LINE_ATTR_STROKE,LINE_ATTR_STROKE_WIDTH,LINE_ATTR_STROKE_DASH_ARRAY};
 	
 	private static final String		RECT_ATTR_X1 = "x1";
 	private static final String		RECT_ATTR_Y1 = "y1";
@@ -115,6 +116,10 @@ public class SVGParser {
 	@FunctionalInterface
 	public interface InstrumentGetter<T> {
 		T getInstrument(String propName, Map<String,Object> attributes, Class<T> instrumentType) throws ContentException;
+		
+		default T getInstrument(String[] propNames, Map<String,Object> attributes, Class<T> instrumentType) throws ContentException {
+			return getInstrument(propNames[0], attributes, instrumentType);
+		}
 	}
 	
 	public static SVGPainter parse(final InputStream svgXml) throws NullPointerException, ContentException {
@@ -188,30 +193,12 @@ public class SVGParser {
 //						<line x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
 						if (SVGUtils.hasAnySubstitutions(props,LINE_ATTRIBUTES)) {
 							primitives.add(new DynamicLinePainter(
-//													SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_X1,String.class)) 
-//														? 
 													SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_X1,String.class),ss)
-//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_X1,float.class))
-//													SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_Y1,String.class))
-//														? 
 													,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_Y1,String.class),ss)
-//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_Y1,float.class))
-//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_X2,String.class))
-//														? 
 													,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_X2,String.class),ss)
-//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_X2,float.class))
-//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_Y2,String.class))
-//														? 
 													,SVGUtils.buildOnlineGetter(OnlineFloatGetter.class,XMLUtils.getAttribute(node,LINE_ATTR_Y2,String.class),ss)
-//														: OnlineFloatGetter.forValue(XMLUtils.getAttribute(node,LINE_ATTR_Y2,float.class))
-//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_STROKE,String.class))
-//														? 
 													,SVGUtils.buildOnlineObjectGetter(Color.class,XMLUtils.getAttribute(node,LINE_ATTR_STROKE,String.class),ss,ci)
-//														: OnlineObjectGetter.<Color>forValue((Color)getter.getInstrument(LINE_ATTR_STROKE,props,Color.class))
-//													,SVGUtils.hasSubstitutionInside(XMLUtils.getAttribute(node,LINE_ATTR_STROKE_WIDTH,String.class))
-//														? 
 													,SVGUtils.buildOnlineObjectGetter(Stroke.class,XMLUtils.getAttribute(node,LINE_ATTR_STROKE_WIDTH,String.class),ss,ci)
-//														: OnlineObjectGetter.<Stroke>forValue((Stroke)getter.getInstrument(LINE_ATTR_STROKE_WIDTH,props,Stroke.class))
 							));
 						}
 						else {
@@ -220,7 +207,7 @@ public class SVGParser {
 													,XMLUtils.getAttribute(node,LINE_ATTR_X2,float.class)
 													,XMLUtils.getAttribute(node,LINE_ATTR_Y2,float.class)
 													,(Color)getter.getInstrument(LINE_ATTR_STROKE,props,Color.class)
-													,(Stroke)getter.getInstrument(LINE_ATTR_STROKE_WIDTH,props,Stroke.class))
+													,(Stroke)getter.getInstrument(new String[]{LINE_ATTR_STROKE_WIDTH, LINE_ATTR_STROKE_DASH_ARRAY},props,Stroke.class)) 
 							);
 						}
 						break;
