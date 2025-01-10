@@ -34,6 +34,20 @@ import chav1961.purelib.basic.interfaces.OnlineStringGetter;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 
 public class SVGUtils {
+	static final String		ATTR_STROKE = "stroke";
+	static final String		ATTR_STROKE_WIDTH = "stroke-width";
+	static final String		ATTR_STROKE_DASH_ARRAY = "stroke-dasharray";
+	static final String		ATTR_FILL = "fill";
+	static final String		ATTR_POINTS = "points";
+	static final String		ATTR_TRANSFORM = "transform";
+	static final String		ATTR_FONT = "font";
+	static final String		ATTR_FONT_FAMILY = "font-family";
+	static final String		ATTR_FONT_SIZE = "font-size";
+	static final String		ATTR_FONT_WEIGHT = "font-weight";
+	static final String		ATTR_FONT_STYLE = "font-style";
+
+	static final String		VALUE_NONE = "none";
+
 	public static Point2D[] extractPoints(final String source) throws SyntaxException {
 		if (source == null || source.isEmpty()) {
 			throw new IllegalArgumentException("Source string can't be null or empty");
@@ -419,37 +433,49 @@ loop:		for (;;) {
 		}
 	}
 
-	static <T> T convertTo(final Class<T> awaited, final String source) throws SyntaxException {
+	static <T> T convertTo(final Class<T> awaited, final String... source) throws SyntaxException {
 		if (awaited == null) {
 			throw new NullPointerException("Awaited class can't be null");
 		}
-		else if (source == null || source.isEmpty()) {
-			throw new IllegalArgumentException("Source content to convert can't be null or empty");
+		else if (source == null || source.length == 0 || Utils.checkArrayContent4Nulls(source, false) >= 0) {
+			throw new IllegalArgumentException("Source content to convert can't be null, empty or contains nulls/empties inside");
 		}
 		else if (awaited.isAssignableFrom(Color.class)) {
-			return awaited.cast(CSSUtils.asColor(source));
+			return awaited.cast(CSSUtils.asColor(source[0]));
 		}
 		else if (awaited.isAssignableFrom(Stroke.class)) {
-			final char[]	widthContent = source.toCharArray();
+			final char[]	widthContent = source[0].toCharArray();
 			final float[]	result = new float[1]; 
 			
 			CharUtils.parseSignedFloat(widthContent,0,result,true);
-			return awaited.cast(new BasicStroke(result[0]));
+			if (source.length > 1) {
+				final String[] 	items = source[1].split(",");
+				final float[]	dots = new float[items.length];
+				
+				for(int index = 0; index < dots.length; index++) {
+					dots[index] = Float.parseFloat(items[index]);
+				}
+				return awaited.cast(new BasicStroke(result[0], BasicStroke.CAP_ROUND, BasicStroke.JOIN_MITER, 1.0f, dots, 0));
+			}
+			else {
+				return awaited.cast(new BasicStroke(result[0]));
+			}
 		}
 		else if (awaited.isAssignableFrom(AffineTransform.class)) {
-			return awaited.cast(CSSUtils.asTransform(source));
+			return awaited.cast(CSSUtils.asTransform(source[0]));
 		}
 		else if (awaited.isAssignableFrom(Point2D[].class)) {
-			return awaited.cast(SVGUtils.extractPoints(source));
+			return awaited.cast(SVGUtils.extractPoints(source[0]));
 		}
 		else if (awaited.isAssignableFrom(GeneralPath.class)) {
-			return awaited.cast(SVGUtils.extractCommands(source));
+			return awaited.cast(SVGUtils.extractCommands(source[0]));
 		}
 		else if (awaited.isAssignableFrom(Font.class)) {
 			final Object[]			result = new Object[3];
 			final ArgumentType[]	LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name,ArgumentType.simpleTerminatedString};
 			
-			try{CharUtils.extract(source.toCharArray(),0,result,(Object[])LEXEMAS);
+			try{
+				CharUtils.extract(source[0].toCharArray(),0,result,(Object[])LEXEMAS);
 			} catch (SyntaxException e) {
 				throw new IllegalArgumentException("String ["+new String()+"]: error at index ["+e.getCol()+"] ("+e.getLocalizedMessage()+")");
 			}
@@ -462,44 +488,49 @@ loop:		for (;;) {
 	}
 	
 	static String buildFontDescriptor(final Map<String,Object> attributes) throws SyntaxException {
-		return new StringBuilder().append(CSSUtils.asDistance(attributes.get("font-size").toString())).append(" \"").append(attributes.get("font-family")).append("\"").toString();
+		return new StringBuilder().append(CSSUtils.asDistance(attributes.get(ATTR_FONT_SIZE).toString())).append(" \"").append(attributes.get(ATTR_FONT_FAMILY)).append("\"").toString();
 	}
 	
 	static <T> T extractInstrument(final String propName, final Map<String,Object> attributes, final Class<T> instrumentType) throws SyntaxException {
 		switch (propName) {
-			case "stroke"	:
-				if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
+			case ATTR_STROKE	:
+				if (attributes.containsKey(propName) && !VALUE_NONE.equalsIgnoreCase(attributes.get(propName).toString())) {
 					return instrumentType.cast(convertTo(Color.class,attributes.get(propName).toString()));
 				}
 				else {
 					return instrumentType.cast(Color.BLACK);
 				}
-			case "fill"	:
-				if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
+			case ATTR_FILL	:
+				if (attributes.containsKey(propName) && !VALUE_NONE.equalsIgnoreCase(attributes.get(propName).toString())) {
 					return instrumentType.cast(convertTo(Color.class,attributes.get(propName).toString()));
 				}
 				else {
 					return null;
 				}
-			case "stroke-width"	:
+			case ATTR_STROKE_WIDTH	:
 				if (attributes.containsKey(propName)) {
-					return instrumentType.cast(convertTo(Stroke.class,attributes.get(propName).toString()));
+					if (attributes.containsKey(ATTR_STROKE_DASH_ARRAY)) {
+						return instrumentType.cast(convertTo(Stroke.class, attributes.get(propName).toString(), attributes.get(ATTR_STROKE_DASH_ARRAY).toString()));
+					}
+					else {
+						return instrumentType.cast(convertTo(Stroke.class, attributes.get(propName).toString()));
+					}
 				}
 				else {
 					return (T) new BasicStroke(1f);
 				}
-			case "transform"	:
-				if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
+			case ATTR_TRANSFORM		:
+				if (attributes.containsKey(propName) && !VALUE_NONE.equalsIgnoreCase(attributes.get(propName).toString())) {
 					return instrumentType.cast(convertTo(AffineTransform.class,attributes.get(propName).toString()));
 				}
 				else {
 					return (T) new AffineTransform();
 				}
-			case "font"	:
-				final String	fontFamily = (String)(attributes.containsKey("font-family") ? attributes.get("font-family").toString() : "Courier");
-				final String	fontSize = (String)(attributes.containsKey("font-size") ? attributes.get("font-size").toString() : "12pt");
-				final String	fontWeight = (String)(attributes.containsKey("font-weight") ? attributes.get("font-weight").toString() : "normal");
-				final String	fontStyle = (String)(attributes.containsKey("font-style") ? attributes.get("font-style").toString() : "normal");
+			case ATTR_FONT			:
+				final String	fontFamily = (String)(attributes.containsKey(ATTR_FONT_FAMILY) ? attributes.get(ATTR_FONT_FAMILY).toString() : "Courier");
+				final String	fontSize = (String)(attributes.containsKey(ATTR_FONT_SIZE) ? attributes.get(ATTR_FONT_SIZE).toString() : "12pt");
+				final String	fontWeight = (String)(attributes.containsKey(ATTR_FONT_WEIGHT) ? attributes.get(ATTR_FONT_WEIGHT).toString() : "normal");
+				final String	fontStyle = (String)(attributes.containsKey(ATTR_FONT_STYLE) ? attributes.get(ATTR_FONT_STYLE).toString() : "normal");
 				final int		size = (int)CSSUtils.asDistance(fontSize).getValueAs(CSSUtils.Distance.Units.pt);
 				
 				return instrumentType.cast(new Font(fontFamily,Font.PLAIN,size));
@@ -508,79 +539,6 @@ loop:		for (;;) {
 		}
 	}	
 
-	static <T> T extractInstrument(final String[] propNames, final Map<String,Object> attributes, final Class<T> instrumentType) throws SyntaxException {
-		final Set<Class<?>>	awaitedClasses = new HashSet<>();
-		
-		for(String propName : propNames) {
-			switch (propName) {
-				case "stroke" : case "fill" :
-					awaitedClasses.add(Color.class);
-					break;
-				case "stroke-width"	: case "stroke-dasharray" :
-					awaitedClasses.add(Stroke.class);
-					break;
-				case "transform"	:
-					awaitedClasses.add(AffineTransform.class);
-					break;
-				case "font"	:
-					awaitedClasses.add(Font.class);
-					break;
-				default : 
-			}
-		}
-		if (awaitedClasses.isEmpty()) {
-			return null;
-		}
-		else if (awaitedClasses.size() > 1) {
-			throw new IllegalArgumentException("Attribute set "+Arrays.toString(propNames)+" defines more than one instrument class");
-		}
-		else {
-			for(String propName : propNames) {
-				switch (propName) {
-					case "stroke"	:
-						if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
-							return instrumentType.cast(convertTo(Color.class,attributes.get(propName).toString()));
-						}
-						else {
-							return instrumentType.cast(Color.BLACK);
-						}
-					case "fill"	:
-						if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
-							return instrumentType.cast(convertTo(Color.class,attributes.get(propName).toString()));
-						}
-						else {
-							return null;
-						}
-					case "stroke-width"	:
-						if (attributes.containsKey(propName)) {
-							return instrumentType.cast(convertTo(Stroke.class,attributes.get(propName).toString()));
-						}
-						else {
-							return (T) new BasicStroke(1f);
-						}
-					case "transform"	:
-						if (attributes.containsKey(propName) && !"none".equalsIgnoreCase(attributes.get(propName).toString())) {
-							return instrumentType.cast(convertTo(AffineTransform.class,attributes.get(propName).toString()));
-						}
-						else {
-							return (T) new AffineTransform();
-						}
-					case "font"	:
-						final String	fontFamily = (String)(attributes.containsKey("font-family") ? attributes.get("font-family").toString() : "Courier");
-						final String	fontSize = (String)(attributes.containsKey("font-size") ? attributes.get("font-size").toString() : "12pt");
-						final String	fontWeight = (String)(attributes.containsKey("font-weight") ? attributes.get("font-weight").toString() : "normal");
-						final String	fontStyle = (String)(attributes.containsKey("font-style") ? attributes.get("font-style").toString() : "normal");
-						final int		size = (int)CSSUtils.asDistance(fontSize).getValueAs(CSSUtils.Distance.Units.pt);
-						
-						return instrumentType.cast(new Font(fontFamily,Font.PLAIN,size));
-					default : 
-						return null;
-				}
-			}
-		}
-		return null;
-	}	
-	
 	static boolean hasSubstitutionInside(final CharSequence content) {
 		if (content == null) {
 			throw new NullPointerException("Content to test can't be null");
