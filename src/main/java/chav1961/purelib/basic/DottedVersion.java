@@ -8,6 +8,7 @@ import java.util.Objects;
  * <p>This class manipulates with dot-splitten version strings. Supports {@linkplain Comparable} interface.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
+ * @last.update 0.0.8
  */
 public class DottedVersion extends ArrayList<Integer> implements Comparable<DottedVersion>, Cloneable {
 	private static final long 	serialVersionUID = -2071809269597291921L;
@@ -58,6 +59,22 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
     }
 
     /**
+     * <p>Assign another version value to current version</p>
+     * @param another another version to assign. Can't be null.
+     * @throws NullPointerException another version is null.
+     * @since 0.0.8
+     */
+    public void assign(final DottedVersion another) throws NullPointerException {
+    	if (another == null) {
+    		throw new NullPointerException("Another version instance can't be null");
+    	}
+    	else {
+    		clear();
+    		addAll(another);
+    	}
+    }
+    
+    /**
      * <p>Can the version string be parsed correctly</p> 
      * @param version service string to parsed.
      * @return true is string can be parsed, false otherwise
@@ -76,7 +93,7 @@ public class DottedVersion extends ArrayList<Integer> implements Comparable<Dott
     }
 
     /**
-     * <p>This in a typified version of the {@linkplain #clone()} methos</p>
+     * <p>This in a typified version of the {@linkplain #clone()} method</p>
      * @return see {@linkplain #clone()}
      */
     public DottedVersion fork() {

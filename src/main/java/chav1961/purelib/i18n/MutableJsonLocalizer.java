@@ -383,6 +383,10 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 		}
 	}
 
+	public void clear() {
+		localKeys.clear();
+	}
+	
 	public void saveContent(final JsonStaxPrinter printer) throws IOException, PrintingException {
 		if (printer == null) {
 			throw new NullPointerException("Printer to cave content to can't be null");

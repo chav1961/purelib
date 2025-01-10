@@ -225,7 +225,13 @@ public abstract class SwingUtils {
 	public static final String				ACTION_SOFT_CLOSE = "softclose";
 	public static final String				ACTION_FIND = "find";
 	public static final String				ACTION_FIND_REPLACE = "findReplace";
-	
+
+	/**
+	 * <p>This enumeration describes widely used editor keys.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 * @last.update 0.0.8
+	 */
 	public static enum EditorKeys {
 		EK_INSERT(KS_INSERT, ACTION_INSERT),
 		EK_DUPLICATE(KS_DUPLICATE, ACTION_DUPLICATE),
@@ -242,15 +248,46 @@ public abstract class SwingUtils {
 			this.action = action;
 		}
 		
+		/**
+		 * <p>Get key stroke associated with the current item</p>
+		 * @return key stroke associated. Can't be null.
+		 */
 		public KeyStroke getKeyStroke() {
 			return ks;
 		}
 		
+		/**
+		 * <p>Get action associated with the current item</p> 
+		 * @return action associated. Can't be null or empty</p>
+		 */
 		public String getAction() {
 			return action;
 		}
-	}
 
+		/**
+		 * <p>Calculate editor key item by it's action string</p>
+		 * @param action action string to calculate item for. Can't be null or empty
+		 * @return item calculated. Can't be null
+		 * @throws IllegalArgumentException action string is null, empty or not found anywhere
+		 */
+		public static EditorKeys byAction(final String action) throws IllegalArgumentException {
+			if (Utils.checkEmptyOrNullString(action)) {
+				throw new IllegalArgumentException("Action string can't be null or empty");
+			}
+			else {
+				for(EditorKeys item : values()) {
+					if (item.getAction().equals(action)) {
+						return item;
+					}
+				}
+				throw new IllegalArgumentException("Action string ["+action+"] not found anywhere");
+			}
+		}
+	};
+
+	/**
+	 * 
+	 */
 	private static enum NavigationNodeType {
 		MENU,
 		SUBMENU,
@@ -258,7 +295,7 @@ public abstract class SwingUtils {
 		ITEM,
 		SEPARATOR,
 		UNKNOWN;
-	}
+	};
 	
 	private static final Map<Class<?>,Object>	DEFAULT_VALUES = new HashMap<>();
 	private static final Object[]				EMPTY_OPTIONS = new Object[0];

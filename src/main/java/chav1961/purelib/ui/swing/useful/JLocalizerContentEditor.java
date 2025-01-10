@@ -17,8 +17,10 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
@@ -39,7 +41,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 
-import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
 import chav1961.purelib.basic.Utils;
@@ -54,16 +55,19 @@ import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.AbstractLocalizer;
+import chav1961.purelib.i18n.MutableJsonLocalizer;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
+import chav1961.purelib.i18n.interfaces.MutableLocalizedString;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.ui.interfaces.PureLibStandardIcons;
 import chav1961.purelib.ui.swing.JToolBarWithMeta;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.SwingUtils.EditorKeys;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 
 /**
@@ -74,7 +78,7 @@ import chav1961.purelib.ui.swing.interfaces.OnAction;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.5
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeListener, LoggerFacadeOwner {
 	private static final long 		serialVersionUID = 3237259445965828668L;
@@ -87,6 +91,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	private static final String		KEY_SELECT_FIELDS_HELP = "JLocalizerContentEditor.selectFields.help";
 
 	private static final String		MSG_DUPLICATE_KEY = "JLocalizerContentEditor.message.duplicate.key";
+	private static final String		MSG_MISSING_KEY = "JLocalizerContentEditor.message.missing.key";
 	
 	private static final Icon		GREEN_ICON = PureLibStandardIcons.SUCCESS.getIcon();
 	private static final Icon		RED_ICON = PureLibStandardIcons.FAIL.getIcon();
@@ -122,10 +127,12 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	}
 	
 	private final Localizer				localizer;
+	private final MutableJsonLocalizer	tempLocalizer = new MutableJsonLocalizer();
 	private final LoggerFacade			logger;
 	private final StoreContentInterface	sci;
 	private final SupportedLanguages[]	languages;
-	private final SyntaxTreeInterface<LocalizerRecord>	content = new AndOrTree<>();
+	private final List<LocalizerRecord>	content = new ArrayList<>();
+	private final Set<String>			contentKeys = new HashSet<>();
 	private final JToolBarWithMeta		tbmLeft, tbmRight;
 	private final JCreoleEditor			editor;
 	private final InnerTableModel		model;
@@ -188,6 +195,8 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 			
 			SwingUtils.assignActionListeners(this.tbmLeft, this);
 			SwingUtils.assignActionKeys(this, JSplitPane.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT, (e)->processAction(e.getSource(),e.getActionCommand()), SwingUtils.EditorKeys.values());
+			SwingUtils.assignActionKeys(table, JTable.WHEN_FOCUSED, (e)->processAction(e.getSource(),e.getActionCommand()), SwingUtils.EditorKeys.EK_DELETE, SwingUtils.EditorKeys.EK_DUPLICATE, SwingUtils.EditorKeys.EK_INSERT);
+			SwingUtils.assignActionKeys(table.getLeftBar(), JTable.WHEN_FOCUSED, (e)->processAction(e.getSource(),e.getActionCommand()), SwingUtils.EditorKeys.EK_DELETE, SwingUtils.EditorKeys.EK_DUPLICATE, SwingUtils.EditorKeys.EK_INSERT);
 			
 			table.addFocusListener(new FocusListener() {
 				@Override public void focusLost(FocusEvent e) {focused = FocusedComponent.OTHER;}
@@ -257,11 +266,9 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		}
 		
 		for (String item : load.localKeys()) {
-			final long	id = content.seekName((CharSequence)item);
-			
-			if (id >= 0) {
+			if (contentKeys.contains(item)) {
 				if (replaceExistent) {
-					final LocalizerRecord	rec = content.getCargo(id);
+					final LocalizerRecord rec = content.get(keyIndex(item));
 					
 					for (int index = 0; index < langs.length; index++) {
 						rec.values[index] = load.getLocalValue(item, temp.get(index).getLocale());
@@ -269,13 +276,13 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 				}
 			}
 			else {
-				final long				newId = content.placeName((CharSequence)item, null); 
-				final LocalizerRecord	newRec = new LocalizerRecord(newId, langs, new String[langs.length]); 
+				final LocalizerRecord	newRec = new LocalizerRecord(item, langs, new String[langs.length]); 
 				
 				for (int index = 0; index < langs.length; index++) {
 					newRec.values[index] = load.getLocalValue(item, temp.get(index).getLocale());
 				}
-				content.setCargo(newId, newRec);
+				content.add(newRec);
+				contentKeys.add(item);
 			}
 		}
 	}
@@ -386,16 +393,38 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 
 	@OnAction("action:/loadContent")
 	private void loadContent() {
-	}
-
-	@OnAction("action:/storeContent")
-	private void storeContent() {
+		try {
+			loadContent(tempLocalizer, true);
+			
+		} catch (LocalizationException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@OnAction("action:/loadClassContent")
 	private void loadClassContent() {
 	}
+
+	@OnAction("action:/storeContent")
+	private void storeContent() {
+		final InnerTableModel	model = (InnerTableModel) table.getSourceModel();
 	
+		tempLocalizer.clear();
+		for(int index = 0, maxIndex = model.getRowCount(); index < maxIndex; index++) {
+			final MutableLocalizedString	mls = tempLocalizer.createLocalValue(model.getValueAt(index, 0).toString());
+			
+			for(int col = 1, maxCol = model.getColumnCount(); col < maxCol; col++) {
+			}
+		}
+		try {
+			storeContent(localizer, ContentType.JSON);
+		} catch (LocalizationException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	@OnAction("action:/insertKey")
 	private void insertKey() {
 		insertKey("newKey");
@@ -419,7 +448,21 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 
 	@OnAction("action:/removeKey")
 	private void removeKey() {
-		
+		if (table.getSelectionModel().getSelectedItemsCount() > 0) {
+			final TableModel	model = table.getSourceModel();
+			final int			selectedRow = table.getSelectionModel().getMinSelectionIndex();
+			final String 		oldKey = model.getValueAt(selectedRow, 0).toString();
+			final int			oldRec = keyIndex(oldKey);
+			
+			if (oldRec >= 0) {
+				content.remove(oldRec);
+				contentKeys.remove(oldKey);
+				((InnerTableModel)table.getSourceModel()).refreshContent(oldKey);
+			}
+			else {
+				getLogger().message(Severity.warning, MSG_MISSING_KEY, oldKey);
+			}
+		}
 	}
 
 	private String createUniqueKey(final String key) {
@@ -437,18 +480,16 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	}
 	
 	private void insertKey(final String key, final String... initialValues) {
-		final long	id = content.seekName((CharSequence)key);
+		final int	id = keyIndex(key);
 		
 		if (id < 0) {
-			final long				newId = content.placeName((CharSequence)key, null);
 			final String[]			values = new String[languages.length];
-			final LocalizerRecord	rec = new LocalizerRecord(newId, languages, values);
+			final LocalizerRecord	rec = new LocalizerRecord(key, languages, values);
 			
 			for(int index = 0; index < values.length; index++) {
 				values[index] = index < initialValues.length ? initialValues[index] : key;
 			}
-			
-			content.setCargo(newId, rec);
+			content.add(rec);
 			((InnerTableModel)table.getSourceModel()).refreshContent(key);
 		}
 		else {
@@ -456,6 +497,15 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 		}
 	}
 
+	private int keyIndex(final String key) {
+		for(int index = 0, maxIndex = content.size(); index < maxIndex; index++) {
+			if (content.get(index).key.equals(key)) {
+				return index;
+			}
+		}
+		return -1;
+	}
+	
 	private static String field2Label(final Field item) {
 		if (item.isAnnotationPresent(LocaleResource.class)) {
 			return item.getAnnotation(LocaleResource.class).value();
@@ -475,6 +525,19 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	}
 	
 	private void processAction(final Object source, final String action) {
+		switch (EditorKeys.byAction(action)) {
+			case EK_DELETE		:
+				removeKey();
+				break;
+			case EK_DUPLICATE	:
+				duplicateKey();
+				break;
+			case EK_INSERT		:
+				insertKey();
+				break;
+			default:
+				break;
+		}
 	}
 	
 	private void refreshState() {
@@ -488,11 +551,11 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	}
 
 	private static class LocalizerRecord {
-		final long					key;
+		String						key;
 		final SupportedLanguages[]	langs;
 		final String[]				values;
 
-		LocalizerRecord(final long key, final SupportedLanguages[] langs, final String[] values) {
+		LocalizerRecord(final String key, final SupportedLanguages[] langs, final String[] values) {
 			this.key = key;
 			this.langs = langs;
 			this.values = values;
@@ -583,17 +646,17 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	private class InnerTableModel extends DefaultTableModel {
 		private static final long serialVersionUID = 6525386077011559488L;
 
-		private final SyntaxTreeInterface<LocalizerRecord>	tree;
-		private final SupportedLanguages[]					langs;
+		private final List<LocalizerRecord>	list;
+		private final SupportedLanguages[]	langs;
 		
-		InnerTableModel(final SyntaxTreeInterface<LocalizerRecord> tree, final SupportedLanguages[] langs) {
-			this.tree = tree;
+		InnerTableModel(final List<LocalizerRecord> list, final SupportedLanguages[] langs) {
+			this.list = list;
 			this.langs = langs;
 		}
 
 		@Override
 		public int getRowCount() {
-			return (int) (tree == null ? 0 : tree.size());
+			return (int) (list == null ? 0 : list.size());
 		}
 
 		@Override
@@ -623,63 +686,33 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 
 		@Override
 		public Object getValueAt(final int rowIndex, final int columnIndex) {
-			final int[]	place = new int[] {rowIndex};
-			final LocalizerRecord[]	result = new LocalizerRecord[1];
+			final LocalizerRecord	value = list.get(rowIndex);
 			
-			content.walk((name, len, id, cargo) -> {
-					if (--place[0] > 0) {
-						return true;
-					}
-					else {
-						result[0] = cargo;
-						return false;
-					}
-				}
-			);
 			switch (columnIndex) {
-				case 0 : return content.getName(result[0].key);
-				default : return result[0].values[columnIndex-1];
+				case 0 : return value.key;
+				default : return value.values[columnIndex-1];
 			}
 		}
 
 		@Override
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-			final int[]	place = new int[] {rowIndex};
-			final LocalizerRecord[]	result = new LocalizerRecord[1];
-			
-			content.walk((name, len, id, cargo) -> {
-					if (--place[0] > 0) {
-						return true;
-					}
-					else {
-						result[0] = cargo;
-						return false;
-					}
-				}
-			);
-			final String	newName;
-			
+			final LocalizerRecord	value = list.get(rowIndex);
+
 			switch (columnIndex) {
-				case 0 :
-					newName = aValue.toString();
-					
-					if (content.seekName((CharSequence)newName) != result[0].key) {
-						final LocalizerRecord	rec = new LocalizerRecord(content.placeName((CharSequence)newName, null), result[0].langs, result[0].values);
-						
-						content.removeName(result[0].key);
-						content.setCargo(rec.key, rec);
-					}
+				case 0 : 
+					contentKeys.remove(value.key);
+					value.key = aValue.toString();
+					contentKeys.add(value.key);
 					break;
-				default :
-					newName = content.getName(result[0].key);
-					result[0].values[columnIndex-1] = aValue.toString();
+				default : 
+					value.values[columnIndex-1] = aValue.toString(); 
 					break;
 			}
-			refreshContent(newName);
+			refreshContent(value.key);
 		}
 		
 		public void refreshContent(final String prefix) {
-			fireTableDataChanged();
+			fireTableStructureChanged();
 		}
 	}
 	

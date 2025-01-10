@@ -285,6 +285,7 @@
 		<key name="menu.JLocalizerContentEditor.remove.tt">Remove localization key</key>
 
 		<key name="JLocalizerContentEditor.message.duplicate.key">Duplicate key [%1$s]</key>		
+		<key name="JLocalizerContentEditor.message.missing.key">Missing key [%1$s]</key>		
 
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Select fields to load</key>
 		<key name="JLocalizerContentEditor.selectFields.field">Field name</key>
@@ -686,6 +687,7 @@
 		<key name="menu.JLocalizerContentEditor.remove.tt">Удалить ключ локализации</key>
 		
 		<key name="JLocalizerContentEditor.message.duplicate.key">Дублированный ключ [%1$s]</key>		
+		<key name="JLocalizerContentEditor.message.missing.key">Отсутствует ключ [%1$s]</key>		
 
 		<key name="JLocalizerContentEditor.selectFieldsTitle">Выбор полей для загрузки</key>
 		<key name="JLocalizerContentEditor.selectFields.field">Имя поля</key>

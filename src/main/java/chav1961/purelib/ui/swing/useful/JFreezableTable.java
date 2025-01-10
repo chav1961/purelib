@@ -10,6 +10,7 @@ import java.awt.event.FocusListener;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.EventObject;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,7 +40,7 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * left of these is located at row header view in the scroll pane.</p>   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.4
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public class JFreezableTable extends JTable {
 	private static final long 			serialVersionUID = 5593084316211899679L;
