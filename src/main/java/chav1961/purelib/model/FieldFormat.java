@@ -14,6 +14,7 @@ import java.util.Date;
 import javax.swing.text.MaskFormatter;
 
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.DottedVersion;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
@@ -60,6 +61,7 @@ public class FieldFormat {
 		ForeignKeyRefListContent,
 		MimeBasedContent,
 		LocaliizedStringContent,
+		DottedVersionContent,
 		Unclassified
 	} 
 	
@@ -683,6 +685,9 @@ public class FieldFormat {
 				}
 				else if (LocalizedString.class.isAssignableFrom(clazz)) {
 					return ContentType.LocaliizedStringContent;
+				}
+				else if (DottedVersion.class.isAssignableFrom(clazz)) {
+					return ContentType.DottedVersionContent;
 				}
 				else  {
 					return ContentType.Unclassified;

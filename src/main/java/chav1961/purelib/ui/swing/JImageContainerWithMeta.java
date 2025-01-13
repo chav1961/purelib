@@ -78,7 +78,8 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private final JPopupMenu			popup;
 	private final FileWizardOptions		options;
 	private File						lastFile = new File("./");
-	private volatile ImageKeeperImpl	currentValue = null, newValue = null;
+	private volatile ImageKeeperImpl	currentValue = null;
+	private volatile ImageKeeperImpl	newValue = null;
 	private volatile Image				grayScaleValue = null;
 	private boolean						invalid = false;
 	
@@ -510,7 +511,7 @@ public class JImageContainerWithMeta extends JComponent implements NodeMetadataO
 	private void callLoad(final JComponentMonitor monitor) {
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			buildGrayScale();
-			currentValue = (ImageKeeperImpl) newValue.clone();
+			currentValue = newValue == null ? new ImageKeeperImpl() : (ImageKeeperImpl) newValue.clone();
 			currentValue.setModified(false);
 		} catch (ContentException | CloneNotSupportedException exc) {
 			SwingUtils.getNearestLogger(JImageContainerWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());

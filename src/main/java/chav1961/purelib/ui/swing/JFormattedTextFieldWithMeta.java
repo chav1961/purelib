@@ -16,6 +16,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.MaskFormatter;
 
+import chav1961.purelib.basic.DottedVersion;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -39,7 +40,7 @@ import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 public class JFormattedTextFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
-	private static final Class<?>[]		VALID_CLASSES = {String.class};
+	private static final Class<?>[]		VALID_CLASSES = {String.class, DottedVersion.class};
 	
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
@@ -67,8 +68,16 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
-			try{this.formatter = new MaskFormatter(format.getFormatMask());
-				setFormatterFactory(new DefaultFormatterFactory(formatter));
+			try {
+				if (metadata.getType() == DottedVersion.class) {
+					this.formatter = new MaskFormatter("###.###.###.###");
+					this.formatter.setPlaceholderCharacter('_');
+					setFormatterFactory(new DefaultFormatterFactory(formatter));
+				}
+				else {
+					this.formatter = new MaskFormatter(format.getFormatMask());
+					setFormatterFactory(new DefaultFormatterFactory(formatter));
+				}
 			} catch (ParseException e) {
 				throw new SyntaxException(0,0,"Illegal format mask ["+format.getFormatMask()+"]: "+e.getLocalizedMessage());
 			}

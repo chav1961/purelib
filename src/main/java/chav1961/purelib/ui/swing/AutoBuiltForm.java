@@ -417,6 +417,9 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 							modifiableLabelIds.add(metadata.getLabelId());
 						}
 						accessors.put(metadata.getUIPath(), gas);
+						if (instance instanceof ModuleAccessor) {
+							((ModuleAccessor)instance).allowUnnamedModuleAccess(gas.getClass().getModule());
+						}
 						if (format.isOutput()) {
 							outputFocused.add(fieldComponent);
 						}
