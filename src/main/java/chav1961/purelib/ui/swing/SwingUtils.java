@@ -625,7 +625,7 @@ loop:			for (Component comp : children(node)) {
 					result = new JLocalizedStringContentWithMeta(metadata, localizer, monitor);
 					break;
 				case DottedVersionContent	:
-					result = new JFormattedTextFieldWithMeta(metadata, monitor);
+					result = new JDottedVersionFieldWithMeta(metadata, monitor);
 					break;
 				case RangeContent	:
 					result = new JRangeSliderWithMeta(metadata, monitor);

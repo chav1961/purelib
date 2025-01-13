@@ -6,6 +6,7 @@ import java.awt.event.FocusListener;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Formatter;
 import java.util.Locale;
 
 import javax.swing.InputVerifier;
@@ -13,9 +14,13 @@ import javax.swing.JComponent;
 import javax.swing.JFormattedTextField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.text.DefaultFormatter;
 import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.DocumentFilter;
 import javax.swing.text.MaskFormatter;
+import javax.swing.text.NavigationFilter;
 
+import chav1961.purelib.basic.DottedVersion;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
@@ -26,8 +31,8 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.FieldFormat;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.ui.swing.BooleanPropChangeEvent.EventChangeType;
 import chav1961.purelib.ui.swing.inner.BooleanPropChangeListenerRepo;
 import chav1961.purelib.ui.swing.interfaces.BooleanPropChangeListener;
@@ -36,19 +41,18 @@ import chav1961.purelib.ui.swing.interfaces.JComponentInterface;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor;
 import chav1961.purelib.ui.swing.interfaces.JComponentMonitor.MonitorEvent;
 
-public class JFormattedTextFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
+public class JDottedVersionFieldWithMeta extends JFormattedTextField implements NodeMetadataOwner, LocaleChangeListener, JComponentInterface, BooleanPropChangeListenerSource {
 	private static final long 	serialVersionUID = -7990739033479280548L;
 	
-	private static final Class<?>[]		VALID_CLASSES = {String.class};
+	private static final Class<?>[]		VALID_CLASSES = {DottedVersion.class};
 	
 	private final BooleanPropChangeListenerRepo	repo = new BooleanPropChangeListenerRepo();
 	private final ContentNodeMetadata	metadata;
-	private final MaskFormatter			formatter;
-	private String						currentValue, newValue;
+	private final AbstractFormatter		formatter;
+	private DottedVersion				currentValue, newValue;
 	private boolean						invalid = false;
 	
-	public JFormattedTextFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
-		super();
+	public JDottedVersionFieldWithMeta(final ContentNodeMetadata metadata, final JComponentMonitor monitor) throws LocalizationException, SyntaxException {
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
@@ -67,12 +71,8 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 			final String		name = URIUtils.removeQueryFromURI(metadata.getUIPath()).toString();
 			final FieldFormat	format = metadata.getFormatAssociated() != null ? metadata.getFormatAssociated() : new FieldFormat(metadata.getType());
 			
-			try {
-				this.formatter = new MaskFormatter(format.getFormatMask());
-				setFormatterFactory(new DefaultFormatterFactory(formatter));
-			} catch (ParseException e) {
-				throw new SyntaxException(0,0,"Illegal format mask ["+format.getFormatMask()+"]: "+e.getLocalizedMessage());
-			}
+			this.formatter = new DottedVersionFormatter();
+			setFormatterFactory(new DefaultFormatterFactory(formatter));
 			enableEvents(AWTEvent.FOCUS_EVENT_MASK|AWTEvent.COMPONENT_EVENT_MASK);
 			InternalUtils.addComponentListener(this,()->callLoad(monitor));
 			addFocusListener(new FocusListener() {
@@ -81,25 +81,25 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 					try{
 						SwingUtilities.invokeLater(()->{
 							if (newValue != currentValue && newValue != null && !newValue.equals(currentValue)) {
-								try{monitor.process(MonitorEvent.Saving,metadata,JFormattedTextFieldWithMeta.this);
+								try{monitor.process(MonitorEvent.Saving,metadata,JDottedVersionFieldWithMeta.this);
 								} catch (ContentException exc) {
-									SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+									SwingUtils.getNearestLogger(JDottedVersionFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 								}
 							}
 						});
-						monitor.process(MonitorEvent.FocusLost,metadata,JFormattedTextFieldWithMeta.this);
+						monitor.process(MonitorEvent.FocusLost,metadata,JDottedVersionFieldWithMeta.this);
 					} catch (ContentException exc) {
-						SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+						SwingUtils.getNearestLogger(JDottedVersionFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 				}
 				
 				@Override
 				public void focusGained(final FocusEvent e) {
 					try{
-						monitor.process(MonitorEvent.FocusGained,metadata,JFormattedTextFieldWithMeta.this);
+						monitor.process(MonitorEvent.FocusGained,metadata,JDottedVersionFieldWithMeta.this);
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					} catch (ContentException exc) {
-						SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+						SwingUtils.getNearestLogger(JDottedVersionFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 					}					
 					SwingUtilities.invokeLater(()->{
 						if (format.needSelectOnFocus()) {
@@ -109,30 +109,30 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 				}
 			});
 			SwingUtils.assignActionKey(this,WHEN_FOCUSED,SwingUtils.KS_EXIT,(e)->{
-				try{if (monitor.process(MonitorEvent.Rollback,metadata,JFormattedTextFieldWithMeta.this)) {
+				try{if (monitor.process(MonitorEvent.Rollback,metadata,JDottedVersionFieldWithMeta.this)) {
 						assignValueToComponent(currentValue);
 						getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(false);
 					}
 				} catch (ContentException exc) {
-					SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+					SwingUtils.getNearestLogger(JDottedVersionFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 				} finally {
-					JFormattedTextFieldWithMeta.this.requestFocus();
+					JDottedVersionFieldWithMeta.this.requestFocus();
 				}
 			}, SwingUtils.ACTION_ROLLBACK);
 			if (!Utils.checkEmptyOrNullString(metadata.getHelpId())) {
 				SwingUtils.assignActionKey(this, WHEN_FOCUSED, SwingUtils.KS_HELP, (e)->{
 					try {
-						SwingUtils.showCreoleHelpWindow(JFormattedTextFieldWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
+						SwingUtils.showCreoleHelpWindow(JDottedVersionFieldWithMeta.this, LocalizerFactory.getLocalizer(metadata.getLocalizerAssociated()), metadata.getHelpId());
 					} catch (IOException exc) {
-						SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
+						SwingUtils.getNearestLogger(JDottedVersionFieldWithMeta.this).message(Severity.error, exc, exc.getLocalizedMessage());
 					}
 				},SwingUtils.ACTION_HELP);
 			}
 			setInputVerifier(new InputVerifier() {
 				@Override
 				public boolean verify(final JComponent input) {
-					try{if (monitor.process(MonitorEvent.Validation,metadata,JFormattedTextFieldWithMeta.this)) {
-							newValue = (String)getChangedValueFromComponent();
+					try{if (monitor.process(MonitorEvent.Validation,metadata,JDottedVersionFieldWithMeta.this)) {
+							newValue = (DottedVersion)getChangedValueFromComponent();
 							getActionMap().get(SwingUtils.ACTION_ROLLBACK).setEnabled(true);
 							return true;
 						}
@@ -182,7 +182,7 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 	
 	@Override
 	public String getRawDataFromComponent() {
-		return currentValue;
+		return currentValue.toString();
 	}
 
 	@Override
@@ -198,12 +198,10 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 	@Override
 	public void assignValueToComponent(final Object value) {
 		if (value == null) {
-			setValue("");
-			newValue = null;
+			setValue(newValue = new DottedVersion());
 		}
 		else {
-			setValue(value.toString());
-			newValue = value.toString();
+			setValue(newValue = (DottedVersion)value);
 		}
 	}
 
@@ -307,7 +305,30 @@ public class JFormattedTextFieldWithMeta extends JFormattedTextField implements 
 		try{monitor.process(MonitorEvent.Loading,metadata,this);
 			currentValue = newValue;
 		} catch (ContentException exc) {
-			SwingUtils.getNearestLogger(JFormattedTextFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
+			SwingUtils.getNearestLogger(JDottedVersionFieldWithMeta.this).message(Severity.error, exc,exc.getLocalizedMessage());
 		}					
+	}
+	
+	private static class DottedVersionFormatter extends DefaultFormatter {
+		private static final long serialVersionUID = 8204187891309315089L;
+
+		public DottedVersionFormatter() {
+			setValueClass(DottedVersion.class);
+			setAllowsInvalid(false);
+		}
+		
+		@Override
+		public Object stringToValue(final String string) throws ParseException {
+			try {
+				return new DottedVersion(string);
+			} catch (RuntimeException exc) {
+				throw new ParseException(exc.getLocalizedMessage(), 0);
+			}
+		}
+		
+		@Override
+		public String valueToString(final Object value) throws ParseException {
+			return value == null ? "" : value.toString();
+		}
 	}
 }
