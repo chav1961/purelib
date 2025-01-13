@@ -7,6 +7,7 @@
 		<key name="testSet3">test set 3</key>
 		<key name="testSet4">uri(x.txt)</key>
 		<key name="testSet5">uri(y.txt)</key>
+		<key name="ready">Ready</key>
 
 <!-- SupportedLanguages enum keys  -->
 		<key name="en">en</key> 
@@ -410,6 +411,7 @@
 		<key name="testSet3">test set 3</key>
 		<key name="testSet4">uri(x.txt)</key>
 		<key name="testSet5">uri(y.txt)</key>
+		<key name="ready">Готово</key>
 
 		<key name="en">en</key> 
 		<key name="en.tt">Английский</key> 
