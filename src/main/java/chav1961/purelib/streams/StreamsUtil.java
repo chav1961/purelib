@@ -29,20 +29,20 @@ import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
  */
 
 public class StreamsUtil {
-	private static final Map<String,Map<String,WrapperCreator>>	MIME_CONVERTORS = new HashMap<>();
+	private static final Map<MimeType,Map<MimeType,WrapperCreator>>	MIME_CONVERTORS = new HashMap<>();
 	
 	static {
-		Map<String,WrapperCreator>	temp;
+		Map<MimeType,WrapperCreator>	temp;
 		
 		temp = new HashMap<>();
-		temp.put("text/plain",(nested,source,target)->{return new WriterWrapper(nested);});
-		temp.put("text/html",(nested,source,target)->{return new WriterWrapper(nested);});
-		MIME_CONVERTORS.put("text/plain",temp);
+		temp.put(MimeType.MIME_PLAIN_TEXT,(nested,source,target)->{return new WriterWrapper(nested);});
+		temp.put(MimeType.MIME_HTML_TEXT,(nested,source,target)->{return new WriterWrapper(nested);});
+		MIME_CONVERTORS.put(MimeType.MIME_PLAIN_TEXT,temp);
 		
 		temp = new HashMap<>();
-		temp.put("text/plain",(nested,source,target)->{return new CreoleWriter(nested,MarkupOutputFormat.XML2TEXT);});
-		temp.put("text/html",(nested,source,target)->{return new CreoleWriter(nested,MarkupOutputFormat.XML2HTML);});
-		MIME_CONVERTORS.put("text/x-wiki.creole",temp);			
+		temp.put(MimeType.MIME_PLAIN_TEXT,(nested,source,target)->{return new CreoleWriter(nested, MimeType.MIME_PLAIN_TEXT);});
+		temp.put(MimeType.MIME_HTML_TEXT,(nested,source,target)->{return new CreoleWriter(nested, MimeType.MIME_HTML_TEXT);});
+		MIME_CONVERTORS.put(MimeType.MIME_CREOLE_TEXT,temp);			
 	} 
 
 	@FunctionalInterface
@@ -70,10 +70,8 @@ public class StreamsUtil {
 			throw new NullPointerException("MIME to can't be null");
 		}
 		else {
-			final String	fromString = from.getPrimaryType()+"/"+from.getSubType(), toString = to.getPrimaryType()+"/"+to.getSubType();
-			
-			if (MIME_CONVERTORS.containsKey(fromString) && MIME_CONVERTORS.get(fromString).containsKey(toString)) {
-				return MIME_CONVERTORS.get(fromString).get(toString).create(targetWriter,from,to);
+			if (MIME_CONVERTORS.containsKey(from) && MIME_CONVERTORS.get(from).containsKey(to)) {
+				return MIME_CONVERTORS.get(from).get(to).create(targetWriter,from,to);
 			}
 			else {
 				return new WriterWrapper(targetWriter);
