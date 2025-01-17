@@ -199,9 +199,15 @@ public class XMLLocalizer extends AbstractLocalizer {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}
 		else {
-			try{return new String(URIUtils.loadCharsFromURI(URIUtils.appendRelativePath2URI(resourceAddress,"../help/"+locale.getLanguage()+"/"+helpId),encoding));
+			try{
+				return new String(URIUtils.loadCharsFromURI(URIUtils.appendRelativePath2URI(resourceAddress,"../help/"+locale.getLanguage()+"/"+helpId),encoding));
 			} catch (IOException e) {
-				throw new LocalizationException(e.getLocalizedMessage(),e);
+				if (getParent() instanceof AbstractLocalizer) {
+					return ((AbstractLocalizer)getParent()).getHelp(helpId, locale, encoding);
+				}
+				else {
+					throw new LocalizationException(e.getLocalizedMessage(),e);
+				}
 			}
 		}
 	}
