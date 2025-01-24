@@ -29,14 +29,14 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
  */
 public class TestingUtils {
 	public static PrintStream err() {
-//		if ("true".equals(System.getProperty("suppress.junit.trace"))) {
+		if ("true".equals(System.getProperty("suppress.junit.trace"))) {
 			return new PrintStream(new OutputStream() {
 				@Override public void write(int b) throws IOException {}
 			});
-//		}
-//		else {
-//			return System.err;
-//		}
+		}
+		else {
+			return System.err;
+		}
 	}
 	
 	/**

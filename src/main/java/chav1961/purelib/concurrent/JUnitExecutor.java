@@ -82,18 +82,21 @@ public class JUnitExecutor<Command,Response> {
 			throw new NullPointerException("Command processor can't be null");
 		}
 		else {
-			try{if (trace) {
-					ps.println("Before getting command...");
+			final String	name = Thread.currentThread().getName();
+			
+			try{
+				if (trace) {
+					ps.println(name+": Before getting command...");
 				}
 				final Command	c = cmd.exchange(null);
 				
 				if (trace) {
-					ps.println("Got command: "+c);
+					ps.println(name+": Got command: "+c);
 				}
 				final Response	r = proc.process(c,parameters);
 				
 				if (trace) {
-					ps.println("After processing command "+c+": "+r);
+					ps.println(name+": After processing command "+c+": "+r);
 				}
 				resp.put(r);
 			} catch (InterruptedException e) {
@@ -131,7 +134,7 @@ public class JUnitExecutor<Command,Response> {
 	}
 	
 	/**
-	 * <p>Has response form the slave thread</p>
+	 * <p>Has response from the slave thread</p>
 	 * @return true if yes
 	 */
 	public boolean hasResponse() {
