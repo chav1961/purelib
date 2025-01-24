@@ -14,6 +14,10 @@ import javax.swing.tree.TreeCellRenderer;
 import chav1961.purelib.model.FieldFormat;
 import chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 
+/**
+ * <p>This class provides string renderers for swing components.</p> 
+ * @param <R> renderer type. Available types are {@linkplain TableCellRenderer}, {@linkplain ListCellRenderer} and {@linkplain TreeCellRenderer}
+ */
 public class StringRenderer<R> implements SwingItemRenderer<String, R> {
 	private static final Set<Class<?>>	SUPPORTED_RENDERERDS = Set.of(TableCellRenderer.class, ListCellRenderer.class, TreeCellRenderer.class);
 	
