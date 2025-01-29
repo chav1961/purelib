@@ -36,6 +36,8 @@ import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
+import chav1961.purelib.basic.interfaces.IndicesComparator;
+import chav1961.purelib.basic.interfaces.IndicesMover;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.cdb.CompilerUtils;
@@ -1880,6 +1882,27 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		}
 	}
 
+	public static <T> void indexBasedSort(final int from, final int to, final IndicesComparator comparator, final IndicesMover mover, final int tempSize) {
+		if (from < 0) {
+			throw new IllegalArgumentException("From index ["+from+"] must be equals or greater than 0"); 
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To index ["+to+"] must be greater or equals than from index ["+from+"]"); 
+		}
+		else if (comparator == null) {
+			throw new NullPointerException("Comparator can't be null");
+		}
+		else if (mover == null) {
+			throw new NullPointerException("Swap can't be null");
+		}
+		else if (tempSize <= 0) {
+			throw new IllegalArgumentException("Temporary size ["+tempSize+"] must be at least 1"); 
+		}
+		else {
+			
+		}
+	}
+	
 	private static Class<DirectProxyExecutor> buildDirectProxyExecutor(final SimpleURLClassLoader loader, Class<?> interf, final Method methodCall) throws ContentException {
 		final Set<Class<?>>			classes = new HashSet<>();
 		final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);
