@@ -14,13 +14,13 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,8 +36,6 @@ import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
-import chav1961.purelib.basic.interfaces.IndicesComparator;
-import chav1961.purelib.basic.interfaces.IndicesMover;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ProgressIndicator;
 import chav1961.purelib.cdb.CompilerUtils;
@@ -1882,7 +1880,167 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		}
 	}
 
-	public static <T> void indexBasedSort(final int from, final int to, final IndicesComparator comparator, final IndicesMover mover, final int tempSize) {
+	/**
+	 * <p>This interface in used in {@linkplain Utils#parallelArraysBinarySearch(int, int, IndicesComparable)} method to compare parallel
+	 * array "item" and value to found by array index.  
+	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.8 
+	 */
+	@FunctionalInterface
+	public static interface IndicesComparable {
+		/**
+		 * <p>Compare "array" item with index passed and value to found.</p>
+		 * @param index "array" index to compare with value.
+		 * @return < 0 - "array" item is less than value, == 0 - "array" item is equals with value, > 0 - "array" item is greater than value. 
+		 */
+		int compareTo(int index);
+	}
+	
+	/**
+	 * <p>Search parallel arrays content in sorted "array". Because parallel arrays don't contain data as the only item, but a number of parts inside separated
+	 * arrays, it's sorting can't be implemented as general case. Instead of direct search, the method uses {@linkplain IndicesComparable} interface to compare
+	 * content to search with the "element" of parallel array by it's index.</p> 
+	 * </p>Example to use this method:</p>	
+	 * <pre>		
+	 * final int[] toSearch1 = ..., toSearch2 = ...;
+	 * final int search1 = 10, search2 = 20;
+	 * final IndicesComparable	ic = new IndicesComparable() {
+	 * 							&#64;Override
+	 * 							public int compareTo(int index) {
+	 * 								int	delta = toSearch1[index] - search1;
+	 *
+	 * 								return delta == 0 ? toSearch2[index] - search2 : delta;
+	 * 							}
+	 * 						};
+	 * final int found = parallelArraysBinarySearch(0, toSearch1.length-1, ic);
+	 * </pre>		
+	 * @param from start piece of parallel array to search. Must be equals or greater than 0.
+	 * @param to start piece of parallel array to search. Must be greater than from variable.
+	 * @param comparator comparator to search content. Can't be null.
+	 * @return index >= 0 - "array" item found, index < 0 - =(-1-potential place for item found). 
+	 * @see https://en.wikipedia.org/wiki/Parallel_array
+ 	 * @since 0.0.8 
+	 */
+	public static int parallelArraysBinarySearch(final int from, final int to, final IndicesComparable comparator) {
+		if (from < 0) {
+			throw new IllegalArgumentException("From index ["+from+"] must be equals or greater than 0"); 
+		}
+		else if (to < from) {
+			throw new IllegalArgumentException("To index ["+to+"] must be greater or equals than from index ["+from+"]"); 
+		}
+		else if (comparator == null) {
+			throw new NullPointerException("Comparator can't be null");
+		}
+		else {
+	        int low = from, high = to - 1;
+
+	        while (low <= high) {
+	            final int	mid = (low + high) >>> 1;
+				final int	delta = comparator.compareTo(mid);
+
+	            if (delta < 0) {
+	                low = mid + 1;
+	            }
+	            else if (delta > 0) {
+	                high = mid - 1;
+	            }
+	            else {
+	                return mid;
+	            }
+	        }
+	        return -(low + 1);
+		}
+	}	
+
+	/**
+	 * <p>This interface is used in {@linkplain Utils#parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to compare two
+	 * items of parallel "array".</p>
+	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.8 
+	 */
+	@FunctionalInterface
+	public static interface IndicesComparator {
+		/**
+		 * <p>Compare two items of the "array".
+		 * @param index1 first "array" item to compare.
+		 * @param index2 second "array" item to compare.
+		 * @return < 0 - first "array" item is less than second one, == 0 - "array" items are equals, > 0 - first "array" item is greater than second one. 
+		 */
+		int compareTo(int index1, int index2);
+	}
+	
+	/**
+	 * <p>This interface is used in {@linkplain Utils#parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to move partially
+	 * sorted piece inside array(s) to sort.</p>
+	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.8 
+	 */
+	public static interface IndicesMover {
+		/**
+		 * <p>Move partial content inside arrays to sort. </p>
+		 * @param from start index to move data from. Negative one-based value means not source array but temporal memory to sort 
+		 * @param to start index to move data to. Negative one-based value means not target array but temporal memory to sort. Both indices never can't be negative simultaneously. 
+		 * @param length partial content size to move. Always is greater than 0
+		 * @see Utils#parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)
+		 */
+		void move(int from, int to, int length);
+	}
+	
+	/**
+	 * <p>Sort parallel arrays content. Because parallel arrays don't contain data as the only item, but a number of parts inside separated
+	 * arrays, it's sorting can't be implemented as general case. Instead of direct sorting, this method uses two lambda-styled interfaces:</p>
+	 * <ul>
+	 * <li> {@linkplain IndicesComparator} interface to compare two parallel arrays elements. Differ from {@linkplain Comparator} interface,
+	 * this one uses two array indices instead of tow objects to compare</li>
+	 * <li> {@linkplain IndicesMover} interface to move piece if parallel arrays during sorting operations</p>  
+	 * </ul>
+	 * <p> To exclude large extra memory requirements for sorting, implementation of IndicesMover interface must support a few temporal memory to
+	 * support swap operation on sorting. Example to use this method:</p>	
+	 * <pre>		
+	 * final int[] toSort1 = ..., toSort2 = ...;
+	 * final int N = 5; // Temporal memory size
+	 * final int[] temp1 = new int[N], temp2 = new int[N];
+	 * final IndicesMover	im = new IndicesMover() {
+	 * 							&#64;Override
+	 * 							public void move(int from, int to, int length) {
+	 * 								if (from < 0) {
+	 * 									System.arraycopy(temp1, -1-from, toSort1, to, length);
+	 * 									System.arraycopy(temp2, -1-from, toSort2, to, length);
+	 * 								}
+	 * 								else if (to < 0) {
+	 * 									System.arraycopy(toSort1, from, temp1, -1-to, length);
+	 * 									System.arraycopy(toSort2, from, temp2, -1-to, length);
+	 * 								}
+	 * 								else {
+	 * 									System.arraycopy(toSort1, from, toSort1, to, length);
+	 * 									System.arraycopy(toSort2, from, toSort2, to, length);
+	 * 								}
+	 * 							}
+	 * 						};
+	 * final IndicesComparator	ic = new IndicesComparator() {
+	 * 							&#64;Override
+	 * 							public int compareTo(int index1, int index2) {
+	 * 								int	delta = toSort1[index2] - toSort1[index1];
+	 *
+	 * 								return delta == 0 ? toSort2[index2] - toSort2[index1] : delta;
+	 * 							}
+	 * 						};
+	 * parallelArraysSort(0, toSort1.length-1, ic, im, N);
+	 * </pre>		
+	 *
+	 * @param from start piece of parallel array to sort. Must be equals or greater than 0.
+	 * @param to start piece of parallel array to sort. Must be greater than from variable.
+	 * @param comparator comparator to compare parallel arrays content. Can't be null.
+	 * @param mover mover of parallel array pieces. Can't be null. 
+	 * @param tempSize size of temporary memory to use in sort. Must be at least 1. Negative values in the {@linkplain IndicesMover#move(int, int, int)} method
+	 * will be in the range -1..-tempSize.
+	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @since 0.0.8
+	 */
+	public static void parallelArraysSort(final int from, final int to, final IndicesComparator comparator, final IndicesMover mover, final int tempSize) {
 		if (from < 0) {
 			throw new IllegalArgumentException("From index ["+from+"] must be equals or greater than 0"); 
 		}
@@ -1899,6 +2057,36 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			throw new IllegalArgumentException("Temporary size ["+tempSize+"] must be at least 1"); 
 		}
 		else {
+			final int N = 5;
+			final int[] toSort1 = new int[1000], toSort2 = new int[1000]; 
+			final int[] temp1 = new int[N], temp2 = new int[N];
+			
+			final IndicesMover	im = new IndicesMover() {
+									@Override
+									public void move(int from, int to, int length) {
+										if (from < 0) {
+											System.arraycopy(temp1, 1-from, toSort1, to, length);
+											System.arraycopy(temp2, 1-from, toSort2, to, length);
+										}
+										else if (to < 0) {
+											System.arraycopy(toSort1, from, temp1, 1-to, length);
+											System.arraycopy(toSort2, from, temp2, 1-to, length);
+										}
+										else {
+											System.arraycopy(toSort1, from, toSort1, to, length);
+											System.arraycopy(toSort2, from, toSort2, to, length);
+										}
+									}
+								};
+			final IndicesComparator	ic = new IndicesComparator() {
+									@Override
+									public int compareTo(int index1, int index2) {
+										int	delta = toSort1[index2] - toSort1[index1];
+										
+										return delta == 0 ? toSort2[index2] - toSort2[index1] : delta;
+									}
+								};
+			parallelArraysSort(0, toSort1.length-1, ic, im, N);
 			
 		}
 	}
