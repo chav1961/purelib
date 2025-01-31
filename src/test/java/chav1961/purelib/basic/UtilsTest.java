@@ -35,6 +35,8 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import chav1961.purelib.basic.Utils.IndicesComparator;
+import chav1961.purelib.basic.Utils.IndicesMover;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.enumerations.ContinueMode;
@@ -783,5 +785,83 @@ public class UtilsTest {
 		
 		methods.add(connClass.getMethod("createStatement"));
 		Utils.buildProxy(connClass, inst, methods, (a,b,c,d)->{return null;});
-	}	
+	}
+	
+	@Test
+	public void parallelArraysTest() {
+		final int[]	array1 = {1,2,3,4,5,6,7,8,9,10}, array2 = array1.clone();
+		
+		Assert.assertEquals(4, Utils.parallelArraysBinarySearch(0, array1.length-1, (i)->5-array1[i]));
+		Assert.assertEquals(-1, Utils.parallelArraysBinarySearch(0, array1.length-1, (i)->0-array1[i]));
+		Assert.assertEquals(-10, Utils.parallelArraysBinarySearch(0, array1.length-1, (i)->100-array1[i]));
+		
+		final IndicesComparator	ic = new IndicesComparator() {
+									@Override
+									public int compareTo(int index1, int index2) {
+										return array1[index2] - array1[index1];
+									}
+								};
+		final IndicesMover		im = new IndicesMover() {
+									int	temp;
+									@Override
+									public void move(int from, int to, int length) {
+										if (to < 0) {
+											temp = array1[from]; 
+										}
+										else if (from < 0) {
+											array1[to] = temp; 
+										}
+										else {
+											System.arraycopy(array1, from, array1, to, length);
+										}
+									}
+								};
+		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
+		Assert.assertArrayEquals(array2, array1);
+		
+		setArrayValue(array1,new int[]{1,3,5,7,9,2,4,6,8,10});
+		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
+		Assert.assertArrayEquals(array2, array1);
+
+		setArrayValue(array1,new int[]{2,4,6,8,10,9,7,5,3,1});
+		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
+		Assert.assertArrayEquals(array2, array1);
+		
+		for(int count = 0; count < 1000; count++) {
+			final int[]	source = fillRandomArray(), target = source.clone();
+			final int[]	temp = new int[10];
+			
+			Arrays.sort(target);
+			Utils.parallelArraysSort(0, source.length-1, 
+					(i1,i2)->source[i2]-source[i1], 
+					(f,t,len)->{
+						if (t < 0) {
+							System.arraycopy(source, f, temp, -1-t, len);
+						}
+						else if (f < 0) {
+							System.arraycopy(temp, -1-f, source, t, len);
+						}
+						else {
+							if (len <= 0) {
+								int x = 10;
+							}
+							System.arraycopy(source, f, source, t, len);
+						}
+					}, temp.length);
+			Assert.assertArrayEquals(target, source);
+		}
+	}
+
+	private static int[] fillRandomArray() {
+		final int[]	result = new int[10000];
+		
+		for(int index = 0; index < result.length; index++) {
+			result[index] = (int) (1000 * Math.random() - 500);
+		}
+		return result;
+	}
+
+	private static void setArrayValue(final int[] target, final int[] source) {
+		System.arraycopy(source, 0, target, 0, target.length);
+	}
 }

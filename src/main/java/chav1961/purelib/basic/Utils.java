@@ -1939,10 +1939,10 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	            final int	mid = (low + high) >>> 1;
 				final int	delta = comparator.compareTo(mid);
 
-	            if (delta < 0) {
+	            if (delta > 0) {
 	                low = mid + 1;
 	            }
-	            else if (delta > 0) {
+	            else if (delta < 0) {
 	                high = mid - 1;
 	            }
 	            else {
@@ -2056,39 +2056,87 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		else if (tempSize <= 0) {
 			throw new IllegalArgumentException("Temporary size ["+tempSize+"] must be at least 1"); 
 		}
-		else {
-			final int N = 5;
-			final int[] toSort1 = new int[1000], toSort2 = new int[1000]; 
-			final int[] temp1 = new int[N], temp2 = new int[N];
+		else if (to - from > 1) {
+			final int[]	inserts = new int[tempSize+1]; 
+			int	start = from, end;
 			
-			final IndicesMover	im = new IndicesMover() {
-									@Override
-									public void move(int from, int to, int length) {
-										if (from < 0) {
-											System.arraycopy(temp1, 1-from, toSort1, to, length);
-											System.arraycopy(temp2, 1-from, toSort2, to, length);
-										}
-										else if (to < 0) {
-											System.arraycopy(toSort1, from, temp1, 1-to, length);
-											System.arraycopy(toSort2, from, temp2, 1-to, length);
-										}
-										else {
-											System.arraycopy(toSort1, from, toSort1, to, length);
-											System.arraycopy(toSort2, from, toSort2, to, length);
-										}
-									}
-								};
-			final IndicesComparator	ic = new IndicesComparator() {
-									@Override
-									public int compareTo(int index1, int index2) {
-										int	delta = toSort1[index2] - toSort1[index1];
-										
-										return delta == 0 ? toSort2[index2] - toSort2[index1] : delta;
-									}
-								};
-			parallelArraysSort(0, toSort1.length-1, ic, im, N);
-			
+			for(;;) {
+				end = findBoundsUpPAS(comparator, start, to);	// Detect raised sequence ranges;
+				if (end >= to) {
+					return;
+				}					// Detect lowered sequence ranges (not greater than tempSize); 
+				int	startR = end + 1, endR = findBoundsDownPAS(comparator, startR, to, tempSize), where = from;
+
+				int	left = from, right = end, length = endR-startR+1;	// Define positions to insert data into raised sequence;
+				int leftSourceIndex = startR, rightSourceIndex = endR;
+				int leftTargetIndex = 0, rightTargetIndex = length-1;
+				while (leftSourceIndex <= rightSourceIndex) {
+					right = inserts[leftTargetIndex++] = binarySearchPAS(comparator, left, right, leftSourceIndex++);
+					left = inserts[rightTargetIndex--] = binarySearchPAS(comparator, left, right, rightSourceIndex--);
+				}
+				inserts[length] = end;
+
+				mover.move(startR, -1, length);	// Move piece of lowered sequence into temporary.
+				for (int index = length-1, temp = -1; index >= 0; index--, temp--) {
+					// Move the same right piece of data in the raised ordered sequence.
+					mover.move(inserts[index], inserts[index] + length - index, inserts[index+1] - inserts[index] + 1);
+					// Insert value from temporary.
+					mover.move(temp, inserts[index] + index , 1);
+				}
+				start = inserts[0];
+				
+//				for(int index = endR; index >= startR; index--) {
+//					where = binarySearchPAS(comparator, where, end, endR);
+//					mover.move(endR, -1, 1);
+//					mover.move(where, where + 1, endR-where);
+//					mover.move(-1, where, 1);
+//					end++;
+//				}
+//				start = where;
+			}
 		}
+	}
+	
+	private static int findBoundsUpPAS(final IndicesComparator comparator, final int from, final int to) {
+		int	index;
+		
+		for(index = from; index <= to - 1; index++) {
+			if (comparator.compareTo(index, index+1) < 0) {
+				return index;
+			}
+		}
+		return to;
+	}
+
+	private static int findBoundsDownPAS(final IndicesComparator comparator, final int from, final int to, final int maxLength) {
+		int	index, count = 0;
+		
+		for(index = from; index <= to - 1; index++) {
+			if (comparator.compareTo(index, index+1) > 0 || ++count >= maxLength) {
+				return index;
+			}
+		}
+		return to;
+	}
+
+	private static int binarySearchPAS(final IndicesComparator comparator, final int from, final int to, final int index) {
+        int low = from, high = to;
+
+        while (low <= high) {
+            final int	mid = (low + high) >>> 1;
+			final int	delta = comparator.compareTo(mid, index);
+
+            if (delta > 0) {
+                low = mid + 1;
+            }
+            else if (delta < 0) {
+                high = mid - 1;
+            }
+            else {
+                return mid;
+            }
+        }
+        return low;
 	}
 	
 	private static Class<DirectProxyExecutor> buildDirectProxyExecutor(final SimpleURLClassLoader loader, Class<?> interf, final Method methodCall) throws ContentException {
