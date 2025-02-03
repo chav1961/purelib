@@ -374,7 +374,7 @@ public class DataPipe implements DataOutput, DataInput, Flushable, Closeable {
 	@Override
 	public void writeChars(final String s) throws IOException {
 		if (s == null) {
-			throw new NullPointerException("String to wrie can't be null");
+			throw new NullPointerException("String to write can't be null");
 		}
 		else {
 			ensureNotClosed();
@@ -410,9 +410,13 @@ public class DataPipe implements DataOutput, DataInput, Flushable, Closeable {
 	}
 	
 	private void sendAndWait() throws IOException {
+		toTransmit.contentSize = toTransmit.contentIndex;
+		toTransmit.contentIndex = 0;
 		for(;;) {
 			try {
 				notifierReceived = (Notifier) ex.exchange(toTransmit, EXCHANGE_TIMEOUT, TimeUnit.MILLISECONDS);
+				System.err.println("Transmit end");
+				break;
 			} catch (InterruptedException e) {
 				close();
 				Thread.currentThread().interrupt();
@@ -436,6 +440,7 @@ public class DataPipe implements DataOutput, DataInput, Flushable, Closeable {
 			for(;;) {
 				try {
 					received = (Content) ex.exchange(notifierSent, EXCHANGE_TIMEOUT, TimeUnit.MILLISECONDS);
+					System.err.println("Receive end");
 					break;
 				} catch (InterruptedException e) {
 					close();
@@ -501,6 +506,8 @@ public class DataPipe implements DataOutput, DataInput, Flushable, Closeable {
 		public Content(final Thread thread, final Object content) {
 			this.thread = thread;
 			this.content = content;
+			this.contentIndex = 0;
+			this.contentSize = Array.getLength(content);
 		}
 	}
 	

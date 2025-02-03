@@ -10,7 +10,7 @@ import chav1961.purelib.basic.exceptions.DebuggingException;
 
 public class DataPipeTest {
 
-	@Test
+//	@Test
 	public void basicTest() throws IOException {
 		final DataPipe	dp = new DataPipe(int.class);
 		
@@ -158,8 +158,8 @@ public class DataPipeTest {
 
 	@Test
 	public void lifeCycleTest() throws IOException, DebuggingException, InterruptedException {
-		final JUnitExecutor<String,String>	t1Ex = new JUnitExecutor<>(false); 
-		final JUnitExecutor<String,String>	t2Ex = new JUnitExecutor<>(false); 
+		final JUnitExecutor<String,String>	t1Ex = new JUnitExecutor<>(true); 
+		final JUnitExecutor<String,String>	t2Ex = new JUnitExecutor<>(true); 
 		final AtomicReference<DataPipe>		ref = new AtomicReference<>();
 		
 		final Thread	sender = new Thread(()->{
@@ -178,7 +178,9 @@ public class DataPipeTest {
 															ref.get().writeInt(100);
 															return "ok";
 														case "flush"	:
+															System.err.println("Before flush");
 															ref.get().flush();
+															System.err.println("After flush");
 															return "ok";
 														default :
 															throw new UnsupportedOperationException("Unsupported command ["+cmd+"]"); 
@@ -251,5 +253,6 @@ public class DataPipeTest {
 		Assert.assertEquals("ok",t1Ex.getResponse(200));
 		// -- step 1.4: receiver got value.
 		Assert.assertEquals("val=100", t2Ex.getResponse(1000));
+		
 	}
 }

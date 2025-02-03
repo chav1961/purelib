@@ -88,9 +88,9 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 	protected abstract T uploadInternal(final Piece piece, final T out) throws IOException;
 	protected abstract T cropInternal(Piece piece) throws CalculationException;
 	protected abstract <AC extends ApplyCallback> T applyInternal(Piece piece, AC callback) throws CalculationException;
-	protected abstract T castInternal(ContentType type) throws CalculationException;
-	protected abstract T castInternal(FormatType type) throws CalculationException;
-	protected abstract T castInternal(StoreType type) throws CalculationException;
+	protected abstract BaseMatrix<?> castInternal(ContentType type) throws CalculationException;
+	protected abstract BaseMatrix<?> castInternal(FormatType type) throws CalculationException;
+	protected abstract BaseMatrix<?> castInternal(StoreType type) throws CalculationException;
 	protected abstract T addInternal(T another) throws CalculationException;
 	protected abstract T addInternal(Operand another) throws CalculationException;
 	protected abstract T subtractInternal(T another) throws CalculationException;
@@ -272,7 +272,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 	}
 
 	@Override
-	public T cast(final ContentType type) throws CalculationException {
+	public BaseMatrix<?> cast(final ContentType type) throws CalculationException {
 		if (type == null) {
 			throw new NullPointerException("Cast content type can't be null");
 		}
@@ -281,7 +281,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 		}
 		else if (type == getContentType()) {
 			try {
-				return (T)this.clone();
+				return (BaseMatrix<?>)this.clone();
 			} catch (CloneNotSupportedException e) {
 				throw new CalculationException(e);
 			}
@@ -292,7 +292,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 	}
 
 	@Override
-	public T cast(final FormatType type) throws CalculationException {
+	public BaseMatrix<?> cast(final FormatType type) throws CalculationException {
 		if (type == null) {
 			throw new NullPointerException("Cast format type can't be null");
 		}
@@ -301,7 +301,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 		}
 		else if (type == getFormatType()) {
 			try {
-				return (T)this.clone();
+				return (BaseMatrix<?>)this.clone();
 			} catch (CloneNotSupportedException e) {
 				throw new CalculationException(e);
 			}
@@ -312,7 +312,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 	}
 
 	@Override
-	public T cast(final StoreType type) throws CalculationException {
+	public BaseMatrix<?> cast(final StoreType type) throws CalculationException {
 		if (type == null) {
 			throw new NullPointerException("Cast store type can't be null");
 		}
@@ -321,7 +321,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 		}
 		else if (type == getStoreType()) {
 			try {
-				return (T)this.clone();
+				return (BaseMatrix<?>)this.clone();
 			} catch (CloneNotSupportedException e) {
 				throw new CalculationException(e);
 			}

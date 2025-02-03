@@ -274,7 +274,7 @@ public interface BaseMatrix<T extends BaseMatrix<?>> extends Cloneable, AutoClos
 
 		static Operand of(final float real, final float image) {
 			return new Operand() {
-				@Override public ContentType getContentType() {return ContentType.REAL_FLOAT;}
+				@Override public ContentType getContentType() {return ContentType.COMPLEX_FLOAT;}
 				@Override public boolean getBoolean() {return real != 0;}
 				@Override public float getFloat() {return real;}
 				@Override public double getDouble() {return real;}
@@ -287,7 +287,7 @@ public interface BaseMatrix<T extends BaseMatrix<?>> extends Cloneable, AutoClos
 
 		static Operand of(final double real, final double image) {
 			return new Operand() {
-				@Override public ContentType getContentType() {return ContentType.REAL_FLOAT;}
+				@Override public ContentType getContentType() {return ContentType.COMPLEX_DOUBLE;}
 				@Override public boolean getBoolean() {return real != 0;}
 				@Override public float getFloat() {return (float)real;}
 				@Override public double getDouble() {return real;}
@@ -336,9 +336,9 @@ public interface BaseMatrix<T extends BaseMatrix<?>> extends Cloneable, AutoClos
 		return apply(Piece.of(0, 0, getWidth(), getHeight()), callback);
 	}
 	
-	T cast(ContentType type) throws CalculationException;
-	T cast(FormatType type) throws CalculationException;
-	T cast(StoreType type) throws CalculationException;
+	BaseMatrix<?> cast(ContentType type) throws CalculationException;
+	BaseMatrix<?> cast(FormatType type) throws CalculationException;
+	BaseMatrix<?> cast(StoreType type) throws CalculationException;
 	
 	T add(T another) throws CalculationException;
 	T add(Operand another) throws CalculationException;
