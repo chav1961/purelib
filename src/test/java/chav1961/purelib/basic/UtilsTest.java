@@ -827,34 +827,59 @@ public class UtilsTest {
 		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
 		Assert.assertArrayEquals(array2, array1);
 		
+		final int[]	source = new int[10000], target = source.clone();
+		final int[]	temp = new int[10];
+// 		long 		total = 0;
+		
 		for(int count = 0; count < 1000; count++) {
-			final int[]	source = fillRandomArray(), target = source.clone();
-			final int[]	temp = new int[10];
+			fillRandomArray(source);
+			System.arraycopy(source, 0, target, 0, source.length);
 			
 			Arrays.sort(target);
+//			System.err.print('.');
+//			if (count % 100 == 0) {
+//				System.err.println();
+//			}
+			long	start = System.nanoTime();
 			Utils.parallelArraysSort(0, source.length-1, 
 					(i1,i2)->source[i2]-source[i1], 
 					(f,t,len)->{
 						if (t < 0) {
-							System.arraycopy(source, f, temp, -1-t, len);
+							switch (len) {
+								case 5 :
+									temp[-1-t+4] = source[f+4];
+								case 4 :
+									temp[-1-t+3] = source[f+3];
+								case 3 :
+									temp[-1-t+2] = source[f+2];
+								case 2 :
+									temp[-1-t+1] = source[f+1];
+								case 1 :
+									temp[-1-t] = source[f];
+									break;
+								default :
+									System.arraycopy(source, f, temp, -1-t, len);
+							}
 						}
 						else if (f < 0) {
-							System.arraycopy(temp, -1-f, source, t, len);
+							if (len == 1) {
+								source[t] = temp[-1-f];
+							}
+							else {
+								System.arraycopy(temp, -1-f, source, t, len);
+							}
 						}
 						else {
-							if (len <= 0) {
-								int x = 10;
-							}
 							System.arraycopy(source, f, source, t, len);
 						}
 					}, temp.length);
+//			total += System.nanoTime() - start;
 			Assert.assertArrayEquals(target, source);
 		}
+//		System.err.println("T="+total/1000000+"msec");
 	}
 
-	private static int[] fillRandomArray() {
-		final int[]	result = new int[10000];
-		
+	private static int[] fillRandomArray(final int[] result) {
 		for(int index = 0; index < result.length; index++) {
 			result[index] = (int) (1000 * Math.random() - 500);
 		}

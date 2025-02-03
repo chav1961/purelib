@@ -2051,7 +2051,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			throw new NullPointerException("Comparator can't be null");
 		}
 		else if (mover == null) {
-			throw new NullPointerException("Swap can't be null");
+			throw new NullPointerException("Mover can't be null");
 		}
 		else if (tempSize <= 0) {
 			throw new IllegalArgumentException("Temporary size ["+tempSize+"] must be at least 1"); 
@@ -2062,37 +2062,31 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			
 			for(;;) {
 				end = findBoundsUpPAS(comparator, start, to);	// Detect raised sequence ranges;
-				if (end >= to) {
+				if (end >= to) {	// All array content is ordered...
 					return;
 				}					// Detect lowered sequence ranges (not greater than tempSize); 
-				int	startR = end + 1, endR = findBoundsDownPAS(comparator, startR, to, tempSize), where = from;
-
-				int	left = from, right = end, length = endR-startR+1;	// Define positions to insert data into raised sequence;
+				int	startR = end + 1, endR = findBoundsDownPAS(comparator, startR, to, tempSize);
+				int	left = from, right = end, length = endR-startR+1;	
 				int leftSourceIndex = startR, rightSourceIndex = endR;
 				int leftTargetIndex = 0, rightTargetIndex = length-1;
+				
+									// Define positions to insert data from lowered sequence into raised sequence;
 				while (leftSourceIndex <= rightSourceIndex) {
 					right = inserts[leftTargetIndex++] = binarySearchPAS(comparator, left, right, leftSourceIndex++);
 					left = inserts[rightTargetIndex--] = binarySearchPAS(comparator, left, right, rightSourceIndex--);
 				}
-				inserts[length] = end;
-
-				mover.move(startR, -1, length);	// Move piece of lowered sequence into temporary.
-				for (int index = length-1, temp = -1; index >= 0; index--, temp--) {
-					// Move the same right piece of data in the raised ordered sequence.
-					mover.move(inserts[index], inserts[index] + length - index, inserts[index+1] - inserts[index] + 1);
-					// Insert value from temporary.
-					mover.move(temp, inserts[index] + index , 1);
-				}
-				start = inserts[0];
+				int theLast = end;
 				
-//				for(int index = endR; index >= startR; index--) {
-//					where = binarySearchPAS(comparator, where, end, endR);
-//					mover.move(endR, -1, 1);
-//					mover.move(where, where + 1, endR-where);
-//					mover.move(-1, where, 1);
-//					end++;
-//				}
-//				start = where;
+									// Move content and insert unordered data into.
+				mover.move(startR, -1, length);	// Move piece of lowered sequence into temporary.
+				for (int index = 0, temp = -1; index < length; index++, temp--) {
+					// Move the same right piece of data inside the raised ordered sequence.
+					mover.move(inserts[index], inserts[index] + length - index, theLast - inserts[index] + 1);
+					// Insert value from temporary into the raised ordered sequence.
+					mover.move(temp, inserts[index], 1);
+					theLast = inserts[index];
+				}
+				start = end;
 			}
 		}
 	}
@@ -2112,7 +2106,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		int	index, count = 0;
 		
 		for(index = from; index <= to - 1; index++) {
-			if (comparator.compareTo(index, index+1) > 0 || ++count >= maxLength) {
+			if (++count >= maxLength || comparator.compareTo(index, index+1) > 0) {
 				return index;
 			}
 		}
