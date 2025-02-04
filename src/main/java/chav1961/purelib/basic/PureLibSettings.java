@@ -73,7 +73,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 
 public final class PureLibSettings {
@@ -265,6 +265,18 @@ public final class PureLibSettings {
 	 */
 	public static final Timer				COMMON_MAINTENANCE_TIMER = new Timer("PureLibMaintenanceTimer",true);
 
+	/**
+	 * <p>Cleaner to register all {@linkplain AutoCloseable} instances</p>
+	 * @since 0.0.8
+	 */
+	public static final Cleaner				COMMON_CLEANER = Cleaner.create((r)->{
+															final Thread	t = new Thread(r);
+															
+															t.setDaemon(true);
+															t.setName("PureLib cleaner");
+															return t;
+														});
+	
 	/**
 	 * <p>Key to access HTTP port number for built-in help server in the Pure Library</p>
 	 */

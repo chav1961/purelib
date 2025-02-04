@@ -10,6 +10,7 @@ import java.util.Arrays;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.matrix.AbstractBaseMatrix;
 import chav1961.purelib.matrix.interfaces.BaseMatrix;
+import chav1961.purelib.streams.DataOutputAdapter;
 
 public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 	private final boolean[][]	content;
@@ -209,7 +210,7 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 	}
 
 	@Override
-	protected PlainBitMatrix addInternal(PlainBitMatrix another) throws CalculationException {
+	protected PlainBitMatrix addInternal(final PlainBitMatrix another) throws CalculationException {
 		final PlainBitMatrix	result = new PlainBitMatrix(getWidth(), getHeight());
 		final boolean[][]		target = result.content;
 
@@ -224,12 +225,24 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 			return result;
 		}
 		else {
-			for(int y = 0, maxY = getHeight(); y < maxY; y++) {
-				for(int x = 0, maxX = getWidth(); x < maxX; x++) {
-					target[y][x] |= source[y][x];
-				}
+			try {
+				another.upload(new DataOutputAdapter() {
+					int	y = 0;
+					int x = 0;
+					
+					@Override
+					public void writeBoolean(boolean v) throws IOException {
+						target[y][x] |= v;
+						if (++x >= getWidth()) {
+							y++;
+							x = 0;
+						}
+					}
+				});
+				return result;
+			} catch (IOException e) {
+				throw new CalculationException(e.getLocalizedMessage(), e);
 			}
-			return result;
 		}
 	}
 
@@ -249,7 +262,7 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 	}
 
 	@Override
-	protected PlainBitMatrix subtractInternal(PlainBitMatrix another) throws CalculationException {
+	protected PlainBitMatrix subtractInternal(final PlainBitMatrix another) throws CalculationException {
 		final PlainBitMatrix	result = new PlainBitMatrix(getWidth(), getHeight());
 		final boolean[][]		target = result.content;
 
@@ -264,12 +277,24 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 			return result;
 		}
 		else {
-			for(int y = 0, maxY = getHeight(); y < maxY; y++) {
-				for(int x = 0, maxX = getWidth(); x < maxX; x++) {
-					target[y][x] ^= source[y][x];
-				}
+			try {
+				another.upload(new DataOutputAdapter() {
+					int	y = 0;
+					int x = 0;
+					
+					@Override
+					public void writeBoolean(boolean v) throws IOException {
+						target[y][x] ^= v;
+						if (++x >= getWidth()) {
+							y++;
+							x = 0;
+						}
+					}
+				});
+				return result;
+			} catch (IOException e) {
+				throw new CalculationException(e.getLocalizedMessage(), e);
 			}
-			return result;
 		}
 	}
 
@@ -289,9 +314,8 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 	}
 
 	@Override
-	protected PlainBitMatrix subtractRevInternal(PlainBitMatrix another) throws CalculationException {
-		// TODO Auto-generated method stub
-		return null;
+	protected PlainBitMatrix subtractRevInternal(final PlainBitMatrix another) throws CalculationException {
+		return subtractInternal(another);
 	}
 
 	@Override
@@ -327,12 +351,24 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 			return result;
 		}
 		else {
-			for(int y = 0, maxY = getHeight(); y < maxY; y++) {
-				for(int x = 0, maxX = getWidth(); x < maxX; x++) {
-					target[y][x] &= source[y][x];
-				}
+			try {
+				another.upload(new DataOutputAdapter() {
+					int	y = 0;
+					int x = 0;
+					
+					@Override
+					public void writeBoolean(boolean v) throws IOException {
+						target[y][x] &= v;
+						if (++x >= getWidth()) {
+							y++;
+							x = 0;
+						}
+					}
+				});
+				return result;
+			} catch (IOException e) {
+				throw new CalculationException(e.getLocalizedMessage(), e);
 			}
-			return result;
 		}
 	}
 
