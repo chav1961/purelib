@@ -196,7 +196,19 @@ public class PlainComplexFloatMatrixX extends AbstractBaseMatrix<PlainComplexFlo
 	}
 
 	@Override
+	protected PlainComplexFloatMatrixX mulTInternal(PlainComplexFloatMatrixX another) throws CalculationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	protected PlainComplexFloatMatrixX mulRevInternal(PlainComplexFloatMatrixX another) throws CalculationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	protected PlainComplexFloatMatrixX mulRevTInternal(PlainComplexFloatMatrixX another) throws CalculationException {
 		// TODO Auto-generated method stub
 		return null;
 	}

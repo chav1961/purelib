@@ -347,7 +347,9 @@ public interface BaseMatrix<T extends BaseMatrix<?>> extends Cloneable, AutoClos
 	T subtractRev(T another) throws CalculationException;
 	T subtractRev(Operand another) throws CalculationException;
 	T mul(T another) throws CalculationException;
+	T mulT(T another) throws CalculationException;
 	T mulRev(T another) throws CalculationException;
+	T mulRevT(T another) throws CalculationException;
 	T mulHadamard(T another) throws CalculationException;
 	T mulKroneker(T another) throws CalculationException;
 	T mulKronekerRev(T another) throws CalculationException;

@@ -98,7 +98,9 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 	protected abstract T subtractRevInternal(T another) throws CalculationException;
 	protected abstract T subtractRevInternal(Operand another) throws CalculationException;
 	protected abstract T mulInternal(T another) throws CalculationException;
+	protected abstract T mulTInternal(T another) throws CalculationException;
 	protected abstract T mulRevInternal(T another) throws CalculationException;
+	protected abstract T mulRevTInternal(T another) throws CalculationException;
 	protected abstract T mulHadamardInternal(T another) throws CalculationException;
 	protected abstract T mulKronekerInternal(T another) throws CalculationException;
 	protected abstract T mulKronekerRevInternal(T another) throws CalculationException;
@@ -120,7 +122,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Data input can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return downloadInternal(piece, in);
@@ -139,7 +141,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Source matrix can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return downloadInternal(piece, in);
@@ -158,7 +160,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Data output can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return uploadInternal(piece, out);
@@ -177,7 +179,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Target matrix can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return uploadInternal(piece, out);
@@ -193,7 +195,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new IllegalArgumentException("Piece ["+piece+"] is crossing matrix bounds "+getMatrixBounds(this));
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return cropInternal(piece);
@@ -212,7 +214,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Data output can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			switch (getContentType()) {
@@ -277,7 +279,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Cast content type can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else if (type == getContentType()) {
 			try {
@@ -297,7 +299,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Cast format type can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else if (type == getFormatType()) {
 			try {
@@ -317,7 +319,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Cast store type can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else if (type == getStoreType()) {
 			try {
@@ -340,7 +342,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw wrongIdenticalSize(another);
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return addInternal(another);
@@ -354,7 +356,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Operand to add can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return addInternal(another);
@@ -370,7 +372,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw wrongIdenticalSize(another);
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return subtractInternal(another);
@@ -383,7 +385,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Operand to subtract can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return subtractInternal(another);
@@ -399,7 +401,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw wrongIdenticalSize(another);
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return subtractRevInternal(another);
@@ -412,7 +414,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Operand to subtract can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return subtractRevInternal(another);
@@ -428,10 +430,26 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new IllegalArgumentException("Incompatible matrices: another matrix height ["+another.getHeight()+"] differ with current matrix width ["+getWidth()+"]");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return mulInternal(another);
+		}
+	}
+
+	@Override
+	public T mulT(final T another) throws CalculationException {
+		if (another == null) {
+			throw new NullPointerException("Another matrix to subtract can't be null");
+		}
+		else if (another.getHeight() != getHeight()) {
+			throw new IllegalArgumentException("Incompatible matrices: another matrix height ["+another.getHeight()+"] differ with current matrix height ["+getHeight()+"]");
+		}
+		else if (closed.get()) {
+			throw new IllegalStateException("Attempt to call method after calling close()");
+		}
+		else {
+			return mulTInternal(another);
 		}
 	}
 
@@ -444,13 +462,29 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new IllegalArgumentException("Incompatible matrices: another matrix width ["+another.getWidth()+"] differ with current matrix height ["+getHeight()+"]");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return mulRevInternal(another);
 		}
 	}
 
+	@Override
+	public T mulRevT(final T another) throws CalculationException {
+		if (another == null) {
+			throw new NullPointerException("Another matrix to subtract can't be null");
+		}
+		else if (another.getWidth() != getWidth()) {
+			throw new IllegalArgumentException("Incompatible matrices: another matrix width ["+another.getWidth()+"] differ with current matrix width ["+getHeight()+"]");
+		}
+		else if (closed.get()) {
+			throw new IllegalStateException("Attempt to call method after calling close()");
+		}
+		else {
+			return mulRevTInternal(another);
+		}
+	}
+	
 	@Override
 	public T mulHadamard(T another) throws CalculationException {
 		if (another == null) {
@@ -460,7 +494,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw wrongIdenticalSize(another);
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return mulHadamardInternal(another);
@@ -473,7 +507,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Matrix to multiply can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return mulKroneker(another);
@@ -486,7 +520,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Matrix to multiply can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return mulKronekerRev(another);
@@ -499,7 +533,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Operand to nultiply can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return mulInternal(another);
@@ -515,7 +549,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Attempt to divide by zero ["+another+"]");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return divInternal(another);
@@ -531,7 +565,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Attempt to divide by zero ["+another+"]");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return divRevInternal(another);
@@ -544,7 +578,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new IllegalStateException("Current matrix is not a square matrix: "+getMatrixBounds(this)+", inversion is not applicable for it");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return invertInternal();
@@ -563,7 +597,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 			throw new NullPointerException("Aggregate type can't be null");
 		}
 		else if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		else {
 			return aggregateInternal(piece, dir, type);
@@ -572,14 +606,14 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 
 	protected void beginTransaction() {
 		if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		trans.set(true);
 	}
 
 	protected boolean checkAndBeginTransaction() {
 		if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		return trans.getAndSet(true);
 	}
@@ -590,7 +624,7 @@ public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements Bas
 	
 	protected void commit() {
 		if (closed.get()) {
-			throw new IllegalStateException("Attempt to call methos after calling close()");
+			throw new IllegalStateException("Attempt to call method after calling close()");
 		}
 		trans.set(false);
 	}

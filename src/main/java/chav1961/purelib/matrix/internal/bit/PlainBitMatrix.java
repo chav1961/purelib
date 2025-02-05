@@ -330,11 +330,21 @@ public class PlainBitMatrix extends AbstractBaseMatrix<PlainBitMatrix>{
 	}
 
 	@Override
-	protected PlainBitMatrix mulRevInternal(PlainBitMatrix another) throws CalculationException {
+	protected PlainBitMatrix mulTInternal(PlainBitMatrix another) throws CalculationException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	@Override
+	protected PlainBitMatrix mulRevInternal(final PlainBitMatrix another) throws CalculationException {
+		return another.mulInternal(this);
+	}
+
+	@Override
+	protected PlainBitMatrix mulRevTInternal(final PlainBitMatrix another) throws CalculationException {
+		return another.mulTInternal(this);
+	}
+	
 	@Override
 	protected PlainBitMatrix mulHadamardInternal(PlainBitMatrix another) throws CalculationException {
 		final PlainBitMatrix	result = new PlainBitMatrix(getWidth(), getHeight());

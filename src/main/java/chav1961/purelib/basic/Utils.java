@@ -2038,9 +2038,10 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @param tempSize size of temporary memory to use in sort. Must be at least 1. Negative values in the {@linkplain IndicesMover#move(int, int, int)} method
 	 * will be in the range -1..-tempSize.
 	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @see https://en.wikipedia.org/wiki/Quicksort
 	 * @since 0.0.8
 	 */
-	public static void parallelArraysSort(final int from, final int to, final IndicesComparator comparator, final IndicesMover mover, final int tempSize) {
+	public static void parallelArraysQSort(final int from, final int to, final IndicesComparator comparator, final IndicesMover mover, final int tempSize) {
 		if (from < 0) {
 			throw new IllegalArgumentException("From index ["+from+"] must be equals or greater than 0"); 
 		}
@@ -2057,82 +2058,37 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			throw new IllegalArgumentException("Temporary size ["+tempSize+"] must be at least 1"); 
 		}
 		else if (to - from > 1) {
-			final int[]	inserts = new int[tempSize+1]; 
-			int	start = from, end;
-			
-			for(;;) {
-				end = findBoundsUpPAS(comparator, start, to);	// Detect raised sequence ranges;
-				if (end >= to) {	// All array content is ordered...
-					return;
-				}					// Detect lowered sequence ranges (not greater than tempSize); 
-				int	startR = end + 1, endR = findBoundsDownPAS(comparator, startR, to, tempSize);
-				int	left = from, right = end, length = endR-startR+1;	
-				int leftSourceIndex = startR, rightSourceIndex = endR;
-				int leftTargetIndex = 0, rightTargetIndex = length-1;
-				
-									// Define positions to insert data from lowered sequence into raised sequence;
-				while (leftSourceIndex <= rightSourceIndex) {
-					right = inserts[leftTargetIndex++] = binarySearchPAS(comparator, left, right, leftSourceIndex++);
-					left = inserts[rightTargetIndex--] = binarySearchPAS(comparator, left, right, rightSourceIndex--);
-				}
-				int theLast = end;
-				
-									// Move content and insert unordered data into.
-				mover.move(startR, -1, length);	// Move piece of lowered sequence into temporary.
-				for (int index = 0, temp = -1; index < length; index++, temp--) {
-					// Move the same right piece of data inside the raised ordered sequence.
-					mover.move(inserts[index], inserts[index] + length - index, theLast - inserts[index] + 1);
-					// Insert value from temporary into the raised ordered sequence.
-					mover.move(temp, inserts[index], 1);
-					theLast = inserts[index];
-				}
-				start = end;
-			}
+			quickSortPAQS(comparator, mover, from, to);
 		}
 	}
 	
-	private static int findBoundsUpPAS(final IndicesComparator comparator, final int from, final int to) {
-		int	index;
-		
-		for(index = from; index <= to - 1; index++) {
-			if (comparator.compareTo(index, index+1) < 0) {
-				return index;
-			}
-		}
-		return to;
-	}
-
-	private static int findBoundsDownPAS(final IndicesComparator comparator, final int from, final int to, final int maxLength) {
-		int	index, count = 0;
-		
-		for(index = from; index <= to - 1; index++) {
-			if (++count >= maxLength || comparator.compareTo(index, index+1) > 0) {
-				return index;
-			}
-		}
-		return to;
-	}
-
-	private static int binarySearchPAS(final IndicesComparator comparator, final int from, final int to, final int index) {
-        int low = from, high = to;
-
-        while (low <= high) {
-            final int	mid = (low + high) >>> 1;
-			final int	delta = comparator.compareTo(mid, index);
-
-            if (delta > 0) {
-                low = mid + 1;
-            }
-            else if (delta < 0) {
-                high = mid - 1;
-            }
-            else {
-                return mid;
-            }
-        }
-        return low;
+	private static void quickSortPAQS(final IndicesComparator comparator, final IndicesMover mover, final int low, final int high) {
+	    if (low < high) {
+            int pi = partitionPAQS(comparator, mover, low, high);
+            
+            quickSortPAQS(comparator, mover, low, pi - 1);
+            quickSortPAQS(comparator, mover,  pi + 1, high);
+	    }
 	}
 	
+	private static int partitionPAQS(IndicesComparator comparator, IndicesMover mover, int low, int high) {
+		int pivotIndex = high;
+		int i = (low - 1);
+		
+		for (int j = low; j < high; j++) {
+           if (comparator.compareTo(pivotIndex, j) < 0) {
+               i++;
+               mover.move(i, -1, 1);
+               mover.move(j, i, 1);
+               mover.move(-1, j, 1);
+           }
+		}
+        mover.move(i+1, -1, 1);
+        mover.move(high, i+1, 1);
+        mover.move(-1, high, 1);
+		return i + 1;	
+	}
+
 	private static Class<DirectProxyExecutor> buildDirectProxyExecutor(final SimpleURLClassLoader loader, Class<?> interf, final Method methodCall) throws ContentException {
 		final Set<Class<?>>			classes = new HashSet<>();
 		final GrowableCharArray<?>	gca = new GrowableCharArray<>(false);

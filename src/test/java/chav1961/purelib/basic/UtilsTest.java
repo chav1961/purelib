@@ -788,12 +788,17 @@ public class UtilsTest {
 	}
 	
 	@Test
-	public void parallelArraysTest() {
-		final int[]	array1 = {1,2,3,4,5,6,7,8,9,10}, array2 = array1.clone();
+	public void parallelArraysSeekTest() {
+		final int[]	array1 = {1,2,3,4,5,6,7,8,9,10};
 		
 		Assert.assertEquals(4, Utils.parallelArraysBinarySearch(0, array1.length-1, (i)->5-array1[i]));
 		Assert.assertEquals(-1, Utils.parallelArraysBinarySearch(0, array1.length-1, (i)->0-array1[i]));
 		Assert.assertEquals(-10, Utils.parallelArraysBinarySearch(0, array1.length-1, (i)->100-array1[i]));
+	}
+
+	@Test
+	public void parallelArraysSortTest() {
+		final int[]	array1 = {1,2,3,4,5,6,7,8,9,10}, array2 = array1.clone();
 		
 		final IndicesComparator	ic = new IndicesComparator() {
 									@Override
@@ -816,20 +821,20 @@ public class UtilsTest {
 										}
 									}
 								};
-		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
+		Utils.parallelArraysQSort(0, array1.length-1, ic, im, 1);
 		Assert.assertArrayEquals(array2, array1);
 		
 		setArrayValue(array1,new int[]{1,3,5,7,9,2,4,6,8,10});
-		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
+		Utils.parallelArraysQSort(0, array1.length-1, ic, im, 1);
 		Assert.assertArrayEquals(array2, array1);
 
 		setArrayValue(array1,new int[]{2,4,6,8,10,9,7,5,3,1});
-		Utils.parallelArraysSort(0, array1.length-1, ic, im, 1);
+		Utils.parallelArraysQSort(0, array1.length-1, ic, im, 1);
 		Assert.assertArrayEquals(array2, array1);
 		
 		final int[]	source = new int[10000], target = source.clone();
 		final int[]	temp = new int[10];
-// 		long 		total = 0;
+ 		long 		total = 0;
 		
 		for(int count = 0; count < 1000; count++) {
 			fillRandomArray(source);
@@ -841,9 +846,31 @@ public class UtilsTest {
 //				System.err.println();
 //			}
 			long	start = System.nanoTime();
-			Utils.parallelArraysSort(0, source.length-1, 
+			Utils.parallelArraysQSort(0, source.length-1, 
 					(i1,i2)->source[i2]-source[i1], 
 					(f,t,len)->{
+						if (len == 1) {
+							if (t < 0) {
+								temp[-1-t] = source[f];
+							}
+							else if (f < 0) {
+								source[t] = temp[-1-f];
+							}
+							else {
+								source[t] = source[f];
+							}
+						}
+						else {
+							if (t < 0) {
+								System.arraycopy(source, f, temp, -1-t, len);
+							}
+							else if (f < 0) {
+								System.arraycopy(temp, -1-f, source, t, len);
+							}
+							else {
+								System.arraycopy(source, f, source, t, len);
+							}
+						}
 						if (t < 0) {
 							switch (len) {
 								case 5 :
@@ -869,16 +896,19 @@ public class UtilsTest {
 								System.arraycopy(temp, -1-f, source, t, len);
 							}
 						}
+						else if (len == 1) {
+							source[t] = source[f];
+						}
 						else {
 							System.arraycopy(source, f, source, t, len);
 						}
 					}, temp.length);
-//			total += System.nanoTime() - start;
+			total += System.nanoTime() - start;
 			Assert.assertArrayEquals(target, source);
 		}
 //		System.err.println("T="+total/1000000+"msec");
 	}
-
+	
 	private static int[] fillRandomArray(final int[] result) {
 		for(int index = 0; index < result.length; index++) {
 			result[index] = (int) (1000 * Math.random() - 500);

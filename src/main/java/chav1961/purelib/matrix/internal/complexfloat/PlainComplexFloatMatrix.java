@@ -432,10 +432,43 @@ public class PlainComplexFloatMatrix extends AbstractBaseMatrix<PlainComplexFloa
 	}
 
 	@Override
+	protected PlainComplexFloatMatrix mulTInternal(final PlainComplexFloatMatrix another) throws CalculationException {
+		final PlainComplexFloatMatrix	result = new PlainComplexFloatMatrix(another.getWidth(), getHeight());
+		final float[][]		target = result.content;
+
+		if (another instanceof PlainComplexFloatMatrix) {
+			final float[][]	source1 = content;
+			final float[][]	source2 = another.content;
+			final float[]	tempReal = new float[getWidth()];
+			final float[]	tempImage = new float[getWidth()];
+			
+			for(int y = 0, maxY = getHeight(); y < maxY; y++) {
+				for(int x = 0, maxX = another.getWidth(); x < maxX; x++) {
+					for(int k = 0, maxK = getWidth(); k < maxK; k++) {
+						tempReal[k] = source1[y][2*k] * source2[y][2*k] - source1[y][2*k+1] * source2[y][2*k+1]; 
+						tempImage[k] = source1[y][2*k] * source2[y][2*k+1] + source1[y][2*k+1] * source2[y][2*k]; 
+					}
+					target[y][2*x] = sum(tempReal);
+					target[y][2*x+1] = sum(tempImage);
+				}
+			}
+			return result;
+		}
+		else {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	@Override
 	protected PlainComplexFloatMatrix mulRevInternal(final PlainComplexFloatMatrix another) throws CalculationException {
 		return another.mulInternal(this);
 	}
 
+	@Override
+	protected PlainComplexFloatMatrix mulRevTInternal(final PlainComplexFloatMatrix another) throws CalculationException {
+		return another.mulTInternal(this);
+	}
+	
 	@Override
 	protected PlainComplexFloatMatrix mulHadamardInternal(final PlainComplexFloatMatrix another) throws CalculationException {
 		final PlainComplexFloatMatrix	result = new PlainComplexFloatMatrix(getWidth(), getHeight());
