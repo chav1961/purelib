@@ -213,7 +213,7 @@ public abstract class AbstractLocalizer implements Localizer {
 			throw new IllegalArgumentException("Key to get value can't be null or empty");
 		}
 		else if (!containsKey(key)) {
-			throw new LocalizationException("Key ["+key+"] to get value is missing anywhere");
+			throw new LocalizationException("Key ["+key+"] to get value is missing anywhere\nLocalizer URI is ["+getLocalizerId()+"], class is ["+getClass().getCanonicalName()+"]");
 		}
 		else {
 			final StringBuilder	sb = new StringBuilder();
