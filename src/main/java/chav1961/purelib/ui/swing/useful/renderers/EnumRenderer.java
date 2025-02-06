@@ -3,6 +3,7 @@ package chav1961.purelib.ui.swing.useful.renderers;
 import java.awt.Component;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -19,6 +20,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.TreeCellRenderer;
 
 import chav1961.purelib.basic.ColorUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
@@ -100,7 +102,21 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 					label.setText(localizer.getValue(res.value()));
 					label.setToolTipText(localizer.getValue(res.tooltip()));
 					if (!res.icon().isEmpty()) {
-						label.setIcon(new ImageIcon(URI.create(res.icon()).toURL()));
+						final URI	uri = URI.create(res.icon());
+						
+						if (uri.isAbsolute()) {
+							label.setIcon(new ImageIcon(uri.toURL()));
+						}
+						else {
+							try {
+								label.setIcon(new ImageIcon(URIUtils.appendRelativePath2URI(value.getClass().getProtectionDomain().getCodeSource().getLocation().toURI(), uri.getPath()).normalize().toURL()));
+							} catch (URISyntaxException e) {
+								label.setIcon(null);
+							}
+						}
+					}
+					else {
+						label.setIcon(null);
 					}
 				}
 				else {
