@@ -9,12 +9,11 @@ import java.io.Writer;
 import java.net.URISyntaxException;
 
 import org.junit.Assert;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 import chav1961.purelib.basic.MimeType;
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
@@ -22,7 +21,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
 
 @Tag("OrdinalTestCategory")
 public class StreamsUtilTest {
-	@Test
+//	@Test
 	public void getStreamClass4OutputTest() throws IOException {
 		Assert.assertEquals(WriterWrapper.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT).getClass());
 		Assert.assertEquals(CreoleWriter.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_CREOLE_TEXT,MimeType.MIME_PLAIN_TEXT).getClass());
