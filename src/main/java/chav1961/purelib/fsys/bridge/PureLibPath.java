@@ -14,7 +14,6 @@ import java.nio.file.WatchService;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
-import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 /*
  * Pure library path can be absolute or relative. Relative path is usual URI. Absolute path is an URI stared with file system subscheme:

@@ -15,14 +15,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.ExtendedBitCharSet;
 import chav1961.purelib.basic.Utils;
-import chav1961.purelib.basic.growablearrays.GrowableCharArray;
-import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 
