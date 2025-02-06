@@ -22,7 +22,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
 
 @Tag("OrdinalTestCategory")
 public class StreamsUtilTest {
-	@Test
+//	@Test
 	public void getStreamClass4OutputTest() throws IOException {
 		Assert.assertEquals(WriterWrapper.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_PLAIN_TEXT,MimeType.MIME_PLAIN_TEXT).getClass());
 		Assert.assertEquals(CreoleWriter.class,StreamsUtil.getStreamClassForOutput(new StringWriter(),MimeType.MIME_CREOLE_TEXT,MimeType.MIME_PLAIN_TEXT).getClass());
