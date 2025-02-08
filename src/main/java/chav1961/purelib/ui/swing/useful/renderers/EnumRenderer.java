@@ -109,8 +109,8 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 						}
 						else {
 							try {
-								final URI	iconURI = URIUtils.appendRelativePath2URI(value.getClass().getResource(value.getClass().getSimpleName()+".class").toURI().resolve("./"), uri.getPath()).normalize();
-								
+								final URI	iconURI = URIUtils.appendRelativePath2URI(value.getClass().getResource(value.getClass().getSimpleName()+".class").toURI(), "../"+uri.getPath()).normalize();
+
 								label.setIcon(new ImageIcon(iconURI.toURL()));
 							} catch (URISyntaxException e) {
 								label.setIcon(null);
