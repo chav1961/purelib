@@ -17,12 +17,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.DoublePredicate;
+import java.util.function.IntPredicate;
+import java.util.function.LongPredicate;
+import java.util.function.Predicate;
 
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 
 /**
@@ -205,6 +210,7 @@ public class CharUtils {
 	private static final String[]	WORDS_RU_UNITS_N = {"", "", "", "", "", "", "", "", "", "", };
 	private static final Map<String, WordsKeeper>	WORDS_RU_SET = new HashMap<>();
 	private static final BitCharSet	UUID_CHARS = new BitCharSet('0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f','A','B','C','D','E','F','-');
+	private static final Map<Class<?>, Integer>	LIST_RANGE_SUPPORT = new HashMap<>();
 			
 	static {
 		CONSTANTS.placeName((CharSequence)"true",true);
@@ -214,6 +220,11 @@ public class CharUtils {
 		CONSTANTS.placeName((CharSequence)"false",false);
 		CONSTANTS.placeName((CharSequence)"off",false);
 		CONSTANTS.placeName((CharSequence)"n",false);
+		
+		LIST_RANGE_SUPPORT.put(Predicate.class, CompilerUtils.CLASSTYPE_REFERENCE);
+		LIST_RANGE_SUPPORT.put(IntPredicate.class, CompilerUtils.CLASSTYPE_INT);
+		LIST_RANGE_SUPPORT.put(LongPredicate.class, CompilerUtils.CLASSTYPE_LONG);
+		LIST_RANGE_SUPPORT.put(DoublePredicate.class, CompilerUtils.CLASSTYPE_DOUBLE);
 	}
 
 
@@ -1002,6 +1013,50 @@ loop:		for (index = from; index < len; index++) {
 		}		
 	}
 	
+	/**
+	 * <p>Parse list of ranges and build instance of {@linkplain IntPredicate}, {@linkplain LongPredicate},
+	 * {@linkplain DoublePredicate} or {@linkplain Predicate} to compare value with it.</p>
+	 * <p>Syntax of lits of ranges is:</p>
+	 * <code>
+	 * &lt;listOfRanges&gt;::=&lt;range&gt[,&lt;listOfRanges&gt];
+	 * &lt;range&gt;::=&lt;value&gt[..&lt;value&gt];
+	 * &lt;value&gt;::={&lt;intValue&gt;|&lt;longValue&gt;|&lt;doubleValue&gt;|&lt;stringValue&gt;};
+	 * </code> 
+	 * @param <T> predicate to return.
+	 * @param seq list of range to parse. Can't be null. Empty content means "always true".
+	 * @param awaitedClass predicate class to return. Only {@linkplain IntPredicate}, {@linkplain LongPredicate},
+	 * {@linkplain DoublePredicate} or {@linkplain Predicate} are available. Using {@linkplain Predicate} implies
+	 * that value.toString() method will be used to get value to check
+	 * @return predicate built. Can't be null.
+	 * @throws NullPointerException any argument is null
+	 * @throws SyntaxException sequence contains syntax errors inside
+	 * @since 0.0.8
+	 */
+	public static <T> T parseListRanges(final CharSequence seq, final Class<T> awaitedClass) throws NullPointerException, SyntaxException {
+		if (seq == null) {
+			throw new NullPointerException("Sequence can't be null");
+		}
+		else if (awaitedClass == null) {
+			throw new NullPointerException("Awaited class can't be null");
+		}
+		else if (!LIST_RANGE_SUPPORT.containsKey(awaitedClass)) {
+			throw new NullPointerException("Unsupported class for result ["+awaitedClass.getCanonicalName()+"], only "+LIST_RANGE_SUPPORT.keySet()+" are available");
+		}
+		else {
+			switch (LIST_RANGE_SUPPORT.get(awaitedClass)) {
+				case CompilerUtils.CLASSTYPE_REFERENCE 	:
+					return awaitedClass.cast(ListRangeMatcher.parseRange(toCharArray(seq, ListRangeMatcher.EOF)));
+				case CompilerUtils.CLASSTYPE_INT		:
+					return awaitedClass.cast(ListRangeMatcher.parseIntRange(toCharArray(seq, ListRangeMatcher.EOF)));
+				case CompilerUtils.CLASSTYPE_LONG		:
+					return awaitedClass.cast(ListRangeMatcher.parseLongRange(toCharArray(seq, ListRangeMatcher.EOF)));
+				case CompilerUtils.CLASSTYPE_DOUBLE		:
+					return awaitedClass.cast(ListRangeMatcher.parseDoubleRange(toCharArray(seq, ListRangeMatcher.EOF)));
+				default :
+					throw new UnsupportedOperationException("Class type ["+LIST_RANGE_SUPPORT.get(awaitedClass)+"] is not supported yet");
+			}
+		}
+	}
 	
 	/**
 	 * <p>Skip blank content of the line</p>
