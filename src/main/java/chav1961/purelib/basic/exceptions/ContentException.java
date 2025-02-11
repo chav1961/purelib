@@ -52,7 +52,7 @@ public class ContentException extends PureLibException {
 	 * @param parameters message parameters. Can be empty but not null
 	 * @since 0.0.7
 	 */
-	public ContentException(Throwable cause, URI messageId, Object... parameters) {
+	public ContentException(final Throwable cause, final URI messageId, final Object... parameters) {
 		super(cause, messageId, parameters);
 	}
 
@@ -62,7 +62,7 @@ public class ContentException extends PureLibException {
 	 * @param parameters message parameters. Can be empty but not null
 	 * @since 0.0.7
 	 */
-	public ContentException(URI messageId, Object... parameters) {
+	public ContentException(final URI messageId, final Object... parameters) {
 		super(messageId, parameters);
 	}
 }
