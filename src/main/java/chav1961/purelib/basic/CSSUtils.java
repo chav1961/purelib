@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.w3c.dom.Element;
 
@@ -66,68 +68,112 @@ public class CSSUtils {
 	private interface StyleValueConverter {
 		Object convert(String source) throws SyntaxException; 
 	}
-	
-	static {
-		INHERITED = KEYWORDS.placeName("inherited",null);
-//		for (StylePropertiesSupported item : StylePropertiesSupported.values()) {
-//			final ContentType 	ct;
-//			
-//			switch (ct = item.getContentType()) {
-//				case color:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case colorOrKeyword		:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case distanceOrKeyword	:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case functionOrKeyword	:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case integerOrKeyword	:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case numberOrKeyword	:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case stringOrKeyword	:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case timeOrKeyword		:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case urlOrKeyword		:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case value				:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				case asIs:
-//				case compoundChoise:
-//				case compoundSequence:
-//				case distance:
-//				case function:
-//				case integer:
-//				case number:
-//				case string:
-//				case subStyle:
-//				case time:
-//				case url:
-//					addName(KEYWORDS,item,item.getValues());
-//					break;
-//				default:
-//					throw new UnsupportedOperationException("Content type ["+ct+"] is not supported yet");
-//			}
-//			STYLES.placeName(item.name(),item);
-//			STYLES.placeName(item.getExternalName(),item);
-//		}
+
+	/**
+	 * @since 0.0.8
+	 */
+	public enum BaseUnit {
+		PIXEL((v)->Integer.valueOf(v));
+
+		private final Function<String, Number> parser;
+		
+		private BaseUnit(final Function<String, Number> parser) {
+			this.parser = parser;
+		}
+		
+		public Number parseValue(final String value) throws IllegalArgumentException, NumberFormatException {
+			if (Utils.checkEmptyOrNullString(value)) {
+				throw new IllegalArgumentException("Value to parse can't be null or empty");
+			}
+			else {
+				return parser.apply(value.trim());
+			}
+		}
+	}
+
+	/**
+	 * @since 0.0.8
+	 */
+	public enum Unit {
+		PIXEL(BaseUnit.PIXEL, "px", 1.0f, (v,n)->String.valueOf(v.intValue())+n.getPostfix()),
+		MM(BaseUnit.PIXEL, "mm", 96/2.54f, (v,n)->String.valueOf(n.getKoeff()*v.intValue())+n.getPostfix());
+		
+		private final BaseUnit	base;
+		private final String	postfix;
+		private final float		koeff;
+		private final BiFunction<Number,Unit,String>	print;
+		
+		private Unit(final BaseUnit base, final String postfix, final float koeff, final BiFunction<Number,Unit,String> print) {
+			this.base = base;
+			this.postfix = postfix;
+			this.koeff = koeff;
+			this.print = print;
+		}
+		
+		public BaseUnit getBaseUnits() {
+			return base;
+		}
+		
+		public String getPostfix() {
+			return postfix;
+		}
+		
+		public float getKoeff() {
+			return koeff;
+		}
+
+		public String toString(final Number baseValue) throws NullPointerException {
+			if (baseValue == null) {
+				throw new NullPointerException("Value to convert can't be null");
+			}
+			else {
+				return print.apply(baseValue, this);
+			}
+		}
+		
+		public static Number baseValueOf(final String value) throws IllegalArgumentException {
+			if (Utils.checkEmptyOrNullString(value)) {
+				throw new IllegalArgumentException("Value to parse can't be null or empty");
+			}
+			else {
+				return baseValueOfInternal(value, null);
+			}
+		}
+
+		public static Number baseValueOf(final String value, final BaseUnit defaultUnit) throws IllegalArgumentException, NullPointerException {
+			if (Utils.checkEmptyOrNullString(value)) {
+				throw new IllegalArgumentException("Value to parse can't be null or empty");
+			}
+			else if (defaultUnit == null) {
+				throw new NullPointerException("Default unit can't be null");
+			}
+			else {
+				return baseValueOfInternal(value, defaultUnit);
+			}
+		}
+		
+		private static Number baseValueOfInternal(final String value, final BaseUnit unit) throws IllegalArgumentException {
+			for(Unit item : values()) {
+				if ((unit == null || item.getBaseUnits() == unit) && value.endsWith(item.getPostfix())) {
+					return item.getKoeff() * item.getBaseUnits().parseValue(value.substring(0,value.length()-item.getPostfix().length())).floatValue();  
+				}
+			}
+			if (unit != null) {
+				return unit.parseValue(value);
+			}
+			else {
+				throw new IllegalArgumentException("Value to parse ["+value+"] has unknown unit and default unit was not typed");
+			}
+		}
+		
 	}
 	
-
 	
+	static {
+		INHERITED = KEYWORDS.placeName((CharSequence)"inherited",null);
+	}
 	
-	//	{...}(1,2)
+//	{...}(1,2)
 //	{...}*
 //	{...}+
 //	<...>(1,2)

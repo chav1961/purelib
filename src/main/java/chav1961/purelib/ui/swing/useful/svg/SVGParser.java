@@ -182,8 +182,8 @@ public class SVGParser {
 				switch (node.getNodeName()) {
 					case "svg"	:
 //						<svg height="210" width="500">
-						widthAndHeight[0] = XMLUtils.getAttribute(node,"width", int.class);
-						widthAndHeight[1] = XMLUtils.getAttribute(node,"height", int.class);
+						widthAndHeight[0] = XMLUtils.getAttribute(node,"width", CSSUtils.BaseUnit.PIXEL, 0).intValue();
+						widthAndHeight[1] = XMLUtils.getAttribute(node,"height", CSSUtils.BaseUnit.PIXEL, 0).intValue();
 						break;
 					case "line"	:
 //						<line x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />

@@ -28,6 +28,8 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import chav1961.purelib.basic.CSSUtils.BaseUnit;
+import chav1961.purelib.basic.CSSUtils.Unit;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
@@ -42,7 +44,7 @@ import chav1961.purelib.enumerations.XSDCollection;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public class XMLUtils {
 	private static final String 	W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
@@ -410,6 +412,32 @@ public class XMLUtils {
 		}
 	}
 
+	/**
+	 * <p>Extract numeric attribute value from current node and process it's measure unit</p>
+	 * @param node node to extract attribute from
+	 * @param attribute attribute name
+	 * @param baseUnit base unit to get value for.
+	 * @param defaultValue default value when attribute is missing
+	 * @return attribute value reduced to base unit
+	 * @throws NullPointerException any parameters is null.
+	 * @throws IllegalArgumentException attribute name is null or empty or invalid attribute value.
+	 * @since 0.0.8
+	 */
+	public static Number getAttribute(final Element node, final String attribute, final BaseUnit baseUnit, final Number defaultValue) throws NullPointerException, IllegalArgumentException {
+		if (node == null) {
+			throw new NullPointerException("Node can't be null");
+		}
+		else if (Utils.checkEmptyOrNullString(attribute)) {
+			throw new IllegalArgumentException("Attribute name can't be null or empty");
+		}
+		else if (!node.hasAttribute(attribute)) {
+			return defaultValue;
+		}
+		else {
+			return Unit.baseValueOf(node.getAttribute(attribute), baseUnit);
+		}
+	}	
+	
 	/**
 	 * <p>Get attributer from current node</p>
 	 * @param node node to extract attributes from
