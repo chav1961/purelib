@@ -7,6 +7,10 @@ import java.io.IOException;
 import java.nio.CharBuffer;
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.function.DoublePredicate;
+import java.util.function.IntPredicate;
+import java.util.function.LongPredicate;
+import java.util.function.Predicate;
 
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
@@ -1731,7 +1735,50 @@ public class CharUtilsTest {
 			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
+	}
+
+	@Test
+	public void parseListRangesTest() throws IOException, SyntaxException, NullPointerException {
+		final IntPredicate	intPred = CharUtils.parseListRanges("10", IntPredicate.class);
 		
+		Assert.assertTrue(intPred.test(10));
+		Assert.assertFalse(intPred.test(20));
+		
+		final LongPredicate	longPred = CharUtils.parseListRanges("10", LongPredicate.class);
+		
+		Assert.assertTrue(longPred.test(10));
+		Assert.assertFalse(longPred.test(20));
+
+		final DoublePredicate	doublePred = CharUtils.parseListRanges("10", DoublePredicate.class);
+		
+		Assert.assertTrue(doublePred.test(10));
+		Assert.assertFalse(doublePred.test(20));
+
+		final Predicate<String>	stringPred = CharUtils.parseListRanges("10", Predicate.class);
+		
+		Assert.assertTrue(stringPred.test("10"));
+		Assert.assertFalse(stringPred.test("20"));
+		
+		try {
+			CharUtils.parseListRanges(null, Predicate.class);
+			Assert.fail("Mandatory exception was not detected (null 1-st aergument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {
+			CharUtils.parseListRanges("", Predicate.class);
+			Assert.fail("Mandatory exception was not detected (empty 1-st aergument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {
+			CharUtils.parseListRanges("10", null);
+			Assert.fail("Mandatory exception was not detected (null 2-nd aergument)");
+		} catch (IllegalArgumentException exc) {
+		}
+		try {
+			CharUtils.parseListRanges("10", String.class);
+			Assert.fail("Mandatory exception was not detected (unsupported 2-nd aergument)");
+		} catch (IllegalArgumentException exc) {
+		}
 	}
 }
 

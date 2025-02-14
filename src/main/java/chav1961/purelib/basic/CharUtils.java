@@ -1028,19 +1028,19 @@ loop:		for (index = from; index < len; index++) {
 	 * {@linkplain DoublePredicate} or {@linkplain Predicate} are available. Using {@linkplain Predicate} implies
 	 * that value.toString() method will be used to get value to check
 	 * @return predicate built. Can't be null.
-	 * @throws NullPointerException any argument is null
+	 * @throws IllegalArgumentException any argument is null, empty or invalid
 	 * @throws SyntaxException sequence contains syntax errors inside
 	 * @since 0.0.8
 	 */
 	public static <T> T parseListRanges(final CharSequence seq, final Class<T> awaitedClass) throws NullPointerException, SyntaxException {
-		if (seq == null) {
-			throw new NullPointerException("Sequence can't be null");
+		if (seq == null || seq.length() == 0) {
+			throw new IllegalArgumentException("Sequence can't be null");
 		}
 		else if (awaitedClass == null) {
-			throw new NullPointerException("Awaited class can't be null");
+			throw new IllegalArgumentException("Awaited class can't be null");
 		}
 		else if (!LIST_RANGE_SUPPORT.containsKey(awaitedClass)) {
-			throw new NullPointerException("Unsupported class for result ["+awaitedClass.getCanonicalName()+"], only "+LIST_RANGE_SUPPORT.keySet()+" are available");
+			throw new IllegalArgumentException("Unsupported class for result ["+awaitedClass.getCanonicalName()+"], only "+LIST_RANGE_SUPPORT.keySet()+" are available");
 		}
 		else {
 			switch (LIST_RANGE_SUPPORT.get(awaitedClass)) {

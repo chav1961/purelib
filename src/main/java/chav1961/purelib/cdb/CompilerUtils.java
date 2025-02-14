@@ -142,6 +142,28 @@ public class CompilerUtils {
 	}
 
 	/**
+	 * <p>Define class by class type (see {@linkplain #defineClassType(Class)}</p>
+	 * @param classType class type to get appropriative class.
+	 * @param defaultReferenceClass default class type for referenced class. If null, Object.class will be used
+	 * @return appropriative class. Can't be null.
+	 * @since 0.0.8
+	 */
+	public static Class<?> classByType(final int classType, final Class<?> defaultReferenceClass) {
+		switch (classType) {
+			case CompilerUtils.CLASSTYPE_BYTE		: return byte.class;
+			case CompilerUtils.CLASSTYPE_SHORT		: return short.class;
+			case CompilerUtils.CLASSTYPE_CHAR		: return char.class;	
+			case CompilerUtils.CLASSTYPE_INT		: return int.class;	
+			case CompilerUtils.CLASSTYPE_LONG		: return long.class;
+			case CompilerUtils.CLASSTYPE_FLOAT		: return float.class;
+			case CompilerUtils.CLASSTYPE_DOUBLE		: return double.class;
+			case CompilerUtils.CLASSTYPE_BOOLEAN	: return boolean.class;
+			case CompilerUtils.CLASSTYPE_VOID		: return void.class;
+			default 								: return defaultReferenceClass == null ? Object.class : defaultReferenceClass;
+		}
+	}
+	
+	/**
 	 * <p>Convert primitive class to wrapped object class</p>
 	 * @param clazz class to convert. Can't be null
 	 * @return class converted. If parameter is a reference class, returns as-is.
@@ -167,6 +189,49 @@ public class CompilerUtils {
 			}
 		}
 	}
+	
+	/**
+	 * <p>Convert wrapper object class to primitive class.</p>
+	 * @param clazz class to convert. Can't be null.
+	 * @return primitive class appropriative. If parameter is not a wrapper class, returns as-is.
+	 * @throws NullPointerException class to convert is null
+	 * @since 0.0.8
+	 */
+	public static Class<?> fromWrappedClass(final Class<?> clazz) throws NullPointerException {
+		if (clazz == null) {
+			throw new NullPointerException("Class to define can't be null"); 
+		}
+		else if (clazz == Byte.class) {
+			return byte.class;
+		}
+		else if (clazz == Short.class) {
+			return short.class;
+		}
+		else if (clazz == Integer.class) {
+			return int.class;
+		}
+		else if (clazz == Long.class) {
+			return long.class;
+		}
+		else if (clazz == Float.class) {
+			return float.class;
+		}
+		else if (clazz == Double.class) {
+			return double.class;
+		}
+		else if (clazz == Boolean.class) {
+			return boolean.class;
+		}
+		else if (clazz == Character.class) {
+			return char.class;
+		}
+		else if (clazz == Void.class) {
+			return void.class;
+		}
+		else {
+			return clazz;
+		}
+	}	
 	
 	
 	/**
@@ -246,13 +311,15 @@ public class CompilerUtils {
 			throw new IllegalArgumentException("Field name can't be null or empty"); 
 		}
 		else if (publicOnly) {
-			try{return clazz.getMethod(name,parameters);
+			try{
+				return clazz.getMethod(name,parameters);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new ContentException("Method ["+name+"] with parameters "+Arrays.toString(parameters)+" is missing in the class ["+clazz.getCanonicalName()+"]");
 			}
 		}
 		else {
-			try{return clazz.getDeclaredMethod(name,parameters);
+			try{
+				return clazz.getDeclaredMethod(name,parameters);
 			} catch (NoSuchMethodException | SecurityException e) {
 				if (clazz == Object.class) {
 					throw new ContentException("Method ["+name+"] with parameters "+Arrays.toString(parameters)+" is missing in the class ["+clazz.getCanonicalName()+"]");
@@ -278,13 +345,15 @@ public class CompilerUtils {
 			throw new NullPointerException("Class to get field from can't be null"); 
 		}
 		else if (publicOnly) {
-			try{return clazz.getConstructor(parameters);
+			try{
+				return clazz.getConstructor(parameters);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new ContentException("Constructor with parameters "+Arrays.toString(parameters)+" is missing in the class ["+clazz.getCanonicalName()+"]");
 			}
 		}
 		else {
-			try{return clazz.getDeclaredConstructor(parameters);
+			try{
+				return clazz.getDeclaredConstructor(parameters);
 			} catch (NoSuchMethodException | SecurityException e) {
 				throw new ContentException("Constructor with parameters "+Arrays.toString(parameters)+" is missing in the class ["+clazz.getCanonicalName()+"]");
 			}
