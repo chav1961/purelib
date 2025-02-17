@@ -11,7 +11,7 @@ import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.i18n.PureLibLocalizer;
 
 class LuceneStyledMatcher {
-	static final char		EOF = '\uFFFF';
+	static final char		EOF = '\0';
 	private static final ReservedWords[]	WORDS = {
 													new ReservedWords("TO", LexType.TO_WORD), 
 													new ReservedWords("AND", LexType.AND_WORD), 
@@ -47,13 +47,13 @@ class LuceneStyledMatcher {
 		final long[]		forLongs = new long[2];
 		
 loop:	for(;;) {
-			while (source[from] <= ' ' && source[from] != '\0') {
+			while (source[from] <= ' ' && source[from] != EOF) {
 				from++;
 			}
 			final int	start = from;
 			
 			switch (source[from]) {
-				case '\0' 	:
+				case EOF 	:
 					target.add(new Lexema(start, LexType.EOF));
 					break loop;
 				case ':'	:
@@ -100,17 +100,35 @@ loop:	for(;;) {
 					target.add(new Lexema(start, LexType.MINUS));
 					from++;
 					break;
-				case '\"'	:
-					from = CharUtils.parseStringExtended(source, start, '\"', sb);
-					target.add(new Lexema(start, LexType.PHRASE, Arrays.copyOfRange(source, start, from)));
-					break;
-				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
-					from = CharUtils.parseNumber(source, from, forLongs, CharUtils.PREF_INT | CharUtils.PREF_FLOAT, true);
-					if (forLongs[1] == CharUtils.PREF_INT) {
-						target.add(new Lexema(start, (int)forLongs[0]));
+				case '\\'	:
+					if (source[from+1] != EOF) {
+						from+= 2;
 					}
 					else {
-						target.add(new Lexema(start, Float.intBitsToFloat((int)forLongs[0])));
+						throw new SyntaxException(0, start, "end of data after escape");
+					}
+					break;
+				case '\"'	:
+					try {
+						from = CharUtils.parseStringExtended(source, start+1, '\"', sb);
+						target.add(new Lexema(start, LexType.PHRASE, sb.toString().toCharArray()));
+					} catch (IllegalArgumentException exc) {
+						throw new SyntaxException(0, start, "unpaired quotas");
+					}
+					break;
+				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
+					from = CharUtils.parseNumber(source, from, forLongs, CharUtils.PREF_INT | CharUtils.PREF_FLOAT| CharUtils.PREF_DOUBLE, true);
+					switch ((int)forLongs[1]) {
+						case CharUtils.PREF_INT 	:
+							target.add(new Lexema(start, (int)forLongs[0]));
+							break;
+						case CharUtils.PREF_FLOAT	:
+							target.add(new Lexema(start, Float.intBitsToFloat((int)forLongs[0])));
+							break;
+						case CharUtils.PREF_DOUBLE	:
+							target.add(new Lexema(start, (float)Double.longBitsToDouble(forLongs[0])));
+							break;
+						default :
 					}
 					break;
 				default :
@@ -127,6 +145,7 @@ loop:	for(;;) {
 							}
 							end++;
 						}
+						from = end;
 						if (isWildcard) {
 							target.add(new Lexema(start, LexType.WILDCARD_TERM, Arrays.copyOfRange(source, start, end)));
 						}
@@ -338,8 +357,10 @@ loop:	for(;;) {
 		FLOAT,
 		COLON,
 		FUZZY,
+		OPEN,
 		OPENB,
 		OPENF,
+		CLOSE,
 		CLOSEB,
 		CLOSEF,
 		BOOST,
@@ -349,8 +370,6 @@ loop:	for(;;) {
 		NOT_WORD,
 		PLUS,
 		MINUS,
-		OPEN,
-		CLOSE,
 		EOF
 	}
 	
