@@ -7,6 +7,7 @@ import java.util.function.Function;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 // https://lucene.apache.org/core/2_9_4/queryparsersyntax.html
 public class PseudoLuceneMatcher {
@@ -162,7 +163,7 @@ loop:	for(;;) {
 						}
 					}
 					else {
-						throw new SyntaxException(0, start, "???");
+						throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 			}
 		}

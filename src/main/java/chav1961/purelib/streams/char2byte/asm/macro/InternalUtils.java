@@ -8,10 +8,12 @@ import java.util.List;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 class InternalUtils {
 	private static final SyntaxTreeInterface<FuncDecription>	FUNCTIONS = new AndOrTree<>();
@@ -381,7 +383,7 @@ class InternalUtils {
 					pos[0]++;
 				}
 				else {
-					throw new SyntaxException(lineNo,pos[0]-from,"Missing '}'");
+					throw new SyntaxException(lineNo, pos[0]-from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_FIGURE_BRACKET));
 				}
 			}
 			else {
@@ -391,7 +393,7 @@ class InternalUtils {
 			return pos[0];
 		} catch (IllegalArgumentException | CalculationException exc) {
 			exc.printStackTrace();
-			throw new SyntaxException(lineNo,pos[0]-begin,exc.getLocalizedMessage()); 
+			throw new SyntaxException(lineNo, pos[0]-begin, exc.getLocalizedMessage()); 
 		}
 	}
 	
@@ -402,7 +404,7 @@ class InternalUtils {
 			return pos[0];
 		} catch (IllegalArgumentException exc) {
 //			exc.printStackTrace();
-			throw new SyntaxException(lineNo,pos[0]-begin,exc.getLocalizedMessage()); 
+			throw new SyntaxException(lineNo, pos[0]-begin, exc.getLocalizedMessage()); 
 		}
 	}
 

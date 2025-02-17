@@ -8,8 +8,10 @@ import java.util.function.Predicate;
 
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 class LuceneStyledMatcher {
+	static final char		EOF = '\uFFFF';
 	private static final ReservedWords[]	WORDS = {
 													new ReservedWords("TO", LexType.TO_WORD), 
 													new ReservedWords("AND", LexType.AND_WORD), 
@@ -22,7 +24,7 @@ class LuceneStyledMatcher {
 			throw new NullPointerException("Pattern can't be null");
 		}
 		else {
-			final char[]		content = CharUtils.terminateAndConvert2CharArray(pattern, '\0');
+			final char[]		content = CharUtils.terminateAndConvert2CharArray(pattern, EOF);
 			final List<Lexema>	lexList = new ArrayList<>();
 
 			parse(content, 0, lexList);
@@ -32,7 +34,7 @@ class LuceneStyledMatcher {
 			final int			stop = buildTree(lexemas, 0, root);
 			
 			if (lexemas[stop].type != LexType.EOF) {
-				throw new SyntaxException(0, lexemas[stop].pos, "unparsed tail");
+				throw new SyntaxException(0, lexemas[stop].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL));
 			}
 			else {
 				return null;
@@ -139,7 +141,7 @@ loop:	for(;;) {
 						}
 					}
 					else {
-						throw new SyntaxException(0, start, "Illegal LEx");
+						throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 					break;
 			}
@@ -276,11 +278,11 @@ loop:	for(;;) {
 							from++;
 						}
 						else {
-							throw new SyntaxException(0, source[from].pos, "missing ')'");
+							throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 						}
 						break;
 					default :
-						throw new SyntaxException(0, source[from].pos, "missing operand");
+						throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPERAND));
 				}
 				break;
 			default :

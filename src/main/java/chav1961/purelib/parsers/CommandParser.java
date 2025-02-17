@@ -10,6 +10,7 @@ import chav1961.purelib.parsers.PatternAndProcessor.OutputProcessor;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.BitCharSet;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -17,6 +18,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 class CommandParser {
 	static final char[][]		NULL_TERMINALS = new char[0][0];
@@ -495,17 +497,17 @@ loop:	for(;;) {
 					break;
 				case '['	:
 					if (!inQuotes && content[from = extractExpression(content, from + 1, NULL_TERMINALS)] != ']') {
-						throw new SyntaxException(0, from, "']' is missing");
+						throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_SQUARE_BRACKET));
 					}
 					break;
 				case '(' 	:
 					if (!inQuotes && content[from = extractExpression(content, from + 1, NULL_TERMINALS)] != ')') {
-						throw new SyntaxException(0, from, "')' is missing");
+						throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 					}
 					break;
 				case '{' 	: 
 					if (!inQuotes && content[from = extractExpression(content, from + 1, NULL_TERMINALS)] != '}') {
-						throw new SyntaxException(0, from, "'}' is missing");
+						throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_FIGURE_BRACKET));
 					}
 					break;
 				default :
@@ -536,7 +538,7 @@ loop:	for(;;) {
 						return from;
 					}
 					else {
-						throw new SyntaxException(0, from, "Dust in the tail");
+						throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL));
 					}
 				}
 				else {
@@ -563,7 +565,7 @@ leftLoop:		for(;;) {
 								leftItem = (SyntaxNode<NodeType, SyntaxNode>) root.clone();
 								from = buildTree(content, from + 1, Level.Left, leftItem);
 								if (content[from].type != Lexema.LexType.CloseB) {
-									throw new SyntaxException(0, from, "']' is missing"); 
+									throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_SQUARE_BRACKET)); 
 								}
 								else {
 									leftOptional.add(leftItem);
@@ -604,7 +606,7 @@ rightLoop:		for(;;) {
 								rightItem = (SyntaxNode<NodeType, SyntaxNode>) root.clone();
 								from = buildTree(content, from + 1, Level.Right, rightItem);
 								if (content[from].type != Lexema.LexType.CloseB) {
-									throw new SyntaxException(0, from, "']' is missing"); 
+									throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_SQUARE_BRACKET)); 
 								}
 								else {
 									rightItem.type = NodeType.Optional;

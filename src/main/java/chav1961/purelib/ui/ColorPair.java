@@ -7,8 +7,10 @@ import java.io.Serializable;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.ColorUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.PrintingException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.json.interfaces.JsonSerializable;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.JsonStaxPrinter;
@@ -226,12 +228,14 @@ loop:			for (JsonStaxParserLexType item : parser) {
 		}
 		else if (parser.next() == JsonStaxParserLexType.NAME_SPLITTER) {
 			switch (parser.next()) {
-				case STRING_VALUE 	: return ColorUtils.colorByName(parser.stringValue(), Color.BLACK);
-				default : throw new SyntaxException(parser.row(), parser.col(), "Color value is missing");
+				case STRING_VALUE 	: 
+					return ColorUtils.colorByName(parser.stringValue(), Color.BLACK);
+				default : 
+					throw new SyntaxException(parser.row(), parser.col(), "Color value is missing");
 			}
 		}
 		else {
-			throw new SyntaxException(parser.row(), parser.col(), "Missing ':'");
+			throw new SyntaxException(parser.row(), parser.col(), URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_COLON));
 		}
 	}
 }

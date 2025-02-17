@@ -3,7 +3,9 @@ package chav1961.purelib.streams.char2char.intern;
 import java.io.IOException;
 import java.util.List;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 class Util {
 	 static char[] join(final char[] source, final int from, final String substitution) {
@@ -19,7 +21,7 @@ class Util {
 		
 		for (String item : names) {
 			if (item.equals(name)) {
-				throw new SyntaxException(row, col, "Duplicate name ["+name+"]");
+				throw new SyntaxException(row, col, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_DUPLICATE_NAME), name);
 			}
 		}
 		names.add(name);
@@ -34,7 +36,7 @@ class Util {
 				return index;
 			}
 		}
-		throw new SyntaxException(row, col, "Missing name ["+name+"]");
+		throw new SyntaxException(row, col, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_NAME), name);
 	}
 
 	 static int compare(final char[] data, int from, final char[] template, final boolean useX) {

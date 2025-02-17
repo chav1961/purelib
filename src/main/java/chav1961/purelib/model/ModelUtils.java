@@ -42,6 +42,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceLocalization;
 import chav1961.purelib.model.ModelUtils.ModelComparisonCallback.DifferenceType;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
@@ -728,7 +729,7 @@ loop:		for(;;) {
 							break;
 						}
 						else {
-							throw new IOException(new SyntaxException(parser.row(),parser.col(),"Name splitter ':' is missing"));
+							throw new IOException(new SyntaxException(parser.row(), parser.col(), URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_COLON)));
 						}
 					case 3 :	// Value awaited
 						switch (lex) {

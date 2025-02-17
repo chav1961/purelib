@@ -24,6 +24,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.json.interfaces.JsonNodeType;
 import chav1961.purelib.json.interfaces.JsonTreeWalkerCallback;
 import chav1961.purelib.sql.SQLUtils;
@@ -656,7 +657,7 @@ public class JsonUtils {
 			final int			lastLex = buildJsonPath(lexArray,0,root);
 
 			if (lexArray[lastLex].type != LexemaType.EOF) {
-				throw new SyntaxException(0,lexArray[lastLex].pos,"Unparsed tail in the expression"); 
+				throw new SyntaxException(0, lexArray[lastLex].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 			}
 			else {
 				return new XPathStyledFilter(root,nested);
@@ -727,7 +728,7 @@ arrLoop:		while (parser.hasNext()) {
 					return root;
 				}
 				else {
-					throw new SyntaxException(parser.row(),parser.col(),"Missing ']'"); 
+					throw new SyntaxException(parser.row(), parser.col(), URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_SQUARE_BRACKET)); 
 				}
 			case START_OBJECT	:
 objLoop:		while (parser.hasNext()) {
@@ -740,7 +741,7 @@ objLoop:		while (parser.hasNext()) {
 							name = parser.name();
 							if (parser.hasNext()) {
 								if (parser.next() != JsonStaxParserLexType.NAME_SPLITTER) {
-									throw new SyntaxException(parser.row(),parser.col(),"Missing name splitter ':'"); 
+									throw new SyntaxException(parser.row(), parser.col(), URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_COLON)); 
 								}
 							}
 							break;
@@ -806,7 +807,7 @@ objLoop:		while (parser.hasNext()) {
 					return root;
 				}
 				else {
-					throw new SyntaxException(parser.row(),parser.col(),"Missing '}'"); 
+					throw new SyntaxException(parser.row(), parser.col(), URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_FIGURE_BRACKET)); 
 				}
 			default:
 				throw new SyntaxException(parser.row(),parser.col(),"Illegal content: only '{' or '[' are legal values here");
@@ -1101,7 +1102,7 @@ loop:	for (;from < len;) {
 						from += 2;
 					}
 					else {
-						throw new SyntaxException(0,from,"Unknown lexema");
+						throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 					break;
 				case '&' 	:
@@ -1110,7 +1111,7 @@ loop:	for (;from < len;) {
 						from += 2;
 					}
 					else {
-						throw new SyntaxException(0,from,"Unknown lexema");
+						throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 					break;
 				case '.' 	:
@@ -1168,7 +1169,7 @@ loop:	for (;from < len;) {
 							result.add(new Lexema(startNumber,splitted,LexemaType.INTEGER,forLong[0]));
 						}
 					} catch (IllegalArgumentException exc) {
-						throw new SyntaxException(0,startNumber,exc.getLocalizedMessage());
+						throw new SyntaxException(0, startNumber, exc.getLocalizedMessage());
 					}
 					break;
 				case '\"' :
@@ -1178,7 +1179,7 @@ loop:	for (;from < len;) {
 						from = CharUtils.parseString(source,from+1,'\"',sb);
 						result.add(new Lexema(startString,splitted,LexemaType.STRING,sb.toString()));
 					} catch (IllegalArgumentException exc) {
-						throw new SyntaxException(0,startString,exc.getLocalizedMessage());
+						throw new SyntaxException(0, startString, exc.getLocalizedMessage());
 					}
 					break;
 				case '\'' :
@@ -1188,7 +1189,7 @@ loop:	for (;from < len;) {
 						from = CharUtils.parseString(source,from+1,'\'',sb);
 						result.add(new Lexema(startJson,splitted,LexemaType.JSON,sb.toString()));
 					} catch (IllegalArgumentException exc) {
-						throw new SyntaxException(0,startJson,exc.getLocalizedMessage());
+						throw new SyntaxException(0, startJson, exc.getLocalizedMessage());
 					}
 					break;
 				default :
@@ -1198,7 +1199,7 @@ loop:	for (;from < len;) {
 						try{from = CharUtils.parseName(source,from,forName);
 							result.add(new Lexema(startName,splitted,LexemaType.NAME,new String(source,forName[0],forName[1]-forName[0]+1)));
 						} catch (IllegalArgumentException exc) {
-							throw new SyntaxException(0,startName,exc.getLocalizedMessage());
+							throw new SyntaxException(0, startName, exc.getLocalizedMessage());
 						}
 						break;
 					}
@@ -1338,7 +1339,7 @@ div_loop:	while (source[from].type == LexemaType.DIV_OP || wasParentOrCurrent) {
 								from++;
 							}
 							else {
-								throw new SyntaxException(0,source[from].pos,"Missing ']'");
+								throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_SQUARE_BRACKET));
 							}
 						}
 						break;

@@ -15,11 +15,13 @@ import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.CharUtils.CharSubstitutionSource;
 import chav1961.purelib.basic.LineByLineProcessor;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 class AssemblerTemplateRepo {
 	private static final char[]		THE_END = "\n{_theend_}\n".toCharArray();
@@ -63,7 +65,7 @@ class AssemblerTemplateRepo {
 																name = Arrays.copyOfRange(data,start+1,from);
 															}
 															else {
-																throw new SyntaxException(lineNo,from-start,"missing '}'");
+																throw new SyntaxException(lineNo, from-start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_FIGURE_BRACKET));
 															}
 														}
 														else {

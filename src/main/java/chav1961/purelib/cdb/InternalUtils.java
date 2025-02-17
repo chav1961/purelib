@@ -29,6 +29,7 @@ import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.ExtendedBitCharSet;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SimpleURLClassLoader;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
@@ -41,6 +42,7 @@ import chav1961.purelib.cdb.intern.Predefines;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.StylePropertiesSupported.Keyword;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class InternalUtils {
@@ -613,7 +615,7 @@ class InternalUtils {
 					return from;
 				}
 				else {
-					throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), "Dust in the tail of the rule"); 
+					throw new SyntaxException(SyntaxException.toRow(content, from), SyntaxException.toCol(content, from), URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 				}
 			}
 			else {

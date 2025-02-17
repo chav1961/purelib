@@ -1,6 +1,5 @@
 package chav1961.purelib.streams.char2byte.asm;
 
-import java.lang.reflect.Modifier;
 import java.util.Locale;
 
 import chav1961.purelib.basic.exceptions.ContentException;

@@ -61,6 +61,22 @@
 		<key name="wklk.check.uriRefers2NoWhere">URI [%1$s] refers to missing or non-existent resource</key>
 		<key name="wklk.check.localization.keyMissing">Localization URI [%1$s] doens't contain localization id [%2$s]</key>
 		<key name="wklk.check.illegalFieldFormat">Illegal field format [%2$s] for type [%1$s]: %3$s</key>
+
+<!-- Well-known syntax exception keys -->
+		<key name="syntaxException.unknown.lexema">Unknown lexema</key>
+		<key name="syntaxException.unparsed.tail">Unparsed tail in the string</key>
+		<key name="syntaxException.missing.operand">Missing operand</key>
+		<key name="syntaxException.missing.open.bracket">Missing '('</key>
+		<key name="syntaxException.missing.close.bracket">Missing ')'</key>
+		<key name="syntaxException.missing.open.square.bracket">Missing '['</key>
+		<key name="syntaxException.missing.close.square.bracket">Missing ']'</key>
+		<key name="syntaxException.missing.open.figure.bracket">Missing '{'</key>
+		<key name="syntaxException.missing.close.figure.bracket">Missing '}'</key>
+		<key name="syntaxException.missing.comma">Missing ','</key>
+		<key name="syntaxException.missing.colon">Missing ':'</key>
+		<key name="syntaxException.missing.semicolon">Missing ';'</key>
+		<key name="syntaxException.missing.name">Missing name [%1$s]</key>
+		<key name="syntaxException.duplicate.name">Duplicate name [%1$s]</key>
 		
 <!-- SubstitutableProperties messages --> 
 		<key name="SubstitutableProperties.notexists">File [%1$s] not exists</key>
@@ -464,6 +480,22 @@
 		<key name="wklk.check.uriRefers2NoWhere">URI [%1$s] ссылается на несуществующий ресурс</key>
 		<key name="wklk.check.localization.keyMissing">Локализатор (URI [%1$s]) не содержит идентификатора [%2$s]</key>
 		<key name="wklk.check.illegalFieldFormat">Неверный формат поля [%2$s] для типа [%1$s]: %3$s</key>
+
+<!-- Общеизвестные ключи синтаксических ошибок -->
+		<key name="syntaxException.unknown.lexema">Неизвестная лексема</key>
+		<key name="syntaxException.unparsed.tail">Неразобранный остаток в строке</key>
+		<key name="syntaxException.missing.operand">Отсутствует операнд</key>
+		<key name="syntaxException.missing.open.bracket">Отсутствует '('</key>
+		<key name="syntaxException.missing.close.bracket">Отсутствует ')'</key>
+		<key name="syntaxException.missing.open.square.bracket">Отсутствует '['</key>
+		<key name="syntaxException.missing.close.square.bracket">Отсутствует ']'</key>
+		<key name="syntaxException.missing.open.figure.bracket">Отсутствует '{'</key>
+		<key name="syntaxException.missing.close.figure.bracket">Отсутствует '}'</key>
+		<key name="syntaxException.missing.comma">Отсутствует ','</key>
+		<key name="syntaxException.missing.colon">Отсутствует ':'</key>
+		<key name="syntaxException.missing.semicolon">Отсутствует ';'</key>
+		<key name="syntaxException.missing.name">Отсутствует имя [%1$s]</key>
+		<key name="syntaxException.duplicate.name">Дублированное имя [%1$s]</key>
 
 <!-- Сообщения SubstitutableProperties --> 
 		<key name="SubstitutableProperties.notexists">Файл [%1$s] не существует</key>

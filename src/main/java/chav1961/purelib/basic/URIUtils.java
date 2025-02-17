@@ -20,7 +20,7 @@ import java.util.Hashtable;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.6
+ * @last.update 0.0.8
  */
 public class URIUtils {
 	/**
@@ -354,6 +354,26 @@ public class URIUtils {
 		}
 	}
 	
+	/**
+	 * <p>Append fragment to URI. IF fragment already exists, replace it with the new one.</p>
+	 * @param uri URI to append fragment to. Can't be null.
+	 * @param fragment fragment to append. Can't be null or empty.
+	 * @return URI with fragment appended.
+	 * @throws NullPointerException when uri is null.
+	 * @throws IllegalArgumentException when fragment string is null or empty.
+	 * @since 0.0.8 
+	 */
+	public static URI appendFragment2URI(final URI uri, final String fragment) throws NullPointerException, IllegalArgumentException {
+		if (uri == null) {
+			throw new NullPointerException("Uri to remove fragment from can't be null");
+		}
+		else if (Utils.checkEmptyOrNullString(fragment)) {
+			throw new IllegalArgumentException("Fragment string can't be null or empty");
+		}
+		else {
+			return URI.create(removeFragmentFromURI(uri).toString()+"#"+fragment);
+		}
+	}
 	
 	/**
 	 * <p>Extract query string from multi-schemed URI</p>

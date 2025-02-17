@@ -28,6 +28,7 @@ import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 
 /**
@@ -3988,7 +3989,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
         		final int			processed = syntax(parsed, 0, names, forLexemas, parameterNumber);
         		
         		if (processed < parsed.length - 1) {
-        			throw new SyntaxException(0, parsed[processed].col, "Unparsed tail");
+        			throw new SyntaxException(0, parsed[processed].col, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL));
         		}
         		else {
             		this.maxResultSize = parameterNumber[0];
@@ -4137,7 +4138,7 @@ loop:		for(;;) {
 							switch (lex[from+3].type) {
 								case CHOISE		:
 									if (!(lex[from+4].type == LexType.OPEN)) {
-										throw new SyntaxException(0, from, "Missing '('");
+										throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPEN_BRACKET));
 									}
 									else {
 										final List<Object>	tempChoise = new ArrayList<>();
@@ -4151,7 +4152,7 @@ loop:		for(;;) {
 										} while (lex[from].type == LexType.SEMICOLON);
 										
 										if (lex[from].type != LexType.CLOSE) {
-											throw new SyntaxException(0, from, "Missing ')'");
+											throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 										}
 										else {
 											lexemas.add(new Choise(tempChoise.toArray(new Object[tempChoise.size()])));
@@ -4195,7 +4196,7 @@ loop:		for(;;) {
 									break;
 								case OPTIONAL	:
 									if (!(lex[from+4].type == LexType.OPEN)) {
-										throw new SyntaxException(0, from, "Missing '('");
+										throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPEN_BRACKET));
 									}
 									else {
 										final List<Object>	temp = new ArrayList<>();
@@ -4203,7 +4204,7 @@ loop:		for(;;) {
 										from = syntax(lex, from+5, names, temp, parameterNumber);
 										
 										if (lex[from].type != LexType.CLOSE) {
-											throw new SyntaxException(0, from, "Missing ')'");
+											throw new SyntaxException(0, from, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 										}
 										else {
 											lexemas.add(new Optional(temp.toArray(new Object[temp.size()])));

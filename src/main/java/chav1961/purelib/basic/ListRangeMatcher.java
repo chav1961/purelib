@@ -12,6 +12,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.sql.SQLUtils;
 
 class ListRangeMatcher {
@@ -26,7 +27,7 @@ class ListRangeMatcher {
 		final int		parsed = buildSyntaxTree(list, 0, Depth.OR, root);
 		
 		if (list[parsed].type != LexType.EOF) {
-			throw new SyntaxException(0, list[parsed].pos, "unparsed tail"); 
+			throw new SyntaxException(0, list[parsed].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 		}
 		else {
 			return new IntPredicate() {
@@ -54,7 +55,7 @@ class ListRangeMatcher {
 		final int		parsed = buildSyntaxTree(list, 0, Depth.OR, root);
 		
 		if (list[parsed].type != LexType.EOF) {
-			throw new SyntaxException(0, list[parsed].pos, "unparsed tail"); 
+			throw new SyntaxException(0, list[parsed].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 		}
 		else {
 			return new LongPredicate() {
@@ -81,7 +82,7 @@ class ListRangeMatcher {
 		final int		parsed = buildSyntaxTree(list, 0, Depth.OR, root);
 		
 		if (list[parsed].type != LexType.EOF) {
-			throw new SyntaxException(0, list[parsed].pos, "unparsed tail"); 
+			throw new SyntaxException(0, list[parsed].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 		}
 		else {
 			return new DoublePredicate() {
@@ -109,7 +110,7 @@ class ListRangeMatcher {
 		final int		parsed = buildSyntaxTree(list, 0, Depth.OR, root);
 		
 		if (list[parsed].type != LexType.EOF) {
-			throw new SyntaxException(0, list[parsed].pos, "unparsed tail"); 
+			throw new SyntaxException(0, list[parsed].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 		}
 		else {
 			return new Predicate<T>() {
@@ -160,7 +161,7 @@ loop:	for(;;) {
 						from += 2;
 					}
 					else {
-						throw new SyntaxException(0, start, "unknown lex");
+						throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 					break;
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
@@ -173,7 +174,7 @@ loop:	for(;;) {
 					}
 					break;
 				default :
-					throw new SyntaxException(0, start, "unknown lex");
+					throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 			}
 		}
 	}
@@ -210,7 +211,7 @@ loop:	for(;;) {
 						from += 2;
 					}
 					else {
-						throw new SyntaxException(0, start, "unknown lex");
+						throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 					break;
 				case '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' : case '7' : case '8' : case '9' :
@@ -218,7 +219,7 @@ loop:	for(;;) {
 					lex.add(new Lexema(start, forValue[0]));
 					break;
 				default :
-					throw new SyntaxException(0, start, "unknown lex");
+					throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 			}
 		}
 	}
@@ -247,7 +248,7 @@ loop:	for(;;) {
 						from += 2;
 					}
 					else {
-						throw new SyntaxException(0, start, "unknown lex");
+						throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 					break;
 				case '\'' :
@@ -266,7 +267,7 @@ loop:	for(;;) {
 						lex.add(new Lexema(start, new String(content, start, from-start)));
 					}
 					else {
-						throw new SyntaxException(0, start, "unknown lex");
+						throw new SyntaxException(0, start, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 			}
 		}
@@ -332,7 +333,7 @@ loop:	for(;;) {
 					from++;
 				}
 				else {
-					throw new SyntaxException(0, source[from].pos, "Missing operand");
+					throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPERAND));
 				}
 				break;
 			default :

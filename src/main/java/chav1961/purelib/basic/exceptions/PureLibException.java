@@ -67,8 +67,8 @@ public class PureLibException extends Exception {
 			throw new NullPointerException("Message Id can't be null"); 
 		}
 		else {
-			this.messageId = null;
-			this.parameters = null;
+			this.messageId = messageId;
+			this.parameters = parameters;
 		}
 	}
 
@@ -85,8 +85,8 @@ public class PureLibException extends Exception {
 			throw new NullPointerException("Message Id can't be null"); 
 		}
 		else {
-			this.messageId = null;
-			this.parameters = null;
+			this.messageId = messageId;
+			this.parameters = parameters;
 		}
 	}
 

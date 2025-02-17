@@ -204,7 +204,7 @@ public abstract class AbstractPreprocessingReader extends Reader {
 			this.errCallback = getOption(ERROR_PROCESSING_CALLBACK,ErrorProcessingCallback.class,new ErrorProcessingCallback(){
 										@Override
 										public void processError(final int line, final String sourceStream, final String message) throws SyntaxException {
-											throw new SyntaxException(line,0,message);
+											throw new SyntaxException(line, 0, message);
 										}
 						
 										@Override

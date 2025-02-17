@@ -10,11 +10,13 @@ import java.util.Objects;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.SyntaxNode;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.matrix.interfaces.Matrix;
 import chav1961.purelib.matrix.interfaces.MatrixCalc;
 import chav1961.purelib.streams.DataOutputAdapter;
@@ -254,7 +256,7 @@ public abstract class AbstractMatrix implements Matrix {
 			final int			pos = buildTree(Priority.ADD, lexArray, 0, root);
 			
 			if (lexArray[pos].type != LexType.EOF) {
-				throw new SyntaxException(0, lexArray[pos].pos, "Unparsed tail");
+				throw new SyntaxException(0, lexArray[pos].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL));
 			}
 			else {
 				final List<Command>			commands = new ArrayList<>();
@@ -639,7 +641,7 @@ all:	for (;;) {
 						}
 					}
 					else {
-						throw new SyntaxException(0, begin, "Unknown lexema");
+						throw new SyntaxException(0, begin, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNKNOWN_LEXEMA));
 					}
 			}
 		}
@@ -739,7 +741,7 @@ all:	for (;;) {
 							}
 						}
 						else {
-							throw new SyntaxException(0, node.col, "Missing ')'");
+							throw new SyntaxException(0, node.col, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 						}
 						break;
 					case MATRIX_REF		:
@@ -753,7 +755,7 @@ all:	for (;;) {
 							from++;
 						}
 						else {
-							throw new SyntaxException(0, node.col, "Missing ')'");
+							throw new SyntaxException(0, node.col, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 						}
 						break;
 					case IMAGE_CONSTANT	:
@@ -767,7 +769,7 @@ all:	for (;;) {
 						node.cargo = new double[] {source[from++].value, 0};
 						break;
 					default :
-						throw new SyntaxException(0, node.col, "Operand is missing");
+						throw new SyntaxException(0, node.col, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPERAND));
 				}
 				break;
 			default:

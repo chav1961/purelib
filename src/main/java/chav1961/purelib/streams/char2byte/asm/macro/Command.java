@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.streams.char2byte.asm.Asm;
 
 abstract class Command {
@@ -423,7 +425,7 @@ class ForCommand extends LoopCommand {
 						parameters[3] = new ConstantNode(1);
 					}
 					else {
-						throw new SyntaxException(lineNo,from-begin,"Unparsed tail in the operator!");  
+						throw new SyntaxException(lineNo, from-begin, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL));  
 					}
 					parameters[0] = var;
 					return this;

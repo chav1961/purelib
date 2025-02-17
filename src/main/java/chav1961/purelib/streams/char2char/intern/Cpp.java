@@ -30,7 +30,7 @@ class Cpp {
 
 	public Cpp(final File includeRoot) {
 		if (includeRoot == null) {
-			throw new IllegalArgumentException("Inclide root can't be null");
+			throw new IllegalArgumentException("Include root can't be null");
 		}
 		else {
 			this.includeRoot = includeRoot;

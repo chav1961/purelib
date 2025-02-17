@@ -12,9 +12,11 @@ import java.util.Map;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
+import chav1961.purelib.i18n.PureLibLocalizer;
 
 /**
  * <p>This class implements preprocessing for the reader nested. It supports a set of preprocessor operators:</p>
@@ -451,7 +453,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 							current[0]++;
 						}
 						else {
-							throw new SyntaxException(lineNo,current[0],"Missing ')'");
+							throw new SyntaxException(lineNo, current[0], URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
 						}
 						break;
 					case '?'	:
@@ -607,7 +609,7 @@ loop:		while (from < to) {		// Seek available inline comment in the definition s
 			final long		tail = extractTail(data,current[0],to);
 			
 			if (data[(int) (tail >> 32)] > ' ' && !(getInlineComment().length > 0 && UnsafedCharUtils.uncheckedCompare(data,(int) (tail >> 32),getInlineComment(),0,getInlineComment().length))) {
-				throw new SyntaxException(lineNo,0,"garbage in the tail of expression"); 
+				throw new SyntaxException(lineNo, 0, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL)); 
 			}
 		}
 		return result;

@@ -13,10 +13,25 @@ import chav1961.purelib.basic.PureLibSettings;
  *  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1 
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public class SyntaxException extends ContentException {
 	private static final long serialVersionUID = 8141880743233589596L;
+	
+	public static final String	SE_UNKNOWN_LEXEMA = "syntaxException.unknown.lexema";
+	public static final String	SE_UNPARSED_TAIL = "syntaxException.unparsed.tail";
+	public static final String	SE_MISSING_OPERAND = "syntaxException.missing.operand";
+	public static final String	SE_MISSING_OPEN_BRACKET = "syntaxException.missing.open.bracket";
+	public static final String	SE_MISSING_CLOSE_BRACKET = "syntaxException.missing.close.bracket";
+	public static final String	SE_MISSING_OPEN_SQUARE_BRACKET = "syntaxException.missing.open.square.bracket";
+	public static final String	SE_MISSING_CLOSE_SQUARE_BRACKET = "syntaxException.missing.close.square.bracket";
+	public static final String	SE_MISSING_OPEN_FIGURE_BRACKET = "syntaxException.missing.open.figure.bracket";
+	public static final String	SE_MISSING_CLOSE_FIGURE_BRACKET = "syntaxException.missing.close.figure.bracket";
+	public static final String	SE_MISSING_COMMA = "syntaxException.missing.comma";
+	public static final String	SE_MISSING_COLON = "syntaxException.missing.colon";
+	public static final String	SE_MISSING_SEMICOLON = "syntaxException.missing.semicolon";
+	public static final String	SE_MISSING_NAME = "syntaxException.missing.name";
+	public static final String	SE_DUPLICATE_NAME = "syntaxException.duplicate.name";
 	
 	private final long	lineNo, pos;
 
