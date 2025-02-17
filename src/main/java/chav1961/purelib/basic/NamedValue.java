@@ -1,9 +1,14 @@
 package chav1961.purelib.basic;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * <p>This class is a wrapper for key/value pairs.</p>
+ * <p>This class is a wrapper for key/value pairs</p>
+ * <p>This class is thread-safe</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
+ * @thread.safe
  * @param <T> value type
  */
 public class NamedValue<T> {
