@@ -195,7 +195,7 @@ loop:	for(;;) {
 				from = end;
 			}
 			else if (seq.charAt(start) >= '0' && seq.charAt(start) <= '9') {
-				boolean	wasDot = false;
+				boolean	wasDot = false; 
 				int		end = start;
 
 				while (end < to && seq.charAt(end) > ' ' && (seq.charAt(end) >= '0' && seq.charAt(end) <= '9') || seq.charAt(end) == '.') {
@@ -250,6 +250,8 @@ loop:	for(;;) {
 
 	private static int buildTree(final Depth depth, final Lexema[] source, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) throws SyntaxException {
 		// TODO Auto-generated method stub
+		final int	pos = source[from].pos;
+		
 		switch (depth) {
 			case OR			:
 				from = buildTree(Depth.AND, source, from, root);
@@ -257,10 +259,11 @@ loop:	for(;;) {
 					final List<SyntaxNode<NodeType, SyntaxNode<?, ?>>>	list = new ArrayList<>();
 					SyntaxNode<NodeType, SyntaxNode<?, ?>>	right = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
 					
+					list.add(right);
 					do {
-						list.add(right);
 						right = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
 						from = buildTree(Depth.AND, source, from + 1, right);
+						list.add(right);
 					} while (source[from].type == LexType.OR_WORD);
 					root.type = NodeType.OR;
 					root.children = list.toArray(new SyntaxNode[list.size()]);
@@ -272,10 +275,11 @@ loop:	for(;;) {
 					final List<SyntaxNode<NodeType, SyntaxNode<?, ?>>>	list = new ArrayList<>();
 					SyntaxNode<NodeType, SyntaxNode<?, ?>>	right = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
 					
+					list.add(right);
 					do {
-						list.add(right);
 						right = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
 						from = buildTree(Depth.NOT, source, from + 1, right);
+						list.add(right);
 					} while (source[from].type == LexType.AND_WORD);
 					root.type = NodeType.AND;
 					root.children = list.toArray(new SyntaxNode[list.size()]);
@@ -283,32 +287,256 @@ loop:	for(;;) {
 				break;
 			case NOT		:
 				if (source[from].type == LexType.NOT_WORD) {
-					from = buildTree(Depth.COMPARE, source, from, root);
+					final SyntaxNode<NodeType, SyntaxNode<?, ?>>	notValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+					
+					from = buildTree(Depth.SEQUENCE, source, from + 1, notValue);
+					root.type = NodeType.NOT;
+					root.children = new SyntaxNode[] {notValue};
 				}
 				else {
-					from = buildTree(Depth.COMPARE, source, from, root);
+					from = buildTree(Depth.SEQUENCE, source, from, root);
 				}
 				break;
+			case SEQUENCE	:
+				final List<SyntaxNode<NodeType, SyntaxNode<?, ?>>>	list = new ArrayList<>();
+
+				do {
+					final SyntaxNode<NodeType, SyntaxNode<?, ?>>	value = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone(); 
+					
+					from = buildTree(Depth.COMPARE, source, from, value);
+					list.add(value);
+				} while (source[from].type != LexType.EOF && source[from].type != LexType.AND_WORD && source[from].type != LexType.OR_WORD && source[from].type != LexType.CLOSE);
+				root.type = NodeType.SEQUENCE;
+				root.children = list.toArray(new SyntaxNode[list.size()]);
+				root.row = 0;
+				root.col = pos;
+				break;
 			case COMPARE	:
+				boolean	leftRange = false, rightRange = false;
+				
 				switch (source[from].type) {
-					case OPEN :
-						from = buildTree(Depth.OR, source, from + 1, root);
+					case OPENB	:
+						leftRange = true;
+					case OPENF	:
+						final SyntaxNode<NodeType, SyntaxNode<?, ?>>	leftValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone(); 
+						final SyntaxNode<NodeType, SyntaxNode<?, ?>>	rightValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+						
+						from = buildTree(Depth.TERM, source, from + 1, leftValue);
+						if (source[from].type == LexType.TO_WORD) {
+							from = buildTree(Depth.TERM, source, from + 1, rightValue);
+							if (source[from].type == LexType.CLOSEB) {
+								rightRange = true;
+							}
+							else if (source[from].type != LexType.CLOSEF) {
+								throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, leftRange ? SyntaxException.SE_MISSING_CLOSE_SQUARE_BRACKET : SyntaxException.SE_MISSING_CLOSE_FIGURE_BRACKET));
+							}
+							root.type = NodeType.RANGE_MATCHES;
+							root.children = new SyntaxNode[] {leftValue, rightValue};
+							root.value = (leftRange ? 2 : 0) + (rightRange ? 1 : 0); 
+							root.row = 0;
+							root.col = pos;
+							from++;
+						}
+						else {
+							throw new SyntaxException(0, source[from].pos, "Missing TO word");
+						}
+						break;
+					default :
+						from = buildTree(Depth.PREFIX, source, from, root);
+				}
+				break;
+			case PREFIX		:
+				switch (source[from].type) {
+					case PLUS 	:
+						final SyntaxNode<NodeType, SyntaxNode<?, ?>>	plusValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone(); 
+						
+						from = buildTree(Depth.POSTFIX, source, from + 1, plusValue);
+						root.type = NodeType.MANDATORY;
+						root.children = new SyntaxNode[] {plusValue};
+						root.row = 0;
+						root.col = pos;
+						break;
+					case MINUS	:
+						final SyntaxNode<NodeType, SyntaxNode<?, ?>>	minusValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+						
+						from = buildTree(Depth.POSTFIX, source, from + 1, minusValue);
+						root.type = NodeType.PROHIBITED;
+						root.children = new SyntaxNode[] {minusValue};
+						root.row = 0;
+						root.col = pos;
+						break;
+					default :
+						from = buildTree(Depth.POSTFIX, source, from, root);
+				}
+				break;
+			case POSTFIX	:
+				from = buildTree(Depth.TERM, source, from, root);
+				switch (source[from].type) {
+					case BOOST:
+						if (source[from+1].type == LexType.INTEGER) {
+							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+							
+							root.type = NodeType.BOOST;
+							root.value = source[from+1].valueN; 
+							root.children = new SyntaxNode[] {boostValue};
+							root.row = 0;
+							root.col = source[from].pos;
+							from += 2;
+						}
+						else {
+							throw new SyntaxException(0, source[from+1].pos, "Missing integer");
+						}
+						break;
+					case FUZZY:
+						if (source[from+1].type == LexType.INTEGER) {
+							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+							
+							root.type = NodeType.PROXIMITY_MATCHES;
+							root.value = source[from+1].valueN; 
+							root.children = new SyntaxNode[] {boostValue};
+							root.row = 0;
+							root.col = source[from].pos;
+							from += 2;
+						}
+						else if (source[from+1].type == LexType.FLOAT) {
+							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+							
+							root.type = NodeType.FUSSY_MATCHES;
+							root.value = source[from+1].valueN; 
+							root.children = new SyntaxNode[] {boostValue};
+							root.row = 0;
+							root.col = source[from].pos;							
+							from += 2;
+						}
+						else {
+							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+							
+							root.type = NodeType.FUSSY_MATCHES;
+							root.value = Float.floatToIntBits(1.0f); 
+							root.children = new SyntaxNode[] {boostValue};
+							root.row = 0;
+							root.col = source[from].pos;
+							from++;
+						}
+						break;
+					default:
+						break;				
+				}
+				break;
+			case TERM	:
+				final SyntaxNode<NodeType, SyntaxNode<?, ?>>	termValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
+				final String	fieldName;
+				
+				if (source[from+1].type == LexType.COLON) {
+					fieldName = new String(source[from].valueC);
+					from += 2;
+				}
+				else {
+					fieldName = null;
+				}
+				switch (source[from].type) {
+					case OPEN	:
+						from = buildTree(Depth.OR, source, from + 1, termValue);
 						if (source[from].type == LexType.CLOSE) {
 							from++;
 						}
 						else {
-							throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));
+							throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_CLOSE_BRACKET));							
 						}
 						break;
-					default :
+					case FLOAT			:
+						termValue.type = NodeType.EQUALS;
+						termValue.cargo = Float.valueOf(Float.intBitsToFloat(source[from].valueN));
+						termValue.row = 0;
+						termValue.col = source[from].pos;
+						from++;
+						break;
+					case INTEGER		:
+						termValue.type = NodeType.EQUALS;
+						termValue.cargo = source[from].valueN;
+						termValue.row = 0;
+						termValue.col = source[from].pos;
+						from++;
+						break;
+					case PHRASE			:
+						termValue.type = NodeType.PHRASE_EQUALS;
+						termValue.cargo = source[from].valueC;
+						termValue.row = 0;
+						termValue.col = source[from].pos;
+						from++;
+						break;
+					case SINGLE_TERM	:
+						termValue.type = NodeType.EQUALS;
+						termValue.cargo = source[from].valueC;
+						termValue.row = 0;
+						termValue.col = source[from].pos;
+						from++;
+						break;
+					case WILDCARD_TERM	:
+						termValue.type = NodeType.MATCHES;
+						termValue.cargo = source[from].valueC;
+						termValue.row = 0;
+						termValue.col = source[from].pos;
+						from++;
+						break;
+					default	:
 						throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPERAND));
 				}
+				root.type = NodeType.EXTRACT;
+				root.cargo = fieldName;
+				root.children = new SyntaxNode[] {termValue};
+				root.row = 0;
+				root.col = pos;
 				break;
 			default :
 				throw new UnsupportedOperationException("Depth ["+depth+"] is not supported yet");
 		}
 		return from;
 	}
+	
+	static boolean match(final CharSequence	seq, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) {
+		final Lemma[]	lemmas = lemmatize(seq);
+		
+		return match(lemmas, 0, root) == lemmas.length;
+	}
+
+	static int match(final Lemma[] source, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) {
+		switch (root.type) {
+			case AND			:
+				break;
+			case BOOST			:
+				break;
+			case EQUALS			:
+				break;
+			case EXTRACT		:
+				break;
+			case FUSSY_MATCHES	:
+				break;
+			case MANDATORY		:
+				break;
+			case MATCHES		:
+				break;
+			case NOT			:
+				break;
+			case OR				:
+				break;
+			case PHRASE_EQUALS	:
+				break;
+			case PROHIBITED		:
+				break;
+			case PROXIMITY_MATCHES:
+				break;
+			case RANGE_MATCHES	:
+				break;
+			case SEQUENCE		:
+				break;
+			default:
+				throw new UnsupportedOperationException("Root node type ["+root.type+"] is not supported yet");
+		}
+		
+		return 0;
+	}
+	
 	
 	static enum LemmaType {
 		WORD,
@@ -414,6 +642,7 @@ loop:	for(;;) {
 		PHRASE_EQUALS,
 		MANDATORY,
 		PROHIBITED,
+		BOOST,
 		MATCHES,
 		FUSSY_MATCHES,
 		PROXIMITY_MATCHES,
@@ -439,6 +668,30 @@ loop:	for(;;) {
 		OR,
 		AND,
 		NOT,
-		COMPARE
+		COMPARE,
+		SEQUENCE,
+		PREFIX,
+		POSTFIX,
+		TERM
+	}
+	
+	private static class Content implements Cloneable {
+		final Lemma[]	lemmas;
+		int				pos;
+		
+		private Content(final Lemma[] lemmas) {
+			this.lemmas = lemmas;
+			this.pos = 0;
+		}
+
+		@Override
+		public Content clone() throws CloneNotSupportedException {
+			return (Content) super.clone();
+		}
+		
+		@Override
+		public String toString() {
+			return "Content [lemmas=" + Arrays.toString(lemmas) + ", pos=" + pos + "]";
+		}
 	}
 }
