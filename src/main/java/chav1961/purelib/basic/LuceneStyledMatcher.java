@@ -2,7 +2,9 @@ package chav1961.purelib.basic;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -493,50 +495,162 @@ loop:	for(;;) {
 		}
 		return from;
 	}
-	
-	static boolean match(final CharSequence	seq, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) {
-		final Lemma[]	lemmas = lemmatize(seq);
-		
-		return match(lemmas, 0, root) == lemmas.length;
-	}
 
-	static int match(final Lemma[] source, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) {
+	static boolean match(final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final CharSequence seq) {
+		return match(root, (s)->seq);
+	}	
+	
+	static boolean match(final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final Function<String, CharSequence> callback) {
+		final ContentRepo	repo = new ContentRepo(callback);
+		
+		return match(repo.get(null).lemmas, 0, root, repo) == TestResult.TRUE;
+	}	
+	
+	private static TestResult match(final Lemma[] lemmas, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final ContentRepo repo) {
+		TestResult	result;
+		
 		switch (root.type) {
 			case AND			:
-				break;
+				for(SyntaxNode<?, ?> item : root.children) {
+					if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) item, repo)) != TestResult.TRUE) {
+						return result; 
+					}
+				}
+				return TestResult.TRUE;
 			case BOOST			:
 				break;
 			case EQUALS			:
-				break;
+				return equals(lemmas, from, root.cargo) ? TestResult.TRUE : TestResult.FALSE;
 			case EXTRACT		:
-				break;
+				if (root.cargo == null) {
+					return match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo); 
+				}
+				else {
+					return match(repo.get(root.cargo.toString()).lemmas, 0, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo);
+				}
 			case FUSSY_MATCHES	:
-				break;
+				return equals(lemmas, from, root.cargo, Float.intBitsToFloat((int)root.value)) ? TestResult.TRUE : TestResult.FALSE;
 			case MANDATORY		:
-				break;
+				for (int index = 0; index < lemmas.length; index++) {
+					if (match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo) == TestResult.TRUE) {
+						return TestResult.TRUE;
+					}
+				}
+				return TestResult.ULTIMATE_FALSE;
 			case MATCHES		:
 				break;
 			case NOT			:
-				break;
+				switch (result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo)) {
+					case FALSE	:
+						return TestResult.TRUE;
+					case TRUE	:
+						return TestResult.FALSE;
+					case ULTIMATE_FALSE:
+						return TestResult.ULTIMATE_FALSE;
+					default :
+						throw new UnsupportedOperationException("Result type ["+result+"] is not supported yet");
+				}
 			case OR				:
-				break;
+				for(SyntaxNode<?, ?> item : root.children) {
+					if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) item, repo)) == TestResult.TRUE) { 
+						return TestResult.TRUE;
+					}
+				}
+				return TestResult.FALSE;
 			case PHRASE_EQUALS	:
 				break;
 			case PROHIBITED		:
-				break;
+				if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo)) == TestResult.TRUE) { 
+					return TestResult.ULTIMATE_FALSE;
+				}
+				else {
+					return TestResult.TRUE;
+				}
 			case PROXIMITY_MATCHES:
 				break;
 			case RANGE_MATCHES	:
 				break;
 			case SEQUENCE		:
-				break;
+				int	seqIndex = 0;
+				
+				for(int index = from; index < lemmas.length; index++) {
+					switch (result = match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[seqIndex], repo)) {
+						case FALSE	:
+							break;
+						case TRUE	:
+							if (++seqIndex >= root.children.length) {
+								return TestResult.TRUE;
+							}
+							break;
+						case ULTIMATE_FALSE:
+							return TestResult.ULTIMATE_FALSE;
+						default:
+							throw new UnsupportedOperationException("Result type ["+result+"] is not supported yet");
+					}
+				}
+				return TestResult.FALSE;
 			default:
 				throw new UnsupportedOperationException("Root node type ["+root.type+"] is not supported yet");
 		}
-		
-		return 0;
+		return TestResult.FALSE;
+	}
+
+	private static boolean equals(final Lemma[] content, final int index, final Object value) {
+		if ((value instanceof Float) && content[index].type == LemmaType.FLOAT) {
+			return Math.abs(((Float)value).floatValue() - Float.intBitsToFloat((int)content[index].valueN)) < 0.001; 
+		}
+		else if ((value instanceof Integer) && content[index].type == LemmaType.INTEGER) {
+			return ((Integer)value).longValue() == content[index].valueN;
+		}
+		else if ((value instanceof char[]) && content[index].type == LemmaType.WORD) {
+			return CharUtils.compare(content[index].valueS, 0, (char[])value); 
+		}
+		else {
+			return false;
+		}
 	}
 	
+	private static boolean equals(final Lemma[] content, final int index, final Object value, final float fuzzy) {
+		if ((value instanceof Float) && content[index].type == LemmaType.FLOAT) {
+			return Math.abs(((Float)value).floatValue() - Float.intBitsToFloat((int)content[index].valueN)) < 0.001; 
+		}
+		else if ((value instanceof Integer) && content[index].type == LemmaType.INTEGER) {
+			return ((Integer)value).longValue() == content[index].valueN;
+		}
+		else if ((value instanceof char[]) && content[index].type == LemmaType.WORD) {
+			return CharUtils.compare(content[index].valueS, 0, (char[])value); 
+		}
+		else {
+			return false;
+		}
+	}
+
+	private static boolean between(final Lemma[] content, final int index, final Object minValue, final boolean minInclusive, final Object maxValue, final boolean maxInclusive) {
+		if ((minValue instanceof Float) && content[index].type == LemmaType.FLOAT) {
+			final float	val = Float.intBitsToFloat((int)content[index].valueN);
+			
+			return (val > ((Float)minValue).floatValue() || minInclusive && equals(content, index, minValue))
+					&&
+				   (val < ((Float)maxValue).floatValue() || maxInclusive && equals(content, index, maxValue)); 
+		}
+		else if ((minValue instanceof Integer) && content[index].type == LemmaType.INTEGER) {
+			final long	val = content[index].valueN;
+			
+			return (val > ((Integer)minValue).longValue() || minInclusive && equals(content, index, minValue))
+					&&
+				   (val < ((Integer)maxValue).longValue() || maxInclusive && equals(content, index, maxValue)); 
+		}
+		else if ((minValue instanceof char[]) && content[index].type == LemmaType.WORD) {
+			final char[]	val = content[index].valueS;
+			
+			return (CharUtils.compareTo(val, (char[])minValue) > 0 || minInclusive && equals(content, index, minValue))
+					&&
+				   (CharUtils.compareTo(val, (char[])maxValue) < 0  || maxInclusive && equals(content, index, maxValue)); 
+		}
+		else {
+			return false;
+		}
+	}
 	
 	static enum LemmaType {
 		WORD,
@@ -654,6 +768,12 @@ loop:	for(;;) {
 		ROOT;
 	}
 	
+	static enum TestResult {
+		TRUE,
+		FALSE,
+		ULTIMATE_FALSE
+	}
+	
 	private static class ReservedWords {
 		final char[]	word;
 		final LexType	type;
@@ -692,6 +812,34 @@ loop:	for(;;) {
 		@Override
 		public String toString() {
 			return "Content [lemmas=" + Arrays.toString(lemmas) + ", pos=" + pos + "]";
+		}
+	}
+	
+	private static class ContentRepo {
+		private final Function<String,CharSequence>	source;
+		private final Content				defaultContent;
+		private final Map<String, Content>	content = new HashMap<>();
+		
+		private ContentRepo(final Function<String,CharSequence> source) {
+			this.source = source;
+			this.defaultContent = new Content(lemmatize(source.apply(null)));
+		}
+		
+		Content get(final String field) {
+			if (field == null) {
+				return defaultContent;
+			}
+			else {
+				if (!content.containsKey(field)) {
+					content.put(field, new Content(lemmatize(source.apply(null))));
+				}
+				if (!content.containsKey(field)) {
+					throw new IllegalArgumentException("Content field ["+field+"] not found");
+				}
+				else {
+					return content.get(field);
+				}
+			}
 		}
 	}
 }

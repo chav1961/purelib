@@ -280,7 +280,8 @@ public class LuceneStyledMatherTest {
 	
 	@Test
 	public void matcherTest() throws SyntaxException {
-		
+		Assert.assertTrue(execute("assa", "assa"));
+		Assert.assertFalse(execute("asas", "assa"));
 	}
 	
 	private SyntaxNode<NodeType, SyntaxNode<?, ?>> buildTree(final String expr) throws SyntaxException {
@@ -292,5 +293,9 @@ public class LuceneStyledMatherTest {
 		
 		Assert.assertEquals(lexList.length - 1, LuceneStyledMatcher.buildTree(lexList, 0, root));
 		return root;
+	}
+
+	private boolean execute(final String expr, final String source) throws SyntaxException {
+		return LuceneStyledMatcher.match(buildTree(expr), source);
 	}
 }
