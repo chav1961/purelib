@@ -2,6 +2,7 @@ package chav1961.purelib.basic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -94,7 +95,7 @@ public class LuceneStyledMatherTest {
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.MATCHES, root.children[0].children[0].type);
-		Assert.assertTrue(root.children[0].children[0].cargo instanceof char[]);
+		Assert.assertTrue(root.children[0].children[0].cargo instanceof Pattern);
 
 		root = buildTree("test:assa");
 		
@@ -108,16 +109,16 @@ public class LuceneStyledMatherTest {
 		
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.FUSSY_MATCHES, root.children[0].type);
-		Assert.assertEquals(1.0f, Float.intBitsToFloat((int)root.children[0].value), 0.001f);
+		Assert.assertEquals(0.5f, Float.intBitsToFloat((int)root.children[0].value), 0.001f);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[0].type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].children[0].type);
 		Assert.assertTrue(root.children[0].children[0].children[0].cargo instanceof char[]);
 
-		root = buildTree("assa~0.5");
+		root = buildTree("assa~0.8");
 		
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.FUSSY_MATCHES, root.children[0].type);
-		Assert.assertEquals(0.5f, Float.intBitsToFloat((int)root.children[0].value), 0.001f);
+		Assert.assertEquals(0.8f, Float.intBitsToFloat((int)root.children[0].value), 0.001f);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[0].type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].children[0].type);
 		Assert.assertTrue(root.children[0].children[0].children[0].cargo instanceof char[]);
@@ -282,6 +283,18 @@ public class LuceneStyledMatherTest {
 	public void matcherTest() throws SyntaxException {
 		Assert.assertTrue(execute("assa", "assa"));
 		Assert.assertFalse(execute("asas", "assa"));
+
+		Assert.assertTrue(execute("assa", "test assa test"));
+		Assert.assertTrue(execute("assa massa", "test assa test massa"));
+		Assert.assertTrue(execute("assa massa", "test massa test assa"));
+		Assert.assertFalse(execute("assa massa", "test massa test"));
+		
+		Assert.assertTrue(execute("ass*", "test assa test"));
+		Assert.assertTrue(execute("ass* massa", "test massa test assa"));
+		Assert.assertFalse(execute("ass*", "test massa test"));
+
+		Assert.assertTrue(execute("sasa~", "test assa test"));
+		Assert.assertFalse(execute("sasa~0.8", "test assa test"));
 	}
 	
 	private SyntaxNode<NodeType, SyntaxNode<?, ?>> buildTree(final String expr) throws SyntaxException {

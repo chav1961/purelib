@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
+import chav1961.purelib.basic.CharUtils.Prescription;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.i18n.PureLibLocalizer;
@@ -414,7 +416,7 @@ loop:	for(;;) {
 							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
 							
 							root.type = NodeType.FUSSY_MATCHES;
-							root.value = Float.floatToIntBits(1.0f); 
+							root.value = Float.floatToIntBits(0.5f); 
 							root.children = new SyntaxNode[] {boostValue};
 							root.row = 0;
 							root.col = source[from].pos;
@@ -476,7 +478,7 @@ loop:	for(;;) {
 						break;
 					case WILDCARD_TERM	:
 						termValue.type = NodeType.MATCHES;
-						termValue.cargo = source[from].valueC;
+						termValue.cargo = Pattern.compile(Utils.fileMask2Regex(new String(source[from].valueC)));
 						termValue.row = 0;
 						termValue.col = source[from].pos;
 						from++;
@@ -520,7 +522,7 @@ loop:	for(;;) {
 			case BOOST			:
 				break;
 			case EQUALS			:
-				return equals(lemmas, from, root.cargo) ? TestResult.TRUE : TestResult.FALSE;
+				return equals(lemmas[from], root.cargo) ? TestResult.TRUE : TestResult.FALSE;
 			case EXTRACT		:
 				if (root.cargo == null) {
 					return match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo); 
@@ -538,7 +540,7 @@ loop:	for(;;) {
 				}
 				return TestResult.ULTIMATE_FALSE;
 			case MATCHES		:
-				break;
+				return ((Pattern)root.cargo).matcher(CharUtils.toCharSequence(lemmas[from].valueS, 0, lemmas[from].valueS.length - 1)).matches() ? TestResult.TRUE : TestResult.FALSE;
 			case NOT			:
 				switch (result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo)) {
 					case FALSE	:
@@ -571,39 +573,42 @@ loop:	for(;;) {
 			case RANGE_MATCHES	:
 				break;
 			case SEQUENCE		:
-				int	seqIndex = 0;
-				
-				for(int index = from; index < lemmas.length; index++) {
-					switch (result = match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[seqIndex], repo)) {
-						case FALSE	:
-							break;
-						case TRUE	:
-							if (++seqIndex >= root.children.length) {
-								return TestResult.TRUE;
-							}
-							break;
-						case ULTIMATE_FALSE:
-							return TestResult.ULTIMATE_FALSE;
-						default:
-							throw new UnsupportedOperationException("Result type ["+result+"] is not supported yet");
+				for(int seqIndex = 0; seqIndex < root.children.length; seqIndex++) {
+					boolean	found = false;
+					
+					for(int index = 0; index < lemmas.length-1; index++) {
+						switch (result = match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[seqIndex], repo)) {
+							case FALSE	:
+								break;
+							case TRUE	:
+								found = true;
+								break;
+							case ULTIMATE_FALSE:
+								return TestResult.ULTIMATE_FALSE;
+							default:
+								throw new UnsupportedOperationException("Result type ["+result+"] is not supported yet");
+						}
+					}
+					if (!found) {
+						return TestResult.FALSE;
 					}
 				}
-				return TestResult.FALSE;
+				return TestResult.TRUE;
 			default:
 				throw new UnsupportedOperationException("Root node type ["+root.type+"] is not supported yet");
 		}
 		return TestResult.FALSE;
 	}
 
-	private static boolean equals(final Lemma[] content, final int index, final Object value) {
-		if ((value instanceof Float) && content[index].type == LemmaType.FLOAT) {
-			return Math.abs(((Float)value).floatValue() - Float.intBitsToFloat((int)content[index].valueN)) < 0.001; 
+	private static boolean equals(final Lemma content, final Object value) {
+		if ((value instanceof Float) && content.type == LemmaType.FLOAT) {
+			return Math.abs(((Float)value).floatValue() - Float.intBitsToFloat((int)content.valueN)) < 0.001; 
 		}
-		else if ((value instanceof Integer) && content[index].type == LemmaType.INTEGER) {
-			return ((Integer)value).longValue() == content[index].valueN;
+		else if ((value instanceof Integer) && content.type == LemmaType.INTEGER) {
+			return ((Integer)value).longValue() == content.valueN;
 		}
-		else if ((value instanceof char[]) && content[index].type == LemmaType.WORD) {
-			return CharUtils.compare(content[index].valueS, 0, (char[])value); 
+		else if ((value instanceof char[]) && content.type == LemmaType.WORD) {
+			return CharUtils.compare(content.valueS, 0, (char[])value); 
 		}
 		else {
 			return false;
@@ -618,7 +623,14 @@ loop:	for(;;) {
 			return ((Integer)value).longValue() == content[index].valueN;
 		}
 		else if ((value instanceof char[]) && content[index].type == LemmaType.WORD) {
-			return CharUtils.compare(content[index].valueS, 0, (char[])value); 
+			if (CharUtils.compare(content[index].valueS, 0, (char[])value)) {
+				return true;
+			}
+			else {
+				final Prescription 	pre = CharUtils.calcLevenstain(content[index].valueS, (char[])value);
+				
+				return 1.0 * pre.distance / content[index].valueS.length >= fuzzy;
+			}
 		}
 		else {
 			return false;
