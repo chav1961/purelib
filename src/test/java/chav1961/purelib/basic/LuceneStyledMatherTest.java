@@ -19,29 +19,28 @@ public class LuceneStyledMatherTest {
 	public void parserTest() throws SyntaxException {
 		final List<LuceneStyledMatcher.Lexema>	lex = new ArrayList<>();
 		
-		LuceneStyledMatcher.parse((": ~ ( ) [ ] { } + - ^ \"assa\" ass\\*a a?* 10 3.5 to and or not"+LuceneStyledMatcher.EOF).toCharArray(), 0, lex);
-		Assert.assertEquals(21, lex.size());
+		LuceneStyledMatcher.parse((": ( ) [ ] { } + - ^ \"assa\" ass\\*a a?* 10 3.5 to and or not"+LuceneStyledMatcher.EOF).toCharArray(), 0, lex);
+		Assert.assertEquals(20, lex.size());
 		Assert.assertEquals(LuceneStyledMatcher.LexType.COLON, lex.get(0).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.FUZZY, lex.get(1).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.OPEN, lex.get(2).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.CLOSE, lex.get(3).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.OPENB, lex.get(4).type); 
-		Assert.assertEquals(LuceneStyledMatcher.LexType.CLOSEB, lex.get(5).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.OPENF, lex.get(6).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.CLOSEF, lex.get(7).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.PLUS, lex.get(8).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.MINUS, lex.get(9).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.BOOST, lex.get(10).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.PHRASE, lex.get(11).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.SINGLE_TERM, lex.get(12).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.WILDCARD_TERM, lex.get(13).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.INTEGER, lex.get(14).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.FLOAT, lex.get(15).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.TO_WORD, lex.get(16).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.AND_WORD, lex.get(17).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.OR_WORD, lex.get(18).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.NOT_WORD, lex.get(19).type);
-		Assert.assertEquals(LuceneStyledMatcher.LexType.EOF, lex.get(20).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.OPEN, lex.get(1).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.CLOSE, lex.get(2).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.OPENB, lex.get(3).type); 
+		Assert.assertEquals(LuceneStyledMatcher.LexType.CLOSEB, lex.get(4).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.OPENF, lex.get(5).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.CLOSEF, lex.get(6).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.PLUS, lex.get(7).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.MINUS, lex.get(8).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.BOOST, lex.get(9).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.PHRASE, lex.get(10).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.SINGLE_TERM, lex.get(11).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.WILDCARD_TERM, lex.get(12).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.INTEGER, lex.get(13).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.FLOAT, lex.get(14).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.TO_WORD, lex.get(15).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.AND_WORD, lex.get(16).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.OR_WORD, lex.get(17).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.NOT_WORD, lex.get(18).type);
+		Assert.assertEquals(LuceneStyledMatcher.LexType.EOF, lex.get(19).type);
 		
 		try {
 			LuceneStyledMatcher.parse(("?"+LuceneStyledMatcher.EOF).toCharArray(), 0, lex);
@@ -67,6 +66,7 @@ public class LuceneStyledMatherTest {
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].type);
+		Assert.assertEquals(1.0f, Float.intBitsToFloat((int)root.children[0].children[0].value), 0.001f);
 		Assert.assertTrue(root.children[0].children[0].cargo instanceof char[]);
 
 		root = buildTree("\"assa\"");
@@ -74,7 +74,7 @@ public class LuceneStyledMatherTest {
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.PHRASE_EQUALS, root.children[0].children[0].type);
-		Assert.assertTrue(root.children[0].children[0].cargo instanceof char[]);
+		Assert.assertTrue(root.children[0].children[0].cargo instanceof Lemma[]);
 
 		root = buildTree("200");
 		
@@ -108,29 +108,26 @@ public class LuceneStyledMatherTest {
 		root = buildTree("assa~");
 		
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.FUSSY_MATCHES, root.children[0].type);
-		Assert.assertEquals(0.5f, Float.intBitsToFloat((int)root.children[0].value), 0.001f);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[0].type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].children[0].type);
-		Assert.assertTrue(root.children[0].children[0].children[0].cargo instanceof char[]);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].type);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].type);
+		Assert.assertEquals(0.5f, Float.intBitsToFloat((int)root.children[0].children[0].value), 0.001f);
+		Assert.assertTrue(root.children[0].children[0].cargo instanceof char[]);
 
 		root = buildTree("assa~0.8");
 		
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.FUSSY_MATCHES, root.children[0].type);
-		Assert.assertEquals(0.8f, Float.intBitsToFloat((int)root.children[0].value), 0.001f);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[0].type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].children[0].type);
-		Assert.assertTrue(root.children[0].children[0].children[0].cargo instanceof char[]);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].type);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].type);
+		Assert.assertEquals(0.8f, Float.intBitsToFloat((int)root.children[0].children[0].value), 0.001f);
+		Assert.assertTrue(root.children[0].children[0].cargo instanceof char[]);
 
-		root = buildTree("assa~10");
+		root = buildTree("\"assa\"~10");
 		
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.PROXIMITY_MATCHES, root.children[0].type);
-		Assert.assertEquals(10, root.children[0].value);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[0].type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].children[0].type);
-		Assert.assertTrue(root.children[0].children[0].children[0].cargo instanceof char[]);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].type);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.PHRASE_EQUALS, root.children[0].children[0].type);
+		Assert.assertEquals(10, root.children[0].children[0].value);
+		Assert.assertTrue(root.children[0].children[0].cargo instanceof Lemma[]);
 
 		root = buildTree("assa^10");
 		
@@ -174,12 +171,10 @@ public class LuceneStyledMatherTest {
 		
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.SEQUENCE, root.type);
 		Assert.assertEquals(LuceneStyledMatcher.NodeType.RANGE_MATCHES, root.children[0].type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[0].type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].children[0].type);
-		Assert.assertTrue(root.children[0].children[0].children[0].cargo instanceof char[]);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EXTRACT, root.children[0].children[1].type);
-		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[1].children[0].type);
-		Assert.assertTrue(root.children[0].children[1].children[0].cargo instanceof char[]);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[0].type);
+		Assert.assertTrue(root.children[0].children[0].cargo instanceof char[]);
+		Assert.assertEquals(LuceneStyledMatcher.NodeType.EQUALS, root.children[0].children[1].type);
+		Assert.assertTrue(root.children[0].children[1].cargo instanceof char[]);
 
 		root = buildTree("not assa");
 		
@@ -295,6 +290,9 @@ public class LuceneStyledMatherTest {
 
 		Assert.assertTrue(execute("sasa~", "test assa test"));
 		Assert.assertFalse(execute("sasa~0.8", "test assa test"));
+
+		Assert.assertTrue(execute("[1 to 10]", "test 2 test"));
+		Assert.assertFalse(execute("[1 to 10]", "test 20 test"));
 	}
 	
 	private SyntaxNode<NodeType, SyntaxNode<?, ?>> buildTree(final String expr) throws SyntaxException {
@@ -309,6 +307,8 @@ public class LuceneStyledMatherTest {
 	}
 
 	private boolean execute(final String expr, final String source) throws SyntaxException {
-		return LuceneStyledMatcher.match(buildTree(expr), source);
+		final int[]	relevance = new int[1];
+
+		return LuceneStyledMatcher.match(buildTree(expr), source, relevance);
 	}
 }

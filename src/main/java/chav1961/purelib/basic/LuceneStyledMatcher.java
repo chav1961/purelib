@@ -6,10 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
+import java.util.function.IntFunction;
 import java.util.regex.Pattern;
 
 import chav1961.purelib.basic.CharUtils.Prescription;
+import chav1961.purelib.basic.CharUtils.RelevanceFunction;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.i18n.PureLibLocalizer;
@@ -23,7 +24,7 @@ class LuceneStyledMatcher {
 													new ReservedWords("NOT", LexType.NOT_WORD), 
 												}; 
 	
-	static Predicate<Function<String,String>> parse(final String pattern) throws SyntaxException {
+	static RelevanceFunction parse(final CharSequence pattern) throws SyntaxException {
 		if (pattern == null) {
 			throw new NullPointerException("Pattern can't be null");
 		}
@@ -41,20 +42,31 @@ class LuceneStyledMatcher {
 				throw new SyntaxException(0, lexemas[stop].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_UNPARSED_TAIL));
 			}
 			else {
-				return null;
+				return new RelevanceFunction() {
+					@Override
+					public int test(final Function<String, CharSequence> callback) {
+						final int[]	relevance = new int[1];
+						
+						if (match(root, callback, relevance)) {
+							return relevance[0];
+						}
+						else {
+							return 0;
+						}
+					}
+				};
 			}
 		}
 	}
 	
 	static void parse(final char[] source, int from, final List<Lexema> target) throws SyntaxException {
 		final StringBuilder	sb = new StringBuilder();
-		final long[]		forLongs = new long[2];
+		final float[]	forFloats = new float[1];
+		final int[]		forInts = new int[1];
+		final long[]	forLongs = new long[2];
 		
 loop:	for(;;) {
-			while (source[from] <= ' ' && source[from] != EOF) {
-				from++;
-			}
-			final int	start = from;
+			final int	start = from = skipBlank(source, from);
 			
 			switch (source[from]) {
 				case EOF 	:
@@ -62,10 +74,6 @@ loop:	for(;;) {
 					break loop;
 				case ':'	:
 					target.add(new Lexema(start, LexType.COLON));
-					from++;
-					break;
-				case '~'	:
-					target.add(new Lexema(start, LexType.FUZZY));
 					from++;
 					break;
 				case '('	:
@@ -114,8 +122,17 @@ loop:	for(;;) {
 					break;
 				case '\"'	:
 					try {
-						from = CharUtils.parseStringExtended(source, start+1, '\"', sb);
-						target.add(new Lexema(start, LexType.PHRASE, sb.toString().toCharArray()));
+						final int	proximity;
+						
+						from = skipBlank(source, CharUtils.parseStringExtended(source, start + 1, '\"', sb));
+						if (source[from] == '~') {
+							from = CharUtils.parseInt(source, skipBlank(source, from + 1), forInts, true);
+							proximity = forInts[0];
+						}
+						else {
+							proximity = 1;
+						}
+						target.add(new Lexema(start, LexType.PHRASE, proximity, lemmatize(sb)));
 					} catch (IllegalArgumentException exc) {
 						throw new SyntaxException(0, start, "unpaired quotas");
 					}
@@ -151,7 +168,7 @@ loop:	for(;;) {
 						}
 						from = end;
 						if (isWildcard) {
-							target.add(new Lexema(start, LexType.WILDCARD_TERM, Arrays.copyOfRange(source, start, end)));
+							target.add(new Lexema(start, LexType.WILDCARD_TERM, Arrays.copyOfRange(source, start, end), 1.0f));
 						}
 						else {
 							for (ReservedWords word : WORDS) {
@@ -160,7 +177,23 @@ loop:	for(;;) {
 									continue loop;
 								}
 							}
-							target.add(new Lexema(start, LexType.SINGLE_TERM, Arrays.copyOfRange(source, start, end)));
+							from = skipBlank(source, from);
+							if (source[from] == '~') {
+								from = skipBlank(source, from + 1);
+								final float	fuzzy;
+								
+								if (Character.isDigit(source[from])) {
+									from = CharUtils.parseFloat(source, from, forFloats, true);
+									fuzzy = forFloats[0];
+								}
+								else {
+									fuzzy = 0.5f;
+								}
+								target.add(new Lexema(start, LexType.SINGLE_TERM, Arrays.copyOfRange(source, start, end), fuzzy));
+							}
+							else {
+								target.add(new Lexema(start, LexType.SINGLE_TERM, Arrays.copyOfRange(source, start, end), 1.0f));
+							}
 						}
 					}
 					else {
@@ -171,6 +204,13 @@ loop:	for(;;) {
 		}
 	}
 
+	private static int skipBlank(final char[] source, int from) {
+		while (source[from] <= ' ' && source[from] != EOF) {
+			from++;
+		}
+		return from;
+	}
+	
 	static int buildTree(final Lexema[] source, final int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) throws SyntaxException {
 		return buildTree(Depth.OR, source, from, root);
 	}
@@ -325,9 +365,9 @@ loop:	for(;;) {
 						final SyntaxNode<NodeType, SyntaxNode<?, ?>>	leftValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone(); 
 						final SyntaxNode<NodeType, SyntaxNode<?, ?>>	rightValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
 						
-						from = buildTree(Depth.TERM, source, from + 1, leftValue);
+						from = buildTerm(source, from + 1, leftValue);
 						if (source[from].type == LexType.TO_WORD) {
-							from = buildTree(Depth.TERM, source, from + 1, rightValue);
+							from = buildTerm(source, from + 1, rightValue);
 							if (source[from].type == LexType.CLOSEB) {
 								rightRange = true;
 							}
@@ -391,38 +431,6 @@ loop:	for(;;) {
 							throw new SyntaxException(0, source[from+1].pos, "Missing integer");
 						}
 						break;
-					case FUZZY:
-						if (source[from+1].type == LexType.INTEGER) {
-							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
-							
-							root.type = NodeType.PROXIMITY_MATCHES;
-							root.value = source[from+1].valueN; 
-							root.children = new SyntaxNode[] {boostValue};
-							root.row = 0;
-							root.col = source[from].pos;
-							from += 2;
-						}
-						else if (source[from+1].type == LexType.FLOAT) {
-							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
-							
-							root.type = NodeType.FUSSY_MATCHES;
-							root.value = source[from+1].valueN; 
-							root.children = new SyntaxNode[] {boostValue};
-							root.row = 0;
-							root.col = source[from].pos;							
-							from += 2;
-						}
-						else {
-							final SyntaxNode<NodeType, SyntaxNode<?, ?>>	boostValue = (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.clone();
-							
-							root.type = NodeType.FUSSY_MATCHES;
-							root.value = Float.floatToIntBits(0.5f); 
-							root.children = new SyntaxNode[] {boostValue};
-							root.row = 0;
-							root.col = source[from].pos;
-							from++;
-						}
-						break;
 					default:
 						break;				
 				}
@@ -464,13 +472,15 @@ loop:	for(;;) {
 						break;
 					case PHRASE			:
 						termValue.type = NodeType.PHRASE_EQUALS;
-						termValue.cargo = source[from].valueC;
+						termValue.value = source[from].valueN;
+						termValue.cargo = source[from].valueL;
 						termValue.row = 0;
 						termValue.col = source[from].pos;
 						from++;
 						break;
 					case SINGLE_TERM	:
 						termValue.type = NodeType.EQUALS;
+						termValue.value = source[from].valueN;
 						termValue.cargo = source[from].valueC;
 						termValue.row = 0;
 						termValue.col = source[from].pos;
@@ -497,44 +507,75 @@ loop:	for(;;) {
 		}
 		return from;
 	}
+	
+	private static int buildTerm(final Lexema[] source, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root) throws SyntaxException {
+		switch (source[from].type) {
+			case FLOAT			:
+				root.type = NodeType.EQUALS;
+				root.cargo = Float.valueOf(Float.intBitsToFloat(source[from].valueN));
+				root.row = 0;
+				root.col = source[from].pos;
+				from++;
+				break;
+			case INTEGER		:
+				root.type = NodeType.EQUALS;
+				root.cargo = source[from].valueN;
+				root.row = 0;
+				root.col = source[from].pos;
+				from++;
+				break;
+			case SINGLE_TERM	:
+				root.type = NodeType.EQUALS;
+				root.value = source[from].valueN;
+				root.cargo = source[from].valueC;
+				root.row = 0;
+				root.col = source[from].pos;
+				from++;
+				break;
+			default	:
+				throw new SyntaxException(0, source[from].pos, URIUtils.appendFragment2URI(PureLibLocalizer.LOCALIZER_SCHEME_URI, SyntaxException.SE_MISSING_OPERAND));
+		}
+		return from;
+	}
 
-	static boolean match(final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final CharSequence seq) {
-		return match(root, (s)->seq);
+	static boolean match(final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final CharSequence seq, final int[] relevance) {
+		return match(root, (s)->seq, relevance);
 	}	
 	
-	static boolean match(final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final Function<String, CharSequence> callback) {
+	static boolean match(final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final Function<String, CharSequence> callback, final int[] relevance) {
 		final ContentRepo	repo = new ContentRepo(callback);
 		
-		return match(repo.get(null).lemmas, 0, root, repo) == TestResult.TRUE;
+		return match(repo.get(null).lemmas, 0, root, repo, relevance) == TestResult.TRUE;
 	}	
 	
-	private static TestResult match(final Lemma[] lemmas, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final ContentRepo repo) {
+	private static TestResult match(final Lemma[] lemmas, int from, final SyntaxNode<NodeType, SyntaxNode<?, ?>> root, final ContentRepo repo, final int[] relevance) {
 		TestResult	result;
 		
 		switch (root.type) {
 			case AND			:
 				for(SyntaxNode<?, ?> item : root.children) {
-					if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) item, repo)) != TestResult.TRUE) {
+					if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) item, repo, relevance)) != TestResult.TRUE) {
 						return result; 
 					}
 				}
 				return TestResult.TRUE;
 			case BOOST			:
-				break;
+				if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo, relevance)) == TestResult.TRUE) {
+					relevance[0] += root.value; 
+				}
+				return result; 
 			case EQUALS			:
-				return equals(lemmas[from], root.cargo) ? TestResult.TRUE : TestResult.FALSE;
+				return equals(lemmas[from], root.cargo, Float.intBitsToFloat((int)root.value)) ? TestResult.TRUE : TestResult.FALSE;
 			case EXTRACT		:
 				if (root.cargo == null) {
-					return match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo); 
+					return match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo, relevance); 
 				}
 				else {
-					return match(repo.get(root.cargo.toString()).lemmas, 0, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo);
+					return match(repo.get(root.cargo.toString()).lemmas, 0, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo, relevance);
 				}
-			case FUSSY_MATCHES	:
-				return equals(lemmas, from, root.cargo, Float.intBitsToFloat((int)root.value)) ? TestResult.TRUE : TestResult.FALSE;
 			case MANDATORY		:
 				for (int index = 0; index < lemmas.length; index++) {
-					if (match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo) == TestResult.TRUE) {
+					if (match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo, relevance) == TestResult.TRUE) {
 						return TestResult.TRUE;
 					}
 				}
@@ -542,7 +583,7 @@ loop:	for(;;) {
 			case MATCHES		:
 				return ((Pattern)root.cargo).matcher(CharUtils.toCharSequence(lemmas[from].valueS, 0, lemmas[from].valueS.length - 1)).matches() ? TestResult.TRUE : TestResult.FALSE;
 			case NOT			:
-				switch (result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo)) {
+				switch (result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo, relevance)) {
 					case FALSE	:
 						return TestResult.TRUE;
 					case TRUE	:
@@ -552,35 +593,27 @@ loop:	for(;;) {
 					default :
 						throw new UnsupportedOperationException("Result type ["+result+"] is not supported yet");
 				}
-			case OR				:
-				for(SyntaxNode<?, ?> item : root.children) {
-					if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) item, repo)) == TestResult.TRUE) { 
-						return TestResult.TRUE;
-					}
-				}
-				return TestResult.FALSE;
 			case PHRASE_EQUALS	:
-				break;
+				return phraseEquals(lemmas, from, (Lemma[])root.cargo, 0, (int)root.value) ? TestResult.TRUE : TestResult.FALSE;
 			case PROHIBITED		:
-				if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo)) == TestResult.TRUE) { 
+				if ((result = match(lemmas, from, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[0], repo, relevance)) == TestResult.TRUE) { 
 					return TestResult.ULTIMATE_FALSE;
 				}
 				else {
 					return TestResult.TRUE;
 				}
-			case PROXIMITY_MATCHES:
-				break;
 			case RANGE_MATCHES	:
-				break;
-			case SEQUENCE		:
+				return between(lemmas[from], root.children[0].cargo, (root.value & 0x02) != 0, root.children[1].cargo, (root.value & 0x01) != 0) ? TestResult.TRUE : TestResult.FALSE;
+			case OR : case SEQUENCE :
 				for(int seqIndex = 0; seqIndex < root.children.length; seqIndex++) {
 					boolean	found = false;
 					
 					for(int index = 0; index < lemmas.length-1; index++) {
-						switch (result = match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[seqIndex], repo)) {
+						switch (result = match(lemmas, index, (SyntaxNode<NodeType, SyntaxNode<?, ?>>) root.children[seqIndex], repo, relevance)) {
 							case FALSE	:
 								break;
 							case TRUE	:
+								relevance[0]++;
 								found = true;
 								break;
 							case ULTIMATE_FALSE:
@@ -597,10 +630,28 @@ loop:	for(;;) {
 			default:
 				throw new UnsupportedOperationException("Root node type ["+root.type+"] is not supported yet");
 		}
-		return TestResult.FALSE;
 	}
 
-	private static boolean equals(final Lemma content, final Object value) {
+	private static boolean phraseEquals(final Lemma[] lemmas, final int from, final Lemma[] template, final int fromT, final int distance) {
+		if (from <= lemmas.length && lemmas[from].compareTo(template[fromT]) == 0) {
+			if (fromT >= template.length - 1) {
+				return true;
+			}
+			else {
+				for(int index = 1; index <= distance; index++) {
+					if (phraseEquals(lemmas, from + index, template, fromT + 1, distance)) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+	
+	private static boolean equals(final Lemma content, final Object value, final float fuzzy) {
 		if ((value instanceof Float) && content.type == LemmaType.FLOAT) {
 			return Math.abs(((Float)value).floatValue() - Float.intBitsToFloat((int)content.valueN)) < 0.001; 
 		}
@@ -608,28 +659,16 @@ loop:	for(;;) {
 			return ((Integer)value).longValue() == content.valueN;
 		}
 		else if ((value instanceof char[]) && content.type == LemmaType.WORD) {
-			return CharUtils.compare(content.valueS, 0, (char[])value); 
-		}
-		else {
-			return false;
-		}
-	}
-	
-	private static boolean equals(final Lemma[] content, final int index, final Object value, final float fuzzy) {
-		if ((value instanceof Float) && content[index].type == LemmaType.FLOAT) {
-			return Math.abs(((Float)value).floatValue() - Float.intBitsToFloat((int)content[index].valueN)) < 0.001; 
-		}
-		else if ((value instanceof Integer) && content[index].type == LemmaType.INTEGER) {
-			return ((Integer)value).longValue() == content[index].valueN;
-		}
-		else if ((value instanceof char[]) && content[index].type == LemmaType.WORD) {
-			if (CharUtils.compare(content[index].valueS, 0, (char[])value)) {
+			if (CharUtils.compare(content.valueS, 0, (char[])value)) {
 				return true;
 			}
-			else {
-				final Prescription 	pre = CharUtils.calcLevenstain(content[index].valueS, (char[])value);
+			else if (fuzzy != 1.0f) {
+				final Prescription 	pre = CharUtils.calcLevenstain(content.valueS, (char[])value);
 				
-				return 1.0 * pre.distance / content[index].valueS.length >= fuzzy;
+				return 1.0 * pre.distance / content.valueS.length <= (1 - fuzzy);
+			}
+			else {
+				return false;
 			}
 		}
 		else {
@@ -637,27 +676,27 @@ loop:	for(;;) {
 		}
 	}
 
-	private static boolean between(final Lemma[] content, final int index, final Object minValue, final boolean minInclusive, final Object maxValue, final boolean maxInclusive) {
-		if ((minValue instanceof Float) && content[index].type == LemmaType.FLOAT) {
-			final float	val = Float.intBitsToFloat((int)content[index].valueN);
+	private static boolean between(final Lemma content, final Object minValue, final boolean minInclusive, final Object maxValue, final boolean maxInclusive) {
+		if ((minValue instanceof Float) && content.type == LemmaType.FLOAT) {
+			final float	val = Float.intBitsToFloat((int)content.valueN);
 			
-			return (val > ((Float)minValue).floatValue() || minInclusive && equals(content, index, minValue))
+			return (val > ((Float)minValue).floatValue() || minInclusive && equals(content, minValue, 1.0f))
 					&&
-				   (val < ((Float)maxValue).floatValue() || maxInclusive && equals(content, index, maxValue)); 
+				   (val < ((Float)maxValue).floatValue() || maxInclusive && equals(content, maxValue, 1.0f)); 
 		}
-		else if ((minValue instanceof Integer) && content[index].type == LemmaType.INTEGER) {
-			final long	val = content[index].valueN;
+		else if ((minValue instanceof Integer) && content.type == LemmaType.INTEGER) {
+			final long	val = content.valueN;
 			
-			return (val > ((Integer)minValue).longValue() || minInclusive && equals(content, index, minValue))
+			return (val > ((Integer)minValue).longValue() || minInclusive && equals(content, minValue, 1.0f))
 					&&
-				   (val < ((Integer)maxValue).longValue() || maxInclusive && equals(content, index, maxValue)); 
+				   (val < ((Integer)maxValue).longValue() || maxInclusive && equals(content, maxValue, 1.0f)); 
 		}
-		else if ((minValue instanceof char[]) && content[index].type == LemmaType.WORD) {
-			final char[]	val = content[index].valueS;
+		else if ((minValue instanceof char[]) && content.type == LemmaType.WORD) {
+			final char[]	val = content.valueS;
 			
-			return (CharUtils.compareTo(val, (char[])minValue) > 0 || minInclusive && equals(content, index, minValue))
+			return (CharUtils.compareTo(val, (char[])minValue) > 0 || minInclusive && equals(content, minValue, 1.0f))
 					&&
-				   (CharUtils.compareTo(val, (char[])maxValue) < 0  || maxInclusive && equals(content, index, maxValue)); 
+				   (CharUtils.compareTo(val, (char[])maxValue) < 0  || maxInclusive && equals(content, maxValue, 1.0f)); 
 		}
 		else {
 			return false;
@@ -672,7 +711,7 @@ loop:	for(;;) {
 		EOF
 	}	
 	
-	static class Lemma {
+	static class Lemma implements Comparable<Lemma>{
 		final int		pos;
 		final LemmaType	type;
 		final int		valueN;
@@ -701,6 +740,36 @@ loop:	for(;;) {
 		public String toString() {
 			return "Lemma [pos=" + pos + ", type=" + type + ", valueN=" + valueN + ", valueS=" + Arrays.toString(valueS) + "]";
 		}
+
+		@Override
+		public int compareTo(final Lemma o) {
+			int	delta = o.type.ordinal() - type.ordinal();
+			
+			if (delta == 0) {
+				delta = o.valueN - valueN;
+				
+				if (delta == 0) {
+					if (o.valueS == valueS) {
+						return 0;
+					}
+					else if (o.valueS == null) {
+						return -1;
+					}
+					else if (valueS == null) {
+						return 1;
+					}
+					else {
+						return CharUtils.compareTo(o.valueS, valueS);
+					}
+				}
+				else {
+					return delta;
+				}
+			}
+			else {
+				return delta;
+			}
+		}
 	}
 	
 	static enum LexType {
@@ -710,7 +779,6 @@ loop:	for(;;) {
 		INTEGER,
 		FLOAT,
 		COLON,
-		FUZZY,
 		OPEN,
 		OPENB,
 		OPENF,
@@ -732,33 +800,39 @@ loop:	for(;;) {
 		final LexType	type;
 		final int		valueN;
 		final char[]	valueC;
+		final Lemma[]	valueL;
 
 		Lexema(final int pos, final LexType type) {
-			this(pos, type, 0, null);
+			this(pos, type, 0, null, null);
 		}
 
 		Lexema(final int pos, final int value) {
-			this(pos, LexType.INTEGER, value, null);
+			this(pos, LexType.INTEGER, value, null, null);
 		}
 
 		Lexema(final int pos, final float value) {
-			this(pos, LexType.FLOAT, Float.floatToIntBits(value), null);
+			this(pos, LexType.FLOAT, Float.floatToIntBits(value), null, null);
 		}
 
-		Lexema(final int pos, final LexType type, final char[] value) {
-			this(pos, type, 0, value);
+		Lexema(final int pos, final LexType type, final char[] value, final float fuzzy) {
+			this(pos, type, Float.floatToIntBits(fuzzy), value, null);
+		}
+
+		Lexema(final int pos, final LexType type, final int prox, final Lemma[] value) {
+			this(pos, type, prox, null, value);
 		}
 		
-		Lexema(final int pos, final LexType type, final int valueN, final char[] valueC) {
+		Lexema(final int pos, final LexType type, final int valueN, final char[] valueC, final Lemma[] valueL) {
 			this.pos = pos;
 			this.type = type;
 			this.valueN = valueN;
 			this.valueC = valueC;
+			this.valueL = valueL;
 		}
 
 		@Override
 		public String toString() {
-			return "Lexema [pos=" + pos + ", type=" + type + ", valueN=" + valueN + ", valueC=" + Arrays.toString(valueC) + "]";
+			return "Lexema [pos=" + pos + ", type=" + type + ", valueN=" + valueN + ", valueC=" + Arrays.toString(valueC) + ", valueL=" + Arrays.toString(valueL) + "]";
 		}
 	}
 
@@ -770,8 +844,6 @@ loop:	for(;;) {
 		PROHIBITED,
 		BOOST,
 		MATCHES,
-		FUSSY_MATCHES,
-		PROXIMITY_MATCHES,
 		RANGE_MATCHES,
 		SEQUENCE,
 		OR,

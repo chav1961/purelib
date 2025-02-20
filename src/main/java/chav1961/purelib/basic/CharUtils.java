@@ -18,6 +18,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.DoublePredicate;
+import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
 import java.util.function.LongPredicate;
 import java.util.function.Predicate;
@@ -1033,8 +1035,8 @@ loop:		for (index = from; index < len; index++) {
 	 * @throws SyntaxException sequence contains syntax errors inside
 	 * @since 0.0.8
 	 */
-	public static <T> T parseListRanges(final CharSequence seq, final Class<T> awaitedClass) throws NullPointerException, SyntaxException {
-		if (seq == null || seq.length() == 0) {
+	public static <T> T parseListRanges(final CharSequence seq, final Class<T> awaitedClass) throws IllegalArgumentException, SyntaxException {
+		if (seq == null || seq.isEmpty()) {
 			throw new IllegalArgumentException("Sequence can't be null");
 		}
 		else if (awaitedClass == null) {
@@ -1056,6 +1058,46 @@ loop:		for (index = from; index < len; index++) {
 				default :
 					throw new UnsupportedOperationException("Class type ["+LIST_RANGE_SUPPORT.get(awaitedClass)+"] is not supported yet");
 			}
+		}
+	}
+	
+	/**
+	 * <p>This interface is used in the {@linkplain CharUtils#parceLuceneStyledQuery(CharSequence)} method.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.8
+	 */
+	@FunctionalInterface
+	public static interface RelevanceFunction {
+		/**
+		 * <p>Test content of the field by lucene-styled query</p>
+		 * @param callback function to return "field" content to test. Null argument means default field value need to be returned.  
+		 * @return relevance of the content tested or 0 if context doesn't match to query 
+		 */
+		int test(Function<String,CharSequence> callback);
+	}
+	
+	/**
+	 * <p>Parse lucene-styled query and build instance of {@linkplain IntFunction} to compare value with it. Argument of the integer function must be
+	 * another function, that get name of "field" to get it's content and returns "field" value to compare. Passing <b>null</b> as argument to the function
+	 * means that <i>default</i> field value is required to compare.</p>
+	 * <code>
+	 * if (CharUtils.ParceLuceneStyledQuery("test").test((s)->"string to test") > 0) {
+	 *   // do something
+	 * }
+	 * </code>  
+	 * @param seq lucene-styled query to parse. Can't be null or empty. 
+	 * @return integer function to compare value. Returns positive value ("relevance" of the comparing content) or 0 if the content doesn't match query string. 
+	 * @throws IllegalArgumentException any argument is null, empty or invalid
+	 * @throws SyntaxException sequence contains syntax errors inside
+	 * @see https://lucene.apache.org/core/2_9_4/queryparsersyntax.html 
+	 * @since 0.0.8
+	 */
+	public static RelevanceFunction parceLuceneStyledQuery(final CharSequence seq) throws IllegalArgumentException, SyntaxException  {
+		if (seq == null || seq.isEmpty()) {
+			throw new IllegalArgumentException("Sequence can't be null");
+		}
+		else {
+			return LuceneStyledMatcher.parse(seq);
 		}
 	}
 	
