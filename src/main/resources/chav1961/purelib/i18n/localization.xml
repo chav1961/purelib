@@ -23,6 +23,7 @@
 		<key name="SwingUtils.unknownAction.content">Action [%1$s] not found in the current window!</key>
 
 <!-- General keys  -->
+		<key name="HELP">Help</key>
 		<key name="ACCEPT">Accept</key>
 		<key name="CANCEL">Cancel</key>
 		<key name="NEXT">Next &gt;</key>
@@ -442,6 +443,7 @@
 		<key name="SwingUtils.unknownAction.content">Описание действия [%1$s] в текущем окна отсутствует!</key>
 
 <!-- Общеупотребительные наименования  --> 
+		<key name="HELP">Справка</key>
 		<key name="ACCEPT">Принять</key>
 		<key name="CANCEL">Отмена</key>
 		<key name="OK">OK</key>

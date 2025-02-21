@@ -22,6 +22,8 @@ import javax.swing.JTabbedPane;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.enumerations.ContinueMode;
+import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
@@ -291,6 +293,15 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		SwingUtils.walkDown(this, (mode, node) -> {
+			if ((mode == NodeEnterMode.ENTER) && (node instanceof LocaleChangeListener)) {
+				((LocaleChangeListener)node).localeChanged(oldLocale, newLocale);
+				return ContinueMode.SKIP_CHILDREN;
+			}
+			else {
+				return ContinueMode.CONTINUE;
+			}
+		});
 		fillLocalizedStrings(oldLocale,newLocale);
 	}
 
@@ -302,6 +313,9 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		this.text = text;
 		if (localizer != null) {
 			fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
+		}
+		else {
+			label.setText(text);
 		}
 	}
 
@@ -316,8 +330,14 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 	@Override
 	public void setToolTipText(final String text) {
 		this.tooltip = text;
-		try{fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
-		} catch (LocalizationException e) {
+		if (localizer != null) {
+			try{
+				fillLocalizedStrings(localizer.currentLocale().getLocale(),localizer.currentLocale().getLocale());
+			} catch (LocalizationException e) {
+				super.setToolTipText(text);
+			}
+		}
+		else {
 			super.setToolTipText(text);
 		}
 	}
@@ -388,7 +408,8 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		boolean result = true;
 		
 		if (tab instanceof AutoCloseable) {
-			try{((AutoCloseable)tab).close();
+			try{
+				((AutoCloseable)tab).close();
 			} catch (Exception exc) {
 				SwingUtils.getNearestLogger(this).message(Severity.error,exc,"Exception on close tab window: "+exc.getLocalizedMessage());
 				result = false;
@@ -401,7 +422,6 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 		
 		return result;
 	}
-	
 	
 	/**
 	 * <p>Place component into {@linkplain JTabbedPane} and associate {@linkplain JCloseableTab} label with it</p> 
@@ -430,6 +450,9 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 			container.addTab("",tab);
 			container.setTabComponentAt(container.getTabCount()-1,label);
 			container.setSelectedIndex(container.getTabCount()-1);
+			if (container instanceof LocaleChangeListener) {
+				((LocaleChangeListener)container).localeChanged(tab.getLocale(), tab.getLocale());
+			}
 		}
 	}
 

@@ -18,7 +18,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 
 import chav1961.purelib.basic.MimeType;
-import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -28,10 +27,11 @@ import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.ui.swing.SwingUtils;
 
 /**
- * <p>This class shows Creole-based Help and supports hyperlinking inside. Cll hyperlinks must be either external links (for example 
- * https://google.com) or header names inside current content ('#name') or resource name inside localizer rassed</p>
+ * <p>This class shows Creole-based Help and supports hyper-linking inside. Call hyper-links must be either external links (for example 
+ * https://google.com) or header names inside current content ('#name') or resource name inside localizer passed</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.5
+ * @last.update 0.0.8
  */
 public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListener {
 	private static final long 			serialVersionUID = -2121747413508372083L;
@@ -91,7 +91,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 				}
 			});
 			
-			SwingUtils.assignActionKey(this, SwingUtils.KS_BACKWARD, (e)->backward(), "help");
+			SwingUtils.assignActionKey(this, SwingUtils.KS_BACKWARD, (e)->backward(), "backward");
 			setEditable(false);
 		}
 	}
@@ -105,6 +105,23 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 	}
 
 	/**
+	 * <p>Load helo content into the window</p>
+	 * @param uri uri of the help content inside localizer associated. Can't be null 
+	 * @throws LocalizationException on any localizer error
+	 * @throws IOException on any I/O error
+	 * @throws IllegalArgumentException URI string is null or empty
+	 * @since 0.0.8
+	 */
+	public void loadContent(final String uri) throws LocalizationException, IOException, IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(uri)) {
+			throw new IllegalArgumentException("String URI can't be null or empty");
+		}
+		else {
+			setText(Utils.fromResource(localizer.getContent(uri, MimeType.MIME_CREOLE_TEXT, MimeType.MIME_HTML_TEXT)));
+		}
+	}
+	
+	/**
 	 * <p>Return to previous step in the hyperlink history</p>
 	 */
 	public void backward() {
@@ -112,7 +129,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 			processContent(URI.create(history.remove(history.size()-1)));
 		}
 	}
-	
+
 	private int findHtmlReference(final String fragment, final Element element) throws BadLocationException {
 		if (HEADERS.contains(element.getName()) && fragment.equals(element.getDocument().getText(element.getStartOffset(), element.getEndOffset() - element.getStartOffset()).trim())) {
 			return element.getStartOffset();
@@ -151,9 +168,5 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 				}
 			}
 		}
-	}
-	
-	private void loadContent(final String uri) throws LocalizationException, IOException {
-		setText(Utils.fromResource(localizer.getContent(uri, MimeType.MIME_CREOLE_TEXT, MimeType.MIME_HTML_TEXT)));
 	}
 }

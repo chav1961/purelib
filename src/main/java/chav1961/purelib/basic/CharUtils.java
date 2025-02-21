@@ -1092,7 +1092,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @see https://lucene.apache.org/core/2_9_4/queryparsersyntax.html 
 	 * @since 0.0.8
 	 */
-	public static RelevanceFunction parceLuceneStyledQuery(final CharSequence seq) throws IllegalArgumentException, SyntaxException  {
+	public static RelevanceFunction parsceLuceneStyledQuery(final CharSequence seq) throws IllegalArgumentException, SyntaxException  {
 		if (seq == null || seq.isEmpty()) {
 			throw new IllegalArgumentException("Sequence can't be null");
 		}
