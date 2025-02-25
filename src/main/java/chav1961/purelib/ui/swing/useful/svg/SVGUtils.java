@@ -48,7 +48,7 @@ public class SVGUtils {
 
 	static final String		VALUE_NONE = "none";
 
-	public static Point2D[] extractPoints(final String source) throws SyntaxException {
+	public static Point2D[] extractPoints(final String source, final float koeff) throws SyntaxException {
 		if (source == null || source.isEmpty()) {
 			throw new IllegalArgumentException("Source string can't be null or empty");
 		}
@@ -79,9 +79,9 @@ public class SVGUtils {
 				
 				for (int index = 0; index < pointCount; index++) {
 					from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,false),number,true);
-					x = number[0];
+					x = number[0]*koeff;
 					from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,skipComma(content, from),false),number,true);
-					y = number[0];
+					y = number[0]*koeff;
 					result[index] = new Point2D.Float(x,y); 
 				}
 				return result;
@@ -89,7 +89,7 @@ public class SVGUtils {
 		}
 	}
 
-	public static GeneralPath extractCommands(final String source) throws SyntaxException {
+	public static GeneralPath extractCommands(final String source, final float koeff) throws SyntaxException {
 		if (source == null || source.isEmpty()) {
 			throw new IllegalArgumentException("Source string can't be null or empty");
 		}
@@ -117,9 +117,9 @@ loop:		for (;;) {
 						y = yOld;
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x += number[0];
+							x += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y += number[0];
+							y += number[0]*koeff;
 							if (count++ == 0) {
 								result.moveTo(x,y);
 							}
@@ -133,9 +133,9 @@ loop:		for (;;) {
 						count = 0;
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x = number[0];
+							x = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y = number[0];
+							y = number[0]*koeff;
 							if (count++ == 0) {
 								result.moveTo(x,y);
 							}
@@ -150,9 +150,9 @@ loop:		for (;;) {
 						y = yOld;
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x += number[0];
+							x += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y += number[0];
+							y += number[0]*koeff;
 							result.lineTo(x,y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 						} while (content[from] >= '0' && content[from] <= '9' || content[from] == '-');
@@ -160,9 +160,9 @@ loop:		for (;;) {
 					case 'L' :
 						from++;
 						do {from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x = number[0];
+							x = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y = number[0];
+							y = number[0]*koeff;
 							result.lineTo(x,y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 						} while (content[from] >= '0' && content[from] <= '9' || content[from] == '-');
@@ -171,26 +171,26 @@ loop:		for (;;) {
 						x = xOld;
 						y = yOld;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
-						x += number[0];
+						x += number[0]*koeff;
 						result.lineTo(x, y);
 						break;
 					case 'H' :
 						y = yOld;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
-						x = number[0];
+						x = number[0]*koeff;
 						result.lineTo(x, y);
 						break;
 					case 'v' :
 						y = yOld;
 						x = xOld;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
-						y += number[0];
+						y += number[0]*koeff;
 						result.lineTo(x, y);
 						break;
 					case 'V' :
 						x = xOld;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
-						y = number[0];
+						y = number[0]*koeff;
 						result.lineTo(x, y);
 						break;
 					case 'z' : case 'Z' :
@@ -203,9 +203,9 @@ loop:		for (;;) {
 						x = xOld;
 						y = yOld;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
-						rx = number[0];
+						rx = number[0]*koeff;
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-						ry = number[0];
+						ry = number[0]*koeff;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 						rotation = number[0];
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
@@ -213,16 +213,16 @@ loop:		for (;;) {
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						sweep = integer[0];
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-						x += number[0];
+						x += number[0]*koeff;
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-						y += number[0];
+						y += number[0]*koeff;
 						result.append(SVGUtils.computeArc(xOld,yOld,rx,ry,rotation,large != 0,sweep != 0,x,y),true);
 						break;
 					case 'A' :
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from+1,true),number,true);
-						rx = number[0];
+						rx = number[0]*koeff;
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-						ry = number[0];
+						ry = number[0]*koeff;
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
 						rotation = number[0];
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
@@ -230,9 +230,9 @@ loop:		for (;;) {
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
 						sweep = integer[0];
 						from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-						x = number[0];
+						x = number[0]*koeff;
 						from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-						y = number[0];
+						y = number[0]*koeff;
 						result.append(SVGUtils.computeArc(xOld,yOld,rx,ry,rotation,large != 0,sweep != 0,x,y),true);
 						break;
 					case 'c' :
@@ -241,25 +241,25 @@ loop:		for (;;) {
 							x = x1 = x2 = xOld;
 							y = y1 = y2 = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x1 += number[0];
+							x1 += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y1 += number[0];
+							y1 += number[0]*koeff;
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
 								from++;
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
-							controleX = x2 += number[0];
+							controleX = x2 += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							controleY = y2 += number[0];
+							controleY = y2 += number[0]*koeff;
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
 								from++;
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
-							x += number[0];
+							x += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y += number[0];
+							y += number[0]*koeff;
 							result.curveTo(x1, y1, x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							xOld = x;
@@ -270,25 +270,25 @@ loop:		for (;;) {
 						from++;
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x1 = number[0];
+							x1 = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y1 = number[0];
+							y1 = number[0]*koeff;
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
 								from++;
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
-							controleX = x2 = number[0];
+							controleX = x2 = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							controleY = y2 = number[0];
+							controleY = y2 = number[0]*koeff;
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							if (content[from] == ',') {
 								from++;
 							}
 							from = CharUtils.parseSignedFloat(content,from,number,true);
-							x = number[0];
+							x = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y = number[0];
+							y = number[0]*koeff;
 							result.curveTo(x1, y1, x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 						} while (content[from] >= '0' && content[from] <= '9' || content[from] == '-');
@@ -299,13 +299,13 @@ loop:		for (;;) {
 							x = x1 = xOld;
 							y = y1 = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x1 += number[0];
+							x1 += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y1 += number[0];
+							y1 += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x += number[0];
+							x += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y += number[0];
+							y += number[0]*koeff;
 							result.quadTo(x1, y1, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							xOld = x;
@@ -316,13 +316,13 @@ loop:		for (;;) {
 						from++;
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x1 = number[0];
+							x1 = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y1 = number[0];
+							y1 = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x = number[0];
+							x = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y = number[0];
+							y = number[0]*koeff;
 							result.quadTo(x1, y1, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							xOld = x;
@@ -335,13 +335,13 @@ loop:		for (;;) {
 							x = x2 = xOld;
 							y = y2 = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,skipComma(content,from),true),number,true);
-							x2 += number[0];
+							x2 += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y2 += number[0];
+							y2 += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,skipComma(content,from),true),number,true);
-							x += number[0];
+							x += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y += number[0];
+							y += number[0]*koeff;
 							result.curveTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							controleX = x2;
@@ -354,13 +354,13 @@ loop:		for (;;) {
 						from++;
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x2 = number[0];
+							x2 = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y2 = number[0];
+							y2 = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x = number[0];
+							x = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y = number[0];
+							y = number[0]*koeff;
 							result.curveTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x2, y2, x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							controleX = x2;
@@ -375,9 +375,9 @@ loop:		for (;;) {
 							x = xOld;
 							y = yOld;
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x += number[0];
+							x += number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y += number[0];
+							y += number[0]*koeff;
 							result.quadTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							controleX = x;
@@ -390,9 +390,9 @@ loop:		for (;;) {
 						from++;
 						do {
 							from = CharUtils.parseSignedFloat(content,UnsafedCharUtils.uncheckedSkipBlank(content,from,true),number,true);
-							x = number[0];
+							x = number[0]*koeff;
 							from = CharUtils.parseSignedFloat(content,skipComma(content,from),number,true);
-							y = number[0];
+							y = number[0]*koeff;
 							result.quadTo(xOld + (xOld - controleX), yOld + (yOld - controleY), x, y);
 							from = UnsafedCharUtils.uncheckedSkipBlank(content,from,true);
 							controleX = x;
@@ -465,10 +465,10 @@ loop:		for (;;) {
 			return awaited.cast(CSSUtils.asTransform(source[0]));
 		}
 		else if (awaited.isAssignableFrom(Point2D[].class)) {
-			return awaited.cast(SVGUtils.extractPoints(source[0]));
+			return awaited.cast(SVGUtils.extractPoints(source[0], 1.0f));
 		}
 		else if (awaited.isAssignableFrom(GeneralPath.class)) {
-			return awaited.cast(SVGUtils.extractCommands(source[0]));
+			return awaited.cast(SVGUtils.extractCommands(source[0], 1.0f));
 		}
 		else if (awaited.isAssignableFrom(Font.class)) {
 			final Object[]			result = new Object[3];

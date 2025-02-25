@@ -13,6 +13,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.geom.RectangularShape;
 import java.awt.geom.RoundRectangle2D;
 
+import chav1961.purelib.basic.CSSUtils.Unit;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.interfaces.OnlineFloatGetter;
 import chav1961.purelib.basic.interfaces.OnlineObjectGetter;
@@ -30,15 +31,19 @@ public class SVGPainter {
 
 	private final Color				background = Color.WHITE;
 	private final int				width, height;
+	private final Unit				unit;
 	private final FillPolicy		policy;
 	private final AbstractPainter[]	primitives;
 	
-	protected SVGPainter(final int width, final int height, final FillPolicy policy, final AbstractPainter... primitives) {
+	protected SVGPainter(final int width, final int height, final Unit unit, final FillPolicy policy, final AbstractPainter... primitives) {
 		if (width <= 0) {
 			throw new IllegalArgumentException("Width ["+width+"] must be positive"); 
 		}
 		else if (height <= 0) {
 			throw new IllegalArgumentException("Height ["+height+"] must be positive"); 
+		}
+		else if (unit == null) {
+			throw new NullPointerException("Unit can't be null"); 
 		}
 		else if (policy == null) {
 			throw new NullPointerException("Fill policy can't be null"); 
@@ -52,6 +57,7 @@ public class SVGPainter {
 		else {
 			this.width = width;
 			this.height = height;
+			this.unit = unit;
 			this.policy = policy;
 			this.primitives = primitives;
 		}
@@ -65,10 +71,14 @@ public class SVGPainter {
 		return height;
 	}
 	
+	public Unit getUnit() {
+		return unit;
+	}
+	
 	public void paint(final Graphics2D g2d, final int fillWidth, final int fillHeight) {
 		final AffineTransform	oldAt = g2d.getTransform();
 
-		g2d.setTransform(pickCoordinates(oldAt,fillWidth,fillHeight));
+		g2d.setTransform(pickCoordinates(oldAt, fillWidth, fillHeight));
 		paint(g2d);
 		g2d.setTransform(oldAt);
 	}

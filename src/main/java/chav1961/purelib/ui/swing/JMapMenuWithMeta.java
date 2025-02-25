@@ -183,7 +183,7 @@ public class JMapMenuWithMeta extends JComponent implements NodeMetadataOwner, L
 					}
 				}
 				else {
-					temp.add(new MetadataShapeAndTransform(item, SVGUtils.extractCommands(areaDescriptors.getProperty(item.getName())),at));
+					temp.add(new MetadataShapeAndTransform(item, SVGUtils.extractCommands(areaDescriptors.getProperty(item.getName()), 1.0f),at));
 				}
 			}
 			if (temp.isEmpty()) {

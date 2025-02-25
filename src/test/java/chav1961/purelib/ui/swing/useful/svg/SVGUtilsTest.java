@@ -34,32 +34,32 @@ import chav1961.purelib.basic.interfaces.OnlineStringGetter;
 public class SVGUtilsTest {
 	@Test
 	public void extractPointsTest() throws SyntaxException {
-		Assert.assertEquals(1,SVGUtils.extractPoints(" 10 20 ").length);
-		Assert.assertEquals(1,SVGUtils.extractPoints(" -3.5 9 ").length);
+		Assert.assertEquals(1,SVGUtils.extractPoints(" 10 20 ", 1.0f).length);
+		Assert.assertEquals(1,SVGUtils.extractPoints(" -3.5 9 ", 1.0f).length);
 		
-		final Point2D[]	result = SVGUtils.extractPoints(" -3.5 9 ");
+		final Point2D[]	result = SVGUtils.extractPoints(" -3.5 9 ", 1.0f);
 		
 		Assert.assertEquals(result[0].getX(),-3.5,0.0001); 
 		Assert.assertEquals(result[0].getY(),9,0.0001);
 
-		try{SVGUtils.extractPoints(null);
+		try{SVGUtils.extractPoints(null, 1.0f);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SVGUtils.extractPoints("");
+		try{SVGUtils.extractPoints("", 1.0f);
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{SVGUtils.extractPoints(" ");
+		try{SVGUtils.extractPoints(" ", 1.0f);
 			Assert.fail("Mandatory exception was not detected (no any numbers in the string)");
 		} catch (SyntaxException exc) {
 		}
-		try{SVGUtils.extractPoints(" 10");
+		try{SVGUtils.extractPoints(" 10", 1.0f);
 			Assert.fail("Mandatory exception was not detected (odd numbers in the string)");
 		} catch (SyntaxException exc) {
 		}
-		try{SVGUtils.extractPoints(" 10x 20");
+		try{SVGUtils.extractPoints(" 10x 20", 1.0f);
 			Assert.fail("Mandatory exception was not detected (illegal number in the string)");
 		} catch (SyntaxException exc) {
 		}
@@ -68,167 +68,167 @@ public class SVGUtilsTest {
 	@Test
 	public void extractCommandsTest() throws SyntaxException {
 		// M and it's chain
-		GeneralPath	path = SVGUtils.extractCommands("M 10 20");
+		GeneralPath	path = SVGUtils.extractCommands("M 10 20", 1.0f);
 		
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 20 m 5 5");
+		path = SVGUtils.extractCommands("M 10 20 m 5 5", 1.0f);
 		
 		Assert.assertEquals(15,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(25,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("m 5 5 -5 -5");
+		path = SVGUtils.extractCommands("m 5 5 -5 -5", 1.0f);
 		
 		Assert.assertEquals(0,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(0,path.getCurrentPoint().getY(),0.0001);
 		
 		// L and it's chain
-		path = SVGUtils.extractCommands("M 10 20 L 30 40");
+		path = SVGUtils.extractCommands("M 10 20 L 30 40", 1.0f);
 		
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(40,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 20 l 20 20");
+		path = SVGUtils.extractCommands("M 10 20 l 20 20", 1.0f);
 		
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(40,path.getCurrentPoint().getY(),0.0001);
 		
-		path = SVGUtils.extractCommands("M 10 20 L 20 20 -20 -30");
+		path = SVGUtils.extractCommands("M 10 20 L 20 20 -20 -30", 1.0f);
 		
 		Assert.assertEquals(-20,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(-30,path.getCurrentPoint().getY(),0.0001);
 		
-		path = SVGUtils.extractCommands("M 10 20 l 20 20 -20 -30");
+		path = SVGUtils.extractCommands("M 10 20 l 20 20 -20 -30", 1.0f);
 		
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(10,path.getCurrentPoint().getY(),0.0001);
 
 		// L, H, V and it's chain
-		path = SVGUtils.extractCommands("M 10 20 H 20 V 20");
+		path = SVGUtils.extractCommands("M 10 20 H 20 V 20", 1.0f);
 
 		Assert.assertEquals(20,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 20 h 20 v 20");
+		path = SVGUtils.extractCommands("M 10 20 h 20 v 20", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(40,path.getCurrentPoint().getY(),0.0001);
 
 		// M, L, Z
-		path = SVGUtils.extractCommands("M 10 20 L 30 30 Z");
+		path = SVGUtils.extractCommands("M 10 20 L 30 30 Z", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 	
 		// M, A
-		path = SVGUtils.extractCommands("M 10 20 A 20 20 0 0 0 30 30");
+		path = SVGUtils.extractCommands("M 10 20 A 20 20 0 0 0 30 30", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 		
-		path = SVGUtils.extractCommands("M 10 20 a 20 20 0 0 0 30 30");
+		path = SVGUtils.extractCommands("M 10 20 a 20 20 0 0 0 30 30", 1.0f);
 
 		Assert.assertEquals(40,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(50,path.getCurrentPoint().getY(),0.0001);
 
 		// M, C and it's chain 
-		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20");
+		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 c 0 10 10 10 0 10");
+		path = SVGUtils.extractCommands("M 10 10 c 0 10 10 10 0 10", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20 20 20 30 20 30 30");
+		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20 20 20 30 20 30 30", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 c 0 10 10 10 0 10 0 10 10 10 0 10");
+		path = SVGUtils.extractCommands("M 10 10 c 0 10 10 10 0 10 0 10 10 10 0 10", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 
 		// M, C, S and it's chain 
-		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20 S 30 30 30 10");
+		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20 S 30 30 30 10", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(10,path.getCurrentPoint().getY(),0.0001);
 		
-		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20 s 10 10 10 10 10 10 10 10");
+		path = SVGUtils.extractCommands("M 10 10 C 10 20 20 20 10 20 s 10 10 10 10 10 10 10 10", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(40,path.getCurrentPoint().getY(),0.0001);
 		
 		// M, Q and it's chain 
-		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20");
+		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 q 0 10 0 10");
+		path = SVGUtils.extractCommands("M 10 10 q 0 10 0 10", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(20,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 20 20 30 30");
+		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 20 20 30 30", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 q 0 10 0 10 0 10 0 10");
+		path = SVGUtils.extractCommands("M 10 10 q 0 10 0 10 0 10 0 10", 1.0f);
 
 		Assert.assertEquals(10,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 
 		// M, Q, T and it's chain 
-		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 T 30 30");
+		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 T 30 30", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 T 30 30 40 40");
+		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 T 30 30 40 40", 1.0f);
 
 		Assert.assertEquals(40,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(40,path.getCurrentPoint().getY(),0.0001);
 		
-		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 t 20 10");
+		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 t 20 10", 1.0f);
 
 		Assert.assertEquals(30,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(30,path.getCurrentPoint().getY(),0.0001);
 
-		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 t 20 10 20 10");
+		path = SVGUtils.extractCommands("M 10 10 Q 10 20 10 20 t 20 10 20 10", 1.0f);
 
 		Assert.assertEquals(50,path.getCurrentPoint().getX(),0.0001);
 		Assert.assertEquals(40,path.getCurrentPoint().getY(),0.0001);
 		
 		// Exceptions
-		try{SVGUtils.extractCommands(null);
+		try{SVGUtils.extractCommands(null, 1.0f);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{SVGUtils.extractCommands("");
+		try{SVGUtils.extractCommands("", 1.0f);
 			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 
-		try{SVGUtils.extractCommands(" ");
+		try{SVGUtils.extractCommands(" ", 1.0f);
 			Assert.fail("Mandatory exception was not detected (no any commands)");
 		} catch (SyntaxException exc) {
 		}
-		try{SVGUtils.extractCommands("@");
+		try{SVGUtils.extractCommands("@", 1.0f);
 			Assert.fail("Mandatory exception was not detected (unknown command)");
 		} catch (SyntaxException exc) {
 		}
-		try{SVGUtils.extractCommands("M 10 10 Z @");
+		try{SVGUtils.extractCommands("M 10 10 Z @", 1.0f);
 			Assert.fail("Mandatory exception was not detected (some content after 'Z')");
 		} catch (SyntaxException exc) {
 		}
-		try{SVGUtils.extractCommands("M 10 Z");
+		try{SVGUtils.extractCommands("M 10 Z", 1.0f);
 			Assert.fail("Mandatory exception was not detected (not a number in the command )");
 		} catch (SyntaxException exc) {
 		}

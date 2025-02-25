@@ -35,6 +35,11 @@ import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.streams.interfaces.JsonStaxParserInterface;
 import chav1961.purelib.streams.interfaces.JsonStaxParserLexType;
 
+/**
+ * <p>This class is used to parse CSS items (as in the styles, so in any others)</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ */
 public class CSSUtils {
 	private static final char[]		AVAILABLE_IN_NAMES = {'-'};
 	private static final String		PROP_ATTR_NAME_HAS_FIXED = "hasFixed";
@@ -70,6 +75,8 @@ public class CSSUtils {
 	}
 
 	/**
+	 * <p>This is a base units for GUI linear dimensions</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8
 	 */
 	public enum BaseUnit {
@@ -92,6 +99,8 @@ public class CSSUtils {
 	}
 
 	/**
+	 * <p>THis is secondary units for GUI linear dimensions<p>
+	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8
 	 */
 	public enum Unit {
@@ -149,6 +158,20 @@ public class CSSUtils {
 			}
 			else {
 				return baseValueOfInternal(value, defaultUnit);
+			}
+		}
+		
+		public static Unit detectUnit(final String value, final Unit defaultValue) {
+			if (Utils.checkEmptyOrNullString(value)) {
+				throw new IllegalArgumentException("Value to test can't be null or empty"); 
+			}
+			else {
+				for(Unit item : values()) {
+					if (value.endsWith(item.getPostfix())) {
+						return item;  
+					}
+				}
+				return defaultValue;
 			}
 		}
 		

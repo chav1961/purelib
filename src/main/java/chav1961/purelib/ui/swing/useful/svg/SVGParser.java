@@ -53,7 +53,7 @@ import chav1961.purelib.ui.swing.useful.svg.SVGPainter.TextPainter;
 
 public class SVGParser {
 	private static final String		LINE_ATTR_X1 = "x1";
-	private static final String		LINE_ATTR_Y1 = "x1";
+	private static final String		LINE_ATTR_Y1 = "y1";
 	private static final String		LINE_ATTR_X2 = "x2";
 	private static final String		LINE_ATTR_Y2 = "y2";
 	private static final String		LINE_ATTR_STROKE = SVGUtils.ATTR_STROKE;
@@ -167,6 +167,7 @@ public class SVGParser {
 	}
 	
 	static SVGPainter buildPainter(final Element root, final InstrumentGetter getter, final SubstitutionSource ss, final FillPolicy policy) throws ContentException {
+		final CSSUtils.Unit[]		units = new CSSUtils.Unit[1]; 
 		final int[]					widthAndHeight = new int[2];
 		final List<AbstractPainter>	primitives = new ArrayList<>();
 		final ConvertorInterface	ci = new ConvertorInterface() {
@@ -182,8 +183,9 @@ public class SVGParser {
 				switch (node.getNodeName()) {
 					case "svg"	:
 //						<svg height="210" width="500">
-						widthAndHeight[0] = XMLUtils.getAttribute(node,"width", CSSUtils.BaseUnit.PIXEL, 0).intValue();
-						widthAndHeight[1] = XMLUtils.getAttribute(node,"height", CSSUtils.BaseUnit.PIXEL, 0).intValue();
+						units[0] = CSSUtils.Unit.detectUnit(XMLUtils.getAttribute(node, "width", String.class, ""), CSSUtils.Unit.PIXEL);
+						widthAndHeight[0] = XMLUtils.getAttribute(node, "width", CSSUtils.BaseUnit.PIXEL, 0).intValue();
+						widthAndHeight[1] = XMLUtils.getAttribute(node, "height", CSSUtils.BaseUnit.PIXEL, 0).intValue();
 						break;
 					case "line"	:
 //						<line x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2" />
@@ -198,10 +200,10 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new LinePainter(XMLUtils.getAttribute(node,LINE_ATTR_X1,float.class)
-													,XMLUtils.getAttribute(node,LINE_ATTR_Y1,float.class)
-													,XMLUtils.getAttribute(node,LINE_ATTR_X2,float.class)
-													,XMLUtils.getAttribute(node,LINE_ATTR_Y2,float.class)
+							primitives.add(new LinePainter(XMLUtils.getAttribute(node,LINE_ATTR_X1,float.class)*units[0].getKoeff()
+													,XMLUtils.getAttribute(node,LINE_ATTR_Y1,float.class)*units[0].getKoeff()
+													,XMLUtils.getAttribute(node,LINE_ATTR_X2,float.class)*units[0].getKoeff()
+													,XMLUtils.getAttribute(node,LINE_ATTR_Y2,float.class)*units[0].getKoeff()
 													,(Color)getter.getInstrument(LINE_ATTR_STROKE,props,Color.class)
 													,(Stroke)getter.getInstrument(LINE_ATTR_STROKE_WIDTH,props,Stroke.class)) 
 							);
@@ -221,10 +223,10 @@ public class SVGParser {
 							));
 						} 
 						else {
-							primitives.add(new RectPainter(XMLUtils.getAttribute(node,RECT_ATTR_X1,float.class)
-														,XMLUtils.getAttribute(node,RECT_ATTR_Y1,float.class)
-														,XMLUtils.getAttribute(node,RECT_ATTR_X2,float.class)
-														,XMLUtils.getAttribute(node,RECT_ATTR_Y2,float.class)
+							primitives.add(new RectPainter(XMLUtils.getAttribute(node,RECT_ATTR_X1,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,RECT_ATTR_Y1,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,RECT_ATTR_X2,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,RECT_ATTR_Y2,float.class)*units[0].getKoeff()
 														,(Color)getter.getInstrument(RECT_ATTR_STROKE,props,Color.class)
 														,(Color)getter.getInstrument(RECT_ATTR_FILL,props,Color.class)
 														,(Stroke)getter.getInstrument(RECT_ATTR_STROKE_WIDTH,props,Stroke.class))
@@ -244,9 +246,9 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new CirclePainter(XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,float.class)
-														,XMLUtils.getAttribute(node,CIRCLE_ATTR_CY,float.class)
-														,XMLUtils.getAttribute(node,CIRCLE_ATTR_R,float.class)
+							primitives.add(new CirclePainter(XMLUtils.getAttribute(node,CIRCLE_ATTR_CX,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,CIRCLE_ATTR_CY,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,CIRCLE_ATTR_R,float.class)*units[0].getKoeff()
 														,(Color)getter.getInstrument(CIRCLE_ATTR_STROKE,props,Color.class)
 														,(Color)getter.getInstrument(CIRCLE_ATTR_FILL,props,Color.class)
 														,(Stroke)getter.getInstrument(CIRCLE_ATTR_STROKE_WIDTH,props,Stroke.class))
@@ -267,10 +269,10 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new EllipsePainter(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,float.class)
-														,XMLUtils.getAttribute(node,ELLIPSE_ATTR_CY,float.class)
-														,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,float.class)
-														,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RY,float.class)
+							primitives.add(new EllipsePainter(XMLUtils.getAttribute(node,ELLIPSE_ATTR_CX,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,ELLIPSE_ATTR_CY,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RX,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,ELLIPSE_ATTR_RY,float.class)*units[0].getKoeff()
 														,(Color)getter.getInstrument(ELLIPSE_ATTR_STROKE,props,Color.class)
 														,(Color)getter.getInstrument(ELLIPSE_ATTR_FILL,props,Color.class)
 														,(Stroke)getter.getInstrument(ELLIPSE_ATTR_STROKE_WIDTH,props,Stroke.class))
@@ -287,7 +289,7 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new PolylinePainter(SVGUtils.extractPoints(XMLUtils.getAttribute(node,POLYLINE_ATTR_POINTS,String.class))
+							primitives.add(new PolylinePainter(SVGUtils.extractPoints(XMLUtils.getAttribute(node,POLYLINE_ATTR_POINTS,String.class), units[0].getKoeff())
 														,(Color)getter.getInstrument(POLYLINE_ATTR_STROKE,props,Color.class)
 														,(Stroke)getter.getInstrument(POLYLINE_ATTR_STROKE_WIDTH,props,Stroke.class))
 							);
@@ -304,7 +306,7 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new PolygonPainter(SVGUtils.extractPoints(XMLUtils.getAttribute(node,POLYGON_ATTR_POINTS,String.class))
+							primitives.add(new PolygonPainter(SVGUtils.extractPoints(XMLUtils.getAttribute(node,POLYGON_ATTR_POINTS,String.class), units[0].getKoeff())
 														,(Color)getter.getInstrument(POLYGON_ATTR_STROKE,props,Color.class)
 														,(Color)getter.getInstrument(POLYGON_ATTR_FILL,props,Color.class)
 														,(Stroke)getter.getInstrument(POLYGON_ATTR_STROKE_WIDTH,props,Stroke.class))
@@ -323,7 +325,7 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new PathPainter(SVGUtils.extractCommands(XMLUtils.getAttribute(node,PATH_ATTR_D,String.class))
+							primitives.add(new PathPainter(SVGUtils.extractCommands(XMLUtils.getAttribute(node,PATH_ATTR_D,String.class), units[0].getKoeff())
 														,(Color)getter.getInstrument(PATH_ATTR_STROKE,props,Color.class)
 														,(Color)getter.getInstrument(PATH_ATTR_FILL,props,Color.class)
 														,(Stroke)getter.getInstrument(PATH_ATTR_STROKE_WIDTH,props,Stroke.class)
@@ -343,8 +345,8 @@ public class SVGParser {
 							));
 						}
 						else {
-							primitives.add(new TextPainter(XMLUtils.getAttribute(node,TEXT_ATTR_X,float.class)
-														,XMLUtils.getAttribute(node,TEXT_ATTR_Y,float.class)
+							primitives.add(new TextPainter(XMLUtils.getAttribute(node,TEXT_ATTR_X,float.class)*units[0].getKoeff()
+														,XMLUtils.getAttribute(node,TEXT_ATTR_Y,float.class)*units[0].getKoeff()
 														,node.getTextContent()
 														,(Font)getter.getInstrument(TEXT_ATTR_FONT,props,Font.class)
 														,(Color)getter.getInstrument(TEXT_ATTR_FILL,props,Color.class)
@@ -356,7 +358,7 @@ public class SVGParser {
 			}
 			return ContinueMode.CONTINUE; 
 		});
-		return new SVGPainter(widthAndHeight[0], widthAndHeight[1], policy, primitives.toArray(new AbstractPainter[primitives.size()]));
+		return new SVGPainter(widthAndHeight[0], widthAndHeight[1], units[0], policy, primitives.toArray(new AbstractPainter[primitives.size()]));
 	}
 
 	private static Map<String, Object> extractProps(final Element node) {

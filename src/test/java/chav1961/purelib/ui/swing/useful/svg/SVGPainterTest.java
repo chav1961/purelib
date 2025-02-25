@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 
+import chav1961.purelib.basic.CSSUtils.Unit;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.interfaces.ConvertorInterface;
 import chav1961.purelib.basic.interfaces.OnlineFloatGetter;
@@ -36,7 +37,7 @@ public class SVGPainterTest {
 	public void basicTest() {
 		final BufferedImage image = new BufferedImage(100,200,BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D 	g2d = image.createGraphics();		
-		final SVGPainter	painter = new SVGPainter(100,200,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
+		final SVGPainter	painter = new SVGPainter(100,200,Unit.PIXEL,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
 		
 		Assert.assertEquals(100,painter.getWidth());
 		Assert.assertEquals(200,painter.getHeight());
@@ -46,28 +47,32 @@ public class SVGPainterTest {
 		Assert.assertArrayEquals(new int[] {255,255,255,255},image.getData().getPixel((int)1,(int)0,(int[])null));
 		Assert.assertArrayEquals(new int[] {0,0,0,255},image.getData().getPixel((int)99,(int)199,(int[])null));
 		
-		try{new SVGPainter(0,200,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
+		try{new SVGPainter(0,200,Unit.PIXEL,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
 			Assert.fail("Mandatory exception was not detected (1-st argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new SVGPainter(100,0,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
+		try{new SVGPainter(100,0,Unit.PIXEL,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
 			Assert.fail("Mandatory exception was not detected (2-nd argument out of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new SVGPainter(100,200,null,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
+		try{new SVGPainter(100,200,null,FillPolicy.FILL_BOTH,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
 			Assert.fail("Mandatory exception was not detected (null 3-rd argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new SVGPainter(100,0,FillPolicy.FILL_BOTH,(AbstractPainter[])null);
+		try{new SVGPainter(100,200,Unit.PIXEL,null,new SVGPainter.LinePainter(0,0,100,200,Color.BLACK,new BasicStroke(1.0f)));
 			Assert.fail("Mandatory exception was not detected (null 4-th argument)");
+		} catch (NullPointerException exc) {
+		}
+		try{new SVGPainter(100,0,Unit.PIXEL,FillPolicy.FILL_BOTH,(AbstractPainter[])null);
+			Assert.fail("Mandatory exception was not detected (null 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new SVGPainter(100,0,FillPolicy.FILL_BOTH);
-			Assert.fail("Mandatory exception was not detected (empty 4-th argument)");
+		try{new SVGPainter(100,0,Unit.PIXEL,FillPolicy.FILL_BOTH);
+			Assert.fail("Mandatory exception was not detected (empty 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new SVGPainter(100,0,FillPolicy.FILL_BOTH,(AbstractPainter)null);
-			Assert.fail("Mandatory exception was not detected (nuls in 4-th argument)");
+		try{new SVGPainter(100,0,Unit.PIXEL,FillPolicy.FILL_BOTH,(AbstractPainter)null);
+			Assert.fail("Mandatory exception was not detected (nuls in 5-th argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 	}
