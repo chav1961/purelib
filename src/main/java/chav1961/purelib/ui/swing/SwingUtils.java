@@ -1622,7 +1622,8 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Preferred size can't be null");
 		}
 		else {
-			try{JOptionPane.showMessageDialog(owner, new JScrollPane(buildAboutContent(localizer, content, preferredSize)), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
+			try{
+				JOptionPane.showMessageDialog(owner, new JScrollPane(buildAboutContent(localizer, content, preferredSize)), localizer.getValue(title), JOptionPane.PLAIN_MESSAGE, new ImageIcon(imageIcon.toURL()));
 			} catch (LocalizationException | IOException | MimeParseException e) {
 				SwingUtils.getNearestLogger(owner.getContentPane()).message(Severity.error, e.getLocalizedMessage());
 			}

@@ -105,7 +105,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 	}
 
 	/**
-	 * <p>Load helo content into the window</p>
+	 * <p>Load help content into the window</p>
 	 * @param uri uri of the help content inside localizer associated. Can't be null 
 	 * @throws LocalizationException on any localizer error
 	 * @throws IOException on any I/O error
