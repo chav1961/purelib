@@ -5,7 +5,7 @@ import java.util.Locale;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 
 /**
- * <p>This interface describes localized string. Localized string is a pair of a key (named <b>id</p>) and a few number of associated strings 
+ * <p>This interface describes localized string. Localized string is a pair of a key (named <b>id</b>) and a few number of associated strings 
  * (named <b>value</b>). Each value in the pair is associated with the appropriative {@linkplain Locale}. String can be used anywhere to localize
  * any messages by it's id.</p>
  * @author Alexander Chernomyrdin aka chav1961

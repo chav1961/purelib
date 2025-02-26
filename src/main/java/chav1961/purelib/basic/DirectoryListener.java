@@ -20,7 +20,7 @@ import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 
 /**
  * <p>This class is used to listen in the directories changes. It implements {@linkplain ExecutionControl} service to start/stop/suspend/resume watching. Any changes when watcher is started and
- * not suspended. will produce call {@linkplain WatchServiceMaintenanceCallback#process(EventType, File)} method. It's strongly recommended to use this class in </b>try-with-resource</b> statement.</p>  
+ * not suspended. will produce call {@linkplain WatchServiceMaintenanceCallback#process(EventType, File)} method. It's strongly recommended to use this class in <b>try-with-resource</b> statement.</p>  
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  */

@@ -99,7 +99,7 @@ public class CSSUtils {
 	}
 
 	/**
-	 * <p>THis is secondary units for GUI linear dimensions<p>
+	 * <p>This is secondary units for GUI linear dimensions</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8
 	 */

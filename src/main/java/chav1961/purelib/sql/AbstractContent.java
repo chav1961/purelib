@@ -3,7 +3,7 @@ package chav1961.purelib.sql;
 import java.sql.SQLException;
 
 /**
- * <p>This class is a container for data content<p>
+ * <p>This class is a container for data content</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  */
@@ -16,7 +16,7 @@ public abstract class AbstractContent implements AutoCloseable {
 	
 	/**
 	 * <p>Get number of rows in the content.</p>
-	 * @return number of rows.</p>
+	 * @return number of rows.
 	 * @throws SQLException on any SQL error
 	 */
 	public abstract int getRowCount() throws SQLException;

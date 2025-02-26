@@ -1954,7 +1954,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	}	
 
 	/**
-	 * <p>This interface is used in {@linkplain Utils#parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to compare two
+	 * <p>This interface is used in {@linkplain #parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to compare two
 	 * items of parallel "array".</p>
 	 * @see https://en.wikipedia.org/wiki/Parallel_array
 	 * @author Alexander Chernomyrdin aka chav1961
@@ -1972,7 +1972,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	}
 	
 	/**
-	 * <p>This interface is used in {@linkplain Utils#parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to move partially
+	 * <p>This interface is used in {@linkplain #parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to move partially
 	 * sorted piece inside array(s) to sort.</p>
 	 * @see https://en.wikipedia.org/wiki/Parallel_array
 	 * @author Alexander Chernomyrdin aka chav1961
