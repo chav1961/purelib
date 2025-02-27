@@ -162,6 +162,7 @@ public abstract class AbstractLocalizer implements Localizer {
 		}
 		else {
 			try {
+				
 				return walkUp((current,depth)->{
 					for (String item : current.localKeys()) {
 						if (item.equals(key)) {

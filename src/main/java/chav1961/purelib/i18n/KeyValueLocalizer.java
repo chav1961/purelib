@@ -2,8 +2,10 @@ package chav1961.purelib.i18n;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -32,7 +34,11 @@ public class KeyValueLocalizer extends AbstractLocalizer {
 
 	@Override
 	public Iterable<String> localKeys() {
-		return keys.keySet();
+		final Set<String>	result = new HashSet<>();
+		
+		result.addAll(keys.keySet());
+		result.addAll(help.keySet());
+		return result;
 	}
 
 	@Override
@@ -49,7 +55,7 @@ public class KeyValueLocalizer extends AbstractLocalizer {
 			throw new NullPointerException("Locale can't be null");
 		}
 		else if (isLocaleSupported(key, locale)) {
-			return keys.get(key)[SupportedLanguages.of(locale).ordinal()];
+			return keys.containsKey(key) ? keys.get(key)[SupportedLanguages.of(locale).ordinal()] : help.get(key)[SupportedLanguages.of(locale).ordinal()];
 		}
 		else {
 			throw new LocalizationException("Key ["+key+"] is not supported for locale ["+locale+"]");
@@ -89,16 +95,17 @@ public class KeyValueLocalizer extends AbstractLocalizer {
 		else {
 			final SupportedLanguages	lang = SupportedLanguages.of(locale);
 			
-			if (!keys.containsKey(key)) {
-				keys.put(key, new String[SupportedLanguages.values().length]);
+			if (!help.containsKey(key)) {
+				help.put(key, new String[SupportedLanguages.values().length]);
 			}
-			keys.get(key)[lang.ordinal()] = value;
+			help.get(key)[lang.ordinal()] = value;
 		}
 	}
 	
 	@Override
 	protected boolean isLocaleSupported(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
-		return keys.containsKey(key) && keys.get(key)[SupportedLanguages.of(locale).ordinal()] != null;
+		return keys.containsKey(key) && keys.get(key)[SupportedLanguages.of(locale).ordinal()] != null 
+			|| help.containsKey(key) && help.get(key)[SupportedLanguages.of(locale).ordinal()] != null;
 	}
 
 	@Override

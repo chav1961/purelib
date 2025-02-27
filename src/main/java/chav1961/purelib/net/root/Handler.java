@@ -64,8 +64,10 @@ public class Handler extends URLStreamHandler {
 				
 				return location.toURL().openConnection();
 			}
-		} catch (URISyntaxException | ClassNotFoundException exc) {
+		} catch (URISyntaxException exc) {
 			throw new IOException("Illegal URL ["+url+"]: "+exc.getLocalizedMessage(),exc); 
+		} catch (ClassNotFoundException exc) {
+			throw new IOException("Illegal URL ["+url+"]: referenced class not found ("+exc.getLocalizedMessage()+")",exc); 
 		}
 	}
 }

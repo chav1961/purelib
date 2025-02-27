@@ -65,7 +65,7 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 					final JLabel	label = (JLabel)super.getListCellRendererComponent(list, val, index, isSelected, cellHasFocus);
 					final Enum<?>	value = (Enum<?>)val;
 
-					fillLabel(label, value);
+					fillLabel(label, value, list.getFixedCellHeight());
 					return label;
 				}
 			};
@@ -79,7 +79,7 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 					final JLabel	label = (JLabel)super.getTableCellRendererComponent(table, val, isSelected, hasFocus, row, column);
 					final Enum<?>	value = (Enum<?>)val;
 
-					fillLabel(label, value);
+					fillLabel(label, value, table.getRowHeight(row));
 					return label;
 				}
 			};
@@ -89,7 +89,7 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 		}
 	}
 	
-	private static void fillLabel(final JLabel label, final Enum<?> value) {
+	private static void fillLabel(final JLabel label, final Enum<?> value, final int maxSize) {
 		if (value == null) {
 			label.setText("unselected");
 		}
@@ -103,19 +103,24 @@ public class EnumRenderer<R> implements SwingItemRenderer<Enum<?>, R> {
 					label.setToolTipText(localizer.getValue(res.tooltip()));
 					if (!res.icon().isEmpty()) {
 						final URI	uri = URI.create(res.icon());
+						ImageIcon	icon;
 						
 						if (uri.isAbsolute()) {
-							label.setIcon(new ImageIcon(uri.toURL()));
+							icon = new ImageIcon(uri.toURL());
 						}
 						else {
 							try {
 								final URI	iconURI = URIUtils.appendRelativePath2URI(value.getClass().getResource(value.getClass().getSimpleName()+".class").toURI(), "../"+uri.getPath()).normalize();
 
-								label.setIcon(new ImageIcon(iconURI.toURL()));
+								icon = new ImageIcon(iconURI.toURL());
 							} catch (URISyntaxException e) {
-								label.setIcon(null);
+								icon = null;
 							}
 						}
+						if (maxSize > 0 && icon != null) {
+							icon = new ImageIcon(icon.getImage().getScaledInstance(maxSize, maxSize, java.awt.Image.SCALE_SMOOTH));  
+						}
+						label.setIcon(icon);
 					}
 					else {
 						label.setIcon(null);
