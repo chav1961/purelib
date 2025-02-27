@@ -14,6 +14,7 @@ import java.util.Locale;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -293,8 +294,10 @@ public class JCloseableTab extends JPanel implements LocaleChangeListener {
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
+		final JComponent	thisComponent = this;
+		
 		SwingUtils.walkDown(this, (mode, node) -> {
-			if ((mode == NodeEnterMode.ENTER) && (node instanceof LocaleChangeListener)) {
+			if ((mode == NodeEnterMode.ENTER) && (node instanceof LocaleChangeListener) && (node != thisComponent)) {
 				((LocaleChangeListener)node).localeChanged(oldLocale, newLocale);
 				return ContinueMode.SKIP_CHILDREN;
 			}
