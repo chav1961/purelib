@@ -23,7 +23,8 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 public class DummyLocalizer extends AbstractLocalizer {
 	private static final List<String>	keys = new ArrayList<>();
 	
-	private static final URI			DUMMY_URI = URI.create("dummy:/");
+	private static final String			SUBSCHEME = "dummy";
+	private static final URI			DUMMY_URI = URI.create("unknown:/");
 	
 
 	/**
@@ -40,6 +41,11 @@ public class DummyLocalizer extends AbstractLocalizer {
 		return DUMMY_URI;
 	}
 
+	@Override
+	public String getSubscheme() {
+		return SUBSCHEME;
+	}
+	
 	@Override
 	public boolean canServe(URI resource) throws NullPointerException {
 		return false;

@@ -829,7 +829,7 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 		else {
 			final Set<String>	toRemove = new HashSet<>();
 			
-			for(Map.Entry<Object, Object> entry : defaults.entrySet()) {
+			for(Map.Entry<Object, Object> entry : entrySet()) {
 				if (pattern.matcher(entry.getKey().toString()).matches()) {
 					toRemove.add(entry.getKey().toString());
 				}

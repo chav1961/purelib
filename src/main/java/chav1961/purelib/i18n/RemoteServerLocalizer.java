@@ -228,4 +228,10 @@ class RemoteServerLocalizer implements Localizer {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public String getSubscheme() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

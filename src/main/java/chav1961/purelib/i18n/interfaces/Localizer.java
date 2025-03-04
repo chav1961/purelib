@@ -54,7 +54,7 @@ import chav1961.purelib.streams.char2char.CreoleWriter;
  * @see SubstitutableProperties
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	/**
@@ -290,6 +290,12 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 	 * @return unique identifier of the localized. Can't be null or empty. It's strongly recommended to use localizer URI as value returned
 	 */
 	URI getLocalizerId();
+	
+	/**
+	 * <p>Get sub-scheme of the current localizer.</p>
+	 * @return sub-scheme of the localizer. Can't be null or empty.
+	 */
+	String getSubscheme();
 
 	/**
 	 * <p>Test that localizer level contains localizer with the given id</p>
@@ -504,7 +510,22 @@ public interface Localizer extends AutoCloseable, SpiService<Localizer> {
 			}
 		}
 	}
-	
+
+	/**
+	 * <p>Build localizer full URI by it's description.</p>
+	 * @param localizer localizer to build URI for. Can't be null.
+	 * @return URI built. Can'tbe null.
+	 * @throws NullPointerException when localizer is null.
+	 * @since 0.0.8
+	 */
+	public static URI toURI(final Localizer localizer) throws NullPointerException {
+		if (localizer == null) {
+			throw new NullPointerException("Localizer can't be null");
+		}
+		else {
+			return URI.create(LOCALIZER_SCHEME+':'+localizer.getSubscheme()+":"+localizer.getLocalizerId());
+		}
+	}
 	
 	/**
 	 * <p>This class is a factory to get localizer by it's URI. It implements a 'Factory' template and wraps call to {@linkplain LocalizerFactory#getLocalizer(URI)}</p> 

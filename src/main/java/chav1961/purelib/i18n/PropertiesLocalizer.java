@@ -71,6 +71,11 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 	}
 	
 	@Override
+	public String getSubscheme() {
+		return SUBSCHEME;
+	}
+	
+	@Override
 	public Localizer newInstance(final URI localizer) throws EnvironmentException {
 		if (!canServe(localizer)) {
 			throw new EnvironmentException("Localizer URI ["+localizer+"] is not supported for the given localizer. Valid URI is ["+SERVE+"...]");

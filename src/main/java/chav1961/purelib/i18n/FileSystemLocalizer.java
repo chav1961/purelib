@@ -68,6 +68,10 @@ public class FileSystemLocalizer extends AbstractLocalizer {
 		return URI.create(resourceAddress);
 	}
 
+	@Override
+	public String getSubscheme() {
+		return SUBSCHEME;
+	}
 	
 	@Override
 	public Localizer newInstance(final URI localizer) throws EnvironmentException, NullPointerException, IllegalArgumentException {

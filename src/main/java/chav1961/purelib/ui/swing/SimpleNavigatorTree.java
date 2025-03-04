@@ -477,17 +477,17 @@ public class SimpleNavigatorTree<T> extends JTree implements LocaleChangeListene
 							
 							switch (getConentType()) {
 								case FSYS		:
-									final String	fsiAssociation = (String)contentPath.getLastPathComponent();
+									final String	fsiAssociation = (String)((DefaultMutableTreeNode)contentPath.getLastPathComponent()).getUserObject();
 									
 									showPopupMenu(contentPath,(T)fsiAssociation,rect.x+rect.width/2,rect.y+rect.height/2);
 									break;
 								case JSON		:
-									final JsonNode	nodeAssociation = (JsonNode)contentPath.getLastPathComponent();
+									final JsonNode	nodeAssociation = (JsonNode)((DefaultMutableTreeNode)contentPath.getLastPathComponent()).getUserObject();
 									
 									showPopupMenu(contentPath,(T)nodeAssociation,rect.x+rect.width/2,rect.y+rect.height/2);
 									break;
 								case METADATA	:
-									final ContentNodeMetadata	metadataAssociation = (ContentNodeMetadata)contentPath.getLastPathComponent();
+									final ContentNodeMetadata	metadataAssociation = (ContentNodeMetadata)((DefaultMutableTreeNode)contentPath.getLastPathComponent()).getUserObject();
 									
 									showPopupMenu(contentPath,(T)metadataAssociation,rect.x+rect.width/2,rect.y+rect.height/2);
 									break;

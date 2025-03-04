@@ -1,9 +1,14 @@
 package chav1961.purelib.model.interfaces;
 
 import java.net.URI;
+import java.util.Iterator;
 
+import chav1961.purelib.basic.NullIterator;
+import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
+import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.FieldFormat;
 
 /**
@@ -36,7 +41,7 @@ public interface ContentMetadataInterface {
 	 * <p>This interface describes a node in the model tree. This node implements {@linkplain Iterable} interface to get access for all children with for-each loop</p> 
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @last.update 0.0.6
+	 * @last.update 0.0.8
 	 */
 	public interface ContentNodeMetadata extends Iterable<ContentNodeMetadata>, Cloneable {
 		/**
@@ -95,7 +100,7 @@ public interface ContentMetadataInterface {
 		
 		/**
 		 * <p>Get application URI associated with the given node.</p>
-		 * @return appication URI associated. Can be null
+		 * @return application URI associated. Can be null
 		 */
 		URI getApplicationPath();
 		
@@ -156,6 +161,77 @@ public interface ContentMetadataInterface {
 		 * @return owner of the model. Can be null
 		 */
 		ContentMetadataInterface getOwner();
+
+		/**
+		 * <p>Create simple implementation of the {@linkplain ContentNodeMetadata} interface.</p>
+		 * @param name node name. Can't be null or empty.
+		 * @param type node value class type. Can't be null.
+		 * @param localizer localizer to use with. Can't be null.
+		 * @param labelId label ID in the localizer to use. Can't be null or empty.
+		 * @param format field format to use. Can't be null.
+		 * @param uiPath full UI path. Can't be null.
+		 * @param appPath application path. Can't be null.
+		 * @return implementation created. Can't be null.
+		 * @throws IllegalArgumentException any string argument is null or empty.
+		 * @throws NullPointerException any non-string argument is null.
+		 * @since 0.0.8
+		 */
+		public static ContentNodeMetadata of(final String name, final Class<?> type, final URI localizer, final String labelId, final FieldFormat format, final URI uiPath, final URI appPath) throws NullPointerException, IllegalArgumentException {
+			if (Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Node name can't be null or empty"); 
+			}
+			else if (type == null) {
+				throw new NullPointerException("Node type can't be null"); 
+			}
+			else if (localizer == null) {
+				throw new NullPointerException("Localizer can't be null"); 
+			}
+			else if (Utils.checkEmptyOrNullString(labelId)) {
+				throw new IllegalArgumentException("Label ID can't be null or empty"); 
+			}
+			else if (format == null) {
+				throw new NullPointerException("Field format can't be null"); 
+			}
+			else if (uiPath == null) {
+				throw new NullPointerException("UI path can't be null"); 
+			}
+			else if (appPath == null) {
+				throw new NullPointerException("Applicaiton path can't be null"); 
+			}
+			else {
+				return new ContentNodeMetadata() {
+					@Override public boolean mounted() {return false;}
+					@Override public URI getUIPath() {return uiPath;}
+					@Override public Class<?> getType() {return type;}
+					@Override public String getTooltipId() {return labelId;}
+					@Override public ContentNodeMetadata getParent() {return null;}
+					@Override public ContentMetadataInterface getOwner() {return null;}
+					@Override public String getName() {return name;}
+					@Override public String getLabelId() {return labelId;}
+					@Override public URI getIcon() {return null;}
+					@Override public String getHelpId() {return null;}
+					@Override public FieldFormat getFormatAssociated() {return format;}
+					@Override public int getChildrenCount() {return 0;}
+					@Override public ContentNodeMetadata getChild(String name) {return null;}
+					@Override public ContentNodeMetadata getChild(int index) {return null;}
+					@Override public URI getApplicationPath() {return appPath;}
+					@Override public Iterator<ContentNodeMetadata> iterator() {return NullIterator.<ContentNodeMetadata>singleton();}
+					@Override public URI getLocalizerAssociated() {return localizer;}
+
+					@Override 
+					public URI getRelativeUIPath() {
+						final String	path = getUIPath().getPath();
+						final String	query = URIUtils.extractQueryFromURI(getUIPath());
+						final String 	fragment = getUIPath().getFragment();
+						
+						return URI.create((path.contains("/") ? path.substring(path.lastIndexOf('/')+1) : path)
+										+ (Utils.checkEmptyOrNullString(query) ? "" : "?"+query)
+										+ (Utils.checkEmptyOrNullString(fragment) ? "" : "#"+fragment)
+										);
+					}
+				};
+			}
+		}
 	}
 
 	@FunctionalInterface

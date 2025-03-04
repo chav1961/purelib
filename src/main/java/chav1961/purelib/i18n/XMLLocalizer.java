@@ -48,11 +48,12 @@ public class XMLLocalizer extends AbstractLocalizer {
 	
 	private final URI					resourceAddress;
 	private final Map<String,KeyCollection>	keys = new HashMap<>();
+	private final String				localizerURI;
 	private KeyCollection				currentCollection;
-	private String						localizerURI = "unknown:/";
 	
 	public XMLLocalizer() throws LocalizationException, NullPointerException {
 		this.resourceAddress = null;
+		this.localizerURI = "unknown:/";
 	}
 
 	protected XMLLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
@@ -128,6 +129,11 @@ public class XMLLocalizer extends AbstractLocalizer {
 		return URI.create(localizerURI);
 	}
 
+	@Override
+	public String getSubscheme() {
+		return SUBSCHEME;
+	}
+	
 	@Override
 	public boolean canServe(final URI localizer) throws NullPointerException {
 		return URIUtils.canServeURI(localizer, SERVE); 

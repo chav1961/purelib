@@ -394,6 +394,12 @@ class PseudoLocalizer extends AbstractLocalizer {
 	@Override
 	protected boolean isLocaleSupported(String key, Locale locale) throws LocalizationException, IllegalArgumentException {
 		return "'en;ru;".contains(locale.getLanguage());
+	}
+
+	@Override
+	public String getSubscheme() {
+		// TODO Auto-generated method stub
+		return null;
 	}	
 }
 
@@ -459,5 +465,11 @@ class SingleKeyLocalizer extends AbstractLocalizer {
 	@Override
 	protected boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException {
 		return "'en;ru;".contains(locale.getLanguage());
+	}
+
+	@Override
+	public String getSubscheme() {
+		// TODO Auto-generated method stub
+		return null;
 	}	
 }

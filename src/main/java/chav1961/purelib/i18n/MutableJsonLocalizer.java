@@ -73,8 +73,8 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 	private final URI					resourceAddress;
 	private final Map<String,KeyCollection>	localKeys = new HashMap<>();
 	private final boolean				isReadOnly;
+	private final String				localizerURI;
 	private KeyCollection				currentCollection;
-	private String						localizerURI = "unknown:/";
 	
 	/**
 	 * <p>Constructor of the class</p>
@@ -84,6 +84,7 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 	public MutableJsonLocalizer() throws LocalizationException, NullPointerException {
 		this.resourceAddress = null;
 		this.isReadOnly = true;
+		this.localizerURI = "unknown:/";
 	}
 
 	protected MutableJsonLocalizer(final URI resourceAddress) throws LocalizationException, NullPointerException {
@@ -161,6 +162,11 @@ public class MutableJsonLocalizer extends AbstractLocalizer {
 		return URI.create(localizerURI);
 	}
 
+	@Override
+	public String getSubscheme() {
+		return isReadOnly ? SUBSCHEME : MUTABLE_SUBSCHEME;
+	}
+	
 	@Override
 	public boolean canServe(final URI localizer) throws NullPointerException {
 		return URIUtils.canServeURI(localizer, SERVE) || URIUtils.canServeURI(localizer, MUTABLE_SERVE); 

@@ -355,7 +355,7 @@ class InternalUtils {
 	
 	static File chooseFile(final Component owner, final Localizer localizer, final File initialFile, final int options) throws HeadlessException, LocalizationException {
 		final JFileChooser	chooser = new JFileChooser();
-		final File			currentPath = initialFile;
+		final File			currentPath = initialFile == null ? new File("./") : initialFile;
 		
 		if (currentPath.exists()) {
 			if (currentPath.isFile()) {

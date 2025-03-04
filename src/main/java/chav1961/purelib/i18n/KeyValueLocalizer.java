@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
@@ -14,14 +15,23 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 
 public class KeyValueLocalizer extends AbstractLocalizer {
+	private static final String			SUBSCHEME = "keyvalue";
+	private static final AtomicInteger	UNIQUE = new AtomicInteger();
+	
 	private final Map<String,String[]>	keys = new HashMap<>();
 	private final Map<String,String[]>	help = new HashMap<>();
+	private final URI		uniqueId = URI.create("unique:/"+UNIQUE.incrementAndGet()); 
 
 	@Override
 	public URI getLocalizerId() {
-		return URI.create(LOCALIZER_SCHEME+":unknown:/");
+		return uniqueId;
 	}
 
+	@Override
+	public String getSubscheme() {
+		return SUBSCHEME;
+	}
+	
 	@Override
 	public boolean canServe(final URI resource) throws NullPointerException {
 		return false;

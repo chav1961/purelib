@@ -901,6 +901,11 @@ sw:				for(;;) {
 		}
 
 		@Override
+		public String getSubscheme() {
+			return nested.getSubscheme();
+		}
+		
+		@Override
 		public Localizer getParent() {
 			return parent;
 		}

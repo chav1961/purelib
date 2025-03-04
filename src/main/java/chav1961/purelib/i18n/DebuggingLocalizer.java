@@ -21,13 +21,14 @@ import chav1961.purelib.i18n.interfaces.Localizer;
  * @author Alexander Chernomyrdin aka chav1961
  * @see Localizer
  * @since 0.0.2
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 
 public class DebuggingLocalizer extends AbstractLocalizer {
 	private static final Map<String,String>	EMPTY_HELP = new HashMap<>();
 	
-	private static final URI				DEBUG_URI = URI.create("debug:/");
+	private static final String				SUBSCHEME = "debug";
+	private static final URI				DEBUG_URI = URI.create("unknown:/");
 
 	private final Map<String,SubstitutableProperties>	keysAndValues;
 	private final Map<String,String>					helps;
@@ -74,6 +75,12 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 	public URI getLocalizerId() {
 		return DEBUG_URI;
 	}
+	
+	@Override
+	public String getSubscheme() {
+		return SUBSCHEME;
+	}
+	
 	
 	@Override
 	public Localizer newInstance(final URI resource) throws EnvironmentException, NullPointerException, IllegalArgumentException {
