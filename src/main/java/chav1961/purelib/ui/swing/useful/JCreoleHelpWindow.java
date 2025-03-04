@@ -61,10 +61,6 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 			this.localizer = localizer;
 			this.lastContent = root;
 			
-			try{loadContent(root);
-			} catch (IOException exc) {
-				throw new LocalizationException(exc.getLocalizedMessage(),exc);
-			}
 			addHyperlinkListener((e)->{
 				if (e.getEventType() == HyperlinkEvent.EventType.ENTERED) {
 					((JComponent)e.getSource()).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -90,9 +86,13 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 					}
 				}
 			});
-			
 			SwingUtils.assignActionKey(this, SwingUtils.KS_BACKWARD, (e)->backward(), "backward");
 			setEditable(false);
+
+			try{loadContent(root);
+			} catch (IOException exc) {
+				throw new LocalizationException(exc.getLocalizedMessage(),exc);
+			}
 		}
 	}
 
