@@ -1883,7 +1883,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	/**
 	 * <p>This interface in used in {@linkplain Utils#parallelArraysBinarySearch(int, int, IndicesComparable)} method to compare parallel
 	 * array "item" and value to found by array index.  
-	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @see <a href="https://en.wikipedia.org/wiki/Parallel_array">Parallel arrays</a>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8 
 	 */
@@ -1919,7 +1919,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @param to start piece of parallel array to search. Must be greater than from variable.
 	 * @param comparator comparator to search content. Can't be null.
 	 * @return index >= 0 - "array" item found, index < 0 - =(-1-potential place for item found). 
-	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @see <a href="https://en.wikipedia.org/wiki/Parallel_array">Parallel arrays</a>
  	 * @since 0.0.8 
 	 */
 	public static int parallelArraysBinarySearch(final int from, final int to, final IndicesComparable comparator) {
@@ -1954,9 +1954,9 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	}	
 
 	/**
-	 * <p>This interface is used in {@linkplain #parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to compare two
+	 * <p>This interface is used in {@linkplain #parallelArraysQSort(int, int, IndicesComparator, IndicesMover, int)} method to compare two
 	 * items of parallel "array".</p>
-	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @see <a href="https://en.wikipedia.org/wiki/Parallel_array">Parallel arrays</a>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8 
 	 */
@@ -1972,9 +1972,9 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	}
 	
 	/**
-	 * <p>This interface is used in {@linkplain #parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)} method to move partially
+	 * <p>This interface is used in {@linkplain #parallelArraysQSort(int, int, IndicesComparator, IndicesMover, int)} method to move partially
 	 * sorted piece inside array(s) to sort.</p>
-	 * @see https://en.wikipedia.org/wiki/Parallel_array
+	 * @see <a href="https://en.wikipedia.org/wiki/Parallel_array">Parallel arrays</a>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8 
 	 */
@@ -2037,8 +2037,8 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @param mover mover of parallel array pieces. Can't be null. 
 	 * @param tempSize size of temporary memory to use in sort. Must be at least 1. Negative values in the {@linkplain IndicesMover#move(int, int, int)} method
 	 * will be in the range -1..-tempSize.
-	 * @see https://en.wikipedia.org/wiki/Parallel_array
-	 * @see https://en.wikipedia.org/wiki/Quicksort
+	 * @see <a href="https://en.wikipedia.org/wiki/Parallel_array">Parallel arrays</a>
+	 * @see <a href="https://en.wikipedia.org/wiki/Quicksort">Quick sort</a>
 	 * @since 0.0.8
 	 */
 	public static void parallelArraysQSort(final int from, final int to, final IndicesComparator comparator, final IndicesMover mover, final int tempSize) {

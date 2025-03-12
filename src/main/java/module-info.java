@@ -15,7 +15,7 @@ module chav1961.purelib {
 	requires transitive java.sql;
 	requires transitive java.rmi;
 	requires transitive java.management;
-	requires transitive java.base;
+	requires java.base;
 	requires jdk.compiler;
 	requires transitive java.naming;
 	requires java.datatransfer;

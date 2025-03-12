@@ -1062,7 +1062,7 @@ loop:		for (index = from; index < len; index++) {
 	}
 	
 	/**
-	 * <p>This interface is used in the {@linkplain CharUtils#parceLuceneStyledQuery(CharSequence)} method.</p>
+	 * <p>This interface is used in the {@linkplain #parsceLuceneStyledQuery(CharSequence)} method.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.8
 	 */

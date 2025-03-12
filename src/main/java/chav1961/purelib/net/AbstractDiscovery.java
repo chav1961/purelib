@@ -24,8 +24,8 @@ import chav1961.purelib.net.interfaces.MediaItemDescriptor;
 
 /**
  * <p>This class implements abstract discovery service.</p>
- * @param <Broadcast>
- * @param <Query>
+ * @param <Broadcast> Broadcast message class
+ * @param <Query> Query message class
  */
 public abstract class AbstractDiscovery <Broadcast extends Serializable, Query extends Serializable> implements Closeable, ExecutionControl, Maintenable<Object> {
 	public static final int		DEFAULT_RECORD_SIZE = 1024;
