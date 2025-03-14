@@ -51,6 +51,9 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  */
 
 public abstract class AbstractFileSystem implements FileSystemInterface {
+	/**
+	 * <p>Default encoding to open character stream in the file system</p>
+	 */
 	public static final String			DEFAULT_ENCODING = "UTF-8";
 
 	/**
@@ -83,7 +86,11 @@ public abstract class AbstractFileSystem implements FileSystemInterface {
 	private	URI							currentPath = null, prevPath = null;
 	private DataWrapperInterface		prevWrapper = null;
 	private boolean						appendMode = false;
-	
+
+	/**
+	 * <p>COnstrucot of the class instance</p>
+	 * @param rootPath root path for the file system. Can't be null
+	 */
 	public AbstractFileSystem(final URI rootPath) {
 		if (rootPath == null) {
 			throw new NullPointerException("Root path can't be null");

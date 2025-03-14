@@ -2,6 +2,7 @@ package chav1961.purelib.ui;
 
 import java.io.Serializable;
 
+
 public class AnchorPoint implements Serializable, Cloneable {
 	private static final long serialVersionUID = 1515030454156299326L;
 	

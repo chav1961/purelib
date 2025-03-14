@@ -63,7 +63,10 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		    throw new PreparationException("Error creating MBean logger manager: "+e.getLocalizedMessage());
 		}
 	}
-	
+
+	/**
+	 * <p>COnstrucotr of the class instance</p>
+	 */
 	public AbstractLoggerFacade() {
 		this.mark = "";
 		this.inTransaction = false;
@@ -376,9 +379,22 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 			return "TransactionMessage [timestamp=" + timestamp + ", level=" + level + ", text=" + text + ", exception=" + exception + "]";
 		}
 	}
-	
+
+	/**
+	 * <p>This interface supports MBEan server for loggers.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.1
+	 */
 	public static interface LoggerManagerMBean {
+		/**
+		 * <p>Get global suppress level</p>
+		 * @return global suppress level. Can be neither null nor empty and its content equals to {@linkplain Severity} item name.
+		 */
 		String getGlobalSuppressLevel();
+		/**
+		 * <p>Set global suppress level</p>
+		 * @param level global suppress level to set.  Can be neither null nor empty and its content must be equals to one of the {@linkplain Severity} item name.
+		 */
 		void setGlobalSuppressLevel(String level);
 	}
 	

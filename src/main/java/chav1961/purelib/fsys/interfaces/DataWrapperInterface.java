@@ -35,7 +35,7 @@ public interface DataWrapperInterface extends FileSystemLockInterface {
 
 	/**
 	 * <p>Get URI list for the current 
-	 * @param pattern pattern to filter file system entity names<p>
+	 * @param pattern pattern to filter file system entity names
 	 * @return URI list from the given file system cursor. Can be empty but not null. Each URI need be started with '/', but need be relative to the {@link FileSystemInterface#createDataWrapper(URI) createDataWrapper(URI)} URI. 
 	 * @throws IOException if any exceptions was thrown
 	 */

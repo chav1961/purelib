@@ -75,7 +75,7 @@ public interface InstanceManager<Key, Inst> extends AutoCloseable {
 	 * <p>Assign key to instance content.</p> 
 	 * @param inst instance to assign key for. Can't be null
 	 * @param key key set to assign. Can't be null
-	 * @throws SQLException
+	 * @throws SQLException on any SQL errors
 	 */
 	void assignKey(Inst inst, Key key) throws SQLException;
 	

@@ -27,6 +27,9 @@ public abstract class AbstractWizardStep<Common, ErrorType extends Enum<?>, Cont
 	@Override public abstract void beforeShow(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, ErrorType> err) throws FlowException;
 	@Override public abstract void afterShow(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, ErrorType> err) throws FlowException;
 	
+	protected AbstractWizardStep() {
+	}
+	
 	@Override
 	public String getStepId() {
 		return this.getClass().getName();

@@ -11,6 +11,9 @@ import java.lang.annotation.Target;
 
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 
+/**
+ * <p>This annotation marks class or field to action</p>
+ */
 @Retention(RUNTIME)
 @Target({TYPE,FIELD})
 @Repeatable(MultiAction.class)

@@ -10,28 +10,32 @@ import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
+/**
+ * <p>This abstract class extends {@linkplain AbstractFileSystem} class functionality with exclusive/shared lock mechanism</p>
+ * @param <LS> Locker source for the class.
+ * @param <L> Locker to lock file system content.
+ */
 public abstract class AbstractFileSystemWithLockService<LS extends AutoCloseable, L extends AutoCloseable> extends AbstractFileSystem {
-	
-	private final AbstractFileSystemWithLockService<LS, L>	another;
 	private final Map<String, LockerAndCounter<LS>>	locks;
 	private final Map<String, LockerAndCounter<L>>	current_locks = new ConcurrentHashMap<>();
-	
+
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param rootPath root path descriptor for the file system. Can't be null.
+	 */
 	public AbstractFileSystemWithLockService(final URI rootPath) {
 		super(rootPath);
 		this.locks = new ConcurrentHashMap<>();
-		this.another = null;
 	}
 
 	protected AbstractFileSystemWithLockService() {
 		super();
 		this.locks = new ConcurrentHashMap<>();
-		this.another = null;
 	}
 
 	protected AbstractFileSystemWithLockService(final AbstractFileSystemWithLockService<LS, L> another) {
 		super(another);
 		this.locks = null;
-		this.another = another;
 	}
 
 	@Override

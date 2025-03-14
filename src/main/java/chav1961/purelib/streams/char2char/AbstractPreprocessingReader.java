@@ -150,7 +150,18 @@ public abstract class AbstractPreprocessingReader extends Reader {
 	 * @since 0.0.2
 	 */
 	public enum HidingMethod {
-		EXCLUDE, SINGLE_LINE_COMMENTED, MULTILINE_COMMENTED
+		/**
+		 * <p>Really exclude content from input stream</p>
+		 */
+		EXCLUDE, 
+		/**
+		 * <p>Wrap excluded content with single line comments</p>
+		 */
+		SINGLE_LINE_COMMENTED, 
+		/**
+		 * <p>Wrap excluded content with multi-line comments</p>
+		 */
+		MULTILINE_COMMENTED
 	}
 	
 	protected static final int			DEFAULT_BUFFER_SIZE = 8192;

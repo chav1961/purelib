@@ -54,13 +54,36 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	private volatile boolean	started = false;
 	private volatile boolean	suspended = false;
 
-	public AbstractDiscovery(final MediaAdapter adapter, final MediaDescriptor mediaDesc) throws IOException {
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param adapter media adapter to use. Can't be null.
+	 * @param mediaDesc media descriptor to use. Can be null.
+	 * @throws IOException on any I/O errors.
+	 * @throws NullPointerException when adapter is null
+	 */
+	public AbstractDiscovery(final MediaAdapter adapter, final MediaDescriptor mediaDesc) throws IOException, NullPointerException {
 		this(adapter, mediaDesc, DEFAULT_RECORD_SIZE, DEFAULT_DISCOVERY_PERIOD);
 	}
 	
-	public AbstractDiscovery(final MediaAdapter adapter, final MediaDescriptor mediaDesc, final int maxBufferSize, final int discoveryPeriod) throws IOException {
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param adapter media adapter to use. Can't be null.
+	 * @param mediaDesc media descriptor to use. Can be null.
+	 * @param maxBufferSize max size of the media buffer. Must be greater than 0.
+	 * @param discoveryPeriod discovery period. Must be greater than 0.
+	 * @throws IOException on any I/O error
+	 * @throws NullPointerException when adapter is null
+	 * @throws IllegalArgumentException when maxBufferSize amd/or discoveryPeriod are less or equals 0.  
+	 */
+	public AbstractDiscovery(final MediaAdapter adapter, final MediaDescriptor mediaDesc, final int maxBufferSize, final int discoveryPeriod) throws IOException, NullPointerException, IllegalArgumentException {
 		if (adapter == null) {
 			throw new NullPointerException("Media adapter can't be null");
+		}
+		else if (maxBufferSize <= 0) {
+			throw new IllegalArgumentException("Max buffer size ["+maxBufferSize+"] must be greater than 0");
+		}
+		else if (discoveryPeriod <= 0) {
+			throw new IllegalArgumentException("Discovery period ["+discoveryPeriod+"] must be greater than 0");
 		}
 		else {
 			this.adapter = adapter;
@@ -145,8 +168,13 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 	public int getMaintenancePeriod() {
 		return discoveryPeriod;
 	}
-	
-	public void addDiscoveryListener(final DiscoveryListener l) {
+
+	/**
+	 * <p>Add discovery listener to the discovery</p>
+	 * @param l listener to add. Can't be null
+	 * @throws NullPointerException listener to add is null
+	 */
+	public void addDiscoveryListener(final DiscoveryListener l) throws NullPointerException {
 		if (l == null) {
 			throw new NullPointerException("Listener to add can't be null"); 
 		}
@@ -155,7 +183,12 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 		}
 	}
 
-	public void removeDiscoveryListener(final DiscoveryListener l) {
+	/**
+	 * <p>Remove discovery listener from discovery.</p>
+	 * @param l listener to remove. Can't be null
+	 * @throws NullPointerException listener to remove is null
+	 */
+	public void removeDiscoveryListener(final DiscoveryListener l) throws NullPointerException {
 		if (l == null) {
 			throw new NullPointerException("Listener to remove can't be null"); 
 		}
@@ -171,10 +204,18 @@ public abstract class AbstractDiscovery <Broadcast extends Serializable, Query e
 		}
 	}
 
+	/**
+	 * <p>Get associated media adapter</p>
+	 * @return associated media adapter. Can't be null
+	 */
 	public MediaAdapter getMediaAdapter() {
 		return adapter;
 	}
 
+	/**
+	 * <p>Get associated media descriptor</p>
+	 * @return associated media descriptor. Can be null
+	 */
 	public MediaDescriptor getMediaDescriptor() {
 		return mediaDesc;
 	}
