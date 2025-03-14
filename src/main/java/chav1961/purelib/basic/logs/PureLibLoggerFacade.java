@@ -1,9 +1,10 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.net.URI;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
@@ -18,11 +19,15 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @last.update 0.0.6
  */
 
-public class PureLoggerFacade extends Logger implements LoggerFacade {
+public class PureLibLoggerFacade extends Logger implements LoggerFacade {
 	public static final URI						LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":pure:/");
 	private final StandardJRELoggerFacade		stdLogger = new StandardJRELoggerFacade(this);
 
-	public PureLoggerFacade(final String name, final String resourceBundleName) {
+	public PureLibLoggerFacade() {
+		this("PureLib","PureLib");
+	}
+	
+	public PureLibLoggerFacade(final String name, final String resourceBundleName) {
 		super(name, resourceBundleName);
 	}
 

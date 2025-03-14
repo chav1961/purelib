@@ -13,6 +13,7 @@ import chav1961.purelib.basic.StackedFSM.StackedFSMCallback;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.logs.AbstractLoggerFacade;
 
 @Tag("OrdinalTestCategory")
 public class FSMTest {

@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.net.URI;
 
@@ -16,6 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.LoggerCallbackInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Reducing;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.logs.AbstractLoggerFacade;
 
 @Tag("OrdinalTestCategory")
 public class LoggerFacadeTest {

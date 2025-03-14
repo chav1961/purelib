@@ -1,21 +1,41 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Set;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
+/**
+ * <p>This class is an implementation of {@link LoggerFacade} interface for the {@linkplain StringBuilder} content.</p>
+ * <p>This class is not thread-safe.</p>
+ * 
+ * @see LoggerFacade
+ * @see AbstractLoggerFacade
+ * @see chav1961.purelib.basic JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.8
+ */
 public class StringLoggerFacade extends AbstractLoggerFacade {
 	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":string:/");
 	
 	private final StringBuilder	sb = new StringBuilder();
-	
+
+	/**
+	 * <p>Constructor of the class instance</p>
+	 */
 	public StringLoggerFacade() {
 		super();
 	}
 
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param mark mark for logger. Can be null or empty.
+	 * @param root transaction root class. Can't be null.
+	 * @param reducing set of reducing rules. Can't be null but can be empty
+	 */
 	public StringLoggerFacade(final String mark, final Class<?> root, final Set<Reducing> reducing) {
 		super(mark, root, reducing);
 	}

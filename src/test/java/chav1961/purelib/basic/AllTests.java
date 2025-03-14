@@ -3,6 +3,8 @@ package chav1961.purelib.basic;
 import org.junit.platform.suite.api.SelectClasses;
 import org.junit.platform.suite.api.Suite;
 
+import chav1961.purelib.basic.logs.LoggerFacadeTest;
+
 @Suite
 @SelectClasses({ ArgParserTest.class, AsmScriptEngineTest.class, BitCharSetTest.class, BKTreeTest.class,
 		CharArrayPieceTest.class, CharUtilsTest.class, ColorUtilsTest.class, ConsoleCommandManagerTest.class,

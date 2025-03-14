@@ -45,6 +45,8 @@ import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.SpiService;
+import chav1961.purelib.basic.logs.NullLoggerFacade;
+import chav1961.purelib.basic.logs.SystemErrLoggerFacade;
 import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.FileSystemURLStreamHandler;

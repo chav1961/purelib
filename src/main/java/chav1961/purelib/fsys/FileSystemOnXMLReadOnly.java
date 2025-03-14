@@ -34,12 +34,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import chav1961.purelib.basic.PureLibSettings;
-import chav1961.purelib.basic.SystemErrLoggerFacade;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.logs.SystemErrLoggerFacade;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;

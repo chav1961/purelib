@@ -1,19 +1,33 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.net.URI;
 import java.util.Set;
 
 import javax.swing.JEditorPane;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 
+/**
+ * <p>This class is an implementation of {@link LoggerFacade} interface for the Swing GUI.</p>
+ * <p>This class is not thread-safe.</p>
+ * 
+ * @see LoggerFacade
+ * @see AbstractLoggerFacade
+ * @see chav1961.purelib.basic JUnit tests
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.8
+ */
 public class SwingLoggerFacade extends AbstractLoggerFacade {
 	public static final URI		LOGGER_URI = URI.create(LoggerFacade.LOGGER_SCHEME+":swing:/");
 	
 	private final JEditorPane	content;
 	private final StringBuilder	sb = new StringBuilder();
-	
+
+	/**
+	 * <p>Constructor of the class instance</p>
+	 */
 	public SwingLoggerFacade() {
 		super();
 		this.content = null;
@@ -52,6 +66,10 @@ public class SwingLoggerFacade extends AbstractLoggerFacade {
 		}
 	}
 
+	/**
+	 * <p>Get {@linkplain JEditorPane} windows associated with the logger facade.</p>
+	 * @return windows associated. Can't be null.
+	 */
 	public JEditorPane getLoggerPane() {
 		return content;
 	}

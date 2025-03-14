@@ -1,10 +1,11 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.util.Set;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 

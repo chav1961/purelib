@@ -132,7 +132,13 @@ module chav1961.purelib {
 	
 	uses chav1961.purelib.basic.interfaces.LoggerFacade;
 	provides chav1961.purelib.basic.interfaces.LoggerFacade with
-			 chav1961.purelib.basic.StringLoggerFacade;
+	 		  chav1961.purelib.basic.logs.DefaultLoggerFacade
+	 		, chav1961.purelib.basic.logs.NullLoggerFacade
+	 		, chav1961.purelib.basic.logs.PureLibLoggerFacade
+	 		, chav1961.purelib.basic.logs.StandardJRELoggerFacade
+	 		, chav1961.purelib.basic.logs.StringLoggerFacade
+	 		, chav1961.purelib.basic.logs.SwingLoggerFacade
+	 		, chav1961.purelib.basic.logs.SystemErrLoggerFacade;
 	
 	uses java.sql.Driver;
 	

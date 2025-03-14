@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -15,6 +15,8 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.intern.ReducedExceptionWrapper;
@@ -34,12 +36,13 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.6
+ * @last.update 0.0.8
  */ 
 
 public abstract class AbstractLoggerFacade implements LoggerFacade {
 	private static volatile Severity		globalSuppress = Severity.tooltip;
 	
+	private final String					mark;
 	private final List<Set<Reducing>>		stack = new ArrayList<Set<Reducing>>();
 	private final Set<StackTraceElement>	repeatables = new HashSet<StackTraceElement>();
 	private final boolean					inTransaction;
@@ -62,6 +65,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 	
 	public AbstractLoggerFacade() {
+		this.mark = "";
 		this.inTransaction = false;
 		this.transactionRoot = null;
 		this.messages = null;
@@ -69,6 +73,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 	}
 
 	protected AbstractLoggerFacade(final String mark, final Class<?> root, final Set<Reducing> reducing) {
+		this.mark = mark == null ? "" : mark;
 		this.inTransaction = true;
 		this.transactionRoot = root;
 		this.messages = new ArrayList<TransactionMessage>();
@@ -253,6 +258,10 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 
+	protected String getMark() {
+		return mark;
+	}
+	
 	protected boolean isInTransaction() {
 		return inTransaction;
 	}

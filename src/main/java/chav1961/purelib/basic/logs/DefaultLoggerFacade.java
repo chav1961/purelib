@@ -1,4 +1,4 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.logs;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 

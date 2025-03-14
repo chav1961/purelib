@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.InputOutputPairInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
+import chav1961.purelib.basic.logs.NullLoggerFacade;
 import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
