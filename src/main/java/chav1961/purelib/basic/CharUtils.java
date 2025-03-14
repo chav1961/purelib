@@ -240,7 +240,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current integer 
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -269,7 +269,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseSignedInt(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -297,7 +297,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current integer
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseIntExtended(final char[] source, final int from, final int[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -325,7 +325,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current integer 
 	 * @throws SyntaxException if any parsing errors ware detected 
 	 * @throws IllegalArgumentException if any argument errors ware detected 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -354,7 +354,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseSignedLong(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -382,7 +382,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current integer
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseLongExtended(final char[] source, final int from, final long[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -410,7 +410,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current integer 
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -439,7 +439,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseSignedFloat(final char[] source, final int from, final float[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -467,7 +467,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current integer 
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -496,7 +496,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected 
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseSignedDouble(final char[] source, final int from, final double[] result, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -529,7 +529,7 @@ public class CharUtils {
 	 * @throws SyntaxException if any parsing errors ware detected
 	 * @throws IllegalArgumentException if any argument errors ware detected
 	 * @since 0.0.1 
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int parseNumber(final char[] source, final int from, final long[] result, final int preferences, final boolean checkOverflow) throws SyntaxException {
 		int		len;
@@ -651,7 +651,7 @@ public class CharUtils {
 	 * @param result array (new char[1]) to store parsed char
 	 * @return position of the first char in the source after successful parsing of the current char.
 	 * @since 0.0.2 
-	 * @lastUpdate 0.0.4 
+	 * @last.update 0.0.4 
 	 */
 	public static int parseEscapedChar(final char[] source, int from, final char[] result) {
 		final int 	len;
@@ -682,7 +682,7 @@ public class CharUtils {
 	 * @return position of the first char in the source after successful parsing of the current string. Will be negative if checkEscaping=true and any escape sequence 
 	 * in the string will be detected. It can be used for optimization purposes to avoid rare escaping processing  
 	 * @throws IllegalArgumentException if any parsing errors ware detected
-	 * @lastUpdate 0.0.4 
+	 * @last.update 0.0.4 
 	 */
 	public static int parseUnescapedString(final char[] source, final int from, final char terminal, final boolean checkEscaping, final int[] result) {
 		int		len;
@@ -710,7 +710,7 @@ public class CharUtils {
 	 * @param result string builder to store parsed string
 	 * @return position of the first char in the source after successful parsing of the current string 
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseString(final char[] source, final int from, final char terminal, final Appendable result) {
 		int		len;
@@ -740,7 +740,7 @@ public class CharUtils {
 	 * @param result string builder to store parsed string
 	 * @return position of the first char in the source after successful parsing of the current string 
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseStringExtended(final char[] source, final int from, final char terminal, final Appendable result) {
 		int		len;
@@ -970,7 +970,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @param result array (new int[2]) to store start and end position of the name detected
 	 * @return position of the first char in the source after successful parsing of the name 
 	 * @throws IllegalArgumentException if any parsing errors ware detected 
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int parseName(final char[] source, final int from, final int[] result) {
 		int		len;
@@ -1021,8 +1021,8 @@ loop:		for (index = from; index < len; index++) {
 	 * {@linkplain DoublePredicate} or {@linkplain Predicate} to compare value with it.</p>
 	 * <p>Syntax of lits of ranges is:</p>
 	 * <code>
-	 * &lt;listOfRanges&gt;::=&lt;range&gt[,&lt;listOfRanges&gt];
-	 * &lt;range&gt;::=&lt;value&gt[..&lt;value&gt];
+	 * &lt;listOfRanges&gt;::=&lt;range&gt;[,&lt;listOfRanges&gt;];
+	 * &lt;range&gt;::=&lt;value&gt;[..&lt;value&gt;];
 	 * &lt;value&gt;::={&lt;intValue&gt;|&lt;longValue&gt;|&lt;doubleValue&gt;|&lt;stringValue&gt;};
 	 * </code> 
 	 * @param <T> predicate to return.
@@ -1089,7 +1089,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @return integer function to compare value. Returns positive value ("relevance" of the comparing content) or 0 if the content doesn't match query string. 
 	 * @throws IllegalArgumentException any argument is null, empty or invalid
 	 * @throws SyntaxException sequence contains syntax errors inside
-	 * @see https://lucene.apache.org/core/2_9_4/queryparsersyntax.html 
+	 * @see <a href="https://lucene.apache.org/core/2_9_4/queryparsersyntax.html">Lucene query parser syntax</a> 
 	 * @since 0.0.8
 	 */
 	public static RelevanceFunction parsceLuceneStyledQuery(final CharSequence seq) throws IllegalArgumentException, SyntaxException  {
@@ -1503,7 +1503,7 @@ loop:		for (index = from; index < len; index++) {
 
 		/**
 		 * <p>Constructor of the class</p>
-		 * @param value value associated with this mark instance</p>
+		 * @param value value associated with this mark instance
 		 */
 		public Mark(final int value) {
 			this.value = value;
@@ -1537,7 +1537,7 @@ loop:		for (index = from; index < len; index++) {
 	 * @throws IllegalArgumentException on any invalid parameters
 	 * @throws SyntaxException on any syntax error in the content
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static int tryExtract(final char[] source, final int from, final Object... lexemas) throws IllegalArgumentException, SyntaxException {
 		int	len, start = from;
@@ -1800,7 +1800,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @throws IllegalArgumentException on any invalid parameters
 	 * @throws SyntaxException on any syntax error in the content
 	 * @since 0.0.3
-	 * @lastUpate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static int extract(final char[] source, final int from, final Object[] result, Object... lexemas) throws SyntaxException {
 		return extract(source, from, result, new int[] {0}, lexemas);
@@ -2265,7 +2265,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @return new from position to continue filling content. Negative value marks that content is too short to keep value.
 	 * @throws IllegalArgumentException on any argument errors
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int printEscapedString(final char[] content, final int from, final String value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
 		int		len;
@@ -2292,7 +2292,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @return new from position to continue filling content. Negative value marks that content is too short to keep value.
 	 * @throws IllegalArgumentException on any argument errors
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static int printEscapedCharArray(final char[] content, final int from, final char[] value, final boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
 		if (value == null) {
@@ -2315,7 +2315,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @return new from position to continue filling content. Negative value marks that content is too short to keep value.
 	 * @throws IllegalArgumentException on any argument errors
 	 * @since 0.0.2
-	 * @lastUpdate 0.0.4
+	 * @last.update 0.0.4
 	 */
 	public static int printEscapedCharArray(final char[] content, int from, final char[] value, final int charFrom, final int charTo, boolean reallyFill, final boolean strongEscaping) throws IllegalArgumentException {
 		if (content == null || content.length == 0) {
@@ -2746,7 +2746,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @throws IllegalArgumentException any parameters errors
 	 * @throws NullPointerException any parameters errors
 	 * @since 0.0.3
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static String join(final String delimiter, final CharSequence... content) throws IllegalArgumentException, NullPointerException {
 		if (delimiter == null || delimiter.isEmpty()) {
@@ -2771,7 +2771,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @return content converted
 	 * @throws NullPointerException when content string is null
 	 * @since 0.0.4
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static char[] terminateAndConvert2CharArray(final CharSequence content, final char terminal) throws NullPointerException {
 		if (content == null) {
@@ -3038,10 +3038,10 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	}
 
 	/**
-	 * <p>Create space-filled char array with the given length</p 
+	 * <p>Create space-filled char array with the given length</p> 
 	 * @param len length of array to create
 	 * @return array created. Can't be null
-	 * @throws IllegalArgumentException if length < 0
+	 * @throws IllegalArgumentException if length &lt; 0
 	 * @since 0.0.4
 	 */
 	public static char[] space(final int len) throws IllegalArgumentException {
@@ -3325,7 +3325,7 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @param str2 string to use as template. Can't be null
 	 * @return prescription list and Levenstain distance. Can't be null
 	 * @throws NullPointerException on any argument is null
-	 * @see https://ru.wikibooks.org/wiki/%D0%A0%D0%B5%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%B8_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D0%BE%D0%B2/%D0%A0%D0%B5%D0%B4%D0%B0%D0%BA%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B5_%D0%BF%D1%80%D0%B5%D0%B4%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5
+	 * @see <a href="https://ru.wikibooks.org/wiki/%D0%A0%D0%B5%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%B8_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D0%BE%D0%B2/%D0%A0%D0%B5%D0%B4%D0%B0%D0%BA%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B5_%D0%BF%D1%80%D0%B5%D0%B4%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5">Levenstain distance</a>
 	 * @since 0.0.4
 	 */
     public static Prescription calcLevenstain(final char[] str1, final char[] str2) throws NullPointerException {

@@ -29,10 +29,10 @@ public interface UIController {
 	String before(ContentNodeMetadata node);
 	
 	/**
-	 * <p>This method is called after calling {@linkplain FormManager#onField(Object, Object, String, Object)} method.</p>
-	 * @param node root metadata for the controlled instance (the same first parameter in the {@linkplain FormManager#onField(Object, Object, String, Object)} call)
-	 * @param fieldName field name passed (third parameter in the {@linkplain FormManager#onField(Object, Object, String, Object)} call)
-	 * @param mode value returned by {@linkplain FormManager#onField(Object, Object, String, Object)} call
+	 * <p>This method is called after calling {@linkplain FormManager#onField(Object, Object, String, Object, boolean)} method.</p>
+	 * @param node root metadata for the controlled instance (the same first parameter in the {@linkplain FormManager#onField(Object, Object, String, Object, boolean)} call)
+	 * @param fieldName field name passed (third parameter in the {@linkplain FormManager#onField(Object, Object, String, Object, boolean)} call)
+	 * @param mode value returned by {@linkplain FormManager#onField(Object, Object, String, Object, boolean)} call
 	 * @return command string as described in the class description. Can be null
 	 */
 	String afterField(ContentNodeMetadata node, String fieldName, RefreshMode mode);
@@ -47,10 +47,10 @@ public interface UIController {
 	String afterRecord(ContentNodeMetadata node, RecordFormManager.RecordAction action, RefreshMode mode);
 	
 	/**
-	 * <p>This method is called after calling {@linkplain FormManager#onAction(Object, Object, String, Object)} method.</p>
-	 * @param node root metadata for the controlled instance (the same first parameter in the {@linkplain FormManager#onAction(Object, Object, String, Object)} call)
-	 * @param action action passed (third parameter in the {@linkplain FormManager#onAction(Object, Object, String, Object)} call)
-	 * @param mode value returned by {@linkplain FormManager#onAction(Object, Object, String, Object)} call
+	 * <p>This method is called after calling {@linkplain FormManager#onAction(Object, Object, String, Object...)} method.</p>
+	 * @param node root metadata for the controlled instance (the same first parameter in the {@linkplain FormManager#onAction(Object, Object, String, Object...)} call)
+	 * @param action action passed (third parameter in the {@linkplain FormManager#onAction(Object, Object, String, Object...)} call)
+	 * @param mode value returned by {@linkplain FormManager#onAction(Object, Object, String, Object...)} call
 	 * @return command string as described in the class description. Can be null
 	 */
 	String afterAction(ContentNodeMetadata node, String action, RefreshMode mode);

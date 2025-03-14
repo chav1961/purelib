@@ -8,7 +8,7 @@ package chav1961.purelib.basic.interfaces;
 public interface AnyGrowableArray {
 	/**
 	 * <p>Get component type for the given array</p>
-	 * @return component type. Can't be null. Arrays of primitive types should return primitive class descriptors, not wrappers</p>
+	 * @return component type. Can't be null. Arrays of primitive types should return primitive class descriptors, not wrappers
 	 */
 	Class<?> getComponentType();
 }

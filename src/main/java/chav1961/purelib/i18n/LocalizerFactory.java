@@ -145,7 +145,7 @@ public final class LocalizerFactory {
 	 * @throws IllegalArgumentException when any errors in the annotations were detected
 	 * @throws IOException when any I/O errors were detected on localizer building
 	 * @throws LocalizationException when any errors in the annotations were detected
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static Localizer buildLocalizerForInstance(final Object instance) throws NullPointerException, IllegalArgumentException, IOException, LocalizationException {
 		if (instance == null) {
@@ -289,7 +289,7 @@ public final class LocalizerFactory {
 	 * @throws NullPointerException when any parameters are null
 	 * @throws IOException when I/O exception was detected
 	 * @throws LocalizationException when localization exception was detected
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static <T> void fillLocalizedContent(final Localizer fillFrom, final T instance, final FillLocalizedContentCallback<T> callback, final PostProcessCallback<T> postprocess) throws NullPointerException, IOException, LocalizationException {
 		if (fillFrom == null) {

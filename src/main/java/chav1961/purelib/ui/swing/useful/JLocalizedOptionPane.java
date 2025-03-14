@@ -51,7 +51,7 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	/**
 	 * <p>Create instance of the class</p>
 	 * @param localizer localizer to use. Can't be null
-	 * @param <p>iconSet set of icons for different box icons. Can't be null or empty and must contain exactly 4 elements (error, warning, question and information icon)
+	 * @param iconSet set of icons for different box icons. Can't be null or empty and must contain exactly 4 elements (error, warning, question and information icon)
 	 */
 	public JLocalizedOptionPane(final Localizer localizer, final Icon[] iconSet) {
 		this(localizer,iconSet,false);
@@ -60,7 +60,7 @@ public class JLocalizedOptionPane implements LocaleChangeListener {
 	/**
 	 * <p>Create instance of the class</p>
 	 * @param localizer localizer to use. Can't be null
-	 * @param <p>iconSet set of icons for different box icons. Can't be null or empty and must contain exactly 4 elements (error, warning, question and information icon)
+	 * @param iconSet set of icons for different box icons. Can't be null or empty and must contain exactly 4 elements (error, warning, question and information icon)
 	 * @param ignoreLocalizationErrros if localization error detected, silently replace localized strings with it's localization keys
 	 */
 	public JLocalizedOptionPane(final Localizer localizer, final Icon[] iconSet, final boolean ignoreLocalizationErrros) {

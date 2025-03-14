@@ -406,11 +406,11 @@ public class MimeType implements Serializable {
 
 	/**
 	 * <p>Parse MIME string and return array of MIMEs parsed. Format of MIME string is:<br>
-	 * <MIME_string>::=<MIME>...<br>
-	 * <MIME>::=<MIME_items><MIME_properties><br>
-	 * <MIME_items>::=[',']<MIME_item>
-	 * <MIME_item>::={<MIME_type>|'*'}'/'{<MIME_subtype>|'*'}[,<MIME_Item>]<br>
-	 * <MIME_properties>::=';'<key>=["]<value>["]...<br>
+	 * &lt;MIME_string&gt;::=&lt;MIME&gt;...<br/>
+	 * &lt;MIME&gt;::=&lt;MIME_items&gt;&lt;MIME_properties&gt;<br/>
+	 * &lt;MIME_items&gt;::=[',']&lt;MIME_item&gt;<br/>
+	 * &lt;MIME_item&gt;::={&lt;MIME_type&gt;|'*'}'/'{&lt;MIME_subtype&gt;|'*'}[,&lt;MIME_Item&gt;]<br/>
+	 * &lt;MIME_properties&gt;::=';'&lt;key&gt;=["]&lt;value&gt;["]...<br/>
 	 * </p>
 	 * <p>For example <code>text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,* / *;q=0.8</code></p>
 	 * @param mimeList char array contains MIME to parse

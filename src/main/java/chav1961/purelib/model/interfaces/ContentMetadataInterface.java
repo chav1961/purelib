@@ -107,7 +107,7 @@ public interface ContentMetadataInterface {
 		/**
 		 * <p>Get UI path associated with the given node. Path bulds from the root of the tree model as concatenation 
 		 * of all the {@linkplain #getRelativeUIPath()} values for the path from the root to the given node</p> 
-		 * @return UI path associated. Can't be null</p>
+		 * @return UI path associated. Can't be null
 		 */
 		URI getUIPath();
 		
@@ -131,7 +131,7 @@ public interface ContentMetadataInterface {
 		
 		/**
 		 * <p>Get parent of the node.</p>
-		 * @return parent of the node. Can be null for root nodes</p>
+		 * @return parent of the node. Can be null for root nodes
 		 */
 		ContentNodeMetadata getParent();
 		

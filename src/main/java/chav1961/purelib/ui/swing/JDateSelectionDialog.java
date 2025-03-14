@@ -86,7 +86,7 @@ public class JDateSelectionDialog extends JComponent implements LocaleChangeList
 	 * <p>Constructor of the class</p>
      * @param metadata metadata of the date field
 	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
-	 * localizer to call the constructor</p>
+	 * localizer to call the constructor
      * @param monitor callback to process all actions in the control
 	 * @throws LocalizationException in any localization errors
 	 * @throws NullPointerException if any parameter is null

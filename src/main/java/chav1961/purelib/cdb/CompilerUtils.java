@@ -235,7 +235,7 @@ public class CompilerUtils {
 	
 	
 	/**
-	 * <p>Convert class type returned by {@linkplain #defineClassType(Class) method to it's string representation</p>
+	 * <p>Convert class type returned by {@linkplain #defineClassType(Class)} method to it's string representation</p>
 	 * @param classType class type to convert
 	 * @return string converted or null if the class type is unknown
 	 * @since 0.0.4
@@ -699,7 +699,7 @@ public class CompilerUtils {
 	}
 
 	/**
-	 * <p>Build constructor path in the form &lt;package_path&gt;.&lt;ClassName&gt;.&lt;init&gt</p>
+	 * <p>Build constructor path in the form &lt;package_path&gt;.&lt;ClassName&gt;.&lt;init&gt;</p>
 	 * @param constructor constructor to build path for
 	 * @return path built. Can't be null
 	 * @throws NullPointerException if constructor to build path for is null
@@ -1217,7 +1217,7 @@ public class CompilerUtils {
 	}
 
 	/**
-	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class<NodeType>, SyntaxTreeInterface<Cargo>) to instantiate it</p> 
+	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class&lt;NodeType&gt;, SyntaxTreeInterface&lt;Cargo&gt;) to instantiate it</p> 
 	 * @param <NodeType> type of syntax node tree items. Must be enumeration
 	 * @param <Cargo> content of the {@linkplain SyntaxTreeInterface} tree
 	 * @param className class name to build. Can contain package. Can't be null or empty
@@ -1235,7 +1235,7 @@ public class CompilerUtils {
 	}
 
 	/**
-	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class<NodeType>, SyntaxTreeInterface<Cargo>) to instantiate it</p> 
+	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class&lt;NodeType&gt;, SyntaxTreeInterface&lt;Cargo&gt;) to instantiate it</p> 
 	 * @param <NodeType> type of syntax node tree items. Must be enumeration
 	 * @param <Cargo> content of the {@linkplain SyntaxTreeInterface} tree
 	 * @param className class name to build. Can contain package. Can't be null or empty
@@ -1254,7 +1254,7 @@ public class CompilerUtils {
 	}		
 	
 	/**
-	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class<NodeType>, SyntaxTreeInterface<Cargo>) to instantiate it</p> 
+	 * <p>Build class to implement {@linkplain RuleBasedParser} interface. Class built will contain constructor (Class&lt;NodeType&gt;, SyntaxTreeInterface&lt;Cargo&gt;) to instantiate it</p> 
 	 * @param <NodeType> type of syntax node tree items. Must be enumeration
 	 * @param <Cargo> content of the {@linkplain SyntaxTreeInterface} tree
 	 * @param className class name to build. Can contain package. Can't be null or empty

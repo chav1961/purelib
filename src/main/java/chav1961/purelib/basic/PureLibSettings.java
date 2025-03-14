@@ -229,7 +229,7 @@ public final class PureLibSettings {
 
 	/**
 	 * <p>Predefined Data Flavor name for Pure Library models to use them in the Swing applications</p>
-	 * @see chav1961.purelibrary.model
+	 * @see chav1961.purelib.model
 	 */	
 	public static final String		MODEL_DATA_FLAVOR_NAME = "chav1961.purelib.model.node";
 
@@ -548,7 +548,7 @@ public final class PureLibSettings {
 	 * <p>Get description about Pure Library</p> 
 	 * @return html-typed description. Can't be null
 	 * @since 0.0.5
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static String aboutPureLib() {
 		try(final InputStream 	is = PureLibSettings.class.getResourceAsStream("about.cre");

@@ -122,7 +122,7 @@ public class SimpleDatabaseModelManagement implements DatabaseModelManagement<Si
 	 * @param modelListDescriptor any stream contains list of model descriptors. 
 	 * @return URIs list connected. Can be empty but not null
 	 * @throws IOException on any I/O errors
-	 * @throws link NullPointerException when parameter is null
+	 * @throws NullPointerException when parameter is null
 	 */
 	public static URI[] collectModels(final URI modelListDescriptor) throws IOException, NullPointerException {
 		if (modelListDescriptor == null) {

@@ -177,7 +177,7 @@ public interface CharStreamPrinter<T> extends Flushable, Closeable {
 	 * @param len piece length
 	 * @return self
 	 * @throws PrintingException on any printing errors
-	 * @StringIndexOutOfBoundsException if piece of data outside the string area
+	 * @throws StringIndexOutOfBoundsException if piece of data outside the string area
 	 */
 	T print(String data, int from, int len) throws PrintingException, StringIndexOutOfBoundsException;
 	
@@ -188,7 +188,7 @@ public interface CharStreamPrinter<T> extends Flushable, Closeable {
 	 * @param len piece length
 	 * @return self
 	 * @throws PrintingException on any printing errors
-	 * @StringIndexOutOfBoundsException if piece of data outside the string area
+	 * @throws StringIndexOutOfBoundsException if piece of data outside the string area
 	 */
 	T println(String data, int from, int len) throws PrintingException, StringIndexOutOfBoundsException;
 	
@@ -215,7 +215,7 @@ public interface CharStreamPrinter<T> extends Flushable, Closeable {
 	 * @param len piece length
 	 * @return self
 	 * @throws PrintingException on any printing errors
-	 * @ArrayIndexOutOfBoundsException if piece of data outside the array area
+	 * @throws ArrayIndexOutOfBoundsException if piece of data outside the array area
 	 */
 	T print(char[] data, int from, int len) throws PrintingException, ArrayIndexOutOfBoundsException;
 	
@@ -226,7 +226,7 @@ public interface CharStreamPrinter<T> extends Flushable, Closeable {
 	 * @param len piece length
 	 * @return self
 	 * @throws PrintingException on any printing errors
-	 * @ArrayIndexOutOfBoundsException if piece of data outside the array area
+	 * @throws ArrayIndexOutOfBoundsException if piece of data outside the array area
 	 */
 	T println(char[] data, int from, int len) throws PrintingException, ArrayIndexOutOfBoundsException;
 	

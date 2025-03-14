@@ -34,7 +34,7 @@ public interface FileSystemHistory {
 	
 	/**
 	 * <p>Get revision description</p>
-	 * @return revision description. Can't be null or empty</p>
+	 * @return revision description. Can't be null or empty
 	 * @throws IOException on any errors thrown
 	 */
 	String getDescription() throws IOException;

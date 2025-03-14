@@ -333,7 +333,7 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 
 		/**
 		 * <p>Get logger facade by any of the URI list.</p> 
-		 * @param loggerUri logger facade URIs to get logger for. Can't be null, empty and all the items must have scheme {@value LoggerFacade#LOGGER_SCHEME}
+		 * @param loggerUris logger facade URIs to get logger for. Can't be null, empty and all the items must have scheme {@value LoggerFacade#LOGGER_SCHEME}
 		 * @return logger facade created
 		 * @throws IllegalArgumentException when logger facade URIs is null, empty or doesn't have {@value LoggerFacade#LOGGER_SCHEME} scheme
 		 */

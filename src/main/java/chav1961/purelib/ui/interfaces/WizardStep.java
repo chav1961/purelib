@@ -87,14 +87,14 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 	/**
 	 * <p>Get next step id</p>
 	 * @return id of the next step in the given wizard steps chain, or null if the next step appropriates to the natural step order in the given wizard steps chain. Can be changed under conditions
-	 * @lastUpdate 0.0.5  
+	 * @last.update 0.0.5  
 	 */
 	default String getNextStep() {return null;}
 	
 	/**
 	 * <p>Get previous step id</p>
 	 * @return id of the previous step in the given wizard steps chain, or null if the previous step appropriates to the natural step order in the given wizard steps chain. Can be changed under conditions  
-	 * @lastUpdate 0.0.5  
+	 * @last.update 0.0.5  
 	 */
 	default String getPrevStep() {return null;}
 	
@@ -107,7 +107,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 	/**
 	 * <p>Get tab name in the tab collection for the given step. Tab name appears at the left list of the wizard.</p>
 	 * @return any non-null and non-empty string. Can be identical with {@linkplain #getCaption()}
-	 * @lastUpdate 0.0.5  
+	 * @last.update 0.0.5  
 	 */
 	default String getTabName() {return getCaption();}
 	
@@ -137,7 +137,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 
 	/**
 	 * <p>Callback after clicking 'Finish' button.</p> 
-	 * @return if false, OK process will be aborted</p>
+	 * @return if false, OK process will be aborted
 	 * @since 0.0.6
 	 */
 	
@@ -147,7 +147,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 
 	/**
 	 * <p>Callback after clicking 'Cancel' button.</p> 
-	 * @return if false, cancel process will be aborted</p>
+	 * @return if false, cancel process will be aborted
 	 * @since 0.0.6
 	 */
 	default boolean onCancel() {
@@ -161,7 +161,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 	 * @throws PreparationException when any problems on the preparation stage were detected
 	 * @throws LocalizationException when any localization problems were detected 
 	 * @throws NullPointerException if any of parameters are null
-	 * @lastUpate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	default void prepare(Common content, Map<String,Object> temporary) throws PreparationException, LocalizationException, NullPointerException {}
 	
@@ -210,7 +210,7 @@ public interface WizardStep<Common,ErrorType extends Enum<?>, Content extends Co
 	 * @param temporary temporary map to share with all the wizard steps in the given wizard. Every wizard step can use it for any purposes 
 	 * @throws LocalizationException when any localization problems were detected 
 	 * @throws NullPointerException if any of parameters are null
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	default void unprepare(Common content, Map<String,Object> temporary) throws LocalizationException, NullPointerException {}
 }

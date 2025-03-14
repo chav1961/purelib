@@ -848,7 +848,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 
 	/**
 	 * <p>Append new file support.</p>
-	 * @return unique number to file support. Must be used in {@linkplain #setCurrentFileSupport(int)} method to select required file support.</p>
+	 * @return unique number to file support. Must be used in {@linkplain #setCurrentFileSupport(int)} method to select required file support.
 	 */
 	public int appendNewFileSupport() {
 		final FileDesc	fd = new FileDesc(); 

@@ -268,8 +268,8 @@ loop:		for (String itemName : itemNames) {
 
 	/**
 	 * <p>Set enabled state for the given bits to value typed by second parameter</p>
-	 * @param enableMask bits to change enable state
-	 * @param state new state for enable mask
+	 * @param checkMask bits to change check state
+	 * @param state new state for check mask
 	 */
 	public void setCheckMaskTo(final long checkMask, final boolean state) {
 		if (state) {

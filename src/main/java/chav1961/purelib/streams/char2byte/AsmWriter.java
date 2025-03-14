@@ -287,7 +287,7 @@ public class AsmWriter extends Writer implements CharStreamPrinter<AsmWriter> {
 	/**
 	 * <p>Add class to imported classes in the assembly compiler</p>
 	 * @param clazz class to add
-	 * @param refName reference name to use in '@<class>' clause 
+	 * @param refName reference name to use in '&lt;class&gt;' clause 
 	 * @throws ContentException on duplicated class or reference name
 	 * @throws NullPointerException when class to add is null
 	 * @throws IllegalArgumentException when reference name is null or empty

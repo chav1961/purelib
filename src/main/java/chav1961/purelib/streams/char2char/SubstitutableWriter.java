@@ -256,7 +256,7 @@ public class SubstitutableWriter extends Writer {
 	 * @return substitution source built. Can't be null.
 	 * @throws IOException on any errors during build
 	 * @throws NullPointerException if instance is null
-	 * @see {@linkplain ContentModelFactory#forAnnotatedClass(Class)}
+	 * @see ContentModelFactory#forAnnotatedClass(Class)
 	 */
 	public static SubstitutionSource buildSubstitutionSource(final Object instance) throws IOException, NullPointerException {
 		if (instance == null) {
@@ -278,7 +278,7 @@ public class SubstitutableWriter extends Writer {
 	 * @throws IOException on any errors during build
 	 * @throws NullPointerException if instance is null
 	 * @throws NullPointerException if instance doesn't implement {@linkplain ModuleAccessor} interface
-	 * @see {@linkplain ModelUtils#buildMappedWrapperClassByModel(ContentNodeMetadata, String)}
+	 * @see ModelUtils#buildMappedWrapperClassByModel(ContentNodeMetadata, String)
 	 */
 	public static SubstitutionSource buildSubstitutionSource(final ContentNodeMetadata meta, final Object instance) throws IOException, NullPointerException, IllegalArgumentException {
 		if (meta == null || instance == null) {

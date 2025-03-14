@@ -43,7 +43,7 @@ public class JCreoleHelpWindow extends JEditorPane implements LocaleChangeListen
 	
 	/**
 	 * <p>Create instance of the class</p>
-	 * @param localizer localizer to use for accessing content. Can't be null</p>
+	 * @param localizer localizer to use for accessing content. Can't be null
 	 * @param root root content id inside the localizer passed. Can't be null or empty string
 	 * @throws LocalizationException on any localization errors
 	 * @throws NullPointerException on any parameters are null

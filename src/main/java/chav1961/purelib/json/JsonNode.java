@@ -155,7 +155,7 @@ public class JsonNode  implements Serializable, Cloneable {
 	}
 	
 	/**
-	 * <p>Remove node name<.p>
+	 * <p>Remove node name</p>
 	 * @return self (can be used in chained operations)
 	 */
 	public JsonNode removeName() {

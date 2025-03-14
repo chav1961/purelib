@@ -247,8 +247,8 @@ public class URIUtils {
 	 * @return new resolved uri
 	 * @throws NullPointerException if uri is null
 	 * @throws IllegalArgumentException if relative path is null or empty
-	 * @see https://tools.ietf.org/html/rfc3986
-	 * @lastUpdate 0.0.4
+	 * @see <a href="https://tools.ietf.org/html/rfc3986">RFC-3986</a>
+	 * @last.update 0.0.4
 	 */
 	public static URI appendRelativePath2URI(final URI uri, final String relativePath) throws NullPointerException, IllegalArgumentException {
 		if (uri == null) {
@@ -299,7 +299,7 @@ public class URIUtils {
 	 * @param uri uri to remove query from
 	 * @return uri with query removed. If query is missing, returns source uri
 	 * @throws NullPointerException if uri is null
-	 * @see https://tools.ietf.org/html/rfc3986
+	 * @see <a href="https://tools.ietf.org/html/rfc3986">RFC-3986</a>
 	 */
 	public static URI removeQueryFromURI(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -451,8 +451,8 @@ public class URIUtils {
 	/**
 	 * <p>Extract sub-scheme content from URI. For example:</p>
 	 * <code>
-	 * URI uri = URI.create("scheme1:scheme2:scheme3://path");</br>
-	 * extractSubURI(uri,"scheme1","scheme2") returns URI.create("scheme3://path")</br> 
+	 * URI uri = URI.create("scheme1:scheme2:scheme3://path");<br/>
+	 * extractSubURI(uri,"scheme1","scheme2") returns URI.create("scheme3://path")<br/> 
 	 * </code> 
 	 * @param uri uri to extract sub-scheme from
 	 * @param schemas sequence of schemas to extract content from. Use wildcard '*' for any subscheme to extract
@@ -501,7 +501,7 @@ public class URIUtils {
 	 * @param uri uri to parse query string
 	 * @return key/value pair from parsed query. Can be empty but not null
 	 * @throws NullPointerException when uri is null
-	 * @throws link IllegalArgumentException when query contains syntax errors
+	 * @throws IllegalArgumentException when query contains syntax errors
 	 */
 	public static Hashtable<String,String[]> parseQuery(final URI uri) throws NullPointerException {
 		if (uri == null) {
@@ -524,7 +524,7 @@ public class URIUtils {
 	 * @param query query string without preceding '?'
 	 * @return key/value pair from parsed query. Can be empty but not null
 	 * @throws NullPointerException when uri is null
-	 * @throws link IllegalArgumentException when query contains syntax errors
+	 * @throws IllegalArgumentException when query contains syntax errors
 	 */
 	public static Hashtable<String,String[]> parseQuery(final String query) throws NullPointerException, IllegalArgumentException {
 		if (query == null) {
@@ -565,7 +565,7 @@ public class URIUtils {
 	 * @param content content to build 'self' URI for
 	 * @return 'self' URI built
 	 * @throws NullPointerException when content is null
-	 * @see chav1961.purelib.new.self.Handler
+	 * @see chav1961.purelib.net.self.Handler
 	 */
 	public static URI convert2selfURI(final byte[] content) throws NullPointerException {
 		return convert2selfURI("/", content);
@@ -577,7 +577,7 @@ public class URIUtils {
 	 * @param content content to build 'self' URI for
 	 * @return 'self' URI built
 	 * @throws NullPointerException when content is null
-	 * @see chav1961.purelib.new.self.Handler
+	 * @see chav1961.purelib.net.self.Handler
 	 * @since 0.0.6
 	 */
 	public static URI convert2selfURI(final String path, final byte[] content) throws NullPointerException {
@@ -596,7 +596,7 @@ public class URIUtils {
 	 * @return 'self' URI built with '?encoding=ZZZ' query string
 	 * @throws NullPointerException when content is null
 	 * @throws IllegalArgumentException when encoding is null, empty or unknown
-	 * @see chav1961.purelib.new.self.Handler
+	 * @see chav1961.purelib.net.self.Handler
 	 */
 	public static URI convert2selfURI(final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {
 		return convert2selfURI("/", content, charSet);
@@ -610,7 +610,7 @@ public class URIUtils {
 	 * @return 'self' URI built with '?encoding=ZZZ' query string
 	 * @throws NullPointerException when content is null
 	 * @throws IllegalArgumentException when encoding is null, empty or unknown
-	 * @see chav1961.purelib.new.self.Handler
+	 * @see chav1961.purelib.net.self.Handler
 	 * @since 0.0.6
 	 */
 	public static URI convert2selfURI(final String path, final char[] content, final String charSet) throws NullPointerException, IllegalArgumentException {

@@ -258,7 +258,7 @@ public abstract class SwingUtils {
 		
 		/**
 		 * <p>Get action associated with the current item</p> 
-		 * @return action associated. Can't be null or empty</p>
+		 * @return action associated. Can't be null or empty
 		 */
 		public String getAction() {
 			return action;
@@ -1235,8 +1235,6 @@ loop:			for (Component comp : children(node)) {
 
 	/**
 	 * <p>Prepare action listeners to call methods marked with {@linkplain OnAction} annotation</p>
-	 * @param <Obj> entity type
-	 * @param <C> cargo type
 	 * @param root root component to assign listeners to. Can't be null
 	 * @param entity object to call it's annotated methods. Can't be null
 	 * @param onUnknown callback to process missing actions. Can't be null
@@ -1257,23 +1255,21 @@ loop:			for (Component comp : children(node)) {
 	}
 
 	/**
-	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object)} method</p>
+	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object...)} method</p>
 	 * @param <T> any entity is used for form manager
 	 * @param root component with action sources inside
 	 * @param entity instance to call onAction for
 	 * @param manager form manager to process action on entity
 	 * @since 0.0.4 
-	 * @lastUpdate 0.0.5 
+	 * @last.update 0.0.5 
 	 */
 	public static <T> void assignActionListeners(final JComponent root, final T entity, final ActionFormManager<?,T> manager) {
 		assignActionListeners(root, entity, manager, (actionCommand,item,meta,cargo)->actionCommand);
 	}
 
 	/**
-	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object)} method</p>
+	 * <p>Prepare action listeners to call {@linkplain FormManager#onAction(Object, Object, String, Object...)} method</p>
 	 * @param <T> any entity is used for form manager
-	 * @param <Obj> entity type
-	 * @param <C> cargo type
 	 * @param root component with action sources inside
 	 * @param entity instance to call onAction for
 	 * @param manager form manager to process action on entity
@@ -1606,7 +1602,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws IllegalArgumentException any strings are null or empty
 	 * @throws NullPointerException any arguments are null
 	 * @since 0.0.5
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static void showAboutScreen(final JFrame owner, final Localizer localizer, final String title, final String content, final URI imageIcon, final Dimension preferredSize) throws IllegalArgumentException, NullPointerException {
 		if (title == null || title.isEmpty()) {
@@ -1641,7 +1637,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws IllegalArgumentException any strings are null or empty
 	 * @throws NullPointerException any arguments are null
 	 * @since 0.0.5
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static void showAboutScreen(final JDialog owner, final Localizer localizer, final String title, final String content, final URI imageIcon, final Dimension preferredSize) {
 		if (title == null || title.isEmpty()) {
@@ -2101,7 +2097,7 @@ loop:			for (Component comp : children(node)) {
 	 * @return renderer found
 	 * @throws EnvironmentException renderer is missing
 	 * @since 0.0.5
-	 * @lastUpdate 0.0.7
+	 * @last.update 0.0.7
 	 */
 	public static <T, R> R getCellRenderer(final Class<T> clazz, final FieldFormat ff, final Class<R> rendererType, final ClassLoader loader) throws EnvironmentException {
 		return getCellRenderer(clazz, ff, rendererType, loader, EMPTY_OPTIONS);
@@ -2204,7 +2200,7 @@ loop:			for (Component comp : children(node)) {
 	 * @param component component to get logger for
 	 * @return logger found or standard Pure Library logger if not found
 	 * @since 0.0.5
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	public static LoggerFacade getNearestLogger(final Component component) {
 		return getNearestOwner(component, LoggerFacadeOwner.class, ()->PureLibSettings.CURRENT_LOGGER).getLogger();
@@ -2261,7 +2257,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws NullPointerException on container parameter is null 
 	 * @throws IllegalArgumentException format string is null or empty or children is null, empty or contains nulls inside
 	 * @throws EnvironmentException on syntax errors inside the format string
-	 * @see {@link #placeContainerBySpringLayout(JComponent, int, int, String, JComponent...)}
+	 * @see #placeContainerBySpringLayout(JComponent, int, int, String, JComponent...)
 	 * @since 0.0.7
 	 */
 	public static void placeContainerBySpringLayout(final JComponent container, final String format, final JComponent... children) throws NullPointerException, IllegalArgumentException, EnvironmentException {
@@ -2288,7 +2284,7 @@ loop:			for (Component comp : children(node)) {
 	 * @throws NullPointerException on container parameter is null 
 	 * @throws IllegalArgumentException format string is null or empty or children is null, empty or contains nulls inside
 	 * @throws EnvironmentException on syntax errors inside the format string
-	 * @see {@linkplain #placeContainerBySpringLayout(JComponent, String, JComponent...)}
+	 * @see #placeContainerBySpringLayout(JComponent, String, JComponent...)
 	 * @since 0.0.7
 	 */
 	public static void placeContainerBySpringLayout(final JComponent container, final int xGap, final int yGap, final String format, final JComponent... children) throws NullPointerException, IllegalArgumentException, EnvironmentException {

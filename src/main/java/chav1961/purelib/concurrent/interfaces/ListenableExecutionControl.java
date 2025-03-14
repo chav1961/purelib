@@ -19,7 +19,7 @@ public interface ListenableExecutionControl extends ExecutionControl {
 		 * <p>Process event from {@linkplain ExecutionControl} implementation</p>
 		 * @param event to process. Can't be null
 		 */
-		void processAction(ExecutionControlEvent e);
+		void processAction(ExecutionControlEvent event);
 	}
 	
 	/**

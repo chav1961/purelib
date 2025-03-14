@@ -116,14 +116,14 @@ public class FieldFormat {
 	/**
 	 * <p>Constructor of the class. Build format for the given class and given format string. Format string can be (in BNC):</p>
 	 * <code>
-	 * &lt;format&gt; ::= [&lt;mask&gt;]&lt;lengthAndFrac&gt;[&lt;options&gt;]</br>
-	 * &lt;mask&gt; ::= '('&lt;{@linkplain MaskFormatter} mask&gt;')'</br>
-	 * &lt;lengthAndFrac&gt; ::= &lt;length&gt;['.'&lt;frac&gt;]['*'&lt;height&gt;]</br>
-	 * &lt;length&gt; ::= &lt;number&gt;</br>
-	 * &lt;frac&gt; ::= &lt;number&gt;</br>
-	 * &lt;height&gt; ::= &lt;number&gt;</br>
-	 * &lt;options&gt; ::= &lt;option&gt;[&lt;options&gt;]</br>
-	 * &lt;option&gt; ::= {'r'|'R'|'l'|'L'|'m'|'n'|'N'|'o'|'z'|'p'|'s'|'&lt;'|'&gt;'|'&lt;&gt;'|'&gt;&lt;'}</br>
+	 * &lt;format&gt; ::= [&lt;mask&gt;]&lt;lengthAndFrac&gt;[&lt;options&gt;]<br/>
+	 * &lt;mask&gt; ::= '('&lt;{@linkplain MaskFormatter} mask&gt;')'<br/>
+	 * &lt;lengthAndFrac&gt; ::= &lt;length&gt;['.'&lt;frac&gt;]['*'&lt;height&gt;]<br/>
+	 * &lt;length&gt; ::= &lt;number&gt;<br/>
+	 * &lt;frac&gt; ::= &lt;number&gt;<br/>
+	 * &lt;height&gt; ::= &lt;number&gt;<br/>
+	 * &lt;options&gt; ::= &lt;option&gt;[&lt;options&gt;]<br/>
+	 * &lt;option&gt; ::= {'r'|'R'|'l'|'L'|'m'|'n'|'N'|'o'|'z'|'p'|'s'|'&lt;'|'&gt;'|'&lt;&gt;'|'&gt;&lt;'}<br/>
 	 * </code>
 	 * <p>Option codes are:</p>
 	 * <ul>
@@ -148,7 +148,7 @@ public class FieldFormat {
 	 * @param format format string. Can't be null
 	 * @throws NullPointerException any parameters are null
 	 * @throws IllegalArgumentException illegal syntax in the format string
-	 * @see https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form
+	 * @see <a href="https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form">BNF</a>
 	 */
 	public FieldFormat(final Class<?> clazz, final String format) throws NullPointerException, IllegalArgumentException {
 		this(clazz, format, "");
@@ -475,7 +475,7 @@ public class FieldFormat {
 	/**
 	 * <p>Convert format to source format string</p>
 	 * @return format string. Can't be null
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public String toFormatString() {
 		final StringBuilder	sb = new StringBuilder();

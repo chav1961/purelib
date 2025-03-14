@@ -179,7 +179,7 @@ public class JRangeSlider extends JSlider {
 
 	/**
 	 * <p>Set color for upper thumb</p> 
-	 * @param lowerThumbColor upper thumb color to set. Can't be null
+	 * @param upperThumbColor upper thumb color to set. Can't be null
 	 * @throws NullPointerException when color to set is null
 	 */
 	public void setUpperThumbColor(final Color upperThumbColor) throws NullPointerException {
@@ -196,7 +196,7 @@ public class JRangeSlider extends JSlider {
 
 	/**
 	 * <p>Set color for selection range</p> 
-	 * @param lowerThumbColor selection range color to set. Can't be null
+	 * @param selectionColor selection range color to set. Can't be null
 	 * @throws NullPointerException when color to set is null
 	 */
 	public void setSelectionColor(Color selectionColor) throws NullPointerException {

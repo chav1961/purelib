@@ -216,13 +216,13 @@ public class SQLUtils {
 	/**
 	 * <p>Prepare metadata element by it's name and type. Metadata element type BNF is:</p>
 	 * <code>
-	 * &lt;type&gt; ::= &lt;type_name&gt;['('&lt;length&gt;['.'&lt;fractional&gt;]')'][' as ' {&lt;alias&gt|'"'&lt;alias&gt'"'}<br/>
+	 * &lt;type&gt; ::= &lt;type_name&gt;['('&lt;length&gt;['.'&lt;fractional&gt;]')'][' as ' {&lt;alias&gt;|'"'&lt;alias&gt;'"'}<br/>
 	 * </code>
 	 * <ul>
-	 * <li>&lt;type_name&gt - valid SQL name (<b>VARCHAR</b>,<b>INTEGER</b> etc)</li>
-	 * <li>&lt;length&gt - field length, if applicable for the given type</li>
-	 * <li>&lt;fractional&gt - field precision, if applicable for the given type</li>
-	 * <li>&lt;alias&gt - any alias name. If missing, equals to field name</li>
+	 * <li>&lt;type_name&gt; - valid SQL name (<b>VARCHAR</b>,<b>INTEGER</b> etc)</li>
+	 * <li>&lt;length&gt; - field length, if applicable for the given type</li>
+	 * <li>&lt;fractional&gt; - field precision, if applicable for the given type</li>
+	 * <li>&lt;alias&gt; - any alias name. If missing, equals to field name</li>
 	 * </ul>
 	 * @param name field name
 	 * @param type field type (see syntax above)

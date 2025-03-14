@@ -64,7 +64,7 @@ public enum SupportedLanguages {
 	
 	/**
 	 * <p>Get enumeration for default system settings</p>
-	 * @return enumeration for default system settings or {@linkplain SupportedLanguages#en} when not identified</p>
+	 * @return enumeration for default system settings or {@linkplain SupportedLanguages#en} when not identified
 	 */
 	public static SupportedLanguages getDefaultLanguage() {
 		return of(Locale.getDefault());
@@ -79,7 +79,7 @@ public enum SupportedLanguages {
 	/**
 	 * <p>Get enumeration for the given locale</p>
 	 * @param locale locale to get enumeration for. Can't be null
-	 * @return enumeration for default system settings or {@linkplain SupportedLanguages#en} when not identified</p>
+	 * @return enumeration for default system settings or {@linkplain SupportedLanguages#en} when not identified
 	 * @throws NullPointerException when parameter is null
 	 * @since 0.0.6
 	 */

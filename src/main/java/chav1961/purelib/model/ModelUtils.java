@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -1041,10 +1042,10 @@ loop:		for(;;) {
 	 * @param <V> Map value type
 	 * @param root root of the model tree
 	 * @param classPath class path (as package.package....ClassName)
-	 * @return class built. Call {@linkplain Class#newInstance(Object wrappee)} method to create instance of the wrapper class.
+	 * @return class built. Call {@linkplain Constructor#newInstance(Object...)} method to create instance of the wrapper class.
 	 * @throws ContentException on any errors when building mapped class
 	 * @throws NullPointerException when root is null
-	 * @throws IllegalArgumentException when classpath string is null or empty
+	 * @throws IllegalArgumentException when class path string is null or empty
 	 * @since 0.0.4
 	 */
 	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath) throws ContentException, NullPointerException, IllegalArgumentException {
@@ -1060,10 +1061,10 @@ loop:		for(;;) {
 	 * @param root root of the model tree
 	 * @param classPath class path (as package.package....ClassName)
 	 * @param loader loader to define class in
-	 * @return class built. Call {@linkplain Class#newInstance(Object wrappee)} method to create instance of the wrapper class.
+	 * @return class built. Call {@linkplain Constructor#newInstance(Object...)} method to create instance of the wrapper class.
 	 * @throws ContentException on any errors when building mapped class
 	 * @throws NullPointerException when root or loader is null
-	 * @throws IllegalArgumentException when classpath string is null or empty
+	 * @throws IllegalArgumentException when class path string is null or empty
 	 * @since 0.0.4
 	 */
 	public static <K,V> Class<Map<K,V>> buildMappedWrapperClassByModel(final ContentNodeMetadata root, final String classPath, final SimpleURLClassLoader loader) throws ContentException, NullPointerException, IllegalArgumentException {

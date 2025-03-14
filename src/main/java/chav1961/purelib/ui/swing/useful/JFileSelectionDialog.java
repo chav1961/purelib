@@ -164,7 +164,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		
 		/**
 		 * <p>Get preferred file extension for the given filter type</p>
-		 * @return preferred extension or null if not defined<
+		 * @return preferred extension or null if not defined
 		 */
 		default String getPreferredFileExtension() {
 			return null;
@@ -193,7 +193,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 		 * @return filter callback implementation. Can't be null
 		 * @throws IllegalArgumentException on any argument errors
 		 * @since 0.0.5
-		 * @lastUpdate 0.0.6
+		 * @last.update 0.0.6
 		 */
 		static FilterCallback of(final String name, final String... mask) throws IllegalArgumentException {
 			return ofWithExtension(name, null, mask);
@@ -289,7 +289,7 @@ public class JFileSelectionDialog extends JPanel implements LocaleChangeListener
 	/**
 	 * <p>Constructor of the class</p>
 	 * @param localizer localizer to use with the class. Can't be null. It's strongly recommended to use {@linkplain PureLibSettings#PURELIB_LOCALIZER} 
-	 * localizer to call the constructor</p>
+	 * localizer to call the constructor
 	 * @throws LocalizationException in any localization errors
 	 * @throws NullPointerException if any parameter is null
 	 */

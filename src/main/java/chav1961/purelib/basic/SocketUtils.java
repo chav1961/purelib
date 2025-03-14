@@ -321,7 +321,7 @@ public class SocketUtils {
 	/**
 	 * <p>Build {@linkplain SSLSocket} instance</p>
 	 * @param keystore key store file
-	 * @param password password to key store
+	 * @param ksPassword password to key store
 	 * @param truststore trust store file
 	 * @param tsPassword password to trust store
 	 * @param addr connection address

@@ -24,7 +24,7 @@ public class SequenceIterator<T> implements Iterator<T> {
 
 	/**
 	 * <p>Constructor of the class</p>
-	 * @param list collection of iterators. Can't be null</p>
+	 * @param list collection of iterators. Can't be null
 	 * @throws IllegalArgumentException when connection is null or contains nulls inside
 	 */
 	@SuppressWarnings("unchecked")

@@ -491,7 +491,6 @@ public class GettersAndSettersFactory {
 	 * @param <T> instance to build getter and setter for
 	 * @param awaited class containing field to get access to
 	 * @param fieldName field name to get access to
-	 * @param assigner module assigner for correct working in Java 1.9 and later
 	 * @return getter and setter built
 	 * @throws ContentException on any building errors
 	 * @throws IllegalArgumentException field name is null, empty or is missing in the class

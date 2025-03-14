@@ -58,7 +58,7 @@ public interface UITestInterface {
 	UITestInterface setValue(final Object value) throws TestException;
 	
 	/**
-	 * <pValidate value by the control without storing it</p>
+	 * <p>Validate value by the control without storing it</p>
 	 * @param value value to validate
 	 * @return true if value is valid
 	 * @throws TestException if control not found or not exists

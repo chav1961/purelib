@@ -187,7 +187,7 @@ public class Utils {
 	 * @return length transferred (in bytes)
 	 * @throws IOException if any I/O exception was thrown
 	 * @throws NullPointerException when any problems with parameters
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public static long copyStream(final InputStream is, final OutputStream os) throws IOException, NullPointerException {
 		return Math.abs(copyStream(is, os, ProgressIndicator.DUMMY));
@@ -237,7 +237,7 @@ public class Utils {
 	 * @return length transferred (in chars)
 	 * @throws IOException if any I/O exception was thrown
 	 * @throws NullPointerException when any problems with parameters
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public static int copyStream(final Reader is, final Writer os) throws IOException {
 		return Math.abs(copyStream(is, os, ProgressIndicator.DUMMY));
@@ -315,7 +315,7 @@ public class Utils {
 	 * parameter is always {@link java.lang.String String}, type of the 'value' parameter can be any (including null as value)</p>
 	 * @param parameters key/value pairs to parse.
 	 * @return map built. Can be empty but not null.
-	 * @lastUpdate 0.0.5
+	 * @last.update 0.0.5
 	 */
 	public static <T> Map<String,T> mkMap(final Object... parameters) {
 		if (parameters == null) {
@@ -419,7 +419,7 @@ public class Utils {
 	
 	/**
 	 * <p>Build a Properties instance from the configuration file content</p>
-	 * @param content configuration file</p>
+	 * @param content configuration file. Can't be null
 	 * @return properties built
 	 * @throws IOException on any I/O errors
 	 * @throws NullPointerException when content file is null 
@@ -1711,7 +1711,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	/**
 	 * <p>Define MIME type for file content by it's extension</p>
 	 * @param file file to define MIME type for. Can't be null
-	 * @return MIME type, or {@value PureLibSettings#MIME_OCTET_STREAM} when can't be defined
+	 * @return MIME type, or "application/octet-stream" when can't be defined
 	 * @throws NullPointerException when file is null
 	 * @since 0.0.6
 	 */
@@ -1751,7 +1751,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 
 	/**
 	 * <p>Get minimal size to represent value passes exactly</p>
-	 * @param value value to define size for.</p>
+	 * @param value value to define size for.
 	 * @return 0 - byte enough, 1 - short enough, 2 - int enough, otherwise 3.
 	 * @since 0.0.7
 	 */
@@ -1892,7 +1892,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		/**
 		 * <p>Compare "array" item with index passed and value to found.</p>
 		 * @param index "array" index to compare with value.
-		 * @return < 0 - "array" item is less than value, == 0 - "array" item is equals with value, > 0 - "array" item is greater than value. 
+		 * @return &lt; 0 - "array" item is less than value, == 0 - "array" item is equals with value, &gt; 0 - "array" item is greater than value. 
 		 */
 		int compareTo(int index);
 	}
@@ -1901,7 +1901,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * <p>Search parallel arrays content in sorted "array". Because parallel arrays don't contain data as the only item, but a number of parts inside separated
 	 * arrays, it's sorting can't be implemented as general case. Instead of direct search, the method uses {@linkplain IndicesComparable} interface to compare
 	 * content to search with the "element" of parallel array by it's index.</p> 
-	 * </p>Example to use this method:</p>	
+	 * <p>Example to use this method:</p>	
 	 * <pre>		
 	 * final int[] toSearch1 = ..., toSearch2 = ...;
 	 * final int search1 = 10, search2 = 20;
@@ -1918,7 +1918,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * @param from start piece of parallel array to search. Must be equals or greater than 0.
 	 * @param to start piece of parallel array to search. Must be greater than from variable.
 	 * @param comparator comparator to search content. Can't be null.
-	 * @return index >= 0 - "array" item found, index < 0 - =(-1-potential place for item found). 
+	 * @return index &gt;= 0 - "array" item found, index &lt; 0 - =(-1-potential place for item found). 
 	 * @see <a href="https://en.wikipedia.org/wiki/Parallel_array">Parallel arrays</a>
  	 * @since 0.0.8 
 	 */
@@ -1966,7 +1966,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		 * <p>Compare two items of the "array".
 		 * @param index1 first "array" item to compare.
 		 * @param index2 second "array" item to compare.
-		 * @return < 0 - first "array" item is less than second one, == 0 - "array" items are equals, > 0 - first "array" item is greater than second one. 
+		 * @return &lt; 0 - first "array" item is less than second one, == 0 - "array" items are equals, &gt; 0 - first "array" item is greater than second one. 
 		 */
 		int compareTo(int index1, int index2);
 	}
@@ -1984,7 +1984,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		 * @param from start index to move data from. Negative one-based value means not source array but temporal memory to sort 
 		 * @param to start index to move data to. Negative one-based value means not target array but temporal memory to sort. Both indices never can't be negative simultaneously. 
 		 * @param length partial content size to move. Always is greater than 0
-		 * @see Utils#parallelArraysSort(int, int, IndicesComparator, IndicesMover, int)
+		 * @see Utils#parallelArraysQSort(int, int, IndicesComparator, IndicesMover, int)
 		 */
 		void move(int from, int to, int length);
 	}
@@ -1995,7 +1995,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * <ul>
 	 * <li> {@linkplain IndicesComparator} interface to compare two parallel arrays elements. Differ from {@linkplain Comparator} interface,
 	 * this one uses two array indices instead of tow objects to compare</li>
-	 * <li> {@linkplain IndicesMover} interface to move piece if parallel arrays during sorting operations</p>  
+	 * <li> {@linkplain IndicesMover} interface to move piece if parallel arrays during sorting operations</li>  
 	 * </ul>
 	 * <p> To exclude large extra memory requirements for sorting, implementation of IndicesMover interface must support a few temporal memory to
 	 * support swap operation on sorting. Example to use this method:</p>	
@@ -2006,11 +2006,11 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 	 * final IndicesMover	im = new IndicesMover() {
 	 * 							&#64;Override
 	 * 							public void move(int from, int to, int length) {
-	 * 								if (from < 0) {
+	 * 								if (from &lt; 0) {
 	 * 									System.arraycopy(temp1, -1-from, toSort1, to, length);
 	 * 									System.arraycopy(temp2, -1-from, toSort2, to, length);
 	 * 								}
-	 * 								else if (to < 0) {
+	 * 								else if (to &lt; 0) {
 	 * 									System.arraycopy(toSort1, from, temp1, -1-to, length);
 	 * 									System.arraycopy(toSort2, from, temp2, -1-to, length);
 	 * 								}

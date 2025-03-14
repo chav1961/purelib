@@ -26,7 +26,7 @@ public class DataInputStream extends FilterInputStream implements DataInput {
 	
     /**
      * <p>Constructor of the class</p>
-     * @param out nested output stream to use. Can't be null.</p>
+     * @param in nested input stream to use. Can't be null.
      * @param order byte order to use. Can't be null.
      * @throws NullPointerException any of the parameters is null.
      */

@@ -2,6 +2,7 @@ package chav1961.purelib.ui.swing.useful.interfaces;
 
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.GeneralPath;
 
 import chav1961.purelib.ui.swing.useful.SelectionFrameManager;
 
@@ -53,7 +54,7 @@ public interface SelectionFrameListener {
 	 * <p>Selection changing callback. Can be used for animation (for example)</p>
 	 * @param style currently used selection style. Can't be null
 	 * @param start starting selection point. Can't be null
-	 * @param end ending selection point.  Can't be null
+	 * @param current ending selection point.  Can't be null
 	 * @param parameters advanced parameters.  Can't be null but can be empty (see {@linkplain SelectionStyle} for details)
 	 */
 	default void selectionChanging(SelectionStyle style, Point start, Point current, Object... parameters) {}

@@ -56,7 +56,7 @@ public class ColorPair implements Serializable, JsonSerializable<ColorPair> {
 	 * @param val string descriptor of the pair. Can't be null or empty and must have '{'&lt;foreground&gt;','&lt;background&gt;'}' format
 	 * @throws IllegalArgumentException parameter is null or empty
 	 * @throws SyntaxException on any syntax errors 
-	 * @see PureLibSettings#colorByName(String, Color)
+	 * @see ColorUtils#colorByName(String, Color)
 	 */
 	public ColorPair(final String val) throws SyntaxException, IllegalArgumentException {		
 		if (val == null || val.isEmpty()) {

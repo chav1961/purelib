@@ -83,7 +83,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	
 	/**
 	 * <p>COnstructor of the class</p>
-	 * @param localizer localizer to use. Usually {@linkPlain PureLibSettings#PURELIB_LOCALIZER} is enough
+	 * @param localizer localizer to use. Usually {@linkplain PureLibSettings#PURELIB_LOCALIZER} is enough
 	 * @param callback callback to process "OK" and "Cancel" buttons
 	 * @throws IOException on any I/O errors
 	 * @throws LocalizationException on any localization errors
@@ -220,7 +220,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	/**
 	 * <p>Ask file system selection</p>
 	 * @param window parent frame 
-	 * @param localizer localizer. Usually {@linkPlain PureLibSettings#PURELIB_LOCALIZER} is enough 
+	 * @param localizer localizer. Usually {@linkplain PureLibSettings#PURELIB_LOCALIZER} is enough 
 	 * @return file system URI when selected, null otherwise
 	 * @throws LocalizationException on any localization errors
 	 * @throws ContentException on any content errors
@@ -233,7 +233,7 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 	/**
 	 * <p>Ask file system selection</p>
 	 * @param window parent frame 
-	 * @param localizer localizer. Usually {@linkPlain PureLibSettings#PURELIB_LOCALIZER} is enough 
+	 * @param localizer localizer. Usually {@linkplain PureLibSettings#PURELIB_LOCALIZER} is enough 
 	 * @return file system URI when selected, null otherwise
 	 * @throws LocalizationException on any localization errors
 	 * @throws ContentException on any content errors

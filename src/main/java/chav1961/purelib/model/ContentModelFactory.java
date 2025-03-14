@@ -251,12 +251,12 @@ public class ContentModelFactory {
 	}
 
 	/**
-	 * Build model by XML description.</p>
+	 * <p>Build model by XML description.</p>
 	 * @param contentDescription XML-based model descriptor. Can't be null
 	 * @return metadata parsed. Can't be null.
 	 * @throws NullPointerException on any parameter is null
 	 * @throws EnvironmentException on invalid XML
-	 * @see XSDCollection.XMLDescribedApplication
+	 * @see "XSDCollection.XMLDescribedApplication"
 	 * @since 0.0.4
 	 */
 	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription) throws NullPointerException, EnvironmentException {
@@ -264,13 +264,13 @@ public class ContentModelFactory {
 	}
 	
 	/**
-	 * Build model by XML description.</p>
+	 * <p>Build model by XML description.</p>
 	 * @param contentDescription XML-based model descriptor. Can't be null
 	 * @param contentType content type to parse. Can't be null
 	 * @return metadata parsed. Can't be null.
 	 * @throws NullPointerException on any parameter is null
 	 * @throws EnvironmentException on invalid XML
-	 * @see XSDCollection.XMLDescribedApplication
+	 * @see "XSDCollection.XMLDescribedApplication"
 	 * @since 0.0.4
 	 */
 	public static ContentMetadataInterface forXmlDescription(final InputStream contentDescription, final XSDCollection contentType) throws NullPointerException, EnvironmentException {

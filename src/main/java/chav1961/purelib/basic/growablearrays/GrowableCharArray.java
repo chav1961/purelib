@@ -267,7 +267,7 @@ public class GrowableCharArray<T extends GrowableCharArray<?>> implements CharSe
 	 * @throws NullPointerException if the reader is null
 	 * @throws IOException on any I/O errors
 	 * @since 0.0.2 
-	 * @lastUpdate 0.0.4 
+	 * @last.update 0.0.4 
 	 */
 	@SuppressWarnings("unchecked")
 	public T append(final Reader rdr) throws NullPointerException, IOException {

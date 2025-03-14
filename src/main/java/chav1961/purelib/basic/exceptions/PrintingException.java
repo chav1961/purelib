@@ -57,7 +57,6 @@ public class PrintingException extends ContentException {
 
 	/**
 	 * <p>Constructor of the class for localizable messages</p>
-	 * @param cause exception cause. Can be null
 	 * @param messageId message id. Can't be null, and must have format &lt;localizerURI#messageId&gt;
 	 * @param parameters message parameters. Can be empty but not null
 	 * @since 0.0.7

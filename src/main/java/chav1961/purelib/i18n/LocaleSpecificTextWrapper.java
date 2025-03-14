@@ -51,7 +51,7 @@ public abstract class LocaleSpecificTextWrapper<T extends JComponent> implements
 	 * @param content wrapper content
 	 * @return wrapper created
 	 * @throws NullPointerException when content is null
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static LocaleSpecificTextWrapper<JComponent> wrap(final JComponent content) throws NullPointerException {
 		if (content == null) {
@@ -70,7 +70,7 @@ public abstract class LocaleSpecificTextWrapper<T extends JComponent> implements
 	 * @param content wrapper content
 	 * @return wrapper created
 	 * @throws NullPointerException when content is null
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static LocaleSpecificTextWrapper<JTextComponent> wrap(final JTextComponent content) throws NullPointerException {
 		if (content == null) {
@@ -89,7 +89,7 @@ public abstract class LocaleSpecificTextWrapper<T extends JComponent> implements
 	 * @param content wrapper content
 	 * @return wrapper created
 	 * @throws NullPointerException when content is null
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static LocaleSpecificTextWrapper<AbstractButton> wrap(final AbstractButton content) throws NullPointerException {
 		if (content == null) {
@@ -108,7 +108,7 @@ public abstract class LocaleSpecificTextWrapper<T extends JComponent> implements
 	 * @param content wrapper content
 	 * @return wrapper created
 	 * @throws NullPointerException when content is null
-	 * @lastUpdate 0.0.3
+	 * @last.update 0.0.3
 	 */
 	public static LocaleSpecificTextWrapper<JLabel> wrap(final JLabel content) throws NullPointerException {
 		if (content == null) {

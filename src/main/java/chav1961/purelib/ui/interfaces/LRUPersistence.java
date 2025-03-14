@@ -88,7 +88,7 @@ public interface LRUPersistence {
 	
 	/**
 	 * <p>Get simple implementation of the interface based on {@linkplain SubstitutableProperties} file content. Properties file content will contains a set of 
-	 * keys names <keyPrefix>.1, <keyPrefix>.2 ... <keyPrefix>.N. Their values will contain path to last recently used files. Values of list filled will be always
+	 * keys names &lt;keyPrefix&gt;.1, &lt;keyPrefix&gt;.2 ... &lt;keyPrefix&gt;.N. Their values will contain path to last recently used files. Values of list filled will be always
 	 * ordered by it's keys (as suffix numbers, not lexical ordered) in the properties file. Sequence of the keys can have missing items (for example "item.1", "item.3", "item.4" etc)</p>
 	 * @param properties properties file. Can't be null. If exists, must be a file with read and write access to it
 	 * @param keyPrefix prefix of keys inside properties. Can't be null or empty

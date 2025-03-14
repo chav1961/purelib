@@ -56,7 +56,7 @@ public class DnDManager implements AutoCloseable {
 		}
 
 		/**
-		 * <p>Get Drag&Drop mode as {@linkplain DnDConstants} constant</p>
+		 * <p>Get Drag&amp;Drop mode as {@linkplain DnDConstants} constant</p>
 		 * @return mode returned
 		 */
 		public int getMode() {
@@ -80,7 +80,7 @@ public class DnDManager implements AutoCloseable {
 		}
 		
 		/**
-		 * <p>Get Drag&Drop mode by {@linkplain DnDConstants} constants</p>
+		 * <p>Get Drag&amp;Drop mode by {@linkplain DnDConstants} constants</p>
 		 * @param dndConstant constant to get mode for
 		 * @return mode for constant
 		 * @throws IllegalArgumentException if constant to get mode for is illegal
@@ -121,7 +121,7 @@ public class DnDManager implements AutoCloseable {
 	public interface DnDInterface {
 		/**
 		 * <p>Get source content class. This method returns type of the content, located at requested point.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param component current component. Can't be null
 		 * @param x current x-coordinate related to upper-left corner of the component
 		 * @param y current y-coordinate related to upper-left corner of the component
@@ -131,24 +131,24 @@ public class DnDManager implements AutoCloseable {
 
 		/**
 		 * <p>Get source content to pass it to {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param from source component. Can't be null
 		 * @param xFrom x-coordinate related to upper-left corner of the source component
 		 * @param yFrom y-coordinate related to upper-left corner of the source component
 		 * @param to target component. Can't be null
 		 * @param xTo x-coordinate related to upper-left corner of the target component
 		 * @param yTo y-coordinate related to upper-left corner of the target component
-		 * @return content to drag&drop. Null cancels drop operation
+		 * @return content to drag&amp;drop. Null cancels drop operation
 		 */
 		Object getSourceContent(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo);
 
 		/**
 		 * <p>Get source content to pass it to {@linkplain #complete(DnDMode, Component, int, int, Component, int, int, Object)} method.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param from source component. Can't be null
 		 * @param xFrom x-coordinate related to upper-left corner of the source component
 		 * @param yFrom y-coordinate related to upper-left corner of the source component
-		 * @return content to drag&drop. Null cancels drag&drop
+		 * @return content to drag&amp;drop. Null cancels drag&amp;drop
 		 * @since 0.0.5
 		 */
 		default Object getSourceContent(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom) {
@@ -157,7 +157,7 @@ public class DnDManager implements AutoCloseable {
 		
 		/**
 		 * <p>Test the control can receive dragged data.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param from source component. Can't be null
 		 * @param xFrom x-coordinate related to upper-left corner of the source component
 		 * @param yFrom y-coordinate related to upper-left corner of the source component
@@ -171,7 +171,7 @@ public class DnDManager implements AutoCloseable {
 
 		/**
 		 * <p>Test the control can receive dragged data.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param to target component. Can't be null
 		 * @param xTo x-coordinate related to upper-left corner of the target component
 		 * @param yTo y-coordinate related to upper-left corner of the target component
@@ -184,8 +184,8 @@ public class DnDManager implements AutoCloseable {
 		}
 		
 		/**
-		 * <p>Track drag&drop operation. Can be used for visualization purposes.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * <p>Track drag&amp;drop operation. Can be used for visualization purposes.</p>
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param from source component. Can't be null
 		 * @param xFromAbsolute staring x-coordinate related to upper-left corner of the screen
 		 * @param yFromAbsolute staring y-coordinate related to upper-left corner of the screen
@@ -198,7 +198,7 @@ public class DnDManager implements AutoCloseable {
 		
 		/**
 		 * <p>Complete drop operation.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param from source component. Can't be null
 		 * @param xFrom x-coordinate related to upper-left corner of the source component
 		 * @param yFrom y-coordinate related to upper-left corner of the source component
@@ -210,10 +210,13 @@ public class DnDManager implements AutoCloseable {
 		void complete(final DnDMode currentMode, final Component from, final int xFrom, final int yFrom, final Component to, final int xTo, final int yTo, final Object content);
 
 		/**
-		 * <p>Complete drop operation.</p>
-		 * @param currentMode current drag&drop mode. Can't be null
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param xFrom x-coordinate related to upper-left corner of the source component
 		 * @param yFrom y-coordinate related to upper-left corner of the source component
+		 */
+		/**
+		 * <p>Complete drop operation.</p>
+		 * @param currentMode current drag&amp;drop mode. Can't be null
 		 * @param to target component. Can't be null
 		 * @param xTo x-coordinate related to upper-left corner of the target component
 		 * @param yTo y-coordinate related to upper-left corner of the target component
@@ -269,8 +272,8 @@ public class DnDManager implements AutoCloseable {
 	
 	/**
 	 * <p>Constructor of the class</p>
-	 * @param container container to manage drag&drip inside. Can't be null
-	 * @param dndInterface callback interface to support drag&drop lifecycle. Can't be null 
+	 * @param container container to manage drag&amp;drop inside. Can't be null
+	 * @param dndInterface callback interface to support drag&amp;drop lifecycle. Can't be null 
 	 * @throws NullPointerException if any parameter is null
 	 */
 	public DnDManager(final Container container, final DnDInterface dndInterface) throws NullPointerException {
@@ -305,9 +308,9 @@ public class DnDManager implements AutoCloseable {
 	}
 	
 	/**
-	 * <p>Select current Drag&drop mode inside the container.</p>
+	 * <p>Select current Drag&amp;drop mode inside the container.</p>
 	 * @param mode mode to select. Can't be null 
-	 * @return previous drag&drop mode. Can't be null
+	 * @return previous drag&amp;drop mode. Can't be null
 	 * @throws NullPointerException if any parameter is null
 	 */
 	public DnDMode selectDnDMode(final DnDMode mode) throws NullPointerException {
@@ -323,8 +326,8 @@ public class DnDManager implements AutoCloseable {
 	}
 	
 	/**
-	 * <p>Get current drag&drop mode</p>
-	 * @return current drag&drop mode. Can't be null
+	 * <p>Get current drag&amp;drop mode</p>
+	 * @return current drag&amp;drop mode. Can't be null
 	 */
 	public DnDMode currentDnDMode() {
 		return currentDnDMode;

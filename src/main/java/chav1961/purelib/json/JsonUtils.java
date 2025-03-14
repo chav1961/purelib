@@ -607,7 +607,7 @@ public class JsonUtils {
 	 * <li><b>&lt;list&gt;</b>::=&lt;range&gt;[','&lt;range&gt;...]</li>
 	 * <li><b>&lt;range&gt;</b>::=&lt;expr&gt;['..'&lt;expr&gt;]</li>
 	 * <li><b>&lt;condition&gt;</b>::=&lt;andCondition&gt;['||'&lt;andCondition&gt;...]</li>
-	 * <li><b>&lt;andCondition&gt;</b>::=&lt;notCondition&gt;['&&'&lt;notCondition&gt;...]</li>
+	 * <li><b>&lt;andCondition&gt;</b>::=&lt;notCondition&gt;['&amp;&amp;'&lt;notCondition&gt;...]</li>
 	 * <li><b>&lt;notCondition&gt;</b>::=[~]&lt;comparison&gt;</li>
 	 * <li><b>&lt;comparison></b>::={&lt;expr&gt;{'&gt;'|'&gt;='|'&lt;'|'&lt;='|'=='|'&lt;&gt;'}&lt;expr&gt;|&lt;expr&gt;'in'&lt;list&gt;|&lt;expr&gt;'is'{'int'|'real'|'str'|'bool'|'null'|'arr'|'obj'}}</li>
 	 * <li><b>&lt;expr&gt;</b>::=&lt;term&gt;{'+'|'-'|'*'|'/'|'%'}&lt;term&gt;...</li>
@@ -617,18 +617,18 @@ public class JsonUtils {
 	 * Priority of the logical and arithmetical operators in the expression is traditional.</p>
 	 * <p>Syntax of the 'filter' expression is:</p>
 	 * <ul>
-	 * <li>&lt;filter&gt;::=&lt;expr&gt;{'&&'|'||'}&lt;expr&gt;...</li>
+	 * <li>&lt;filter&gt;::=&lt;expr&gt;{'&amp;&amp;'|'||'}&lt;expr&gt;...</li>
 	 * <li>&lt;expr&gt;::=[~]&lt;term&gt;</li>
 	 * <li>&lt;term&gt;::={&lt;xpath&gt; [&lt;comparison&gt;] |'('&lt;filter&gt;')'}</li>
 	 * </ul>
-	 * <p>XPath in the filter without any comparison operators treated as 'check existance', otherwise compared with the given right part of comparison operator. Right part of '=' and '<>' comparisons for the
-	 * 'XPath' can contain JSON in the form of '&lt;JSON_content&gt', for example "../ = '{"name":"var1","value":[10,20]}'".</p>
+	 * <p>XPath in the filter without any comparison operators treated as 'check existance', otherwise compared with the given right part of comparison operator. Right part of '=' and '&lt;&gt;' comparisons for the
+	 * 'XPath' can contain JSON in the form of '&lt;JSON_content&gt;', for example "../ = '{"name":"var1","value":[10,20]}'".</p>
 	 * <p>Examples of the syntax are:</p>
 	 * <ul>
 	 * <li><b>/ ** / [0..2] </b> - all node arrays with indices 0, 1, and 2</li>
 	 * <li><b>/ ** / [0..2] / **</b> - all children of the node arrays with indices 0, 1, and 2</li>
 	 * <li><b>/ ** / [has(i%2 == 0)] </b> - all node arrays with even indices</li>
-	 * <li><b>/ ** / name #../key:10 && ../type:"type1" </b> - all node with 'name' name in the structure with 'key' field = 10 and 'type' field = "type1"</li>
+	 * <li><b>/ ** / name #../key:10 &amp;&amp; ../type:"type1" </b> - all node with 'name' name in the structure with 'key' field = 10 and 'type' field = "type1"</li>
 	 * <li><b>/ ** / name #../ = '{"name":"test","type":"20"}'</b> - all node with 'name', where parent of node is exactly equals for JSON '{"name":"test","type":"20"}'</li>
 	 * </ul>
 	 * <p>Filter built is not reentrant and doesn't be used recursively, but it is reusable and doesn't need re-creation for subsequential calls</p>

@@ -105,7 +105,7 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 		XML, 
 		/**
 		 * <p>Windows-styled file format (see reference below for details). All the keys after loading will have format '[&lt;sectionName&gt;].&lt;keyName&gt;'</p>
-		 * @see https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getprivateprofilestring 
+		 * @see <a href="https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getprivateprofilestring">GetPrivateProfileString</a> 
 		 */
 		WindowsStyled
 	}
@@ -665,7 +665,7 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 	 * @throws NullPointerException if awaited class is null
 	 * @throws IllegalArgumentException if requested conversion failed or not supported
 	 * @since 0.0.3
-	 * @lastUdate 0.0.6
+	 * @last.update 0.0.6
 	 */	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T convert(final String key, final String value, final Class<T> awaited) throws NullPointerException, IllegalArgumentException{
@@ -906,7 +906,7 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 
 	/**
 	 * <p>Create properties from input stream</p>
-	 * @param file input stream to create properties from. Can't be null 
+	 * @param is input stream to create properties from. Can't be null 
 	 * @return properties created from the file
 	 * @throws NullPointerException null input stream
 	 * @throws IOException any I/O errors
