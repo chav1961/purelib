@@ -9,6 +9,12 @@ import java.sql.SQLException;
  */
 public abstract class AbstractContent implements AutoCloseable {
 	/**
+	 * <p>Constructor of the class instance</p>
+	 */
+	public AbstractContent() {
+	}
+	
+	/**
 	 * <p>Is the content streaming</p>
 	 * @return true if yes, false otherwise
 	 */

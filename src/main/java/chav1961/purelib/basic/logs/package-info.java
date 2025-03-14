@@ -4,7 +4,7 @@
  * <ul>
  * <li>':default:/' - default logger facade</li> 
  * <li>':pure:/' - internal Pure Library logger facade</li> 
- * <li>':jre:/' - standard JRE logger facade (see {@linkplain java.utl.log} package)</li>  
+ * <li>':jre:/' - standard JRE logger facade (see {@linkplain java.util.logging} package)</li>  
  * <li>':string:/' - string logger facade</li>  
  * <li>':swing:/' - Swing logger facade (see {@linkplain javax.swing.JEditorPane JEditorPane} class</li>
  * <li>':err:/' - System.err logger facade (see {@linkplain java.lang.System} class</li>

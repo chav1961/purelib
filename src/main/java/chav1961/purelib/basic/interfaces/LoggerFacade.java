@@ -194,7 +194,7 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 * @param reducing reducing algorithm to set
 	 * @return self
 	 * @throws NullPointerException when redicing set is null
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	default LoggerFacade setReducing(Reducing... reducing) throws NullPointerException {
 		return setReducing(Set.of(reducing));
@@ -215,7 +215,7 @@ public interface LoggerFacade extends Closeable, SpiService<LoggerFacade> {
 	 * @return self
 	 * @throws NullPointerException when any redicing is null
 	 * @see #popReducing()
-	 * @lastUpdate 0.0.6
+	 * @last.update 0.0.6
 	 */
 	default LoggerFacade pushReducing(Reducing... reducing) throws NullPointerException {
 		return pushReducing(Set.of(reducing));

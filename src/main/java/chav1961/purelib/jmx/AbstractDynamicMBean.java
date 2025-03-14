@@ -82,8 +82,17 @@ public abstract class AbstractDynamicMBean implements DynamicMBean {
 	 * @since 0.0.7
 	 */
 	public static enum JMXKind {
+		/**
+		 * <p>This item is an attribute getter</p>
+		 */
 		GETTER,
+		/**
+		 * <p>This item is an attribute setter</p>
+		 */
 		SETTER,
+		/**
+		 * <p>This item is a method invocation</p>
+		 */
 		OTHER
 	}
 
@@ -95,7 +104,15 @@ public abstract class AbstractDynamicMBean implements DynamicMBean {
 	@Retention(RetentionPolicy.RUNTIME)
 	@Target({ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR})
 	public static @interface JMXItemType {
+		/**
+		 * <p>Get JMX item type</p>
+		 * @return JMX item type. Can't be null
+		 */
 		JMXKind type() default JMXKind.OTHER;
+		/**
+		 * <p>Get JMX item description</p>
+		 * @return JMX item description. Can't be null but can be empty.
+		 */
 		String description();
 	}
 	

@@ -54,7 +54,6 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
-import chav1961.purelib.matrix.interfaces.MatrixFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.monitoring.MonitoringManager;
 import chav1961.purelib.monitoring.NanoServiceControl;
@@ -404,16 +403,6 @@ public final class PureLibSettings {
 																		throw new EnvironmentException(e); 
 																	}
 																}),
-															new WellKnownSchemaImpl(MatrixFactory.MATRIX_FACTORY_SCHEME, "", MatrixFactory.Factory.class, true, 
-																	(uri)->{
-																		try{return MatrixFactory.Factory.newInstance(uri);
-																		} catch (PreparationException e) {
-																			throw new EnvironmentException(e); 
-																		}
-																	},
-																	(uri)->{
-																		return MatrixFactory.Factory.canServe(uri);
-																	}),
 															new WellKnownSchemaImpl(ResultSetFactory.RESULTSET_PARSERS_SCHEMA, "", ResultSetFactory.class, false, 
 																(uri)->{
 																	throw new EnvironmentException("This service doesn't supports SpiService interface");

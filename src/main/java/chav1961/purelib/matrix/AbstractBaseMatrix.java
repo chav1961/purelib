@@ -3,14 +3,15 @@ package chav1961.purelib.matrix;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.concurrent.Exchanger;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import chav1961.purelib.basic.exceptions.CalculationException;
 import chav1961.purelib.matrix.interfaces.BaseMatrix;
 
+/**
+ * <p>This is base class to implement {@linkplain BaseMatrix} functionality.</p>
+ * @param <T> matrix type.
+ */
 public abstract class AbstractBaseMatrix<T extends BaseMatrix<?>> implements BaseMatrix<T> {
 	
 	private final AtomicBoolean	trans = new AtomicBoolean(false);

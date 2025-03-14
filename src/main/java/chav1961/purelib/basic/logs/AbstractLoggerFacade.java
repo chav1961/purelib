@@ -377,7 +377,7 @@ public abstract class AbstractLoggerFacade implements LoggerFacade {
 		}
 	}
 	
-	public interface LoggerManagerMBean {
+	public static interface LoggerManagerMBean {
 		String getGlobalSuppressLevel();
 		void setGlobalSuppressLevel(String level);
 	}

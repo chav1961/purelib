@@ -106,7 +106,7 @@ public interface InstanceManager<Key, Inst> extends AutoCloseable {
 
 	/**
 	 * <p>Insert or update prepared statement with instance content.</p>
-	 * @param psprepared statement to insert or update row. Can'tbe null
+	 * @param ps prepared statement to insert or update row. Can'tbe null
 	 * @param inst instance to update row from. Can't be null
 	 * @param update true if update, false if insert
 	 * @throws SQLException on any errors

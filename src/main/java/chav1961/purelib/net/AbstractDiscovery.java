@@ -28,7 +28,13 @@ import chav1961.purelib.net.interfaces.MediaItemDescriptor;
  * @param <Query> Query message class
  */
 public abstract class AbstractDiscovery <Broadcast extends Serializable, Query extends Serializable> implements Closeable, ExecutionControl, Maintenable<Object> {
+	/**
+	 * <p>Default record size to discovery</p>
+	 */
 	public static final int		DEFAULT_RECORD_SIZE = 1024;
+	/**
+	 * <p>Default discovert period</p>
+	 */
 	public static final int		DEFAULT_DISCOVERY_PERIOD = 30 * 1000;
 
 	@FunctionalInterface

@@ -21,7 +21,6 @@ public interface FileSystemLockInterface {
 	 * <p>Lock file system resource. Waits until lock is successful</p>
 	 * @param path any resource name (usually, but not mandatory - file name)
 	 * @param sharedMode lock resource in shared (false) or exclusive (true) mode;
-	 * @return true on success, false otherwise
 	 * @throws IOException if any exceptions was thrown
 	 */
 	void lock(String path, boolean sharedMode) throws IOException;

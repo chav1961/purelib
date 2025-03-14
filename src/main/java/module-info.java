@@ -150,6 +150,4 @@ module chav1961.purelib {
 	uses javax.naming.spi.InitialContextFactory;
 	provides javax.naming.spi.InitialContextFactory with chav1961.purelib.basic.SimpleInitialContextFactory;
 
-	uses chav1961.purelib.matrix.interfaces.MatrixFactory;
-	provides chav1961.purelib.matrix.interfaces.MatrixFactory with chav1961.purelib.matrix.internal.OrdinalMatrixFactory;
 }

@@ -52,19 +52,40 @@ import chav1961.purelib.streams.StreamsUtil;
  */
 
 public abstract class AbstractLocalizer implements Localizer {
+	/**
+	 * <p>URI query parameter name to describe MIME type</p>
+	 */
 	public static final String		CONTENT_MIME = "mime";
+	/**
+	 * <p>URI query parameter name to describe source MIME type</p>
+	 */
 	public static final String		CONTENT_MIME_SOURCE = "sourceMime";
+	/**
+	 * <p>URI query parameter name to describe target MIME type</p>
+	 */
 	public static final String		CONTENT_MIME_TARGET = "targetMime";
+	/**
+	 * <p>URI query parameter name to describe content encoding</p>
+	 */
 	public static final String		CONTENT_ENCODING = "encoding";
+	/**
+	 * <p>URI default query parameter name to describe content encoding</p>
+	 */
 	public static final String		DEFAULT_CONTENT_ENCODING = "UTF-8";
 
 	/**
-	 * <p>Yhjis interface is used to enumerate all locales supported</p>
+	 * <p>This interface is used to enumerate all locales supported</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
 	 */
 	@FunctionalInterface
 	public interface SupportedLocalesIterator {
+		/**
+		 * <p>Process language supported</p>
+		 * @param lang language type. Can't be null.
+		 * @param langName language name. Can b neither null nor empty.
+		 * @param icon icon associated (usually as country flag).
+		 */
 		void process(final SupportedLanguages lang, final String langName, final Icon icon);
 	}
 	
