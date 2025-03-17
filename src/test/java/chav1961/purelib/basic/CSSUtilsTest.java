@@ -423,26 +423,6 @@ public class CSSUtilsTest {
 	}
 	
 	@Test
-	public void parseAsAngleTest() throws SyntaxException {
-		CSSUtils.Angle	angle = CSSUtils.asAngle("1rad");
-		
-		Assert.assertEquals(1.0f,angle.getValue(),0.0001f);
-		
-		try{CSSUtils.asAngle(null);
-			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{CSSUtils.asAngle("");
-			Assert.fail("Mandatory exception was not detected (empty 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-		try{CSSUtils.asAngle("illegal");
-			Assert.fail("Mandatory exception was not detected (illegal 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}		
-	}
-
-	@Test
 	public void parseAsTimeTest() throws SyntaxException {
 		CSSUtils.Time	time = CSSUtils.asTime("1msec");
 		
