@@ -46,9 +46,6 @@ module chav1961.purelib {
 	exports chav1961.purelib.monitoring;
 	exports chav1961.purelib.net;
 	exports chav1961.purelib.net.interfaces;
-	exports chav1961.purelib.net.fsys;
-	exports chav1961.purelib.net.root;
-	exports chav1961.purelib.net.self;
 	exports chav1961.purelib.parsers;
 	exports chav1961.purelib.sql;
 	exports chav1961.purelib.sql.content;
@@ -62,8 +59,6 @@ module chav1961.purelib {
 	exports chav1961.purelib.streams.byte2byte;
 	exports chav1961.purelib.streams.byte2char;
 	exports chav1961.purelib.streams.char2byte;
-	exports chav1961.purelib.streams.char2byte.asm;
-	exports chav1961.purelib.streams.char2byte.asm.macro;
 	exports chav1961.purelib.streams.char2char;
 	exports chav1961.purelib.streams.charsource;
 	exports chav1961.purelib.streams.chartarget;

@@ -209,12 +209,51 @@ public class CSSUtils {
 //	Map<> split(String,inher)
 //	join(EnumMap<>,inher)
 	
+	/**
+	 * <p>This interface describes aggregator for attribites list</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public interface AggregateAttr {
+		/**
+		 * <p>Get aggregate type</p>
+		 * @return aggregate type. Can't be null
+		 */
 		StylePropertiesSupported 				getType();
+		/**
+		 * <p>Get aggregate components</p>
+		 * @return aggregate components. Can't be null but can be empty 
+		 */
 		StylePropertiesSupported[] 				getDetails();
+		/**
+		 * <p>Parse string representation of the attributes and split it to key/value pairs</p>
+		 * @param content content to parse. Can be neither null nor empty
+		 * @return content parsed. Can be neither null nor empty
+		 * @throws SyntaxException on any syntax errors.
+		 */
 		Map<StylePropertiesSupported,String> 	split(String content) throws SyntaxException;
+		/**
+		 * <p>Parse string representation of the attributes and split it to key/value pairs</p>
+		 * @param content content to parse. Can be neither null nor empty
+		 * @param inherit callback to support inherit values. Can't be null
+		 * @return content parsed. Can be neither null nor empty
+		 * @throws SyntaxException on any syntax errors.
+		 */
 		Map<StylePropertiesSupported,String> 	split(String content, SubstitutionSource inherit) throws SyntaxException;
+		/**
+		 * <p>Format attributes to it's string representation</p>
+		 * @param content content to format. Can be neither null nor empty
+		 * @return string representation of content. Can be neither null nor empty 
+		 * @throws PrintingException on any format errors.
+		 */
 		String									join(Map<StylePropertiesSupported,String> content) throws PrintingException;
+		/**
+		 * <p>Format attributes to it's string representation</p>
+		 * @param content content to format. Can be neither null nor empty
+		 * @param inherit callback to support inherit values. Can't be null
+		 * @return string representation of content. Can be neither null nor empty 
+		 * @throws PrintingException on any format errors.
+		 */
 		String									join(Map<StylePropertiesSupported,String> content, SubstitutionSource inherit) throws PrintingException;
 	}
 
@@ -1547,6 +1586,11 @@ public class CSSUtils {
 		}
 	}	
 	
+	/**
+	 * <p>This class is a descriptor of angle values in the SCC</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class Angle {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
@@ -1560,14 +1604,40 @@ public class CSSUtils {
 		private static final Map<Units,Angle[]> 	microCache = new EnumMap<>(Units.class);
 		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
 		
+		/**
+		 * <p>This anumeration descripbes angle units</p> 
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.7
+		 */
 		public enum Units {
-			deg, grad, rad, turn					// Absolute			
+			/**
+			 * <p>Angle unit is degrees</p>
+			 */
+			deg, 
+			/**
+			 * <p>Angle unit is grades</p>
+			 */
+			grad, 
+			/**
+			 * <p>Angle unit is radians</p>
+			 */
+			rad, 
+			/**
+			 * <p>Angle unit is turns</p>
+			 */
+			turn					// Absolute			
 		}
 		
 		private final float	value;
 		private final Units	unit;
 		
-		public Angle(final float value, final Units unit) {
+		/**
+		 * <p>Construcot of the class instance</p>
+		 * @param value angle value.
+		 * @param unit Angle units. Can't be null
+		 * @throws NullPointerException angle unit is null
+		 */
+		public Angle(final float value, final Units unit) throws NullPointerException {
 			if (unit == null) {
 				throw new NullPointerException("Unit type can't be null");
 			}
@@ -1577,11 +1647,21 @@ public class CSSUtils {
 			}
 		}
 
+		/**
+		 * <p>Get angle value in current units</p>
+		 * @return angle value
+		 */
 		public float getValue() {
 			return value;
 		}
 
-		public float getValueAs(final Units unit) {
+		/**
+		 * <p>Convert and get angle value in units typed</p> 
+		 * @param unit unit to convert value to. Can't be null.
+		 * @return
+		 * @throws NullPointerException angle unit is null
+		 */
+		public float getValueAs(final Units unit) throws NullPointerException {
 			if (unit == null) {
 				throw new NullPointerException("Unit type can't be null");
 			}
@@ -1593,11 +1673,21 @@ public class CSSUtils {
 			}
 		}
 		
+		/**
+		 * <p>Get current unit of the angle</p>
+		 * @return current unit of the angle. Can't be null.
+		 */
 		public Units getUnit() {
 			return unit;
 		}
 
-		public static Angle valueOf(final String value) {
+		/**
+		 * <p>Parse string representation of angle</p>
+		 * @param value string representation of angle. Can be neither null nor empty
+		 * @return angle parsed. Can't be null
+		 * @throws IllegalArgumentException value to parse is null, empty or has wrong syntax.
+		 */
+		public static Angle valueOf(final String value) throws IllegalArgumentException {
 			if (value == null || value.isEmpty()) {
 				throw new IllegalArgumentException("Value ["+value+"] can't ne null or empty");
 			}
@@ -1613,11 +1703,15 @@ public class CSSUtils {
 			}
 		}
 
-		public static Angle valueOf(final float value, final Units unit) {
-			if (value < 0) {
-				throw new IllegalArgumentException("Value ["+value+"] can't ne negative");
-			}
-			else if (unit == null) {
+		/**
+		 * <p>Create immutable angle instance from it's value and unit. Uses internal cache to reduce number of instances</p>
+		 * @param value angle value.
+		 * @param unit angle unit. Can't be null.
+		 * @return angle created. Can't be null.
+		 * @throws NullPointerException angle unit is null
+		 */
+		public static Angle valueOf(final float value, final Units unit) throws NullPointerException {
+			if (unit == null) {
 				throw new NullPointerException("Unit value can't be null");
 			}
 			else if (value < 0 || value >= MAX_CACHEABLE || value != (float)((int)value)) {
@@ -1674,18 +1768,6 @@ public class CSSUtils {
 		}
 	}
 
-	public static Angle asAngle(final String angle) throws SyntaxException {
-		if (angle == null || angle.isEmpty()) {
-			throw new IllegalArgumentException("Angle string can't be null or empty");
-		}
-		else {
-			try{return Angle.valueOf(angle);
-			} catch (NumberFormatException exc) {
-				throw new SyntaxException(0,0,"Angle ["+angle+"] has invalid syntax");
-			}
-		}
-	}		
-	
 	public static class Time {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};

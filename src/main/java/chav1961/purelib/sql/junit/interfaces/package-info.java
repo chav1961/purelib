@@ -5,4 +5,4 @@
  * @since 0.0.2 last update 0.0.3
  *
  */
-package chav1961.purelib.sql.model;
+package chav1961.purelib.sql.junit.interfaces;
