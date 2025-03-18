@@ -19,6 +19,7 @@ import java.util.Set;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.growablearrays.GrowableCharArray;
 import chav1961.purelib.streams.char2byte.AsmWriter;
+import chav1961.purelib.streams.char2byte.asm.Asm;
 
 public class MacroClassLoader extends URLClassLoader {
     private static final String			ANCHOR;
@@ -72,7 +73,9 @@ public class MacroClassLoader extends URLClassLoader {
 				}
 				
 				diag("Define macro class ["+className+"]...");
-				
+
+				this.getClass().getModule().addOpens(this.getClass().getPackageName(), getUnnamedModule());
+				this.getClass().getModule().addOpens(Asm.class.getPackageName(), getUnnamedModule());
 				final byte[]		content = baos.toByteArray();
 				final Class<? extends MacroExecutor>	executor = (Class<? extends MacroExecutor>) defineClass(className, content, 0, content.length);
 				
