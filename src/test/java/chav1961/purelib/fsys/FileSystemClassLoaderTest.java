@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.internal.FileSystemOnFile;
 
 @Tag("OrdinalTestCategory")
 public class FileSystemClassLoaderTest {

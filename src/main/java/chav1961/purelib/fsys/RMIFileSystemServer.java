@@ -19,6 +19,7 @@ import java.util.Map;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.RMIDataWrapperInterface;
+import chav1961.purelib.fsys.internal.FileSystemOnRMI;
 
 /**
  * <p>This class is a server to the {@link FileSystemOnRMI} class. It's constructor gets an URI to register in the RMI server, and and <i>nested</i> file system will be controlled by the
@@ -26,7 +27,7 @@ import chav1961.purelib.fsys.interfaces.RMIDataWrapperInterface;
  * access to the registered server</p>   
  * 
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
- * @see chav1961.purelib.fsys.FileSystemOnRMI
+ * @see chav1961.purelib.fsys.internal.FileSystemOnRMI
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

@@ -12,8 +12,8 @@ import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.InputOutputPairInterface;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.logs.NullLoggerFacade;
-import chav1961.purelib.fsys.FileSystemOnFile;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.internal.FileSystemOnFile;
 
 /**
  * <p>This class is a store manager for temporary files. It designs to use in the predefined scenario for temporary file :</p>

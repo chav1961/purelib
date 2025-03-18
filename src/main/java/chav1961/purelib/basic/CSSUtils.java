@@ -808,8 +808,22 @@ public class CSSUtils {
 		return null;
 	}
 	
+	/**
+	 * <p>This interface describes attribute parser for XML content</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public interface AttributeParser {
+		/**
+		 * <p>Get name of the attribute parsed</p>
+		 * @return name of the attribute. Can be neither null nor empty.
+		 */
 		String getAttributeName();
+		
+		/**
+		 * <p>Parse XML element for the attribute</p>
+		 * @param element XML element to parse. Can't be null
+		 */
 		void process(final Element element);
 	}
 	
@@ -1386,6 +1400,11 @@ public class CSSUtils {
 		}
 	}
 	
+	/**
+	 * <p>This class describes SCC attribute as distances.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class Distance {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalInt,ArgumentType.name};
@@ -1393,10 +1412,86 @@ public class CSSUtils {
 		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
 		private static final float					INCH = 25.4f;
 		private static final float[]				KOEFFS = {10, 1, INCH, INCH/96, INCH/72, 12*INCH/72, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-		
+
+		/**
+		 * <p>This enumeration describes distance units.</p> 
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.7
+		 */
 		public enum Units {
-			cm, mm, in, px, pt, pc,							// Absolute			
-			em, ex, ch, rem, vw, vh, vmin, vmax, percent	// Relative
+			/**
+			 * <p>Distance units - centimeters</p>
+			 */
+			cm, 							// Absolute
+			/**
+			 * <p>Distance units - millimeters</p>
+			 */
+			mm, 
+			/**
+			 * <p>Distance units - inches</p>
+			 */
+			in, 
+			/**
+			 * <p>Distance units - quarter-millimeters</p>
+			 */
+			Q,
+			/**
+			 * <p>Distance units - pixels</p>
+			 */
+			px, 
+			/**
+			 * <p>Distance units - points</p>
+			 */
+			pt, 
+			/**
+			 * <p>Distance units - picas</p>
+			 */
+			pc,
+			
+			/**
+			 * <p>Distance units - relative to parent element font size</p>
+			 */
+			em, 	// Relative
+			/**
+			 * <p>Distance units - relative to root element font size</p>
+			 */
+			rem, 
+			/**
+			 * <p>Distance units - relative to parent element line size</p>
+			 */
+			lh,
+			/**
+			 * <p>Distance units - relative to root element line size</p>
+			 */
+			rlh,
+			/**
+			 * <p>Distance units - relative to 'x' character size of current font</p>
+			 */
+			ex,
+			/**
+			 * <p>Distance units - relative to '0' character size of mono-space font</p>
+			 */
+			ch, 
+			/**
+			 * <p>Distance units - relative to viewport view width</p>
+			 */
+			vw, 
+			/**
+			 * <p>Distance units - relative to viewport view height</p>
+			 */
+			vh, 
+			/**
+			 * <p>Distance units - relative to 1% of minimum viewport view height or viewport view width</p>
+			 */
+			vmin, 
+			/**
+			 * <p>Distance units - relative to 1% of maximum viewport view height or viewport view width</p>
+			 */
+			vmax, 
+			/**
+			 * <p>Distance units - relative to container size</p>
+			 */
+			percent
 		}
 		
 		private final int 	value;
@@ -1768,6 +1863,11 @@ public class CSSUtils {
 		}
 	}
 
+	/**
+	 * <p>This class describes CSS attributes at time</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class Time {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
@@ -1779,8 +1879,20 @@ public class CSSUtils {
 													};				
 		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
 		
+		/**
+		 * <p>This enumeration describes time units.</p>
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.7
+		 */
 		public enum Units {
-			msec, sec								// Absolute			
+			/**
+			 * <p>Time unit - milliseconds</p>
+			 */
+			msec,					// Absolute 
+			/**
+			 * <p>Time unit - seconds</p>
+			 */
+			sec			
 		}
 		
 		private final float	value;
@@ -1982,6 +2094,11 @@ public class CSSUtils {
 		}
 	}			
 	
+	/**
+	 * <p>This class describes CSS attributes as frequency</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class Frequency {
 		private static final int					MAX_CACHEABLE = 128;
 		private static final ArgumentType[]			LEXEMAS = {ArgumentType.ordinalFloat,ArgumentType.name};
@@ -1992,9 +2109,21 @@ public class CSSUtils {
 													};				
 		private static final Map<Units,Frequency[]>	microCache = new EnumMap<>(Units.class);
 		private static final LightWeightRWLockerWrapper	locker = new LightWeightRWLockerWrapper();
-		
+
+		/**
+		 * <p>This enumeration describes frequency units</p>
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.7
+		 */
 		public enum Units {
-			Hz, kHz								// Absolute			
+			/**
+			 * <p>P Frequency unit - hertz</p>
+			 */
+			Hz,								// Absolute 
+			/**
+			 * <p>P Frequency unit - kilohertz</p>
+			 */
+			kHz			
 		}
 		
 		private final float	value;
@@ -2242,6 +2371,12 @@ public class CSSUtils {
 		}
 	}
 
+	/**
+	 * <p>This class supports style property values.</p>
+	 * @param <T> property value type.
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class StylePropValue<T> {
 		private final StylePropertiesSupported.ContentType	type;
 		private final StylePropertiesSupported				prop;
@@ -2271,7 +2406,11 @@ public class CSSUtils {
 		}
 	}
 	
-	
+	/**
+	 * <p>This class implements style proeprties stack to support value inheritance</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class StylePropertiesStack implements Iterable<Map<String,Object>>{
 		private final List<Map<String,Object>>	stack = new ArrayList<>();
 		
@@ -2317,6 +2456,11 @@ public class CSSUtils {
 		}
 	}
 
+	/**
+	 * <p>This class implements style properties tree</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class StylePropertiesTree {
 		private static final Map<StylePropertiesSupported,StylePropertyDescription>	TREE = new EnumMap<>(StylePropertiesSupported.class);
 		
@@ -2463,26 +2607,6 @@ public class CSSUtils {
 			}
 		}
 	}
-
-//	private static void addName(final SyntaxTreeInterface<StylePropValue<?>[]> keywords, final StylePropertiesSupported prop, final ValueListDescriptor values) {
-//		final String[]	content = values.getContent(); 
-//		
-//		for (String item : content) {
-//			final StylePropValue<String>	newValue = new StylePropValue<String>(ContentType.value,prop,item);
-//			final long						id = keywords.seekName(item);
-//			
-//			if (id < 0) {
-//				keywords.placeName(item,new StylePropValue[]{newValue});
-//			}
-//			else {
-//				final StylePropValue<?>[]	currentList = keywords.getCargo(id);
-//				final StylePropValue<?>[]	newList = Arrays.copyOf(currentList,currentList.length+1);  
-//						
-//				newList[newList.length-1] = newValue; 
-//				keywords.setCargo(id, newList);
-//			}
-//		}
-//	}
 
 	private static class CSSLex {
 		private static final int	OPER_ENDSWITH = 0;

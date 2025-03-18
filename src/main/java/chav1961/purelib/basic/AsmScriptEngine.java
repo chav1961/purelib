@@ -22,7 +22,7 @@ class AsmScriptEngine extends AbstractScriptEngine {
 	private Class<?>				clazz = null;
 	private SimpleURLClassLoader	scl = new SimpleURLClassLoader(new URL[0]);
 	
-	AsmScriptEngine(final ScriptEngineFactory factory) {
+	AsmScriptEngine(final ScriptEngineFactory factory) throws IOException {
 		super(factory);
 	}
 

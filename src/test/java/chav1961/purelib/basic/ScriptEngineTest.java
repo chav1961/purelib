@@ -355,7 +355,12 @@ class PseudoScriptEngineFactory extends AbstractScriptEngineFactory {
 
 	@Override
 	public ScriptEngine getScriptEngine() {
-		return new PseudoScriptEngine(this);
+		try {
+			return new PseudoScriptEngine(this);
+		} catch (IOException e) {
+			Assert.fail(e.getLocalizedMessage());
+			return null;
+		}
 	}
 }
 
@@ -363,7 +368,7 @@ class PseudoScriptEngine extends AbstractScriptEngine {
 	private boolean		wasInBefore = false, wasInLine = false, wasInAfter = false;
 	private String		name;
 	
-	PseudoScriptEngine(final ScriptEngineFactory factory) {
+	PseudoScriptEngine(final ScriptEngineFactory factory) throws IOException {
 		super(factory);
 	}
 

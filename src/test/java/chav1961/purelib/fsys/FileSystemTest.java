@@ -29,6 +29,12 @@ import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.internal.FileSystemInMemory;
+import chav1961.purelib.fsys.internal.FileSystemOnClassLoader;
+import chav1961.purelib.fsys.internal.FileSystemOnFile;
+import chav1961.purelib.fsys.internal.FileSystemOnFileSystem;
+import chav1961.purelib.fsys.internal.FileSystemOnRMI;
+import chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly;
 
 
 @Tag("OrdinalTestCategory")

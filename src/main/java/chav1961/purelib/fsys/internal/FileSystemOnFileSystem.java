@@ -1,4 +1,4 @@
-package chav1961.purelib.fsys;
+package chav1961.purelib.fsys.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +29,8 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.fsys.AbstractFileSystemWithLockService;
+import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;

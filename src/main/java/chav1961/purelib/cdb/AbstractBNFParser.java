@@ -6,7 +6,6 @@ import java.util.Arrays;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.CharByCharAppendable;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
 import chav1961.purelib.cdb.intern.BNFParserStack;

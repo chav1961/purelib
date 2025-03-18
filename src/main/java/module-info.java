@@ -46,7 +46,6 @@ module chav1961.purelib {
 	exports chav1961.purelib.monitoring;
 	exports chav1961.purelib.net;
 	exports chav1961.purelib.net.interfaces;
-	exports chav1961.purelib.parsers;
 	exports chav1961.purelib.sql;
 	exports chav1961.purelib.sql.content;
 	exports chav1961.purelib.sql.interfaces;
@@ -74,35 +73,50 @@ module chav1961.purelib {
 	exports chav1961.purelib.ui.swing.useful.svg;
 	
 	uses chav1961.purelib.fsys.interfaces.FileSystemInterface;
-	provides chav1961.purelib.fsys.interfaces.FileSystemInterface with chav1961.purelib.fsys.FileSystemOnFile, chav1961.purelib.fsys.FileSystemOnFileSystem, chav1961.purelib.fsys.FileSystemOnXMLReadOnly, chav1961.purelib.fsys.FileSystemOnRMI, chav1961.purelib.fsys.FileSystemInMemory;
+	provides chav1961.purelib.fsys.interfaces.FileSystemInterface with 
+			  chav1961.purelib.fsys.internal.FileSystemOnFile 
+			, chav1961.purelib.fsys.internal.FileSystemOnFileSystem 
+			, chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly 
+			, chav1961.purelib.fsys.internal.FileSystemOnRMI 
+			, chav1961.purelib.fsys.internal.FileSystemInMemory;
 
 	uses chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
-	provides chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor with chav1961.purelib.fsys.FileSystemOnFile, chav1961.purelib.fsys.FileSystemOnFileSystem, chav1961.purelib.fsys.FileSystemOnXMLReadOnly, chav1961.purelib.fsys.FileSystemOnRMI, chav1961.purelib.fsys.FileSystemInMemory;
+	provides chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor with 
+			chav1961.purelib.fsys.internal.FileSystemOnFile, chav1961.purelib.fsys.internal.FileSystemOnFileSystem, chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly, chav1961.purelib.fsys.internal.FileSystemOnRMI, chav1961.purelib.fsys.internal.FileSystemInMemory;
 	
 	uses chav1961.purelib.i18n.interfaces.Localizer;
-	provides chav1961.purelib.i18n.interfaces.Localizer with chav1961.purelib.i18n.PropertiesLocalizer
+	provides chav1961.purelib.i18n.interfaces.Localizer with 
+			  chav1961.purelib.i18n.PropertiesLocalizer
 			, chav1961.purelib.i18n.XMLLocalizer
 			, chav1961.purelib.i18n.MutableJsonLocalizer;
 
 	uses chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider;
-	provides chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider with chav1961.purelib.basic.PureLibLocalizerProvider ; 	
+	provides chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider with 
+			chav1961.purelib.basic.intern.PureLibLocalizerProvider ; 	
 	
 	uses chav1961.purelib.sql.interfaces.ResultSetContentParser;
-	provides chav1961.purelib.sql.interfaces.ResultSetContentParser with chav1961.purelib.sql.content.CsvContentParser, chav1961.purelib.sql.content.XMLContentParser, chav1961.purelib.sql.content.JsonContentParser;	
+	provides chav1961.purelib.sql.interfaces.ResultSetContentParser with 
+			chav1961.purelib.sql.content.CsvContentParser, chav1961.purelib.sql.content.XMLContentParser, chav1961.purelib.sql.content.JsonContentParser;	
 
 	uses chav1961.purelib.ui.interfaces.UIServer;
-	provides chav1961.purelib.ui.interfaces.UIServer with chav1961.purelib.ui.swing.SwingUIServerImpl;	
+	provides chav1961.purelib.ui.interfaces.UIServer with 
+			chav1961.purelib.ui.swing.SwingUIServerImpl;	
 
 	uses java.net.spi.URLStreamHandlerProvider;
-	provides java.net.spi.URLStreamHandlerProvider with chav1961.purelib.net.fsys.FSysHandlerProvider, chav1961.purelib.net.root.RootHandlerProvider
-			, chav1961.purelib.net.self.SelfHandlerProvider, chav1961.purelib.net.playback.PlaybackHandlerProvider
-			, chav1961.purelib.net.capture.CaptureHandlerProvider, chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider;
+	provides java.net.spi.URLStreamHandlerProvider with chav1961.purelib.net.fsys.FSysHandlerProvider 
+			, chav1961.purelib.net.root.RootHandlerProvider
+			, chav1961.purelib.net.self.SelfHandlerProvider
+			, chav1961.purelib.net.playback.PlaybackHandlerProvider
+			, chav1961.purelib.net.capture.CaptureHandlerProvider
+			, chav1961.purelib.net.namingrepo.NamingRepoHandlerProvider;
 	
 	uses javax.script.ScriptEngineFactory;
-	provides javax.script.ScriptEngineFactory with chav1961.purelib.basic.AsmScriptEngineFactory;
+	provides javax.script.ScriptEngineFactory with 
+			chav1961.purelib.basic.AsmScriptEngineFactory;
 	
 	uses java.nio.file.spi.FileSystemProvider;
-	provides java.nio.file.spi.FileSystemProvider with chav1961.purelib.fsys.PureLibFileSystemProvider;
+	provides java.nio.file.spi.FileSystemProvider with 
+			chav1961.purelib.fsys.internal.PureLibFileSystemProvider;
 	
 	uses chav1961.purelib.ui.swing.interfaces.SwingItemRenderer;
 	provides chav1961.purelib.ui.swing.interfaces.SwingItemRenderer with 
@@ -138,11 +152,12 @@ module chav1961.purelib {
 	uses java.sql.Driver;
 	
 	uses chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter;
-	provides chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter with chav1961.purelib.sql.model.internal.PostgreSQLDatabaseModelAdapter
+	provides chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter with 
+			  chav1961.purelib.sql.model.internal.PostgreSQLDatabaseModelAdapter
 			, chav1961.purelib.sql.model.internal.SqliteDatabaseModelAdapter
 			, chav1961.purelib.sql.model.internal.DefaultDatabaseModelAdapter;
 	
 	uses javax.naming.spi.InitialContextFactory;
-	provides javax.naming.spi.InitialContextFactory with chav1961.purelib.basic.SimpleInitialContextFactory;
-
+	provides javax.naming.spi.InitialContextFactory with 
+			chav1961.purelib.basic.SimpleInitialContextFactory;
 }

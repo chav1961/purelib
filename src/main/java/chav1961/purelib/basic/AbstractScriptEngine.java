@@ -36,8 +36,8 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.BasicScriptEngineController;
 import chav1961.purelib.basic.interfaces.LineByLineProcessorCallback;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.fsys.FileSystemInMemory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.internal.FileSystemInMemory;
 
 /**
  * <p>This class implements basic functionality for the {@link ScriptEngine} interface. It's functionality is oriented to use with the
@@ -81,16 +81,17 @@ public abstract class AbstractScriptEngine implements ScriptEngine, BasicScriptE
 														processLineInternal(displacement,lineNo,data,from,length);
 													}
 												};
-	private final FileSystemInterface	fs = new FileSystemInMemory();
+	private final FileSystemInterface	fs;
 	private ScriptContext				currentContext = new DefaultScriptContext(reader,writer,errorWriter);
 	private InternalClassLoader			loader = null;
 	private String						mainClass = null;
 
-	protected AbstractScriptEngine(final ScriptEngineFactory factory) {
+	protected AbstractScriptEngine(final ScriptEngineFactory factory) throws IllegalArgumentException, IOException {
 		if (factory == null) {
 			throw new NullPointerException("Script engine factory can't be null");
 		}
 		else {
+			this.fs = FileSystemInterface.Factory.newInstance(URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":memory:/"));
 			this.factory = factory;
 		}
 	}

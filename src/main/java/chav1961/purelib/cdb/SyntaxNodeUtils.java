@@ -14,9 +14,9 @@ import chav1961.purelib.enumerations.NodeEnterMode;
 /**
  * <p>This utility class contains a set of methods to walk syntax node tree</p> 
  * @author Alexander Chernomyrdin aka chav1961
- * @see SyntaxNode
  * @since 0.0.3
  * @last.update 0.0.6
+ * @see SyntaxNode
  */
 public class SyntaxNodeUtils {
 	private SyntaxNodeUtils() {}
@@ -203,9 +203,24 @@ public class SyntaxNodeUtils {
 		return result;
 	}
 
-	
+	/**
+	 * <p>This interface descrives a stream on lexemas</p>
+	 * @param <LexType> lexema type.
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface LexProducer<LexType extends Enum<?>> {
+		/**
+		 * <p>Build new lexema.</p>
+		 * @param row row where lexema found
+		 * @param col columns where lexema found
+		 * @param lexType lexema type. Can't be null.
+		 * @param content source content where lexema is located. Can't be null. 
+		 * @param from start position in the source content where lexema found. Must be inside content parameter.
+		 * @param to end position in the source content where lexema found. Must be inside content parameter.
+		 * @return new lexema. Can't be null.
+		 */
 		LexemaInterface<LexType> newLexema(int row, int col, LexType lexType, char[] content, int from, int to);
 	}
 	

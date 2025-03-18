@@ -10,7 +10,26 @@ import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.i18n.PureLibLocalizer;
 
 // https://lucene.apache.org/core/2_9_4/queryparsersyntax.html
+/**
+ * <p>This class is a naive implementation of the <a href="https://lucene.apache.org/">Apache Lucene</a> query syntax. 
+ * It compiles source of Lucene query supports two methods to test matching:</p>
+ * <ul>
+ * <li>{@linkplain #matches(Map)} to test matching for key/value pairs</li>
+ * <li>{@linkplain #matches(Function)} to test matching for value returned by function</li>
+ * </ul>
+ * <p>Both key in key/value pair and argument in function are name of the 'document' field (in terms of Lucene).</p>
+ * <p>This class is thread-safe</p> 
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.8
+ * @see <a href="https://lucene.apache.org/core/2_9_4/queryparsersyntax.html">Lucene query syntax</a>
+ * @thread.safe
+ */
 public class PseudoLuceneMatcher {
+	/**
+	 * <p>Name of default document (in terms of Lucene) to test</p>
+	 */
+	public static final String	DEFAULT_DOC = "default";
+	
 	private static final char	EOF = '\0';
 	private static final String	KWD_OR = "OR";
 	private static final String	KWD_AND = "AND";
@@ -18,7 +37,13 @@ public class PseudoLuceneMatcher {
 	private static final String	KWD_TO = "TO";
 	
 	private final Executor[]	commands;
-	
+
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param expression Lucene query to compile. Can be neither null nor empty and must contain valid Lucene query. 
+	 * @throws IllegalArgumentException expression is null or empty
+	 * @throws SyntaxException expression has invalid syntax
+	 */
 	public PseudoLuceneMatcher(final String expression) throws IllegalArgumentException, SyntaxException {
 		if (Utils.checkEmptyOrNullString(expression)) {
 			throw new IllegalArgumentException("Expression can't be null or empty");
@@ -34,7 +59,14 @@ public class PseudoLuceneMatcher {
 		}
 	}
 
-	public boolean matches(final Map<String, ?> values) {
+	/**
+	 * <p>Test matching of the key/value pairs.</p>   
+	 * @param values key/value pairs to test matching. Can't be null and must contain at least one entry with
+	 * {@linkplain #DEFAULT_DOC} key name.  
+	 * @return true if matching is successful, false otherwise
+	 * @throws NullPointerException parameter is null
+	 */
+	public boolean matches(final Map<String, ?> values) throws NullPointerException {
 		if (values == null) {
 			throw new NullPointerException("Values can't be null");
 		}
@@ -43,7 +75,14 @@ public class PseudoLuceneMatcher {
 		}
 	}
 	
-	public boolean matches(final Function<String, Object> getter) {
+	/**
+	 * <p>Test matching of the function.</p>   
+	 * @param getter function to get content of the document (in terms of Lucene). Function parameter is a name of document to get
+	 * or {@linkplain #DEFAULT_DOC} for default document content.
+	 * @return true if matching is successful, false otherwise
+	 * @throws NullPointerException parameter is null
+	 */
+	public boolean matches(final Function<String, Object> getter) throws NullPointerException {
 		if (getter == null) {
 			throw new NullPointerException("Getter can't be null");
 		}

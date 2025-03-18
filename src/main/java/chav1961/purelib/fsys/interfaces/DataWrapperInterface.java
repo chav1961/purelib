@@ -12,10 +12,10 @@ import java.util.regex.Pattern;
  * <p>This interface is a result for the {@link FileSystemInterface#createDataWrapper(URI) createDataWrapper(URI)} call in the {@link FileSystemInterface IFileSystem} interface.
  * It uses to describe properties and get access to content of the given file system entity. Association between this wrapper and file system entity is defined by 
  * the URL parameter in the {@link FileSystemInterface#createDataWrapper(URI) createDataWrapper(URI)} method. As an implementation example, see 
- * {@link chav1961.purelib.fsys.FileSystemOnFile FileSystemOnFile} class</p> 
+ * {@link chav1961.purelib.fsys.internal.FileSystemOnFile FileSystemOnFile} class</p> 
  * 
  * @see chav1961.purelib.fsys.AbstractFileSystem AbstractFileSystem class  
- * @see chav1961.purelib.fsys.FileSystemOnFile FileSystemOnFile class  
+ * @see chav1961.purelib.fsys.internal.FileSystemOnFile FileSystemOnFile class  
  *   
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

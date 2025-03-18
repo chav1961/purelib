@@ -1,5 +1,6 @@
 package chav1961.purelib.basic;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.script.Bindings;
@@ -63,6 +64,10 @@ public class AsmScriptEngineFactory extends AbstractScriptEngineFactory {
 
 	@Override
 	public ScriptEngine getScriptEngine() {
-		return new AsmScriptEngine(this);
+		try {
+			return new AsmScriptEngine(this);
+		} catch (IOException e) {
+			return null;
+		}
 	}
 }

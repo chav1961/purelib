@@ -1,7 +1,9 @@
-package chav1961.purelib.basic;
+package chav1961.purelib.basic.intern;
 
 import java.net.URI;
 
+import chav1961.purelib.basic.PureLibSettings;
+import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider;
 import chav1961.purelib.i18n.interfaces.Localizer;

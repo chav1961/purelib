@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.interfaces;
+package chav1961.purelib.basic.intern;
 
 import java.util.function.Consumer;
 

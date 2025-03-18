@@ -9,6 +9,10 @@ import java.util.ServiceLoader;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
+import chav1961.purelib.fsys.internal.FileSystemOnFile;
+import chav1961.purelib.fsys.internal.FileSystemOnFileSystem;
+import chav1961.purelib.fsys.internal.FileSystemOnRMI;
+import chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly;
 
 /**
  * <p>This class is a factory for creating file system instances for the given URI type.</p>

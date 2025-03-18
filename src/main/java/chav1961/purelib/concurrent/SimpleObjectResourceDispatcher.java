@@ -18,7 +18,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 import chav1961.purelib.concurrent.interfaces.ResourceDispatcherLock;
 
-public class SimpleObjectResourceDispatcher<Res> implements AutoCloseable, ExecutionControl {
+class SimpleObjectResourceDispatcher<Res> implements AutoCloseable, ExecutionControl {
 	private static final AtomicInteger	AI = new AtomicInteger(1);
 	
 	// boolean[0] - lock/unlock, boolean[1] - marks to remove

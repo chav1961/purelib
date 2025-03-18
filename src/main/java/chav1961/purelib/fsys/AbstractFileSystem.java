@@ -38,12 +38,12 @@ import chav1961.purelib.fsys.interfaces.FileSystemInterface;
  * <li>{@link #createDataWrapper(URI)} method to get direct access to the file system entity.</li> 
  * </ul>
  * 
- * <p>As a good example, see {@link chav1961.purelib.fsys.FileSystemOnFile} class implementation.</p>
+ * <p>As a good example, see {@link chav1961.purelib.fsys.internal.FileSystemOnFile} class implementation.</p>
  * <p>Don't use the class as a type of variables or parameters in your program. Use the {@link FileSystemInterface} interface instead in all cases</p>
  * <p>This class is not thread-safe.</p>
  * 
  * @see chav1961.purelib.fsys.interfaces.FileSystemInterface
- * @see chav1961.purelib.fsys.FileSystemOnFile
+ * @see chav1961.purelib.fsys.internal.FileSystemOnFile
  * @see chav1961.purelib.fsys JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

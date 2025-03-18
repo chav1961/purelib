@@ -82,9 +82,23 @@ public final class PureLibSettings {
 	private static final SubstitutableProperties	DEFAULTS = new SubstitutableProperties(System.getProperties()); 
 	private static final SubstitutableProperties	PROPS = new SubstitutableProperties(DEFAULTS);
 	
+	/**
+	 * <p>This enumeration describes families of operating systems</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.6
+	 */
 	public static enum CurrentOsGroup {
+		/**
+		 * <p>Current OS families - Windows</p>
+		 */
 		WINDOWS,
+		/**
+		 * <p>Current OS families - Unix</p>
+		 */
 		UNIX,
+		/**
+		 * <p>Current OS families - unknown</p>
+		 */
 		UNKNOWN
 	}
 
@@ -94,14 +108,41 @@ public final class PureLibSettings {
 	 * @since 0.0.6
 	 */
 	public static enum CurrentOS {
+		/**
+		 * <p>Current OS - Windows</p>
+		 */
 		WINDOWS(CurrentOsGroup.WINDOWS),
+		/**
+		 * <p>Current OS - OS/2</p>
+		 */
 		OS2(CurrentOsGroup.WINDOWS),
+		/**
+		 * <p>Current OS - OS X</p>
+		 */
 		OSX(CurrentOsGroup.UNIX),
+		/**
+		 * <p>Current OS - BSD</p>
+		 */
 		BSD(CurrentOsGroup.UNIX),
+		/**
+		 * <p>Current OS - OpenVMS</p>
+		 */
 		OPEN_VMS(CurrentOsGroup.UNIX),
+		/**
+		 * <p>Current OS - Sun OS</p>
+		 */
 		SUN_OS(CurrentOsGroup.UNIX),
+		/**
+		 * <p>Current OS - Linux</p>
+		 */
 		LINUX(CurrentOsGroup.UNIX), 
+		/**
+		 * <p>Current OS - Mac OS</p>
+		 */
 		MACOS(CurrentOsGroup.UNIX), 
+		/**
+		 * <p>Current OS - unknown</p>
+		 */
 		UNKNOWN(CurrentOsGroup.UNKNOWN);
 		
 		private final CurrentOsGroup	group;

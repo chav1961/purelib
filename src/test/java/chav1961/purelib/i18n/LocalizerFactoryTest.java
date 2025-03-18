@@ -18,12 +18,12 @@ import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
-import chav1961.purelib.fsys.FileSystemInMemory;
-import chav1961.purelib.fsys.FileSystemOnFile;
-import chav1961.purelib.fsys.FileSystemOnFileSystem;
-import chav1961.purelib.fsys.FileSystemOnRMI;
-import chav1961.purelib.fsys.FileSystemOnXMLReadOnly;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.internal.FileSystemInMemory;
+import chav1961.purelib.fsys.internal.FileSystemOnFile;
+import chav1961.purelib.fsys.internal.FileSystemOnFileSystem;
+import chav1961.purelib.fsys.internal.FileSystemOnRMI;
+import chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly;
 import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;

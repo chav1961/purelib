@@ -16,6 +16,7 @@ import java.io.Writer;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -1240,17 +1241,58 @@ public class Utils {
 		}
 	}
 	
+	/**
+	 * <p>This interface id a part of object graph walking support. It supports collecting of the graph node references with the given type</p>  
+	 * @param <T> object graph node type
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7 
+	 */
 	@FunctionalInterface
-	public interface EverywhereWalkerCollector<T> {
-		public enum ReferenceType {
-			CHILDREN, SIBLINGS, PARENT
+	public static interface EverywhereWalkerCollector<T> {
+		/**
+		 * <p>This enumeration describes reference types in the object graph.</p> 
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.7 
+		 */
+		public static enum ReferenceType {
+			/**
+			 * <p>Reference type - children</p>
+			 */
+			CHILDREN, 
+			/**
+			 * <p>Reference type - siblings</p>
+			 */
+			SIBLINGS, 
+			/**
+			 * <p>Reference type - parents</p>
+			 */
+			PARENT
 		}
 		
+		/**
+		 * <p>Get references with the given types</p>
+		 * @param refs reference type to collect. Can't be null
+		 * @param node current object graph node to get references for. Can't be null.
+		 * @return references collected. Can't be null but can be empty.
+		 */
 		T[] getReferences(ReferenceType refs, T node);
 	}
 
+	/**
+	 * <p>This interface id a part of object graph walking support. It supports callback on every object graph node currently walking</p>  
+	 * @param <T> object graph node type.
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7 
+	 */
 	@FunctionalInterface
 	public interface EverywhereWalkerCallback<T> {
+		/**
+		 * <p>Process current node. This method is always calling twice: on entering node and on exiting node.</p>
+		 * @param mode walking mode. Can't be null.
+		 * @param node current node to process. Can't be null.
+		 * @return continue mode. Can't be null.
+		 * @throws ContentException on any node processing errors.
+		 */
 		ContinueMode process(NodeEnterMode mode, T node) throws ContentException;
 	}
 	
@@ -1770,13 +1812,38 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		}
 	}
 
+	/**
+	 * <p>This interface describer direct proxy executor.</p>
+	 * @see Proxy 
+	 */
 	@FunctionalInterface
-	public interface DirectProxyExecutor {
-		Object exec(Object owner, Object[] parameters) throws Exception;
+	public static interface DirectProxyExecutor {
+		/**
+		 * <p>Execute method</p>
+		 * @param owner method owner (will be used as 'this' in the method). Can be null for static methods. 
+		 * @param parameters method parameters. Can't be null but can be empty.
+		 * @return method execution result. Can be null.
+		 * @throws Exception any exception detected
+		 */
+		Object exec(Object owner, Object... parameters) throws Exception;
 	}
 	
+	/**
+	 * <p>This interface describer wrapped proxy executor.</p>
+	 * @param <T> class type to execute method in
+	 */
 	@FunctionalInterface
-	public interface ProxyCallback<T> {
+	public static interface ProxyCallback<T> {
+		/**
+		 * <p>Execute method.</p>
+		 * @param delegate method owner (will be used as 'this' in the method). Can be null for static methods. 
+		 * @param method method to invoke. Can't be null.
+		 * @param parameters method parameters. Can't be null but can be empty.
+		 * @param executor method executor. Can't be null.
+		 * @return method execution result. Can be null.
+		 * @throws Exception any exception detected
+		 * @see DirectProxyExecutor
+		 */
 		Object process(T delegate, Method method, Object[] parameters, DirectProxyExecutor executor) throws Exception;
 	}
 

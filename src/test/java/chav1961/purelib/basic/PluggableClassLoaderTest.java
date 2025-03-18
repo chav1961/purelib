@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 
 import chav1961.purelib.basic.exceptions.EnvironmentException;
-import chav1961.purelib.fsys.FileSystemOnFileSystem;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
+import chav1961.purelib.fsys.internal.FileSystemOnFileSystem;
 
 @Tag("OrdinalTestCategory")
 public class PluggableClassLoaderTest {

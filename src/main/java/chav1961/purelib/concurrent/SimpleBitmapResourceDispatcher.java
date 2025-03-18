@@ -1,6 +1,5 @@
 package chav1961.purelib.concurrent;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;

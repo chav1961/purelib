@@ -3,6 +3,8 @@ package chav1961.purelib.cdb.interfaces;
 /**
  * <p>This interface is a minimalistic descriptor of the lexemas were parsed</p> 
  * @param <LexType> lexema type of any kind
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
  */
 public interface LexemaInterface<LexType extends Enum<?>> {
 	/**

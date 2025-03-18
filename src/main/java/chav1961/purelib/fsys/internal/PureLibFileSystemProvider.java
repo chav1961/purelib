@@ -1,4 +1,4 @@
-package chav1961.purelib.fsys;
+package chav1961.purelib.fsys.internal;
 
 import java.io.IOException;
 import java.net.URI;
@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 
 public class PureLibFileSystemProvider extends FileSystemProvider {

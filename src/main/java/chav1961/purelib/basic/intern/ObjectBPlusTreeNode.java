@@ -1,4 +1,4 @@
-package chav1961.purelib.basic.interfaces;
+package chav1961.purelib.basic.intern;
 
 public interface ObjectBPlusTreeNode<Id,K extends Comparable<? super K>,V> extends BPlusTreeNode<K, V>{
 	Id getIdForKey(K key);

@@ -7,10 +7,10 @@
  * the 'File System' see {@link chav1961.purelib.fsys.interfaces.FileSystemInterface} description.</p> 
  * <p>Pure library contains File system interfaces:</p>
  * <ul>
- * <li>{@link chav1961.purelib.fsys.FileSystemOnFile} - the usual file system</li>
- * <li>{@link chav1961.purelib.fsys.FileSystemOnFileSystem} - file system based on Java 1.7 and later standard file systems mechanism</li>
- * <li>{@link chav1961.purelib.fsys.FileSystemOnXMLReadOnly} - read-only file system based on XML</li>
- * <li>{@link chav1961.purelib.fsys.FileSystemInMemory} - file system in the RAM</li>
+ * <li>{@link chav1961.purelib.fsys.internal.FileSystemOnFile} - the usual file system</li>
+ * <li>{@link chav1961.purelib.fsys.internal.FileSystemOnFileSystem} - file system based on Java 1.7 and later standard file systems mechanism</li>
+ * <li>{@link chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly} - read-only file system based on XML</li>
+ * <li>{@link chav1961.purelib.fsys.internal.FileSystemInMemory} - file system in the RAM</li>
  * </ul>
  * <p>Extension of the pure library will contain much more implementations of the File systems (SVN, Git, Amazon S3 etc).</p>
  * 

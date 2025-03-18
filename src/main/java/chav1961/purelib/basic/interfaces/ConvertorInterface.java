@@ -2,12 +2,12 @@ package chav1961.purelib.basic.interfaces;
 
 import chav1961.purelib.basic.exceptions.ContentException;
 
-@FunctionalInterface
 /**
  * <p>This interface describes any data type converters.</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
  */
+@FunctionalInterface
 public interface ConvertorInterface {
 	/**
 	 * <p>Convert content to instance of awaited class.</p>

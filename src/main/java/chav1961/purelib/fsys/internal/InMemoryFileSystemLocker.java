@@ -1,4 +1,4 @@
-package chav1961.purelib.fsys;
+package chav1961.purelib.fsys.internal;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -1,5 +1,5 @@
-chav1961.purelib.fsys.FileSystemOnFile
-chav1961.purelib.fsys.FileSystemOnFileSystem
-chav1961.purelib.fsys.FileSystemOnXMLReadOnly
-chav1961.purelib.fsys.FileSystemOnRMI
-chav1961.purelib.fsys.FileSystemInMemory
+chav1961.purelib.fsys.internal.FileSystemOnFile
+chav1961.purelib.fsys.internal.FileSystemOnFileSystem
+chav1961.purelib.fsys.internal.FileSystemOnXMLReadOnly
+chav1961.purelib.fsys.internal.FileSystemOnRMI
+chav1961.purelib.fsys.internal.FileSystemInMemory
