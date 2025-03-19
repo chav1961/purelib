@@ -12,7 +12,7 @@ import chav1961.purelib.ui.ColorPair;
 import chav1961.purelib.ui.interfaces.Action;
 import chav1961.purelib.ui.interfaces.Format;
 
-@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/localization.xml")
+@LocaleResourceLocation(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/internal/localization.xml")
 @LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen")	
 @Action(resource=@LocaleResource(value="titleHelpScreen",tooltip="titleHelpScreen"),actionString="calculate",simulateCheck=true) 
 public class PseudoData {

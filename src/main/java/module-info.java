@@ -86,9 +86,9 @@ module chav1961.purelib {
 	
 	uses chav1961.purelib.i18n.interfaces.Localizer;
 	provides chav1961.purelib.i18n.interfaces.Localizer with 
-			  chav1961.purelib.i18n.PropertiesLocalizer
-			, chav1961.purelib.i18n.XMLLocalizer
-			, chav1961.purelib.i18n.MutableJsonLocalizer;
+			  chav1961.purelib.i18n.internal.PropertiesLocalizer
+			, chav1961.purelib.i18n.internal.XMLLocalizer
+			, chav1961.purelib.i18n.internal.MutableJsonLocalizer;
 
 	uses chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider;
 	provides chav1961.purelib.i18n.interfaces.DefaultLocalizerProvider with 

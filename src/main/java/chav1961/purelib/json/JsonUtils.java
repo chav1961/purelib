@@ -24,7 +24,7 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 import chav1961.purelib.json.interfaces.JsonNodeType;
 import chav1961.purelib.json.interfaces.JsonTreeWalkerCallback;
 import chav1961.purelib.sql.SQLUtils;

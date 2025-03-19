@@ -5,7 +5,7 @@ import java.util.List;
 
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 class Util {
 	 static char[] join(final char[] source, final int from, final String substitution) {

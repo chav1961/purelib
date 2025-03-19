@@ -16,7 +16,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 /**
  * <p>This class implements preprocessing for the reader nested. It supports a set of preprocessor operators:</p>

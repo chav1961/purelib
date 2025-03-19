@@ -1,4 +1,4 @@
-package chav1961.purelib.i18n;
+package chav1961.purelib.i18n.internal;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -11,6 +11,8 @@ import java.util.Set;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.i18n.AbstractLocalizer;
+import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
@@ -124,7 +126,7 @@ public class DebuggingLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
+	public String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 		if (helps.containsKey(helpId)) {
 			return helps.get(helpId);
 		}

@@ -31,7 +31,7 @@ import chav1961.purelib.fsys.FileSystemFactory;
 import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 public class FileSystemOnClassLoader extends AbstractFileSystem implements FileSystemInterfaceDescriptor {
 	private static final URI	SERVE = URI.create(FileSystemInterface.FILESYSTEM_URI_SCHEME+":classloader:/");

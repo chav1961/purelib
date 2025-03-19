@@ -1,4 +1,4 @@
-package chav1961.purelib.i18n;
+package chav1961.purelib.i18n.internal;
 
 public class WellKnownLocalizationKeys {
 	public static final String	CHECK_NULL_OR_EMPTY_VALUE = "wklk.check.nullOrEmptyValue";

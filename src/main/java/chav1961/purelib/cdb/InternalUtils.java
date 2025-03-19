@@ -42,7 +42,7 @@ import chav1961.purelib.cdb.intern.Predefines;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.enumerations.StylePropertiesSupported.Keyword;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 import chav1961.purelib.streams.char2byte.AsmWriter;
 
 class InternalUtils {

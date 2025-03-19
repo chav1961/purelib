@@ -8,6 +8,7 @@ import java.util.EnumMap;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CharUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
@@ -18,192 +19,721 @@ import chav1961.purelib.basic.intern.UnsafedCharUtils;
  * @since 0.0.7
  */
 public enum StylePropertiesSupported {
+		/**
+		 * <p>Style properties - background</p>  
+		 */
 		background("background",true,ContentType.compoundChoise,1,Integer.MAX_VALUE,new ValueListDescriptor(ContentType.subStyle,1,1,"background-attachment","background-color","background-image","background-position","background-repeat")),
+		/**
+		 * <p>Style properties - background-attachment</p>  
+		 */
 		background_attachment("background-attachment",true,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"fixed","scroll","local")),
+		/**
+		 * <p>Style properties - background-clip</p>  
+		 */
 		background_clip("background-clip",false,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"padding-box","border-box","content-box")),
+		/**
+		 * <p>Style properties - background-color</p>  
+		 */
 		background_color("background-color",true,ContentType.color),
+		/**
+		 * <p>Style properties - background-image</p>  
+		 */
 		background_image("background-image",true,ContentType.urlOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
+		/**
+		 * <p>Style properties - background-origin</p>  
+		 */
 		background_origin("background-origin",false,ContentType.value,new ValueListDescriptor(ContentType.value,0,Integer.MAX_VALUE,"padding-box","border-box","content-box")),
+		/**
+		 * <p>Style properties - background-position</p>  
+		 */
 		background_position("background-position",true,ContentType.distanceOrKeyword,1,2,new ValueListDescriptor(ContentType.value,1,1,"left","center","right","top","center","bottom")),
+		/**
+		 * <p>Style properties - background-repeat</p>  
+		 */
 		background_repeat("background-repeat",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,2,"no-repeat","repeat","repeat-x","repeat-y")),
+		/**
+		 * <p>Style properties - background-size</p>  
+		 */
 		background_size("background-size",true,ContentType.distanceOrKeyword,1,2,new ValueListDescriptor(ContentType.value,1,1,"auto","cover","contain")),
 		
+		/**
+		 * <p>Style properties - border</p>  
+		 */
 		border("border",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
+		/**
+		 * <p>Style properties - border-bottom</p>  
+		 */
 		border_bottom("border-bottom",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
+		/**
+		 * <p>Style properties - border-bottom-color</p>  
+		 */
 		border_bottom_color("border-bottom-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
+		/**
+		 * <p>Style properties - border-bottom-left-radius</p>  
+		 */
 		border_bottom_left_radius("border-bottom-left-radius",false,ContentType.distance,1,2),
+		/**
+		 * <p>Style properties - border-bottom-right-radius</p>  
+		 */
 		border_bottom_right_radius("border-bottom-right-radius",false,ContentType.distance,1,2),
+		/**
+		 * <p>Style properties - border-bottom-style</p>  
+		 */
 		border_bottom_style("border-bottom-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
+		/**
+		 * <p>Style properties - border-bottom-width</p>  
+		 */
 		border_bottom_width("border-bottom-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
+		/**
+		 * <p>Style properties - border-collapse</p>  
+		 */
 		border_collapse("border-collapse",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"collapse","separate")),
+		/**
+		 * <p>Style properties - border-color</p>  
+		 */
 		border_color("border-color",true,ContentType.colorOrKeyword,1,4,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
+		/**
+		 * <p>Style properties - border-image</p>  
+		 */
 		border_image("border-image",false,ContentType.asIs),
+		/**
+		 * <p>Style properties - border-left</p>  
+		 */
 		border_left("border-left",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
+		/**
+		 * <p>Style properties - border-left-color</p>  
+		 */
 		border_left_color("border-left-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
+		/**
+		 * <p>Style properties - border-left-style</p>  
+		 */
 		border_left_style("border-left-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
+		/**
+		 * <p>Style properties - border-left-width</p>  
+		 */
 		border_left_width("border-left-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
+		/**
+		 * <p>Style properties - border-radius</p>  
+		 */
 		border_radius("border-radius",false,ContentType.asIs),
+		/**
+		 * <p>Style properties - border-right</p>  
+		 */
 		border_right("border-right",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
+		/**
+		 * <p>Style properties - border-right-color</p>  
+		 */
 		border_right_color("border-right-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
+		/**
+		 * <p>Style properties - border-right-style</p>  
+		 */
 		border_right_style("border-right-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
+		/**
+		 * <p>Style properties - border-right-width</p>  
+		 */
 		border_right_width("border-right-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
+		/**
+		 * <p>Style properties - border-spacing</p>  
+		 */
 		border_spacing("border-spacing",false,ContentType.distance,1,2),
+		/**
+		 * <p>Style properties - border-style</p>  
+		 */
 		border_style("border-style",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"border-top-style","border-right-style","border-bottom-style","border-left-style")),
+		/**
+		 * <p>Style properties - border-top</p>  
+		 */
 		border_top("border-top",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
+		/**
+		 * <p>Style properties - border-top-color</p>  
+		 */
 		border_top_color("border-top-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"transparent")),
+		/**
+		 * <p>Style properties - border-top-left-radius</p>  
+		 */
 		border_top_left_radius("border-top-left-radius",false,ContentType.distance,1,2),
+		/**
+		 * <p>Style properties - border-top-right-radius</p>  
+		 */
 		border_top_right_radius("border-top-right-radius",false,ContentType.distance,1,2),
+		/**
+		 * <p>Style properties - border-top-style</p>  
+		 */
 		border_top_style("border-top-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","hidden","dotted","dashed","solid","double","groove","ridge","inset","outset")),
+		/**
+		 * <p>Style properties - border-top-width</p>  
+		 */
 		border_top_width("border-top-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
+		/**
+		 * <p>Style properties - border-width</p>  
+		 */
 		border_width("border-width",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"border-top-width","border-right-width","border-bottom-width","border-left-width")),
 		
+		/**
+		 * <p>Style properties - bottom</p>  
+		 */
 		bottom("bottom",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
+		/**
+		 * <p>Style properties - box-shadow</p>  
+		 */
 		box_shadow("box-shadow",false,ContentType.asIs),
+		/**
+		 * <p>Style properties - box-sizing</p>  
+		 */
 		box_sizing("box-sizing",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"content-box","border-box","padding-box")),
 		
+		/**
+		 * <p>Style properties - caption-side</p>  
+		 */
 		caption_side("caption-side",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"top","bottom","left","right")),
+		/**
+		 * <p>Style properties - clear</p>  
+		 */
 		clear("clear",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"top","none","left","right","both")),
+		/**
+		 * <p>Style properties - clip</p>  
+		 */
 		clip("clip",true,ContentType.asIs),
+		/**
+		 * <p>Style properties - color</p>  
+		 */
 		color("color",true,ContentType.color),
 		
+		/**
+		 * <p>Style properties - column-count</p>  
+		 */
 		column_count("column-count",false,ContentType.integerOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		/**
+		 * <p>Style properties - column-gap</p>  
+		 */
 		column_gap("column-gap",false,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"normal")),
+		/**
+		 * <p>Style properties - column-rule</p>  
+		 */
 		column_rule("column-rule",false,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"border-width","border-style","border-color")),
+		/**
+		 * <p>Style properties - column-width</p>  
+		 */
 		column_width("column-width",false,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
+		/**
+		 * <p>Style properties - columns</p>  
+		 */
 		columns("columns",false,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"column-width","column-count")),
+		/**
+		 * <p>Style properties - content</p>  
+		 */
 		content("content",true,ContentType.asIs),
 		
+		/**
+		 * <p>Style properties - counter-increment</p>  
+		 */
 		counter_increment("counter-increment",true,ContentType.asIs),
+		/**
+		 * <p>Style properties - counter-reset</p>  
+		 */
 		counter_reset("counter-reset",true,ContentType.asIs),
 		
+		/**
+		 * <p>Style properties - cursor</p>  
+		 */
 		cursor("cursor",true,ContentType.asIs),
+		
+		/**
+		 * <p>Style properties - direction</p>  
+		 */
 		direction("direction",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"ltr","rtl")),
+		/**
+		 * <p>Style properties - display</p>  
+		 */
 		display("display",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"block","inline","inline-block","inline-table","list-item","none","run-in","table","table-caption","table-cell","table-column-group","table-column","table-footer-group","table-header-group","table-row","table-row-group")),
+
+		/**
+		 * <p>Style properties - empty-cells</p>  
+		 */
 		empty_cells("empty-cells",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"show","hide")),
+		
+		/**
+		 * <p>Style properties - float</p>  
+		 */
 		_float("float",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"left","right","none")),
 
+		/**
+		 * <p>Style properties - font</p>  
+		 */
 		font("font",true,ContentType.asIs),
+		/**
+		 * <p>Style properties - font-family</p>  
+		 */
 		font_family("font-family",true,ContentType.string,1,Integer.MAX_VALUE),
+		/**
+		 * <p>Style properties - font-size</p>  
+		 */
 		font_size("font-size",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"xx-small","x-small","small","medium","large","x-large","xx-large","larger","smaller")),
+		/**
+		 * <p>Style properties - font-stretch</p>  
+		 */
 		font_stretch("font-stretch",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"ultra-condensed","extra-condensed","condensed","semi-condensed","normal","semi-expanded","expanded","extra-expanded","ultra-expanded")),
+		/**
+		 * <p>Style properties - font-style</p>  
+		 */
 		font_style("font-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","italic","oblique")),
+		/**
+		 * <p>Style properties - font-variant</p>  
+		 */
 		font_variant("font-variant",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","small-caps")),
+		/**
+		 * <p>Style properties - font-weight</p>  
+		 */
 		font_weight("font-weight",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"bold","bolder","lighter","normal","100","200","300","400","500","600","700","800","900")),
 		
+		/**
+		 * <p>Style properties - height</p>  
+		 */
 		height("height",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		
+		/**
+		 * <p>Style properties - left</p>  
+		 */
 		left("left",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		/**
+		 * <p>Style properties - letter-spacing</p>  
+		 */
 		letter_spacing("letter-spacing",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"normal")),
+		/**
+		 * <p>Style properties - line-height</p>  
+		 */
 		line_height("line-height",true,ContentType.asIs),
 		
+		/**
+		 * <p>Style properties - list-style</p>  
+		 */
 		list_style("list-style",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"list-style-type","list-style-position","list-style-image")),
+		/**
+		 * <p>Style properties - list-style-image</p>  
+		 */
 		list_style_image("list-style-image",true,ContentType.urlOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
+		/**
+		 * <p>Style properties - list-style-position</p>  
+		 */
 		list_style_position("list-style-position",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"inside","outside")),
+		/**
+		 * <p>Style properties - list-style-type</p>  
+		 */
 		list_style_type("list-style-type",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"circle","disc","square","armenian","decimal","decimal-leading-zero","georgian","lower-alpha","lower-greek","lower-latin","lower-roman","upper-alpha","upper-latin","upper-roman","none")),
 		
+		/**
+		 * <p>Style properties - margin</p>  
+		 */
 		margin("margin",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"margin-top","margin-right","margin-bottom","margin-left")),
+		/**
+		 * <p>Style properties - margin-bottom</p>  
+		 */
 		margin_bottom("margin-bottom",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		/**
+		 * <p>Style properties - margin-left</p>  
+		 */
 		margin_left("margin-left",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		/**
+		 * <p>Style properties - margin-right</p>  
+		 */
 		margin_right("margin-right",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		/**
+		 * <p>Style properties - margin-top</p>  
+		 */
 		margin_top("margin-top",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
+		/**
+		 * <p>Style properties - max-height</p>  
+		 */
 		max_height("max-height",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
+		/**
+		 * <p>Style properties - max-width</p>  
+		 */
 		max_width("max-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
 		
+		/**
+		 * <p>Style properties - min-height</p>  
+		 */
 		min_height("min-height",true,ContentType.distance),
+		/**
+		 * <p>Style properties - min-width</p>  
+		 */
 		min_width("min-width",true,ContentType.distance),
 
+		/**
+		 * <p>Style properties - opacity</p>  
+		 */
 		opacity("opacity",false,ContentType.number),
+		/**
+		 * <p>Style properties - orphans</p>  
+		 */
 		orphans("orphans",true,ContentType.integer),
 		
+		/**
+		 * <p>Style properties - outline</p>  
+		 */
 		outline("outline",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.subStyle,1,1,"outline-color","outline-style","outline-width")),
+		/**
+		 * <p>Style properties - outline-color</p>  
+		 */
 		outline_color("outline-color",true,ContentType.colorOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"invert")),
+		/**
+		 * <p>Style properties - outline-offset</p>  
+		 */
 		outline_offset("outline-offset",true,ContentType.distance),
+		/**
+		 * <p>Style properties - outline-style</p>  
+		 */
 		outline_style("outline-style",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","dotted","dashed","solid","double","groove","ridge","inset","outset")),
+		/**
+		 * <p>Style properties - outline-width</p>  
+		 */
 		outline_width("outline-width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"thin","medium","thick")),
 		
+		/**
+		 * <p>Style properties - overflow</p>  
+		 */
 		overflow("overflow",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","hidden","scroll","visible")),
+		/**
+		 * <p>Style properties - overflow-x</p>  
+		 */
 		overflow_x("overflow-x",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","hidden","scroll","visible")),
+		/**
+		 * <p>Style properties - overflow-y</p>  
+		 */
 		overflow_y("overflow-y",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","hidden","scroll","visible")),
 		
+		/**
+		 * <p>Style properties - padding</p>  
+		 */
 		padding("padding",true,ContentType.compoundSequence,new ValueListDescriptor(ContentType.subStyle,1,1,"padding-top","padding-right","padding-bottom","padding-left")),
+		/**
+		 * <p>Style properties - padding-bottom</p>  
+		 */
 		padding_bottom("padding-bottom",true,ContentType.distance),
+		/**
+		 * <p>Style properties - padding-left</p>  
+		 */
 		padding_left("padding-left",true,ContentType.distance),
+		/**
+		 * <p>Style properties - padding-right</p>  
+		 */
 		padding_right("padding-right",true,ContentType.distance),
+		/**
+		 * <p>Style properties - padding-top</p>  
+		 */
 		padding_top("padding-top",true,ContentType.distance),
 		
+		/**
+		 * <p>Style properties - page-break-after</p>  
+		 */
 		page_break_after("page-break-after",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"always","auto","avoid","left","right")),
+		/**
+		 * <p>Style properties - page-break-before</p>  
+		 */
 		page_break_before("page-break-before",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"always","auto","avoid","left","right")),
+		/**
+		 * <p>Style properties - page-break-inside</p>  
+		 */
 		page_break_inside("page-break-inside",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","avoid")),
 		
+		/**
+		 * <p>Style properties - position</p>  
+		 */
 		position("position",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"absolute","fixed","relative","static")),
+
+		/**
+		 * <p>Style properties - quotes</p>  
+		 */
 		quotes("quotes",true,ContentType.asIs),
+
+		/**
+		 * <p>Style properties - resize</p>  
+		 */
 		resize("resize",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"none","both","horizontal","vertical")),
+		/**
+		 * <p>Style properties - right</p>  
+		 */
 		right("right",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
+		
+		/**
+		 * <p>Style properties - tab-size</p>  
+		 */
 		tab_size("tab-size",false,ContentType.integer),
+		/**
+		 * <p>Style properties - table-layout</p>  
+		 */
 		table_layout("table-layout",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"auto","fixed")),
 		
+		/**
+		 * <p>Style properties - text-align</p>  
+		 */
 		text_align("text-align",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"center","justify","left","right","start","end")),
+		/**
+		 * <p>Style properties - text-align-last</p>  
+		 */
 		text_align_last("text-align-last",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"center","justify","left","right","start","end")),
+		/**
+		 * <p>Style properties - text-decoration</p>  
+		 */
 		text_decoration("text-decoration",true,ContentType.compoundChoise,new ValueListDescriptor(ContentType.value,1,1,"blink","line-through","overline","underline","none")),
+		/**
+		 * <p>Style properties - text-decoration-color</p>  
+		 */
 		text_decoration_color("text-decoration-color",false,ContentType.color),
+		/**
+		 * <p>Style properties - text-decoration-line</p>  
+		 */
 		text_decoration_line("text-decoration-line",false,ContentType.asIs),
+		/**
+		 * <p>Style properties - text-decoration-style</p>  
+		 */
 		text_decoration_style("text-decoration-style",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"solid","double","dotted","dashed")),
+		/**
+		 * <p>Style properties - text-indent</p>  
+		 */
 		text_indent("text-indent",true,ContentType.distance),
+		/**
+		 * <p>Style properties - text-overflow</p>  
+		 */
 		text_overflow("text-overflow",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"clip","ellipsis")),
+		/**
+		 * <p>Style properties - text-shadow</p>  
+		 */
 		text_shadow("text-shadow",true,ContentType.asIs),
+		/**
+		 * <p>Style properties - text-transform</p>  
+		 */
 		text_transform("text-transform",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"capitalize","lowercase","uppercase","none")),
 		
+		/**
+		 * <p>Style properties - top</p>  
+		 */
 		top("top",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 		
+		/**
+		 * <p>Style properties - transform</p>  
+		 */
 		transform("transform",true,ContentType.functionOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"none")),
+		/**
+		 * <p>Style properties - transform-origin</p>  
+		 */
 		transform_origin("transform-origin",true,ContentType.asIs),
 		
+		/**
+		 * <p>Style properties - transition</p>  
+		 */
 		transition("transition",true,ContentType.asIs),
+		/**
+		 * <p>Style properties - transition-delay</p>  
+		 */
 		transition_delay("transition-delay",false,ContentType.time,1,Integer.MAX_VALUE),
+		/**
+		 * <p>Style properties - transition-duration</p>  
+		 */
 		transition_duration("transition-duration",false,ContentType.time,1,Integer.MAX_VALUE),
+		/**
+		 * <p>Style properties - transition-property</p>  
+		 */
 		transition_property("transition-property",false,ContentType.stringOrKeyword,1,Integer.MAX_VALUE,new ValueListDescriptor(ContentType.value,1,1,"none","all")),
+		/**
+		 * <p>Style properties - transition-timing-function</p>  
+		 */
 		transition_timing_function("transition-timing-function",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"ease","ease-in","ease-out","ease-in-out","linear","step-start","step-end","steps","cubic-bezier")),
 		
+		/**
+		 * <p>Style properties - unicode-bidi</p>  
+		 */
 		unicode_bidi("unicode-bidi",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","embed","bidi-override")),
+		
+		/**
+		 * <p>Style properties - vertical-align</p>  
+		 */
 		vertical_align("vertical-align",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"baseline","bottom","middle","sub","super","text-bottom","text-top","top")),
+		/**
+		 * <p>Style properties - visibility</p>  
+		 */
 		visibility("visibility",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"visible","hidden","collapse")),
+		
+		/**
+		 * <p>Style properties - white-space</p>  
+		 */
 		white_space("white-space",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","nowrap","pre","pre-line","pre-wrap")),
+		/**
+		 * <p>Style properties - widows</p>  
+		 */
 		widows("widows",true,ContentType.integer),
+		/**
+		 * <p>Style properties - width</p>  
+		 */
 		width("width",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto")),
 
+		/**
+		 * <p>Style properties - word-break</p>  
+		 */
 		word_break("word-break",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","break-all","keep-all")),
+		/**
+		 * <p>Style properties - word-spacing</p>  
+		 */
 		word_spacing("word-spacing",true,ContentType.distanceOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"normal")),
+		/**
+		 * <p>Style properties - word-wrap</p>  
+		 */
 		word_wrap("word-wrap",true,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"normal","break-word")),
 		
+		/**
+		 * <p>Style properties - writing-mode</p>  
+		 */
 		writing_mode("writing-mode",false,ContentType.value,new ValueListDescriptor(ContentType.value,1,1,"lr-tb","rl-tb","tb-rl","bt-rl","tb-lr","bt-lr")),
+		
+		/**
+		 * <p>Style properties - z-index</p>  
+		 */
 		z_index("z-index",true,ContentType.integerOrKeyword,new ValueListDescriptor(ContentType.value,1,1,"auto"));
 
+	/**
+	 * <p>Inherited keyvord value</p> 
+	 */
 	public static final String	INHERITED_KEYWORD = "inherited";
 	
-	public enum ContentType {
-		value, integer, 
-		string, stringOrKeyword, integerOrKeyword, number, numberOrKeyword, color, colorOrKeyword,
-		distance, distanceOrKeyword, time, timeOrKeyword, url, urlOrKeyword, function, functionOrKeyword,
-		compoundChoise, compoundSequence, subStyle, asIs
+	/**
+	 * <p>This enumeration describes supported content type of the CSS style properties.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
+	public static enum ContentType {
+		/**
+		 * <p>Content type - any value</p>
+		 */
+		value, 
+		/**
+		 * <p>Content type - integer value</p>
+		 */
+		integer, 
+		/**
+		 * <p>Content type - string value</p>
+		 */
+		string, 
+		/**
+		 * <p>Content type - string value or keyword</p>
+		 */
+		stringOrKeyword, 
+		/**
+		 * <p>Content type - integer value or keyword</p>
+		 */
+		integerOrKeyword, 
+		/**
+		 * <p>Content type - number value</p>
+		 */
+		number, 
+		/**
+		 * <p>Content type - number value or keyword</p>
+		 */
+		numberOrKeyword, 
+		/**
+		 * <p>Content type - color descriptor</p>
+		 */
+		color, 
+		/**
+		 * <p>Content type - color descriptor or keyword</p>
+		 */
+		colorOrKeyword,
+		/**
+		 * <p>Content type - distance descriptor</p>
+		 */
+		distance, 
+		/**
+		 * <p>Content type - distance descriptor or keyword</p>
+		 */
+		distanceOrKeyword, 
+		/**
+		 * <p>Content type - time descriptor</p>
+		 */
+		time, 
+		/**
+		 * <p>Content type - time descriptor or keyword</p>
+		 */
+		timeOrKeyword, 
+		/**
+		 * <p>Content type - URL descriptor</p>
+		 */
+		url, 
+		/**
+		 * <p>Content type - URL descriptor or keyword</p>
+		 */
+		urlOrKeyword, 
+		/**
+		 * <p>Content type - function</p>
+		 */
+		function, 
+		/**
+		 * <p>Content type - function or keyword</p>
+		 */
+		functionOrKeyword,
+		/**
+		 * <p>Content type - compound choice</p>
+		 */
+		compoundChoise, 
+		/**
+		 * <p>Content type - compound sequence</p>
+		 */
+		compoundSequence, 
+		/**
+		 * <p>Content type - sub-style</p>
+		 */
+		subStyle, 
+		/**
+		 * <p>Content type - raw data</p>
+		 */
+		asIs
 	}
 
+	/**
+	 * <p>This class is a keyword descriptor for the CSS style properties.</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	public static class Keyword {
+		/**
+		 * <p>Reserver 'inherited' keyword</p>
+		 */
 		public static final Keyword	INHERITED = new Keyword(StylePropertiesSupported.INHERITED_ID,StylePropertiesSupported.INHERITED_KEYWORD); 
 		
 		private final long		id;
 		private final String	name;
 		
-		public Keyword(long id, String name) {
-			this.id = id;
-			this.name = name;
+		/**
+		 * <p>Constructor if the class instance</p>
+		 * @param id keyword ID. Must be greater or equals than 0.
+		 * @param name keyword name.
+		 */
+		public Keyword(final long id, final String name) throws IllegalArgumentException {
+			if (id < 0) {
+				throw new IllegalArgumentException("Keyword ID ["+id+"] must be greater or equals than 0");
+			}
+			else if (Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Keyword name can be neither null nor empty");
+			}
+			else {
+				this.id = id;
+				this.name = name;
+			}
 		}
-		
+
+		/**
+		 * <p>Get keyword ID.</p>
+		 * @return keyword ID. Can't be less than 0.
+		 */
 		public long getId() {
 			return id;
 		}
 		
+		/**
+		 * <p>Get keyword name.</p>
+		 * @return keyword name. Can be neither null nor empty.
+		 */
 		public String getName() {
 			return name;
 		}
@@ -291,7 +821,7 @@ public enum StylePropertiesSupported {
     private final Object[]				obj2Use = new Object[1];
     
     static {
-    	INHERITED_ID = NAMES.placeName(INHERITED_KEYWORD,null);
+    	INHERITED_ID = NAMES.placeName((CharSequence)INHERITED_KEYWORD,null);
     	advancedPreparation();
     }
 

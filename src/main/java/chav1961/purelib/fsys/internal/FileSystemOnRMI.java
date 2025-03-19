@@ -28,7 +28,7 @@ import chav1961.purelib.fsys.interfaces.DataWrapperInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterface;
 import chav1961.purelib.fsys.interfaces.FileSystemInterfaceDescriptor;
 import chav1961.purelib.fsys.interfaces.RMIDataWrapperInterface;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 /**
  * <p>This class implements the file system interface on remote server using standard Java RMI protocol.

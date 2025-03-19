@@ -1,4 +1,4 @@
-package chav1961.purelib.i18n;
+package chav1961.purelib.i18n.internal;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,6 +26,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.xsd.XSDConst;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.XSDCollection;
+import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
@@ -200,7 +201,7 @@ public class XMLLocalizer extends AbstractLocalizer {
 	}
 
 	@Override
-	protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
+	public String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 		if (Utils.checkEmptyOrNullString(helpId)) {
 			throw new IllegalArgumentException("Help id to get value for can't be null or empty"); 
 		}

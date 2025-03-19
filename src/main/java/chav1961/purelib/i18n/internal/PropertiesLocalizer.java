@@ -1,4 +1,4 @@
-package chav1961.purelib.i18n;
+package chav1961.purelib.i18n.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,6 +20,7 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
@@ -140,7 +141,7 @@ public class PropertiesLocalizer extends AbstractLocalizer {
 	}
 	
 	@Override
-	protected String getHelp(final String helpId, final Locale locale, final String encoding) {
+	public String getHelp(final String helpId, final Locale locale, final String encoding) {
 		if (helpId == null || helpId.isEmpty()) {
 			throw new IllegalArgumentException("Help id key can't be null or empty"); 
 		}

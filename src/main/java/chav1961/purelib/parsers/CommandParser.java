@@ -18,7 +18,7 @@ import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.cdb.SyntaxNode;
 import chav1961.purelib.cdb.interfaces.RuleBasedParser;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 class CommandParser {
 	static final char[][]		NULL_TERMINALS = new char[0][0];

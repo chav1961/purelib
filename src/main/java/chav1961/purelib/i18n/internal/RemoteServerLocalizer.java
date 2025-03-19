@@ -1,4 +1,4 @@
-package chav1961.purelib.i18n;
+package chav1961.purelib.i18n.internal;
 
 import java.io.Reader;
 import java.net.URI;
@@ -11,7 +11,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.interfaces.LocalizedString;
 import chav1961.purelib.i18n.interfaces.Localizer;
 
-class RemoteClientLocalizer implements Localizer {
+class RemoteServerLocalizer implements Localizer {
 
 	@Override
 	public boolean canServe(URI resource) throws NullPointerException {
@@ -90,7 +90,7 @@ class RemoteClientLocalizer implements Localizer {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 	@Override
 	public Reader getContent(String key) throws LocalizationException, IllegalArgumentException {
 		// TODO Auto-generated method stub

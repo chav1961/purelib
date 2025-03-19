@@ -13,7 +13,7 @@ import chav1961.purelib.basic.CharUtils.Prescription;
 import chav1961.purelib.basic.CharUtils.RelevanceFunction;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.cdb.SyntaxNode;
-import chav1961.purelib.i18n.PureLibLocalizer;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 class LuceneStyledMatcher {
 	static final char		EOF = '\0';

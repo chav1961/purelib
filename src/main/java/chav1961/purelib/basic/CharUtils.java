@@ -30,8 +30,8 @@ import chav1961.purelib.basic.growablearrays.GrowableByteArray;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.basic.intern.UnsafedCharUtils;
 import chav1961.purelib.cdb.CompilerUtils;
-import chav1961.purelib.i18n.PureLibLocalizer;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
+import chav1961.purelib.i18n.internal.PureLibLocalizer;
 
 /**
  * <p>This class contains implementation of the most-commonly-used char data parsing/printing functions in the system. It can be used to parse character 

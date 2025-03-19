@@ -28,6 +28,9 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.LocaleSpecificTextSetter;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.internal.MutableJsonLocalizer;
+import chav1961.purelib.i18n.internal.PropertiesLocalizer;
+import chav1961.purelib.i18n.internal.XMLLocalizer;
 
 @Tag("OrdinalTestCategory")
 public class LocalizerFactoryTest {

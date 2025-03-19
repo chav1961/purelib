@@ -56,9 +56,9 @@ import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.i18n.DummyLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.i18n.internal.DummyLocalizer;
 import chav1961.purelib.model.Constants;
 import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.FieldFormat;
@@ -210,7 +210,7 @@ public class SwingUtilsTest {
 
 		for (Class<?> item : new Class<?>[]{boolean.class,String.class,int.class,double.class,Date.class,ContinueMode.class,File.class,URI.class}) {
 			final FieldFormat			format = new FieldFormat(item,"");
-			final ContentNodeMetadata	meta = new MutableContentNodeMetadata("name",item,"test",URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/localization.xml"),"testSet1","testSet2","testSet3",format,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"),null);
+			final ContentNodeMetadata	meta = new MutableContentNodeMetadata("name",item,"test",URI.create(Localizer.LOCALIZER_SCHEME+":xml:file:./src/main/resources/chav1961/purelib/i18n/internal/localization.xml"),"testSet1","testSet2","testSet3",format,URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":/"),null);
 			final JComponent			component = SwingUtils.prepareRenderer(meta, PureLibSettings.PURELIB_LOCALIZER, format.getContentType(), monitor);
 			
 			Assert.assertNotNull(component);

@@ -130,9 +130,9 @@ public abstract class AbstractLocalizer implements Localizer {
 	@Override public abstract Iterable<String> localKeys();
 	@Override public abstract String getLocalValue(final String key) throws LocalizationException, IllegalArgumentException;
 	@Override public abstract String getLocalValue(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException;
+	public abstract String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException;
 	protected abstract boolean isLocaleSupported(final String key, final Locale locale) throws LocalizationException, IllegalArgumentException;
 	protected abstract void loadResource(final Locale newLocale) throws LocalizationException, NullPointerException;
-	protected abstract String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException;
 	
 	@Override
 	public LocaleDescriptor currentLocale() {
@@ -887,7 +887,7 @@ sw:				for(;;) {
 		}
 
 		@Override
-		protected String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
+		public String getHelp(final String helpId, final Locale locale, final String encoding) throws LocalizationException, IllegalArgumentException {
 			return nested.getHelp(helpId, locale, encoding);
 		}
 		
