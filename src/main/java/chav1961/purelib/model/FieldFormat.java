@@ -39,29 +39,98 @@ public class FieldFormat {
 	 * @since 0.0.3
 	 * @last.update 0.0.7
 	 */
-	public enum ContentType {
+	public static enum ContentType {
+		/**
+		 * <p>Content type - boolean</p>
+		 */
 		BooleanContent,
+		/**
+		 * <p>Content type - string</p>
+		 */
 		StringContent,
+		/**
+		 * <p>Content type - formatted string</p>
+		 */
 		FormattedStringContent,
+		/**
+		 * <p>Content type - password string</p>
+		 */
 		PasswordContent,
+		/**
+		 * <p>Content type - integer/long</p>
+		 */
 		IntegerContent,
+		/**
+		 * <p>Content type - numeric</p>
+		 */
 		NumericContent,
+		/**
+		 * <p>Content type - {@linkplain Date}</p>
+		 */
 		DateContent,
+		/**
+		 * <p>Content type - {@linkplain Timestamp}</p>
+		 */
 		TimestampContent,
+		/**
+		 * <p>Content type - enumeration</p>
+		 */
 		EnumContent,
+		/**
+		 * <p>Content type - {@linkplain File}</p>
+		 */
 		FileContent,
+		/**
+		 * <p>Content type - {@linkplain URI}</p>
+		 */
 		URIContent,
+		/**
+		 * <p>Content type - {@linkplain Color}</p>
+		 */
 		ColorContent,
+		/**
+		 * <p>Content type - {@linkplain ColorPair}</p>
+		 */
 		ColorPairContent,
+		/**
+		 * <p>Content type - array</p>
+		 */
 		ArrayContent,
+		/**
+		 * <p>Content type - range</p>
+		 */
 		RangeContent,
+		/**
+		 * <p>Content type - nested content</p>
+		 */
 		NestedContent,
+		/**
+		 * <p>Content type - {@linkplain Image}</p>
+		 */
 		ImageContent,
+		/**
+		 * <p>Content type - foreign key reference</p>
+		 */
 		ForeignKeyRefContent,
+		/**
+		 * <p>Content type - foreign keys list reference</p>
+		 */
 		ForeignKeyRefListContent,
+		/**
+		 * <p>Content type - MIME-based content</p>
+		 */
 		MimeBasedContent,
-		LocaliizedStringContent,
+		/**
+		 * <p>Content type - localized string</p>
+		 */
+		LocalizedStringContent,
+		/**
+		 * <p>Content type - {@linkplain DottedVersion}</p>
+		 */
 		DottedVersionContent,
+		/**
+		 * <p>Content type - unknown</p>
+		 */
 		Unclassified
 	} 
 	
@@ -70,17 +139,46 @@ public class FieldFormat {
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
 	 */
-	public enum Alignment {
+	public static enum Alignment {
+		/**
+		 * <p>Alignment - left</p>
+		 */
 		LeftAlignment,
+		/**
+		 * <p>Alignment - right</p>
+		 */
 		RightAlignment,
+		/**
+		 * <p>Alignment - centered</p>
+		 */
 		CenterAlignment,
+		/**
+		 * <p>Alignment - adjusted</p>
+		 */
 		Ajusted,
+		/**
+		 * <p>Alignment - any</p>
+		 */
 		NoMatter
 	}
 	
-	public enum PrintMode {
+	/**
+	 * <p>Print mode for the given format</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	public static enum PrintMode {
+		/**
+		 * <p>Print mode - single text</p>
+		 */
 		SINGLE_TEXT,
+		/**
+		 * <p>Print mode - Creole text</p>
+		 */
 		CREOLE_TEXT,
+		/**
+		 * <p>Print mode - HTML text</p>
+		 */
 		HTML_TEXT
 	}
 
@@ -684,7 +782,7 @@ public class FieldFormat {
 					return ContentType.MimeBasedContent;
 				}
 				else if (LocalizedString.class.isAssignableFrom(clazz)) {
-					return ContentType.LocaliizedStringContent;
+					return ContentType.LocalizedStringContent;
 				}
 				else if (DottedVersion.class.isAssignableFrom(clazz)) {
 					return ContentType.DottedVersionContent;

@@ -40,7 +40,6 @@ import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
-import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.basic.interfaces.ModuleExporter;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.i18n.internal.PureLibLocalizer;
@@ -129,15 +128,85 @@ public class ModelUtils {
 		initExc = tempExc;
 	}
 	
+	/**
+	 * <p>This interface is used as callback to process differences of the two models.</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
+	@FunctionalInterface
 	public interface ModelComparisonCallback {
-		public enum DifferenceType {
-			INSERTED, DELETED, CHANGED 
+		/**
+		 * <p>This enumeration describes difference types</p>
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.3
+		 */
+		public static enum DifferenceType {
+			/**
+			 * <p>Difference type - item was inserted</p>
+			 */
+			INSERTED, 
+			/**
+			 * <p>Difference type - item was deleted</p>
+			 */
+			DELETED, 
+			/**
+			 * <p>Difference type - item was changed</p>
+			 */
+			CHANGED 
 		}
 		
-		public enum DifferenceLocalization {
-			IN_TYPE, IN_UI_PATH, IN_LOCALIZER, IN_LABEL, IN_TOOLTIP, IN_HELP, IN_FORMAT, IN_APP_PATH, IN_ICON
+		/**
+		 * <p>This enumeration describes difference localization</p>
+		 * @author Alexander Chernomyrdin aka chav1961
+		 * @since 0.0.3
+		 */
+		public static enum DifferenceLocalization {
+			/**
+			 * <p>Localization - in type</p>
+			 */
+			IN_TYPE, 
+			/**
+			 * <p>Localization - in UI path</p>
+			 */
+			IN_UI_PATH, 
+			/**
+			 * <p>Localization - in localizer</p>
+			 */
+			IN_LOCALIZER, 
+			/**
+			 * <p>Localization - in label</p>
+			 */
+			IN_LABEL, 
+			/**
+			 * <p>Localization - in tooltip</p>
+			 */
+			IN_TOOLTIP, 
+			/**
+			 * <p>Localization - in help</p>
+			 */
+			IN_HELP, 
+			/**
+			 * <p>Localization - in format</p>
+			 */
+			IN_FORMAT, 
+			/**
+			 * <p>Localization - in application path</p>
+			 */
+			IN_APP_PATH, 
+			/**
+			 * <p>Localization - in icon</p>
+			 */
+			IN_ICON
 		}
 		
+		/**
+		 * <p>Process difference
+		 * @param left left model node. Can be null when difference type is {@linkplain DifferenceType#INSERTED}
+		 * @param right right model node. Can be null when difference type is {@linkplain DifferenceType#DELETED}
+		 * @param diffType difference type. Can't be null
+		 * @param details set if difference localizations. Can't be null and must contain at least one element
+		 * @return continue comparison mode
+		 */
 		ContinueMode difference(ContentNodeMetadata left, ContentNodeMetadata right, DifferenceType diffType, Set<DifferenceLocalization> details);
 	}
 

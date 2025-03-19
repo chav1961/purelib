@@ -3,16 +3,31 @@ package chav1961.purelib.model;
 import java.io.File;
 import java.io.Serializable;
 
+import chav1961.purelib.basic.Utils;
+
+/**
+ * <p>This class is used to keep file descriptor</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class FileKeeper implements Serializable {
 	private static final long serialVersionUID = -1488055829537063877L;
 	
 	private String	fileURI = "./";
 	
+	/**
+	 * <p>Constructor of the class instance</p>
+	 */
 	public FileKeeper() {
 	}
 
-	public FileKeeper(final String fileURI) {
-		if (fileURI == null || fileURI.isEmpty()) {
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param fileURI file URI. Can be neither null nor empty
+	 * @throws IllegalArgumentException file URI is null or empty
+	 */
+	public FileKeeper(final String fileURI) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(fileURI)) {
 			throw new IllegalArgumentException("File uri can't be null or empty"); 
 		}
 		else {
@@ -20,7 +35,12 @@ public class FileKeeper implements Serializable {
 		}
 	}
 	
-	public FileKeeper(final File file) {
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param file file descriptor to keep. Can't be null
+	 * @throws NullPointerException file descriptor is null
+	 */
+	public FileKeeper(final File file) throws NullPointerException {
 		if (file == null) {
 			throw new NullPointerException("File instance can't be null or empty"); 
 		}
@@ -29,20 +49,34 @@ public class FileKeeper implements Serializable {
 		}
 	}
 
+	/**
+	 * <p>Get file URI</p>
+	 * @return file URI. Can be neither null nor empty
+	 */
 	public String getFileURI() {
 		return fileURI;
 	}
 
-	public void setFileURI(final String fileURI) {
-		if (fileURI == null || fileURI.isEmpty()) {
-			throw new IllegalArgumentException("File uri can't be null or empty"); 
+	/**
+	 * <p>Set file URI.</p>
+	 * @param fileURI file URI to set. Can be neither null nor empty
+	 * @throws IllegalArgumentException file URI is null or empty
+	 */
+	public void setFileURI(final String fileURI) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(fileURI)) {
+			throw new IllegalArgumentException("File URI can't be null or empty"); 
 		}
 		else {
 			this.fileURI = fileURI;
 		}
 	}
 	
-	public void setFileURI(final File file) {
+	/**
+	 * <p>Set file URI.</p>
+	 * @param file file descriptor to set. Can't be null.
+	 * @throws NullPointerException file descriptor is null
+	 */
+	public void setFileURI(final File file) throws NullPointerException {
 		if (file == null) {
 			throw new NullPointerException("File instance can't be null or empty"); 
 		}
@@ -51,6 +85,10 @@ public class FileKeeper implements Serializable {
 		}
 	}
 	
+	/**
+	 * <p>Convert file URI to file.</p>
+	 * @return File descriptor. Can't be null
+	 */
 	public File toFile() {
 		return new File(fileURI);
 	}

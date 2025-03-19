@@ -621,7 +621,7 @@ loop:			for (Component comp : children(node)) {
 				case MimeBasedContent	:
 					result = new JMimeContentFieldWithMeta(metadata, localizer, monitor);
 					break;
-				case LocaliizedStringContent	:
+				case LocalizedStringContent	:
 					result = new JLocalizedStringContentWithMeta(metadata, localizer, monitor);
 					break;
 				case DottedVersionContent	:

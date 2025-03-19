@@ -1067,14 +1067,31 @@ public class JsonSaxDeserializerFactory {
 		}
 	}
 	
+	/**
+	 * <p>This class is used as collection of primitive types</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.1
+	 */
 	public static class PrimitiveCollection {
 		private static final int	CONTENT_LONG = 0;
 		private static final int	CONTENT_DOUBLE = 1;
 		private static final int	CONTENT_BOOLEAN = 2;
-		
+
+		/**
+		 * <p>PrimitiveCollection - content type</p>
+		 */
 		public int		contentType;
+		/**
+		 * <p>PrimitiveCollection - long value</p>
+		 */
 		public long		longValue;
+		/**
+		 * <p>PrimitiveCollection - double value</p>
+		 */
 		public double	doubleValue;
+		/**
+		 * <p>PrimitiveCollection - boolean value</p>
+		 */
 		public boolean	booleanValue;
 	}
 

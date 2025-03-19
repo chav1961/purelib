@@ -10,18 +10,25 @@ import java.io.Writer;
 
 import javax.imageio.ImageIO;
 
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.PreparationException;
 import chav1961.purelib.model.interfaces.ImageKeeper;
 import chav1961.purelib.streams.byte2char.Byte2HexOutputStream;
 import chav1961.purelib.streams.char2byte.Hex2ByteInputStream;
 
+/**
+ * <p>This class is used to keep image</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class ImageKeeperImpl implements ImageKeeper {
 	private static final long 	serialVersionUID = 8962529989993415955L;
 	private static final String	EMPTY_RESOURCE_NAME = "empty.png";
 	private static final Image	EMPTY;
 
 	static {
-		try{EMPTY = ImageIO.read(ImageKeeperImpl.class.getResourceAsStream(EMPTY_RESOURCE_NAME));
+		try{
+			EMPTY = ImageIO.read(ImageKeeperImpl.class.getResourceAsStream(EMPTY_RESOURCE_NAME));
 		} catch (IOException e) {
 			throw new PreparationException("Image ["+EMPTY_RESOURCE_NAME+"] loading failed"); 
 		}
@@ -29,11 +36,19 @@ public class ImageKeeperImpl implements ImageKeeper {
 	
 	private Image	image = EMPTY;
 	private boolean	isModified = false;
-	
+
+	/**
+	 * <p>Constructor of the class instance</p>
+	 */
 	public ImageKeeperImpl() {
 	}
 
-	public ImageKeeperImpl(final Image image) {
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param image image to keep. Can't be null
+	 * @throws NullPointerException Image is null
+	 */
+	public ImageKeeperImpl(final Image image) throws NullPointerException {
 		if (image == null) {
 			throw new NullPointerException("File instance can't be null or empty"); 
 		}
@@ -42,9 +57,13 @@ public class ImageKeeperImpl implements ImageKeeper {
 		}
 	}
 
-	public ImageKeeperImpl(final String imageDump) {
-		if (imageDump == null) {
-			throw new NullPointerException("Image dump can't be null"); 
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param imageDump hexadecimal string representation of the image content. Can be neither null nor empty
+	 */
+	public ImageKeeperImpl(final String imageDump) throws IllegalArgumentException {
+		if (Utils.checkEmptyOrNullString(imageDump)) {
+			throw new IllegalArgumentException("Image dump can't be null or empty"); 
 		}
 		else {
 			try(final Reader				rdr = new StringReader(imageDump);

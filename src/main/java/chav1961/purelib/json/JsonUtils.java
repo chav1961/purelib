@@ -401,6 +401,9 @@ public class JsonUtils {
 		}
 	}	
 	
+	/**
+	 * <p>This class describes root node for array</p>
+	 */
 	public static class ArrayRoot {
 		private final String	name;
 		private int				value;
@@ -453,6 +456,9 @@ public class JsonUtils {
 		}
 	}
 
+	/**
+	 * <p>This class describes root node for objects</p>
+	 */
 	public static class ObjectRoot {
 		private final String	name;
 		
