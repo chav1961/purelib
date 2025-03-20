@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -560,7 +562,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	 * @throws IOException on any I/O errors
 	 * @since 0.0.7
 	 */
-	public static <U> void rawUpload(final AndOrTree<U> tree, final DataOutputStream dos) throws IOException, NullPointerException {
+	public static <U> void rawUpload(final AndOrTree<U> tree, final DataOutput dos) throws IOException, NullPointerException {
 		if (tree == null) {
 			throw new NullPointerException("Tree to upload can't be null");
 		}
@@ -574,7 +576,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			dos.writeLong(tree.amount);
 			dos.writeInt(tree.maxNameLength);
 			upload(tree.root, dos);
-			dos.flush();
 		}
 	}
 	
@@ -587,7 +588,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	 * @throws IOException on any I/O errors
 	 * @since 0.0.7
 	 */
-	public static <T> AndOrTree<T> rawDownload(final DataInputStream dis) throws IOException, NullPointerException {
+	public static <T> AndOrTree<T> rawDownload(final DataInput dis) throws IOException, NullPointerException {
 		if (dis == null) {
 			throw new NullPointerException("Stream to download from can't be null");
 		}
@@ -1617,7 +1618,7 @@ seek:	while (root != null && from < to) {
 		((OrNode)root).children = newChildren;
 	}
 	
-	private static void upload(final Node node, final DataOutputStream dos) throws IOException {
+	private static void upload(final Node node, final DataOutput dos) throws IOException {
 		byte	content = (byte)node.type; 
 		byte	lengthIndex, idIndex;
 
@@ -1687,7 +1688,7 @@ seek:	while (root != null && from < to) {
 		}
 	}
 	
-	private static Node download(final Node parent, final DataInputStream dis) throws IOException {
+	private static Node download(final Node parent, final DataInput dis) throws IOException {
 		byte	content = dis.readByte();
 		int		length;
 		long	id;
@@ -1734,7 +1735,7 @@ seek:	while (root != null && from < to) {
 		}
 	}
 
-	private static long readValue(final DataInputStream dis, final int lengthIndex) throws IOException {
+	private static long readValue(final DataInput dis, final int lengthIndex) throws IOException {
 		switch (lengthIndex) {
 			case 0 : return dis.readByte();
 			case 1 : return dis.readShort();

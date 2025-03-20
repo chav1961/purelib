@@ -143,11 +143,12 @@ public class BKTree<Content, Cargo> {
 			throw new IllegalArgumentException("Duplicate value ["+content+"] to add"); 
 		}
 		else {
-	        int 		low = 0;
-	        int 		high = root.children.length - 1;
+			final BKRoot<Content, Cargo>[]	array = root.children;
+	        int low = 0;
+	        int high = root.getLength() - 1;
 	
 	        while (low <= high) {
-	            final int 	mid = (low + high) >>> 1, midVal = root.children[mid].metric;
+	            final int 	mid = (low + high) >>> 1, midVal = array[mid].metric;
 	
 	            if (midVal < key) {
 	                low = mid + 1;
@@ -156,13 +157,13 @@ public class BKTree<Content, Cargo> {
 	            	high = mid - 1;
 	            }
 	            else {
-	            	add(root.children[mid], content, cargo);
+	            	add(array[mid], content, cargo);
 	            	return;
 	            }
 	        }
-	        root.children = Arrays.copyOf(root.children, root.children.length + 1);
-	        if (low < root.children.length - 1) {
-	        	System.arraycopy(root.children, low, root.children, low + 1, root.children.length - low - 1);
+	        root.expand();
+	        if (low < root.getLength() - 1) {
+	        	System.arraycopy(root.children, low, root.children, low + 1, root.getLength() - low - 1);
 	        }
 	    	root.children[low] = new BKRoot<>(content, key, cargo);
 		}
@@ -173,8 +174,10 @@ public class BKTree<Content, Cargo> {
 			return true;
 		}
 		else {
-			for(BKRoot<Content, Cargo> item : root.children) {
-				if (contains(item, content)) {
+			final BKRoot<Content, Cargo>[]	array = root.children;
+
+			for(int index = 0; index < root.getLength(); index++) {
+				if (contains(array[index], content)) {
 					return true;
 				}
 			}
@@ -183,27 +186,30 @@ public class BKTree<Content, Cargo> {
 	}
 	
 	private void walk(final BKRoot<Content, Cargo> root, final BiConsumer<Content, Cargo> callback) {
+		final BKRoot<Content, Cargo>[]	array = root.children;
+		
 		callback.accept(root.content, root.cargo);
-		for (BKRoot<Content, Cargo> item : root.children) {
-			walk(item, callback);
+		for (int index = 0, maxIndex = root.getLength(); index < maxIndex; index++) {
+			walk(array[index], callback);
 		}
 	}
 	
 	private void forAll(final BKRoot<Content, Cargo> root, final Content content, final int maxMetrics, final BiConsumer<Content, Cargo> callback) {
 		final int 	key = metrics.apply(root.content, content);
-		final int	from = find(root.children, key - maxMetrics);
-		final int	to = Math.min(root.children.length - 1, find(root.children, key + maxMetrics));
+		final BKRoot<Content, Cargo>[]	array = root.children;
+		final int	from = find(array, root.getLength(), key - maxMetrics);
+		final int	to = Math.min(root.getLength() - 1, find(array, root.getLength(), key + maxMetrics));
 		
 		if (key <= maxMetrics) {
 			callback.accept(root.content, root.cargo);
 		}
 		for(int index = from; index <= to; index++) {
-			forAll(root.children[index], content, maxMetrics, callback);
+			forAll(array[index], content, maxMetrics, callback);
 		}
 	}
 	
-	private int find(final BKRoot<Content, Cargo>[] root, final int key) {
-        int 		low = 0, high = root.length - 1, mid = 0, midVal;
+	private int find(final BKRoot<Content, Cargo>[] root, final int range, final int key) {
+        int 		low = 0, high = range - 1, mid = 0, midVal;
         
         while (low <= high) {
             mid = (low + high) >>> 1;
@@ -223,10 +229,13 @@ public class BKTree<Content, Cargo> {
 	}
 	
 	private static class BKRoot<Content, Cargo> {
+		private static final BKRoot[]	EMPTY = new BKRoot[0];
+		
 		private final Content				content;
 		private final int 					metric;			
 		private final Cargo					cargo;
-		private BKRoot<Content, Cargo>[]	children = new BKRoot[0];
+		private BKRoot<Content, Cargo>[]	children = EMPTY;
+		private int							length = 0;
 		
 		public BKRoot(final Content content, final int metric, final Cargo cargo) {
 			this.content = content;
@@ -234,6 +243,17 @@ public class BKTree<Content, Cargo> {
 			this.cargo = cargo;
 		}
 
+		public int getLength() {
+			return length;
+		}
+		
+		public BKRoot<Content, Cargo>[] expand() {
+			if (++length > children.length) {
+				return children = Arrays.copyOf(children, Math.max(1, 2 * children.length));
+			}
+			return children;
+		}
+		
 		@Override
 		public String toString() {
 			return "BKRoot [content=" + content + ", metric=" + metric + ", cargo=" + cargo + "]";

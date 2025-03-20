@@ -3286,17 +3286,47 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	/**
 	 * <p>This class describes Levenstain distance and editor prescription for two strins.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.4
+	 * @see <a href="https://ru.wikipedia.org/wiki/%D0%A0%D0%B0%D1%81%D1%81%D1%82%D0%BE%D1%8F%D0%BD%D0%B8%D0%B5_%D0%9B%D0%B5%D0%B2%D0%B5%D0%BD%D1%88%D1%82%D0%B5%D0%B9%D0%BD%D0%B0">Levenstain distance</a>
 	 */
     public static class Prescription {
+    	/**
+    	 * <p>Empty prescripton</p>
+    	 */
+    	public static final Prescription	EMPTY = new Prescription(0); 
+    	
+    	/**
+    	 * <p>Editor operation type: delete item <p>
+    	 */
     	public static final int 	LEV_DELETE = 1;
+    	/**
+    	 * <p>Editor operation type: replace item <p>
+    	 */
     	public static final int 	LEV_REPLACE = 2;
+    	/**
+    	 * <p>Editor operation type: insert item <p>
+    	 */
     	public static final int 	LEV_INSERT = 3;
+    	/**
+    	 * <p>Editor operation type: item is not changed<p>
+    	 */
     	public static final int 	LEV_NONE = 4;
     	
+    	/**
+    	 * <p>Editorial instructions. Every item in the instructions contains of three integers:</p>
+    	 * <ul>
+    	 * <li>operation type ({@linkplain #LEV_INSERT}, {@linkplain #LEV_DELETE}, {@linkplain #LEV_REPLACE} or {@linkplain #LEV_NONE})</li>
+    	 * <li>entity index in left</li>
+    	 * <li>entity index in right</li>
+    	 * </ul>
+    	 */
 		public int[][] route;
+		/**
+		 * <p>Calculated Levenstain distance.</p>
+		 */
 		public int distance;
 	        
-		Prescription(int distance, int[][] route) {
+		Prescription(final int distance, final int[]... route) {
 			this.distance = distance;
 			this.route = route;
 		}
@@ -3335,6 +3365,9 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	else  if (str2 == null) {
     		throw new NullPointerException("Str1 array can't be null");
     	}
+    	else if (str1 == str2 || Arrays.equals(str1, str2)) {
+    		return Prescription.EMPTY;
+    	}
     	else {
 			final int 		m = str1.length, n = str2.length;
 			final int[][] 	D = new int[m + 1][n + 1];
@@ -3368,26 +3401,49 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 		            }
 		        }
 		
-			final List<int[]> opers = new ArrayList<>();
-			int i = m, j = n;
-		        
-			do {char c = P[i][j];
+			int i = m, j = n, size = 0;
+			
+			do {
+				char c = P[i][j];
+				
+	            if(c == 'R' || c == 'M') {
+	            	size++;
+	                i --;
+	                j --;
+	            }
+	            else if(c == 'D') {
+	            	size++;
+	                i --;
+	            }
+	            else {
+	            	size++;
+	                j --;
+	            }
+			} while((i != 0) || (j != 0));
+			
+			final int[][]	result = new int[size][];
+			int	where = size-1;
+			
+			i = m;
+			j = n;		        
+			do {
+				char c = P[i][j];
 		            if(c == 'R' || c == 'M') {
-		                opers.add(0,new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j});
+		                result[where--] = new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j};
 		                i --;
 		                j --;
 		            }
 		            else if(c == 'D') {
-		                opers.add(0,new int[]{Prescription.LEV_DELETE,i,j});
+		                result[where--] = new int[]{Prescription.LEV_DELETE,i,j};
 		                i --;
 		            }
 		            else {
-		                opers.add(0,new int[]{Prescription.LEV_INSERT,i,j});
+		                result[where--] = new int[]{Prescription.LEV_INSERT,i,j};
 		                j --;
 		            }
 			} while((i != 0) || (j != 0));
 		        
-			return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
+			return new Prescription(D[m][n], result);
     	}
     }
 
@@ -3426,6 +3482,9 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
     	else  if (comp == null) {
     		throw new NullPointerException("Comparator can't be null");
     	}
+    	else if (Objects.deepEquals(obj1, obj2)) {
+    		return Prescription.EMPTY;
+    	}
     	else {
 			final int 		m = obj1.length, n = obj2.length;
 			final int[][] 	D = new int[m + 1][n + 1];
@@ -3459,31 +3518,54 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 		            }
 		        }
 		
-			final List<int[]> opers = new ArrayList<>();
-			int i = m, j = n;
-		        
-			do {char c = P[i][j];
+			int i = m, j = n, size = 0;
+			
+			do {
+				char c = P[i][j];
+				
+	            if(c == 'R' || c == 'M') {
+	            	size++;
+	                i --;
+	                j --;
+	            }
+	            else if(c == 'D') {
+	            	size++;
+	                i --;
+	            }
+	            else {
+	            	size++;
+	                j --;
+	            }
+			} while((i != 0) || (j != 0));
+			
+			final int[][]	result = new int[size][];
+			int	where = size-1;
+			
+			i = m;
+			j = n;		        
+			do {
+				char c = P[i][j];
 		            if(c == 'R' || c == 'M') {
-		                opers.add(0,new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j});
+		                result[where--] = new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j};
 		                i --;
 		                j --;
 		            }
 		            else if(c == 'D') {
-		                opers.add(0,new int[]{Prescription.LEV_DELETE,i,j});
+		                result[where--] = new int[]{Prescription.LEV_DELETE,i,j};
 		                i --;
 		            }
 		            else {
-		                opers.add(0,new int[]{Prescription.LEV_INSERT,i,j});
+		                result[where--] = new int[]{Prescription.LEV_INSERT,i,j};
 		                j --;
 		            }
 			} while((i != 0) || (j != 0));
 		        
-			return new Prescription(D[m][n], opers.toArray(new int[opers.size()][]));
+			return new Prescription(D[m][n], result);
     	}
     }
     
     /**
-     * <p>Replace string with the same content to the same string</p>
+     * <p>Replace string with the same content to the same string. VEry similar to {@linkplain String#intern()} method</p>
      * @param source string to replace. Null value will return null  
      * @return string replaced or null
      * @see String#intern()
@@ -3544,7 +3626,9 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
      * @since 0.0.6
      */
     public static void resetIdenticalStringVocabulary() {
-    	VOCABULARY.clear();
+		synchronized (VOCABULARY) {
+			VOCABULARY.clear();
+		}
     }
 
     /**
