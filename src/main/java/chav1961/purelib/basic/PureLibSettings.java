@@ -55,8 +55,6 @@ import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.internal.PureLibLocalizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
-import chav1961.purelib.monitoring.MonitoringManager;
-import chav1961.purelib.monitoring.NanoServiceControl;
 import chav1961.purelib.sql.content.ResultSetFactory;
 import chav1961.purelib.streams.char2char.CreoleWriter;
 
@@ -325,13 +323,6 @@ public final class PureLibSettings {
 	public static final String				BUILTIN_HELP_PORT = "purelib.settings.help.port";
 
 	/**
-	 * <p>Monitoring manager for MBean services.</p>
-	 * @see chav1961.purelib.monitoring
-	 * @since 0.0.4
-	 */
-	public static final MonitoringManager	MONITORING_MANAGER = new MonitoringManager();
-
-	/**
 	 * <p>Common class loader for all on-the-fly classes.</p>
 	 * @since 0.0.4
 	 */
@@ -406,8 +397,6 @@ public final class PureLibSettings {
 		boolean canServe(URI uri) throws EnvironmentException;
 	}	
 	
-	private static final NanoServiceControl			NANOSERVICE_MBEAN;
-	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static final WellKnownSchema[]			schemasList = {
 															new WellKnownSchemaImpl(LoggerFacade.LOGGER_SCHEME, "", LoggerFacade.Factory.class, true, 
@@ -480,22 +469,6 @@ public final class PureLibSettings {
 			} catch (IllegalArgumentException | IOException exc) {
 				logger.log(Level.WARNING,"Properties from the ["+System.getProperty(SETTINGS_KEY)+"] for the Pure library were not loaded: "+exc.getMessage(),exc);
 			}
-		}
-		
-		try{final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
-			final ObjectName 	monitoringName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring");
-			final ObjectName 	httpServerName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=httpServer");
-			final boolean		httpControlRequires = Boolean.valueOf(System.getProperties().getProperty("chav1961.purelib.mbean.http.control","false"));
-	    
-//		     server.registerMBean(MONITORING_MANAGER, monitoringName);
-		    if (httpControlRequires) {
-			    server.registerMBean(NANOSERVICE_MBEAN = new NanoServiceControl(), httpServerName);
-		    }
-		    else {
-		    	NANOSERVICE_MBEAN = null;
-		    }
-		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException e) {
-		    throw new PreparationException("Error creating MBean monitoring/httpServer manager: "+e.getLocalizedMessage());
 		}
 		
 		Runtime.getRuntime().addShutdownHook(new Thread(()->{stopPureLib();}));
@@ -719,25 +692,7 @@ public final class PureLibSettings {
 	}
 	
 	private static void stopPureLib() {
-		final MBeanServer 	server = ManagementFactory.getPlatformMBeanServer();
-				
 		closeAll(finalCloseList);
-		
-		try{final ObjectName 	monitoringName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=monitoring");
-			final ObjectName 	httpServerName = new ObjectName(PureLibSettings.PURELIB_MBEAN+":type=control,name=httpServer");
-			
-	    	try{server.unregisterMBean(monitoringName);
-			} catch (MBeanRegistrationException | InstanceNotFoundException e) {
-			}
-	    	if (NANOSERVICE_MBEAN != null) {
-		    	try{server.unregisterMBean(httpServerName);
-				} catch (MBeanRegistrationException | InstanceNotFoundException e) {
-				}
-	    	}
-		} catch (MalformedObjectNameException e1) {
-		}
-		
-		MONITORING_MANAGER.close();
 		
 		if (ROOT_FS != null) {
 			try{ROOT_FS.close();

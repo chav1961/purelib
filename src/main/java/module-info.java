@@ -45,7 +45,6 @@ module chav1961.purelib {
 	exports chav1961.purelib.matrix.interfaces;
 	exports chav1961.purelib.model;
 	exports chav1961.purelib.model.interfaces;
-	exports chav1961.purelib.monitoring;
 	exports chav1961.purelib.net;
 	exports chav1961.purelib.net.interfaces;
 	exports chav1961.purelib.sql;
@@ -53,8 +52,6 @@ module chav1961.purelib {
 	exports chav1961.purelib.sql.interfaces;
 	exports chav1961.purelib.sql.junit;
 	exports chav1961.purelib.sql.junit.interfaces;
-	exports chav1961.purelib.sql.model;
-	exports chav1961.purelib.sql.model.interfaces;
 	exports chav1961.purelib.sql.util; 
 	exports chav1961.purelib.streams;
 	exports chav1961.purelib.streams.byte2byte;
@@ -152,12 +149,6 @@ module chav1961.purelib {
 	 		, chav1961.purelib.basic.logs.SystemErrLoggerFacade;
 	
 	uses java.sql.Driver;
-	
-	uses chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter;
-	provides chav1961.purelib.sql.model.interfaces.DatabaseModelAdapter with 
-			  chav1961.purelib.sql.model.internal.PostgreSQLDatabaseModelAdapter
-			, chav1961.purelib.sql.model.internal.SqliteDatabaseModelAdapter
-			, chav1961.purelib.sql.model.internal.DefaultDatabaseModelAdapter;
 	
 	uses javax.naming.spi.InitialContextFactory;
 	provides javax.naming.spi.InitialContextFactory with 
