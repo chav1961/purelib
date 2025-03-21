@@ -13,6 +13,7 @@ import org.junit.experimental.categories.Category;
 
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.exceptions.ContentException;
+import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 import chav1961.purelib.streams.char2byte.asm.macro.Macros;
 import chav1961.purelib.testing.TestingUtils;
@@ -109,7 +110,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (too big index for frame size)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
@@ -129,7 +130,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (no-existent variable)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 	}	
 
@@ -293,7 +294,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test4	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (too big value for frame size)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
@@ -312,7 +313,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test4	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (unparsed tail in the string)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 	}
 
@@ -357,7 +358,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal type for the command)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 	}
 
@@ -402,7 +403,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal type for the command)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 
 		try(final ClassContainer	cc = new ClassContainer(null);) {
@@ -575,7 +576,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
@@ -591,7 +592,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 		try(final ClassContainer	cc = new ClassContainer(null);) {
 			final LineParser		lp = new LineParser(this.getClass().getClassLoader(),cc,cdr,macros,null);
@@ -607,7 +608,7 @@ public class ByteCodeLineParserTest implements ByteCodeTestInterface {
 							+"Test	.end\n"
 							);
 			Assert.fail("Mandatory exception was not detected (illegal constant type)");
-		} catch (IOException exc) {
+		} catch (IOException | SyntaxException exc) {
 		}
 	}
 

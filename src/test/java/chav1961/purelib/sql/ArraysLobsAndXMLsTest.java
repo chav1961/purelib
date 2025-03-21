@@ -149,7 +149,7 @@ public class ArraysLobsAndXMLsTest {
 		
 		b.free();
 		Assert.assertEquals(b.length(), 0);
-		System.err.println(b);
+//		System.err.println(b);
 	}
 
 	@Test
@@ -282,7 +282,7 @@ public class ArraysLobsAndXMLsTest {
 		b.free();
 		Assert.assertEquals(b.length(), 0);
 		
-		System.err.println(b);
+//		System.err.println(b);
 	}
 
 	@Test
@@ -407,7 +407,7 @@ public class ArraysLobsAndXMLsTest {
 			count++;
 		}
 		Assert.assertTrue(count > 0);
-		System.err.println(b);
+//		System.err.println(b);
 	}
 
 	@Test

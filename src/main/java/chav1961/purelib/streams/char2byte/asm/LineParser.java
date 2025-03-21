@@ -1082,11 +1082,11 @@ class LineParser implements LineByLineProcessorCallback {
 					}
 			}
 		} catch (SyntaxException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo, start-from, new String(data,from,len)+exc.getMessage(), exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
 		} catch (ContentException exc) {
-			exc.printStackTrace();
+//			exc.printStackTrace();
 			final SyntaxException	synt = new SyntaxException(lineNo, start-from, new String(data,from,len)+exc.getMessage(), exc);
 			throw new IOException(synt.getLocalizedMessage(),synt);
 		}

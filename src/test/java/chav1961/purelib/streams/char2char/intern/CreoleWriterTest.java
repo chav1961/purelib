@@ -1493,7 +1493,7 @@ public class CreoleWriterTest {
 		int		awaitedIndex = 0, pos = 0;
 		
 		for (CreoleTestRecord item : content) {
-			System.err.println(item);
+//			System.err.println(item);
 			if (awaitedIndex < awaited.length && (awaited[awaitedIndex] instanceof Action)) {
 				Assert.assertEquals("awaitedIndex="+awaitedIndex+", pos="+pos,awaited[awaitedIndex],item.action);
 				awaitedIndex++;

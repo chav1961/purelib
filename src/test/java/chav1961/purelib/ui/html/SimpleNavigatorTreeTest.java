@@ -25,7 +25,7 @@ public class SimpleNavigatorTreeTest {
 		
 		snt.serialize(wr);
 		wr.flush();
-		System.err.println("Wr="+wr);
+//		System.err.println("Wr="+wr);
 		
 	}
 }

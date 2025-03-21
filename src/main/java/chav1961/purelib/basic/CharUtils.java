@@ -3357,54 +3357,71 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 	 * @throws NullPointerException on any argument is null
 	 * @see <a href="https://ru.wikibooks.org/wiki/%D0%A0%D0%B5%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%B8_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC%D0%BE%D0%B2/%D0%A0%D0%B5%D0%B4%D0%B0%D0%BA%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE%D0%B5_%D0%BF%D1%80%D0%B5%D0%B4%D0%BF%D0%B8%D1%81%D0%B0%D0%BD%D0%B8%D0%B5">Levenstain distance</a>
 	 * @since 0.0.4
+	 * @last.update 0.0.8
 	 */
     public static Prescription calcLevenstain(final char[] str1, final char[] str2) throws NullPointerException {
     	if (str1 == null) {
     		throw new NullPointerException("Str1 array can't be null");
     	}
     	else  if (str2 == null) {
-    		throw new NullPointerException("Str1 array can't be null");
+    		throw new NullPointerException("Str2 array can't be null");
     	}
     	else if (str1 == str2 || Arrays.equals(str1, str2)) {
     		return Prescription.EMPTY;
     	}
     	else {
-			final int 		m = str1.length, n = str2.length;
-			final int[][] 	D = new int[m + 1][n + 1];
-			final char[][] 	P = new char[m + 1][n + 1];
+			final int 		m = str1.length, n = str2.length, n1 = n + 1;
+			final int[] 	D = new int[(m + 1)*(n + 1)];
+//			final int[][] 	D = new int[m + 1][n + 1];
+			final char[] 	P = new char[(m + 1)*(n + 1)];
+//			final char[][] 	P = new char[m + 1][n + 1];
 		
 			for (int i = 0; i <= m; i++) {
-				D[i][0] = i;
-				P[i][0] = 'D';
+				D[i*n1+0] = i;
+//				D[i][0] = i;
+				P[i*n1+0] = 'D';
+//				P[i][0] = 'D';
 			}
 			for (int i = 0; i <= n; i++) {
-				D[0][i] = i;
-				P[0][i] = 'I';
+				D[0*n1+i] = i;
+//				D[0][i] = i;
+				P[0*n1+i] = 'I';
+//				P[0][i] = 'I';
 			}
 		
 			for (int i = 1; i <= m; i++) {
-		            for (int j = 1; j <= n; j++) {
-		                final int cost = str1[i - 1] != str2[j - 1] ? 1 : 0;
-		
-		                if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
-		                    D[i][j] = D[i][j - 1] + 1;
-		                    P[i][j] = 'I';
-		                }
-		                else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
-		                    D[i][j] = D[i - 1][j] + 1;
-		                    P[i][j] = 'D';
-		                }
-		                else {
-		                    D[i][j] = D[i - 1][j - 1] + cost;
-		                    P[i][j] = (cost == 1) ? 'R' : 'M';
-		                }
-		            }
-		        }
-		
+				final int	in1 = i*n1, im1n1 = (i - 1)*n1;  
+				
+	            for (int j = 1; j <= n; j++) {
+	                final int cost = str1[i - 1] != str2[j - 1] ? 1 : 0;
+	
+	                if(D[in1+(j - 1)] < D[im1n1+j] && D[in1+(j - 1)] < D[im1n1+(j - 1)] + cost) {
+//		                if(D[i][j - 1] < D[i - 1][j] && D[i][j - 1] < D[i - 1][j - 1] + cost) {
+	                    D[in1+j] = D[in1+(j - 1)] + 1;
+//		                    D[i][j] = D[i][j - 1] + 1;
+	                    P[in1+j] = 'I';
+//		                    P[i][j] = 'I';
+	                }
+	                else if(D[im1n1+j] < D[im1n1+(j - 1)] + cost) {
+//		                else if(D[i - 1][j] < D[i - 1][j - 1] + cost) {
+	                    D[in1+j] = D[im1n1+j] + 1;
+//		                    D[i][j] = D[i - 1][j] + 1;
+	                    P[in1+j] = 'D';
+//		                    P[i][j] = 'D';
+	                }
+	                else {
+	                    D[in1+j] = D[im1n1+(j - 1)] + cost;
+//		                    D[i][j] = D[i - 1][j - 1] + cost;
+	                    P[in1+j] = (cost == 1) ? 'R' : 'M';
+//		                    P[i][j] = (cost == 1) ? 'R' : 'M';
+	                }
+	            }
+	        }
 			int i = m, j = n, size = 0;
 			
 			do {
-				char c = P[i][j];
+				char c = P[i*n1+j];
+//				char c = P[i][j];
 				
 	            if(c == 'R' || c == 'M') {
 	            	size++;
@@ -3427,23 +3444,26 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 			i = m;
 			j = n;		        
 			do {
-				char c = P[i][j];
-		            if(c == 'R' || c == 'M') {
-		                result[where--] = new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j};
-		                i --;
-		                j --;
-		            }
-		            else if(c == 'D') {
-		                result[where--] = new int[]{Prescription.LEV_DELETE,i,j};
-		                i --;
-		            }
-		            else {
-		                result[where--] = new int[]{Prescription.LEV_INSERT,i,j};
-		                j --;
-		            }
+				char c = P[i*n1+j];
+//				char c = P[i][j];
+				
+	            if(c == 'R' || c == 'M') {
+	                result[where--] = new int[]{c == 'M' ? Prescription.LEV_NONE : Prescription.LEV_REPLACE,i,j};
+	                i --;
+	                j --;
+	            }
+	            else if(c == 'D') {
+	                result[where--] = new int[]{Prescription.LEV_DELETE,i,j};
+	                i --;
+	            }
+	            else {
+	                result[where--] = new int[]{Prescription.LEV_INSERT,i,j};
+	                j --;
+	            }
 			} while((i != 0) || (j != 0));
 		        
-			return new Prescription(D[m][n], result);
+			return new Prescription(D[m*n1+n], result);
+//			return new Prescription(D[m][n], result);
     	}
     }
 

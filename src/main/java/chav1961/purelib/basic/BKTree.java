@@ -1,17 +1,18 @@
 package chav1961.purelib.basic;
 
+
 import java.util.Arrays;
-import java.util.function.BiConsumer;
 
 /**
  * <p>This class implements Burkhard-Keller tree.</p>
  * 
  * <p>This class is not thread-safe</p>
  * 
- * @author Alexander Chernomyrdin aka chav1961
- * @since 0.0.7
  * @param <Content> content item type inside the tree
  * @param <Cargo> any object associated with the item
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ * @last.update 0.0.8
  * @see <a href="https://en.wikipedia.org/wiki/BK-tree">Burkhrdt-Keller tree</a>
  */
 public class BKTree<Content, Cargo> {
@@ -33,6 +34,25 @@ public class BKTree<Content, Cargo> {
 		int apply(final Content c1, final Content c2);
 	}
 
+	/**
+	 * <p>This interface describes callback to apply found data on walking</p> 
+	 * @param <Content> content item type inside the tree
+	 * @param <Cargo> any object associated with the item
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.8
+	 */
+	@FunctionalInterface
+	public static interface WalkFunction<Content, Cargo> {
+		/**
+		 * <p>Apply tree node.</p>
+		 * @param content current node content. Can't be null.
+		 * @param metrics current node metrics (when seek node) or -1 (on total walking)
+		 * @param cargo cargo associated with the current node
+		 * @return true - continue walking, false otherwise
+		 */
+		boolean apply(Content content, int metrics, Cargo cargo);
+	}
+	
 	private final Class<Content> 			clazz;
 	private final BiIntFunction<Content>	metrics;
 	private BKRoot<Content, Cargo>			root;
@@ -104,7 +124,7 @@ public class BKTree<Content, Cargo> {
 	 * @param callback function processed on every items. Can't be null
 	 * @throws NullPointerException when callback is null
 	 */
-	public void walk(final BiConsumer<Content, Cargo> callback) throws NullPointerException {
+	public void walk(final WalkFunction<Content, Cargo> callback) throws NullPointerException {
 		if (callback == null) {
 			throw new NullPointerException("Callback can't be null");
 		}
@@ -121,7 +141,7 @@ public class BKTree<Content, Cargo> {
 	 * @throws NullPointerException when content of callback is null
 	 * @throws IllegalArgumentException when maxMetrics is negative
 	 */
-	public void walk(final Content content, final int maxMetrics, final BiConsumer<Content, Cargo> callback) throws NullPointerException, IllegalArgumentException {
+	public void walk(final Content content, final int maxMetrics, final WalkFunction<Content, Cargo> callback) throws NullPointerException, IllegalArgumentException {
 		if (content == null) {
 			throw new NullPointerException("Content can't be null");
 		}
@@ -185,27 +205,39 @@ public class BKTree<Content, Cargo> {
 		}
 	}
 	
-	private void walk(final BKRoot<Content, Cargo> root, final BiConsumer<Content, Cargo> callback) {
+	private boolean walk(final BKRoot<Content, Cargo> root, final WalkFunction<Content, Cargo> callback) {
 		final BKRoot<Content, Cargo>[]	array = root.children;
 		
-		callback.accept(root.content, root.cargo);
-		for (int index = 0, maxIndex = root.getLength(); index < maxIndex; index++) {
-			walk(array[index], callback);
+		if (!callback.apply(root.content, -1, root.cargo)) {
+			return false;
+		}
+		else {
+			for (int index = 0, maxIndex = root.getLength(); index < maxIndex; index++) {
+				if (!walk(array[index], callback)) {
+					return false;
+				}
+			}
+			return true;
 		}
 	}
 	
-	private void forAll(final BKRoot<Content, Cargo> root, final Content content, final int maxMetrics, final BiConsumer<Content, Cargo> callback) {
+	private boolean forAll(final BKRoot<Content, Cargo> root, final Content content, final int maxMetrics, final WalkFunction<Content, Cargo> callback) {
 		final int 	key = metrics.apply(root.content, content);
 		final BKRoot<Content, Cargo>[]	array = root.children;
 		final int	from = find(array, root.getLength(), key - maxMetrics);
 		final int	to = Math.min(root.getLength() - 1, find(array, root.getLength(), key + maxMetrics));
 		
 		if (key <= maxMetrics) {
-			callback.accept(root.content, root.cargo);
+			if (!callback.apply(root.content, key, root.cargo)) {
+				return false;
+			}
 		}
 		for(int index = from; index <= to; index++) {
-			forAll(array[index], content, maxMetrics, callback);
+			if (!forAll(array[index], content, maxMetrics, callback)) {
+				return false;
+			}
 		}
+		return true;
 	}
 	
 	private int find(final BKRoot<Content, Cargo>[] root, final int range, final int key) {

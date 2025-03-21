@@ -27,7 +27,7 @@ public class BKTreeTest {
 		Assert.assertTrue(tree.contains("test1".toCharArray()));
 		Assert.assertFalse(tree.contains("test3".toCharArray()));
 		
-		tree.walk((v1,v2)->walked.add(v2));
+		tree.walk((v1,m,v2)->walked.add(v2));
 		Assert.assertEquals(awaited, walked);
 		
 		try{new BKTree<char[],String>(null, (v1,v2)->CharUtils.calcLevenstain(v1, v2).distance);
@@ -68,18 +68,18 @@ public class BKTreeTest {
 			tree.add(item.toCharArray(), item);
 		}
 		
-		tree.walk("test2".toCharArray(),0,(v1,v2)->walked.add(v2));
+		tree.walk("test2".toCharArray(),0,(v1,m,v2)->walked.add(v2));
 		Assert.assertEquals(new HashSet<>(Arrays.asList("test2")), walked);
 		
 		walked.clear();
-		tree.walk("test2".toCharArray(),1,(v1,v2)->walked.add(v2));
+		tree.walk("test2".toCharArray(),1,(v1,m,v2)->walked.add(v2));
 		Assert.assertEquals(new HashSet<>(Arrays.asList("test2","test12","test23","test1")), walked);
 		
-		try{tree.walk(null,1,(v1,v2)->walked.add(v2));
+		try{tree.walk(null,1,(v1,m,v2)->walked.add(v2));
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{tree.walk("test2".toCharArray(),-1,(v1,v2)->walked.add(v2));
+		try{tree.walk("test2".toCharArray(),-1,(v1,m,v2)->walked.add(v2));
 			Assert.fail("Mandatory exception was not detected (negative 2-nd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
