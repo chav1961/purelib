@@ -1,4 +1,4 @@
-package chav1961.purelib.model.interfaces;
+package chav1961.purelib.basic.util.interfaces;
 
 import java.awt.Image;
 import java.io.Serializable;

@@ -1,4 +1,4 @@
-package chav1961.purelib.model;
+package chav1961.purelib.basic.util;
 
 import java.awt.Image;
 import java.awt.image.RenderedImage;
@@ -12,7 +12,7 @@ import javax.imageio.ImageIO;
 
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.PreparationException;
-import chav1961.purelib.model.interfaces.ImageKeeper;
+import chav1961.purelib.basic.util.interfaces.ImageKeeper;
 import chav1961.purelib.streams.byte2char.Byte2HexOutputStream;
 import chav1961.purelib.streams.char2byte.Hex2ByteInputStream;
 

@@ -10,6 +10,11 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
+/**
+ * <p>This class is an implementation of {@linkplain ContentNodeMetadata}, that can be changed directly</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private final List<ContentNodeMetadata>	children = new ArrayList<>();
 	private final String				name;
@@ -22,7 +27,22 @@ public class MutableContentNodeMetadata implements ContentNodeMetadata {
 	private ContentNodeMetadata			parent = null;
 	private boolean 					mounted = false;	
 	
-	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final FieldFormat formatAssociated, final URI applicationPath, final URI iconURI) {
+	/**
+	 * <p>Constructor of the class instance.</p> 
+	 * @param name node name. Can be neither null nor empty
+	 * @param type node type. Can't be null
+	 * @param relativeUIPath relative UI path in the node tree. Can't be null
+	 * @param localizerAssociated URI of associated localizer. Can't be null
+	 * @param labelId node label id in the localizer. Can be neither null nor empty
+	 * @param tooltipId node tool-tip id in the localizer. Can be null
+	 * @param helpId node help id in the localizer. Can be null
+	 * @param formatAssociated field format associated with the given node. Can be null
+	 * @param applicationPath absolute application URI. Can't be null
+	 * @param iconURI icon URI. Can be null
+	 * @throws IllegalArgumentException string argument is null or empty
+	 * @throws NullPointerException non-string argument is null
+	 */
+	public MutableContentNodeMetadata(final String name, final Class<?> type, final String relativeUIPath, final URI localizerAssociated, final String labelId, final String tooltipId, final String helpId, final FieldFormat formatAssociated, final URI applicationPath, final URI iconURI) throws NullPointerException, IllegalArgumentException {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Node name can't be null or empty");
 		}

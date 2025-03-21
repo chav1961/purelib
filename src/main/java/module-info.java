@@ -27,6 +27,8 @@ module chav1961.purelib {
 	exports chav1961.purelib.basic.interfaces; 
 	exports chav1961.purelib.basic.subscribable; 
 	exports chav1961.purelib.basic.xsd;
+	exports chav1961.purelib.basic.util;
+	exports chav1961.purelib.basic.util.interfaces;
 	exports chav1961.purelib.cdb;
 	exports chav1961.purelib.cdb.interfaces;
 	exports chav1961.purelib.concurrent;

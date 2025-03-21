@@ -6,6 +6,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * <p>This is a basic class to implement mappable access to inner class fields.</p> 
+ * @param <K> map key types
+ * @param <V> map value types
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ * @last.update 0.0.8
+ */
 public abstract class MappedAdamClass<K,V> implements Map<K,V> {
 	protected MappedAdamClass() {
 	}

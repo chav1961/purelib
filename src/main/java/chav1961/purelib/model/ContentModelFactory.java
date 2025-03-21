@@ -52,6 +52,8 @@ import chav1961.purelib.i18n.internal.PureLibLocalizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.SPIServiceNavigationMember;
+import chav1961.purelib.model.interfaces.SchemaContainer;
+import chav1961.purelib.model.interfaces.TableContainer;
 import chav1961.purelib.sql.SQLUtils;
 import chav1961.purelib.streams.JsonStaxParser;
 import chav1961.purelib.ui.interfaces.Action;

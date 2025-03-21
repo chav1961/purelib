@@ -5,7 +5,7 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({ ContentFilterTest.class, ContentMetadataTest.class, ContentModelFactoryTest.class,
-		ContentNodeMetadataTest.class, FieldFormatTest.class, ModelManagedMapTest.class, ModelUtilsTest.class })
+		ContentNodeMetadataTest.class, FieldFormatTest.class, ModelUtilsTest.class })
 public class AllTests {
 
 }

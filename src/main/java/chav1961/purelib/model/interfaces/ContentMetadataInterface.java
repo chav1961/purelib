@@ -8,7 +8,6 @@ import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
-import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.FieldFormat;
 
 /**
@@ -234,16 +233,64 @@ public interface ContentMetadataInterface {
 		}
 	}
 
+	/**
+	 * <p>This interface is used to process walking on the model</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
 	public interface ContentWalker {
+		/**
+		 * <p>Process current model node</p>
+		 * @param mode mode of walking. Can't be null
+		 * @param applicationPath node application path. Can't be null
+		 * @param uiPath absolute node UI path. Can't be null
+		 * @param node node to process. Can't be null.
+		 * @return continuation mode.
+		 * @see NodeEnterMode
+		 * @see ContinueMode
+		 */
 		ContinueMode process(NodeEnterMode mode, URI applicationPath, URI uiPath, ContentNodeMetadata node);
 	}
 	
+	/**
+	 * <p>This interface describes manipulations with the model content.</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	public interface ContentNodeManipulator {
+		/**
+		 * <p>Are the two nodes equal</p>
+		 * @param left left node to check. Can't be null
+		 * @param right right node to check. Can't be null
+		 * @return true if nodes are equal, false otherwise
+		 */
 		boolean isEquals(ContentNodeMetadata left, ContentNodeMetadata right);
+		/**
+		 * <p>Clone current node.</p>
+		 * @param source node to clone. Can't be null.
+		 * @return cloned node. Can't be null
+		 */
 		ContentNodeMetadata clone(ContentNodeMetadata source);
+		/**
+		 * <p>Join two nodes data and build joined node</p>
+		 * @param left left node to join. Can't be null
+		 * @param right right node to join. Can't be null
+		 * @return joined node. Can't be null
+		 */
 		ContentNodeMetadata join(ContentNodeMetadata left, ContentNodeMetadata right);
+		/**
+		 * <p>Add children to the current node</p>
+		 * @param root node to add children to. Can't be null
+		 * @param children children list to add. Can't be null and can't contain nulls inside, but can be empty
+		 * @return self. Can be used in the chained calls.
+		 */
 		ContentNodeMetadata addChildren(ContentNodeMetadata root, ContentNodeMetadata... children);
+		/**
+		 * <p>Remove all children from current node</p>
+		 * @param root node to remove children from. Can't be null
+		 * @return self. Can be used in the chained calls.
+		 */
 		ContentNodeMetadata removeChildren(ContentNodeMetadata root);
 	}
 	

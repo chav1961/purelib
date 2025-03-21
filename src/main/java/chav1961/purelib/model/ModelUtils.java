@@ -102,7 +102,7 @@ public class ModelUtils {
 											JSON_METADATA_RELATIVE_UI_PATH
 										};
 	private static final URI			FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/");
-	private static final ModelManupulationCallback	EQUALITY_PREDICATE = (left,right)->left.getName().equalsIgnoreCase(right.getName());
+	private static final ModelManipulationCallback	EQUALITY_PREDICATE = (left,right)->left.getName().equalsIgnoreCase(right.getName());
 	
 
 	private static final AsmWriter		writer;
@@ -210,13 +210,34 @@ public class ModelUtils {
 		ContinueMode difference(ContentNodeMetadata left, ContentNodeMetadata right, DifferenceType diffType, Set<DifferenceLocalization> details);
 	}
 
+	/**
+	 * <p>This interface supports some model manipulations</p>
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.3
+	 */
 	@FunctionalInterface
-	public interface ModelManupulationCallback {
+	public interface ModelManipulationCallback {
+		/**
+		 * <p>Check model node equality</p>
+		 * @param left left model to check. Can't be null
+		 * @param right right mode to check. Can't be null
+		 * @return true when nodes are equals, false otherwise.
+		 */
 		boolean isEqual(ContentNodeMetadata left, ContentNodeMetadata right);
+		/**
+		 * <p>Clone current node.</p>
+		 * @param item current node to clone. Can't be null.
+		 * @return cloned node. Can't be null
+		 */
 		default ContentNodeMetadata clone(ContentNodeMetadata item) {return ModelUtils.clone(item);}
+		/**
+		 * <p>Join two nodes data and create new joined node.</p>
+		 * @param left left model to join. Can't be null
+		 * @param right right mode to join. Can't be null
+		 * @return joined node. Can't be null
+		 */
 		default ContentNodeMetadata join(ContentNodeMetadata left, ContentNodeMetadata right) {return ModelUtils.clone(left);}
 	}
-	
 	
 	/**
 	 * <p>Convert model tree to tree text</p>
@@ -544,7 +565,7 @@ public class ModelUtils {
 		return union(left,right,EQUALITY_PREDICATE);
 	}
 
-	public static ContentNodeMetadata union(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManupulationCallback equality) throws NullPointerException {
+	public static ContentNodeMetadata union(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManipulationCallback equality) throws NullPointerException {
 		if (left == null) {
 			throw new NullPointerException("Left metadata argument can't be null");
 		}
@@ -593,7 +614,7 @@ loop2:		for (ContentNodeMetadata rightChild : right) {
 		return intersect(left,right,EQUALITY_PREDICATE);
 	}
 
-	public static ContentNodeMetadata intersect(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManupulationCallback equality) throws NullPointerException {
+	public static ContentNodeMetadata intersect(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManipulationCallback equality) throws NullPointerException {
 		if (left == null) {
 			throw new NullPointerException("Left metadata argument can't be null");
 		}
@@ -624,7 +645,7 @@ loop2:		for (ContentNodeMetadata rightChild : right) {
 		return minus(left,right,EQUALITY_PREDICATE);
 	}
 
-	public static ContentNodeMetadata minus(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManupulationCallback equality) throws NullPointerException {
+	public static ContentNodeMetadata minus(final ContentNodeMetadata left, final ContentNodeMetadata right, final ModelManipulationCallback equality) throws NullPointerException {
 		if (left == null) {
 			throw new NullPointerException("Left metadata argument can't be null");
 		}

@@ -5,7 +5,7 @@ public interface ContentModelItemWrapper<T> extends NodeMetadataOwner {
 	String getItemName();
 	T getItem();
 	void setItem(T item);
-	Iterable<T> availableItems(String pattern);
+	Iterable<T> availableItems(CharSequence pattern);
 	
 	default Iterable<T> availableItems() {
 		return availableItems(".*");

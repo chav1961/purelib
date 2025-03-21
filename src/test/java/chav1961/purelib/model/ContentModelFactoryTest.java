@@ -24,6 +24,7 @@ import chav1961.purelib.i18n.interfaces.LocaleResource;
 import chav1961.purelib.i18n.interfaces.LocaleResourceLocation;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
+import chav1961.purelib.model.interfaces.TableContainer;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.testing.TestingUtils;
 import chav1961.purelib.ui.interfaces.Action;

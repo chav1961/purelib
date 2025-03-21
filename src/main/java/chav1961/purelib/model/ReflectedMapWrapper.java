@@ -27,6 +27,11 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.cdb.CompilerUtils;
 
+/**
+ * <p>This class is an implementation of map-styled access to fields of any class.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class ReflectedMapWrapper extends MappedAdamClass<String, Object> implements SubstitutionSource, CharSubstitutionSource {
 	private final Object			instance;
 	private final LoggerFacade		logger;
@@ -36,14 +41,32 @@ public class ReflectedMapWrapper extends MappedAdamClass<String, Object> impleme
 	private final Class<?>[]		classes;
 	private final GetterAndSetter[]	gas;
 
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param instance instance to make map for. Can't be null
+	 * @throws NullPointerException parameter is null
+	 */
 	public ReflectedMapWrapper(final Object instance) throws NullPointerException {
 		this(instance, PureLibSettings.CURRENT_LOGGER, (name, value) -> value == null ? "" : value.toString());
 	}
 
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param instance instance to make map for. Can't be null
+	 * @param convertor function to convert keys to it's values. Can't be null 
+	 * @throws NullPointerException any parameter is null
+	 */
 	public ReflectedMapWrapper(final Object instance, final BiFunction<String, Object, String> convertor) throws NullPointerException {
 		this(instance, PureLibSettings.CURRENT_LOGGER, convertor);
 	}
 	
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param instance instance to make map for. Can't be null
+	 * @param logger logger to trace errors. Can't be null
+	 * @param convertor function to convert keys to it's values. Can't be null 
+	 * @throws NullPointerException any parameter is null
+	 */
 	public ReflectedMapWrapper(final Object instance, final LoggerFacade logger, final BiFunction<String, Object, String> convertor) throws NullPointerException {
 		if (instance == null) {
 			throw new NullPointerException("Instance can't be null");

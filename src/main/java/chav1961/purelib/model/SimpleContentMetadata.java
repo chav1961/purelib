@@ -5,21 +5,27 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.URIUtils;
-import chav1961.purelib.basic.Utils.EverywhereWalkerCallback;
-import chav1961.purelib.basic.Utils.EverywhereWalkerCollector;
-import chav1961.purelib.basic.Utils.EverywhereWalkerCollector.ReferenceType;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
-import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 
+/**
+ * <p>This class is default implementation of {@linkplain ContentMetadataInterface}</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.3
+ */
 public class SimpleContentMetadata implements ContentMetadataInterface {
 	private final ContentNodeMetadata	root;
 
-	public SimpleContentMetadata(final ContentNodeMetadata root) {
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param root root of nodes tree. Ca't be null
+	 * @throws NullPointerException root is null
+	 */
+	public SimpleContentMetadata(final ContentNodeMetadata root) throws NullPointerException {
 		if (root == null) {
 			throw new NullPointerException("Root node can't be null"); 
 		}
@@ -137,58 +143,5 @@ public class SimpleContentMetadata implements ContentMetadataInterface {
 		} catch (ContentException e) {
 			return ContinueMode.STOP;
 		}
-//		
-//		
-//		
-//		
-//		
-//		
-//		
-//		
-//		final ContinueMode	enterRC = walker.process(NodeEnterMode.ENTER,node.getApplicationPath(),node.getUIPath(),node);
-//		ContinueMode		childRC = null, exitRC = null;
-//		
-//		switch (enterRC) {
-//			case CONTINUE		:
-//				for (ContentNodeMetadata child : node) {
-//					if ((childRC = walkDownInternal(walker,child)) != ContinueMode.CONTINUE) {
-//						break;
-//					}
-//				}
-//				exitRC = walker.process(NodeEnterMode.EXIT, node.getApplicationPath(), node.getUIPath(), node);
-//				break;
-//			case SKIP_CHILDREN	:
-//				break;
-//			case SKIP_SIBLINGS	:
-//				break;
-//			case STOP			:
-//			case SKIP_PARENT	:
-//			case PARENT_ONLY	:
-//			case SIBLINGS_ONLY	:
-//				walker.process(NodeEnterMode.EXIT, node.getApplicationPath(), node.getUIPath(), node);
-//				return ContinueMode.STOP;
-//			default:
-//				throw new UnsupportedOperationException("Continue mode ["+enterRC+"] is not supported yet");
-//		}
-//		if (enterRC == ContinueMode.CONTINUE) {
-//			if (node.getChildrenCount() == 0) {
-//				childRC = ContinueMode.CONTINUE;
-//			}
-//			else {
-//				for (ContentNodeMetadata child : node) {
-//					if ((childRC = walkDownInternal(walker,child)) != ContinueMode.CONTINUE) {
-//						break;
-//					}
-//				}
-//			}
-//		}
-//		final ContinueMode	exitRC = walker.process(NodeEnterMode.EXIT,node.getApplicationPath(),node.getUIPath(),node);
-//		
-//		if (enterRC == ContinueMode.STOP || exitRC == ContinueMode.STOP || (childRC == null || childRC == ContinueMode.STOP)) {
-//			return ContinueMode.STOP;
-//		}
-//		else {
-//			return ContinueMode.CONTINUE;
-//		}			
 	}
 }
