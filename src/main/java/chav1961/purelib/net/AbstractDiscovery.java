@@ -26,6 +26,8 @@ import chav1961.purelib.net.interfaces.MediaItemDescriptor;
  * <p>This class implements abstract discovery service.</p>
  * @param <Broadcast> Broadcast message class
  * @param <Query> Query message class
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
  */
 public abstract class AbstractDiscovery <Broadcast extends Serializable, Query extends Serializable> implements Closeable, ExecutionControl, Maintenable<Object> {
 	/**

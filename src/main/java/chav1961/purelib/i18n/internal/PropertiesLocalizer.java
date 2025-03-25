@@ -25,7 +25,7 @@ import chav1961.purelib.i18n.interfaces.Localizer;
 
 /**
  * <p>This class is a wrapper to standard Java {@linkplain ResourceBundle} class. This class is an Java SPI service and available thru 
- * {@linkplain LocalizerFactory}. URI scheme-specific part for it must be:</p>
+ * {@linkplain Localizer.Factory}. URI scheme-specific part for it must be:</p>
  * <code>{@value #SUBSCHEME}:/valid_path_to_jar_resource</code>
  *   
  * @see Localizer

@@ -14,6 +14,12 @@ import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.concurrent.interfaces.ExecutionControl;
 
+/**
+ * <p>This class is a template to wrap {@linkplain Selector} functionality. To use this class you need to define child class 
+ * and implement all abstract methods from this class in it. This class can be used in the <b>try-with-resource</b> block.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.7
+ */
 public abstract class AbstractSelectorBasedDispatcher implements Closeable, LoggerFacadeOwner, ExecutionControl {
 	private final LoggerFacade	logger;
 	private final Selector		selector;
@@ -21,12 +27,31 @@ public abstract class AbstractSelectorBasedDispatcher implements Closeable, Logg
 	private volatile boolean	started = false, suspended = false;
 	private volatile Thread		t = null;
 
+	/**
+	 * <p>This interface uis used to process socket address</p> 
+	 * @author Alexander Chernomyrdin aka chav1961
+	 * @since 0.0.7
+	 */
 	@FunctionalInterface
 	public interface AddressCallback {
+		/**
+		 * <p>Process socket address connected</p>
+		 * @param uuid unique connection ID. Can't be null.
+		 * @param addr connected socket address. Can't be null.
+		 * @param sel associated selector. Can't be null.
+		 * @throws IOException on any I/O errors
+		 */
 		void process(UUID uuid, SocketAddress addr, Selector sel) throws IOException;
 	}
-	
-    public AbstractSelectorBasedDispatcher(final LoggerFacade logger, final boolean asServer) throws IOException {
+
+	/**
+	 * <p>Constructor of the class instance</p>
+	 * @param logger logger to print errors to. Can't be null.
+	 * @param asServer use this  class as server.
+	 * @throws NullPointerException logger facade is null 
+	 * @throws IOException in any I/O errors
+	 */
+    protected AbstractSelectorBasedDispatcher(final LoggerFacade logger, final boolean asServer) throws NullPointerException, IOException {
     	if (logger == null) {
     		throw new NullPointerException("Logger can't be null");
     	}
@@ -104,7 +129,10 @@ public abstract class AbstractSelectorBasedDispatcher implements Closeable, Logg
 		}
 		else {
 			t.interrupt();
-			try{t.join(1000);} catch (InterruptedException e) {}
+			try{
+				t.join(1000);
+			} catch (InterruptedException e) {
+			}
 			afterStop(getSelector());
 		}
 	}
@@ -123,14 +151,14 @@ public abstract class AbstractSelectorBasedDispatcher implements Closeable, Logg
 		return selector;
 	}
 
-
 	protected boolean isServer() {
 		return asServer;
 	}
 	
 	private void run() {
 	    while (!Thread.currentThread().isInterrupted()) {
-	        try{getSelector().select();
+	        try{
+	        	getSelector().select();
 	        
 		        final Set<SelectionKey> 		selectedKeys = getSelector().selectedKeys();
 		        final Iterator<SelectionKey>	iter = selectedKeys.iterator();
