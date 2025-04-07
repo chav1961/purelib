@@ -13,7 +13,7 @@ import java.util.Arrays;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
  * @last.update 0.0.8
- * @see <a href="https://en.wikipedia.org/wiki/BK-tree">Burkhrdt-Keller tree</a>
+ * @see <a href="https://en.wikipedia.org/wiki/BK-tree">Burkhardt-Keller tree</a>
  */
 public class BKTree<Content, Cargo> {
 	/**
@@ -223,15 +223,17 @@ public class BKTree<Content, Cargo> {
 	
 	private boolean forAll(final BKRoot<Content, Cargo> root, final Content content, final int maxMetrics, final WalkFunction<Content, Cargo> callback) {
 		final int 	key = metrics.apply(root.content, content);
-		final BKRoot<Content, Cargo>[]	array = root.children;
-		final int	from = find(array, root.getLength(), key - maxMetrics);
-		final int	to = Math.min(root.getLength() - 1, find(array, root.getLength(), key + maxMetrics));
 		
 		if (key <= maxMetrics) {
 			if (!callback.apply(root.content, key, root.cargo)) {
 				return false;
 			}
 		}
+		
+		final BKRoot<Content, Cargo>[]	array = root.children;
+		final int	from = find(array, root.getLength(), key - maxMetrics);
+		final int	to = Math.min(root.getLength() - 1, find(array, root.getLength(), key + maxMetrics));
+
 		for(int index = from; index <= to; index++) {
 			if (!forAll(array[index], content, maxMetrics, callback)) {
 				return false;
@@ -261,12 +263,12 @@ public class BKTree<Content, Cargo> {
 	}
 	
 	private static class BKRoot<Content, Cargo> {
-		private static final BKRoot[]	EMPTY = new BKRoot[0];
+		private static final BKRoot<?,?>[]	EMPTY = new BKRoot[0];
 		
 		private final Content				content;
 		private final int 					metric;			
 		private final Cargo					cargo;
-		private BKRoot<Content, Cargo>[]	children = EMPTY;
+		private BKRoot<Content, Cargo>[]	children = (BKRoot<Content, Cargo>[]) EMPTY;
 		private int							length = 0;
 		
 		public BKRoot(final Content content, final int metric, final Cargo cargo) {
