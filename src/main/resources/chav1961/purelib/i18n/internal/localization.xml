@@ -115,6 +115,12 @@
 		<key name="fileSystems.FileSystemOnXMLReadOnly.licenseContent">MIT</key> 
 		<key name="fileSystems.FileSystemOnXMLReadOnly.help">MIT</key>
 
+		<key name="fileSystems.FileSystemOnFTP.description">FTP-based client/server file system</key>
+		<key name="fileSystems.FileSystemOnFTP.vendor">${VENDOR}</key>
+		<key name="fileSystems.FileSystemOnFTP.license">MIT</key>
+		<key name="fileSystems.FileSystemOnFTP.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnFTP.help">MIT</key>
+
 <!-- Titles for the standard windows of the library  -->
 		<key name="titleHelpScreen">Help</key>
 		<key name="titleAskParametersScreen">Type parameters...</key>
@@ -534,6 +540,12 @@
 		<key name="fileSystems.FileSystemOnXMLReadOnly.license">MIT</key>
 		<key name="fileSystems.FileSystemOnXMLReadOnly.licenseContent">MIT</key> 
 		<key name="fileSystems.FileSystemOnXMLReadOnly.help">MIT</key>
+
+		<key name="fileSystems.FileSystemOnFTP.description">ФС на базе FTP</key>
+		<key name="fileSystems.FileSystemOnFTP.vendor">${vendor}</key>
+		<key name="fileSystems.FileSystemOnFTP.license">MIT</key>
+		<key name="fileSystems.FileSystemOnFTP.licenseContent">MIT</key> 
+		<key name="fileSystems.FileSystemOnFTP.help">MIT</key>
 
 <!-- Заголовки различных стандартных окон библиотеки  -->
 		<key name="titleHelpScreen">Справка</key>

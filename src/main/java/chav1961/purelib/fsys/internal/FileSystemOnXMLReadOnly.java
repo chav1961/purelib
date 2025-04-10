@@ -82,7 +82,7 @@ public class FileSystemOnXMLReadOnly extends AbstractFileSystem implements FileS
 	private final URI 						rootPath;
 	private final Document					doc;
 	private final NodeList					mountPoints;
-	private final InMemoryFileSystemLocker			lock;
+	private final InMemoryFileSystemLocker	lock;
 
 	/**
 	 * <p>This constructor is an entry for the SPI service only. Don't use it in any purposes</p> 
