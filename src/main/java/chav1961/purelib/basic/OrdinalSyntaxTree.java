@@ -4,6 +4,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
+import chav1961.purelib.basic.interfaces.SyntaxTreeInterface.Walker;
 
 /**
  * <p>This class is an ordinal implementation of {@link SyntaxTreeInterface} interface. It can be used everywhere when {@linkplain AndOrTree} can.</p>
@@ -146,6 +147,40 @@ public class OrdinalSyntaxTree<Cargo> implements SyntaxTreeInterface<Cargo> {
 		}
 	}
 
+	@Override
+	public void placeAll(final SyntaxTreeInterface<Cargo> another) {
+		if (another == null) {
+			throw new NullPointerException("Another tree can't be null");
+		}
+		else {
+			another.walk(new Walker<Cargo>() {
+				@Override
+				public boolean process(final char[] name, final int len, final long id, final Cargo cargo) {
+					if (seekName(name, 0, len) < 0) {
+						placeName(name, 0, len, cargo);
+					}
+					return true;
+				}
+			}) ;
+		}
+	}
+
+	@Override
+	public void placeOrChangeAll(SyntaxTreeInterface<Cargo> another) {
+		if (another == null) {
+			throw new NullPointerException("Another tree can't be null");
+		}
+		else {
+			another.walk(new Walker<Cargo>() {
+				@Override
+				public boolean process(final char[] name, final int len, final long id, final Cargo cargo) {
+					placeOrChangeName(name, 0, len, cargo);
+					return true;
+				}
+			}) ;
+		}
+	}
+	
 	@Override
 	public long seekName(final char[] value, final int from, final int to) {
 		if (value == null || value.length == 0) {

@@ -537,7 +537,40 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		amount = 0;
 	}
 
+	@Override
+	public void placeAll(final SyntaxTreeInterface<T> another) {
+		if (another == null) {
+			throw new NullPointerException("Another tree can't be null");
+		}
+		else {
+			another.walk(new Walker<T>() {
+				@Override
+				public boolean process(final char[] name, final int len, final long id, final T cargo) {
+					if (seekName(name, 0, len) < 0) {
+						placeName(name, 0, len, cargo);
+					}
+					return true;
+				}
+			}) ;
+		}
+	}
 
+	@Override
+	public void placeOrChangeAll(SyntaxTreeInterface<T> another) {
+		if (another == null) {
+			throw new NullPointerException("Another tree can't be null");
+		}
+		else {
+			another.walk(new Walker<T>() {
+				@Override
+				public boolean process(final char[] name, final int len, final long id, final T cargo) {
+					placeOrChangeName(name, 0, len, cargo);
+					return true;
+				}
+			}) ;
+		}
+	}
+	
 	/**
 	 * <p>Print tree content in human-readable format.</p>
 	 * @param ps print writer to print content to. Can't be null
@@ -612,7 +645,7 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 			return result;
 		}
 	}
-	
+
 	private long placeName(final char[] source, final int from, final int to, final long id, final T cargo, final boolean createId, final boolean refreshCargo) {
 		final int	len;
 		

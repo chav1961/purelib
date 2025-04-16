@@ -7,12 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.UTFDataFormatException;
-
-import chav1961.purelib.streams.interfaces.ByteOrder;
+import java.nio.ByteOrder;
 
 /**
  * <p>This class is copy of standard {@linkplain java.io.DataInputStream} class with different
- * byte orders support. Byte order is a {@linkplain ByteOrder} enumeration, that passes into class
+ * byte orders support. Byte order is a {@linkplain ByteOrder} class, that passes into class
  * constructor during instance creation.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.8
@@ -133,13 +132,11 @@ public class DataInputStream extends FilterInputStream implements DataInput {
             throw new EOFException();
         }
         else {
-        	switch (order) {
-				case BIG_ENDIAN		:
-			        return (short)((ch1 << 8) + (ch2 << 0));
-				case LITTLE_ENDIAN	:
-			        return (short)((ch1 << 0) + (ch2 << 8));
-				default:
-					throw new UnsupportedOperationException("Byte order ["+order+"] is not supported yet");
+        	if (order == ByteOrder.BIG_ENDIAN) {
+		        return (short)((ch1 << 8) + (ch2 << 0));
+        	}
+        	else {
+		        return (short)((ch1 << 0) + (ch2 << 8));
         	}
         }
     }
@@ -153,13 +150,11 @@ public class DataInputStream extends FilterInputStream implements DataInput {
             throw new EOFException();
         }
         else {
-        	switch (order) {
-				case BIG_ENDIAN		:
-			        return (ch1 << 8) + (ch2 << 0);
-				case LITTLE_ENDIAN	:
-			        return (ch1 << 0) + (ch2 << 8);
-				default:
-					throw new UnsupportedOperationException("Byte order ["+order+"] is not supported yet");
+        	if (order == ByteOrder.BIG_ENDIAN) {
+		        return (ch1 << 8) + (ch2 << 0);
+        	}
+        	else {
+		        return (ch1 << 0) + (ch2 << 8);
         	}
         }
     }
@@ -173,13 +168,11 @@ public class DataInputStream extends FilterInputStream implements DataInput {
             throw new EOFException();
         }
         else {
-        	switch (order) {
-				case BIG_ENDIAN		:
-			        return (char)((ch1 << 8) + (ch2 << 0));
-				case LITTLE_ENDIAN	:
-			        return (char)((ch1 << 0) + (ch2 << 8));
-				default:
-					throw new UnsupportedOperationException("Byte order ["+order+"] is not supported yet");
+        	if (order == ByteOrder.BIG_ENDIAN) {
+		        return (char)((ch1 << 8) + (ch2 << 0));
+        	}
+        	else {
+		        return (char)((ch1 << 0) + (ch2 << 8));
         	}
         }
     }
@@ -195,13 +188,11 @@ public class DataInputStream extends FilterInputStream implements DataInput {
             throw new EOFException();
         }
         else {
-        	switch (order) {
-				case BIG_ENDIAN		:
-			        return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
-				case LITTLE_ENDIAN	:
-			        return ((ch1 << 0) + (ch2 << 8) + (ch3 << 16) + (ch4 << 24));
-				default:
-					throw new UnsupportedOperationException("Byte order ["+order+"] is not supported yet");
+        	if (order == ByteOrder.BIG_ENDIAN) {
+		        return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+        	}
+        	else {
+		        return ((ch1 << 0) + (ch2 << 8) + (ch3 << 16) + (ch4 << 24));
         	}
         }
     }
@@ -209,27 +200,25 @@ public class DataInputStream extends FilterInputStream implements DataInput {
     @Override
     public final long readLong() throws IOException {
         readFully(readBuffer, 0, 8);
-    	switch (order) {
-			case BIG_ENDIAN		:
-		        return (((long)readBuffer[0] << 56) +
-		                ((long)(readBuffer[1] & 255) << 48) +
-		                ((long)(readBuffer[2] & 255) << 40) +
-		                ((long)(readBuffer[3] & 255) << 32) +
-		                ((long)(readBuffer[4] & 255) << 24) +
-		                ((readBuffer[5] & 255) << 16) +
-		                ((readBuffer[6] & 255) <<  8) +
-		                ((readBuffer[7] & 255) <<  0));
-			case LITTLE_ENDIAN	:
-		        return (((long)readBuffer[7] << 56) +
-		                ((long)(readBuffer[6] & 255) << 48) +
-		                ((long)(readBuffer[5] & 255) << 40) +
-		                ((long)(readBuffer[4] & 255) << 32) +
-		                ((long)(readBuffer[3] & 255) << 24) +
-		                ((readBuffer[2] & 255) << 16) +
-		                ((readBuffer[1] & 255) <<  8) +
-		                ((readBuffer[0] & 255) <<  0));
-			default:
-				throw new UnsupportedOperationException("Byte order ["+order+"] is not supported yet");
+    	if (order == ByteOrder.BIG_ENDIAN) {
+	        return (((long)readBuffer[0] << 56) +
+	                ((long)(readBuffer[1] & 255) << 48) +
+	                ((long)(readBuffer[2] & 255) << 40) +
+	                ((long)(readBuffer[3] & 255) << 32) +
+	                ((long)(readBuffer[4] & 255) << 24) +
+	                ((readBuffer[5] & 255) << 16) +
+	                ((readBuffer[6] & 255) <<  8) +
+	                ((readBuffer[7] & 255) <<  0));
+    	}
+    	else {
+	        return (((long)readBuffer[7] << 56) +
+	                ((long)(readBuffer[6] & 255) << 48) +
+	                ((long)(readBuffer[5] & 255) << 40) +
+	                ((long)(readBuffer[4] & 255) << 32) +
+	                ((long)(readBuffer[3] & 255) << 24) +
+	                ((readBuffer[2] & 255) << 16) +
+	                ((readBuffer[1] & 255) <<  8) +
+	                ((readBuffer[0] & 255) <<  0));
     	}
         
     }

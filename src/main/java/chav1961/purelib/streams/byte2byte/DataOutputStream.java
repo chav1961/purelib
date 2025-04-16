@@ -5,12 +5,11 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UTFDataFormatException;
-
-import chav1961.purelib.streams.interfaces.ByteOrder;
+import java.nio.ByteOrder;
 
 /**
  * <p>This class is copy of standard {@linkplain java.io.DataOutputStream} class with different
- * byte orders support. Byte order is a {@linkplain ByteOrder} enumeration, that passes into class
+ * byte orders support. Byte order is a {@linkplain ByteOrder} class, that passes into class
  * constructor during instance creation.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.8
@@ -77,84 +76,68 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
 
     @Override
     public final void writeShort(int v) throws IOException {
-    	switch (order) {
-			case BIG_ENDIAN		:
-		        out.write((v >>> 8) & 0xFF);
-		        out.write((v >>> 0) & 0xFF);
-				break;
-			case LITTLE_ENDIAN	:
-		        out.write((v >>> 0) & 0xFF);
-		        out.write((v >>> 8) & 0xFF);
-				break;
-			default:
-				throw new UnsupportedOperationException("Byte order ["+order+"] ia not supported yet");
+    	if (order == ByteOrder.BIG_ENDIAN) {
+	        out.write((v >>> 8) & 0xFF);
+	        out.write((v >>> 0) & 0xFF);
+    	}
+    	else {
+	        out.write((v >>> 0) & 0xFF);
+	        out.write((v >>> 8) & 0xFF);
     	}
         incCount(2);
     }
 
     @Override
     public final void writeChar(int v) throws IOException {
-    	switch (order) {
-			case BIG_ENDIAN		:
-		        out.write((v >>> 8) & 0xFF);
-		        out.write((v >>> 0) & 0xFF);
-				break;
-			case LITTLE_ENDIAN	:
-		        out.write((v >>> 0) & 0xFF);
-		        out.write((v >>> 8) & 0xFF);
-				break;
-			default:
-				throw new UnsupportedOperationException("Byte order ["+order+"] ia not supported yet");
+    	if (order == ByteOrder.BIG_ENDIAN) {
+	        out.write((v >>> 8) & 0xFF);
+	        out.write((v >>> 0) & 0xFF);
+    	}
+    	else {
+	        out.write((v >>> 0) & 0xFF);
+	        out.write((v >>> 8) & 0xFF);
     	}
         incCount(2);
     }
 
     @Override
     public final void writeInt(int v) throws IOException {
-    	switch (order) {
-			case BIG_ENDIAN		:
-		        out.write((v >>> 24) & 0xFF);
-		        out.write((v >>> 16) & 0xFF);
-		        out.write((v >>>  8) & 0xFF);
-		        out.write((v >>>  0) & 0xFF);
-				break;
-			case LITTLE_ENDIAN	:
-		        out.write((v >>>  0) & 0xFF);
-		        out.write((v >>>  8) & 0xFF);
-		        out.write((v >>> 16) & 0xFF);
-		        out.write((v >>> 24) & 0xFF);
-				break;
-			default:
-				throw new UnsupportedOperationException("Byte order ["+order+"] ia not supported yet");
+    	if (order == ByteOrder.BIG_ENDIAN) {
+	        out.write((v >>> 24) & 0xFF);
+	        out.write((v >>> 16) & 0xFF);
+	        out.write((v >>>  8) & 0xFF);
+	        out.write((v >>>  0) & 0xFF);
+    	}
+    	else {
+	        out.write((v >>>  0) & 0xFF);
+	        out.write((v >>>  8) & 0xFF);
+	        out.write((v >>> 16) & 0xFF);
+	        out.write((v >>> 24) & 0xFF);
     	}
         incCount(4);
     }
 
     @Override
     public final void writeLong(long v) throws IOException {
-    	switch (order) {
-			case BIG_ENDIAN		:
-		        writeBuffer[0] = (byte)(v >>> 56);
-		        writeBuffer[1] = (byte)(v >>> 48);
-		        writeBuffer[2] = (byte)(v >>> 40);
-		        writeBuffer[3] = (byte)(v >>> 32);
-		        writeBuffer[4] = (byte)(v >>> 24);
-		        writeBuffer[5] = (byte)(v >>> 16);
-		        writeBuffer[6] = (byte)(v >>>  8);
-		        writeBuffer[7] = (byte)(v >>>  0);
-				break;
-			case LITTLE_ENDIAN	:
-		        writeBuffer[0] = (byte)(v >>>  0);
-		        writeBuffer[1] = (byte)(v >>>  8);
-		        writeBuffer[2] = (byte)(v >>> 16);
-		        writeBuffer[3] = (byte)(v >>> 24);
-		        writeBuffer[4] = (byte)(v >>> 32);
-		        writeBuffer[5] = (byte)(v >>> 40);
-		        writeBuffer[6] = (byte)(v >>> 48);
-		        writeBuffer[7] = (byte)(v >>> 56);
-				break;
-			default:
-				throw new UnsupportedOperationException("Byte order ["+order+"] ia not supported yet");
+    	if (order == ByteOrder.BIG_ENDIAN) {
+	        writeBuffer[0] = (byte)(v >>> 56);
+	        writeBuffer[1] = (byte)(v >>> 48);
+	        writeBuffer[2] = (byte)(v >>> 40);
+	        writeBuffer[3] = (byte)(v >>> 32);
+	        writeBuffer[4] = (byte)(v >>> 24);
+	        writeBuffer[5] = (byte)(v >>> 16);
+	        writeBuffer[6] = (byte)(v >>>  8);
+	        writeBuffer[7] = (byte)(v >>>  0);
+    	}
+    	else {
+	        writeBuffer[0] = (byte)(v >>>  0);
+	        writeBuffer[1] = (byte)(v >>>  8);
+	        writeBuffer[2] = (byte)(v >>> 16);
+	        writeBuffer[3] = (byte)(v >>> 24);
+	        writeBuffer[4] = (byte)(v >>> 32);
+	        writeBuffer[5] = (byte)(v >>> 40);
+	        writeBuffer[6] = (byte)(v >>> 48);
+	        writeBuffer[7] = (byte)(v >>> 56);
     	}
         out.write(writeBuffer, 0, 8);
         incCount(8);
@@ -184,17 +167,14 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
         int len = s.length();
         for (int i = 0 ; i < len ; i++) {
             int v = s.charAt(i);
-        	switch (order) {
-    			case BIG_ENDIAN		:
-    	            out.write((v >>> 8) & 0xFF);
-    	            out.write((v >>> 0) & 0xFF);
-    				break;
-    			case LITTLE_ENDIAN	:
-    	            out.write((v >>> 0) & 0xFF);
-    	            out.write((v >>> 8) & 0xFF);
-    				break;
-    			default:
-    				throw new UnsupportedOperationException("Byte order ["+order+"] ia not supported yet");
+            
+        	if (order == ByteOrder.BIG_ENDIAN) {
+	            out.write((v >>> 8) & 0xFF);
+	            out.write((v >>> 0) & 0xFF);
+        	}
+        	else {
+	            out.write((v >>> 0) & 0xFF);
+	            out.write((v >>> 8) & 0xFF);
         	}
         }
         incCount(len * 2);

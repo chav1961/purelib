@@ -20,7 +20,7 @@ import chav1961.purelib.basic.OrdinalSyntaxTree;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.7
+ * @last.update 0.0.8
  * @param <T> any content associated with the name inserted
  */
 
@@ -52,6 +52,8 @@ public interface SyntaxTreeInterface<T> {
 														@Override public void walk(Walker walker) {}
 														@Override public long longSize() {return 0;}
 														@Override public void clear() {}
+														@Override public void placeAll(SyntaxTreeInterface<Object> another) {}
+														@Override public void placeOrChangeAll(SyntaxTreeInterface<Object> another) {}
 													}; 
 	
 	
@@ -204,6 +206,20 @@ public interface SyntaxTreeInterface<T> {
 	default long placeOrChangeName(final CharSequence name, long id, T cargo) {
 		return placeOrChangeName(CharUtils.toCharArray(name), 0, name.length(), id, cargo);
 	}
+
+	/**
+	 * <p>Place content of another tree into the current one. Existent names will be skipped.</p>
+	 * @param another another tree to place. Can't be null
+	 * @since 0.0.8
+	 */
+	void placeAll(final SyntaxTreeInterface<T> another);
+
+	/**
+	 * <p>Place content of another tree into the current one. Existent names will be replaced with new cargo.</p>
+	 * @param another another tree to place. Can't be null
+	 * @since 0.0.8
+	 */
+	void placeOrChangeAll(final SyntaxTreeInterface<T> another);
 	
 	/**
 	 * <p>Seek name and return it's id</p>
