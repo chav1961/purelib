@@ -6,16 +6,15 @@ import java.util.Arrays;
 import chav1961.purelib.basic.interfaces.LongIdTreeInterface;
 
 /**
- * <p>This class implements a special king of map, oriented to use with {@linkplain AndOrTree} class. It can be also used to manipulate
- * with the identifiers was generated and used by {@linkplain AndOrTree}.</p>
+ * <p>This class implements a special kind of map, oriented to use with {@linkplain AndOrTree} class. It can be also used to manipulate
+ * with the identifiers was generated and used by {@linkplain AndOrTree}. To increase memory usage, long ID values must occupy 
+ * contiguous range.</p>
  * 
- * @param <T> any king of data associated with the tree elements
- * 
+ * @param <T> any kind of data associated with the tree elements
  * @see chav1961.purelib.basic JUnit tests
- * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.2
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	private static final int	RANGE_STEP = 64;
@@ -23,6 +22,7 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	private final Class<T>		contentType;
 	private T[][][][]			content;
 	private long				maxValue = 0;
+	private long				count = 0;
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -76,6 +76,9 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 			}
 			else if (part4 >= temp[part1][part2][part3].length) {
 				temp[part1][part2][part3] = Arrays.copyOf(temp[part1][part2][part3], nearest2N(part4));
+			}
+			if (temp[part1][part2][part3][part4] == null) {
+				count++;
 			}
 			temp[part1][part2][part3][part4] = cargo;
 			maxValue = Math.max(maxValue, id);
@@ -188,6 +191,7 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 						final T	result = level3[part4]; 
 						
 						level3[part4] = null;
+						count--;
 						return result;
 					}
 				}
@@ -195,10 +199,26 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 		}
 	}
 	
+	/**
+	 * <p>Get size of the map.</p>
+	 * @return size of the map.
+	 */
+	public long size() {
+		return count;
+	}
+	
+	/**
+	 * <p>Get max ID value stored in the map.</p>
+	 * @return max ID value stored.
+	 */
 	public long maxValue() {
 		return maxValue;
 	}
 	
+	/**
+	 * <p>Find first free long ID to use.</p>
+	 * @return first free ID to use.
+	 */
 	public long firstFree() {
 		for (long index = 0, maxIndex = maxValue(); index < maxIndex; index++) {
 			if (!contains(index)) {
@@ -208,19 +228,28 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 		return maxValue()+1;
 	}
 
+	/**
+	 * <p>Clear map content</p>
+	 */
 	public void clear() {
 		for (long index = 0; index < maxValue; index++) {
 			remove(index);
 		}
+		count = 0;
 		maxValue = 0;
 	}
 
-	public void walk(final WalkCallback<T> callback) {
+	/**
+	 * <p>Walk map content and process callback on every node</p>
+	 * @param callback callback to process. Can't be null.
+	 * @throws NullPointerException when callback is null 
+	 */
+	public void walk(final WalkCallback<T> callback) throws NullPointerException {
 		if (callback == null) {
 			throw new NullPointerException("Walk callback can't be null"); 
 		}
 		else {
-			for (long id = 0; id < maxValue(); id++) {
+			for (long id = 0; id <= maxValue(); id++) {
 				if (contains(id)) {
 					callback.process(id, get(id));
 				}
