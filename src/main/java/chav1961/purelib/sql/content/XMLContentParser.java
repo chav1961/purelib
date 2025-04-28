@@ -29,7 +29,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import chav1961.purelib.basic.OrdinalSyntaxTree;
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.SubstitutableProperties;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -148,7 +148,7 @@ public class XMLContentParser implements ResultSetContentParser {
 			throw new IllegalArgumentException("Mandatory option ["+SQLContentUtils.OPTION_ROW_TAG+"] is missing in the URI query string");
 		}
 		else {
-			final SyntaxTreeInterface<RsMetaDataElement>	names = new OrdinalSyntaxTree<>();
+			final SyntaxTreeInterface<RsMetaDataElement>	names = new AndOrTree<>();
 			final String 	rowTag = options.getProperty(SQLContentUtils.OPTION_ROW_TAG,String.class);
 			
 			for (int index = 0; index < content.length; index++) {

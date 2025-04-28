@@ -97,11 +97,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	}
 
 	@Override
-	public long placeName(final String name, final T cargo) {
-		return placeName((CharSequence)name, cargo);
-	}	
-	
-	@Override
 	public long placeName(final CharSequence name, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
@@ -111,11 +106,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 	}
 
-	@Override
-	public long placeOrChangeName(final String name, final T cargo) {
-		return placeOrChangeName((CharSequence)name, cargo);
-	}	
-	
 	@Override
 	public long placeOrChangeName(final CharSequence name, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
@@ -147,11 +137,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	}
 
 	@Override
-	public long placeName(final String name, final long id, final T cargo) {
-		return placeName((CharSequence)name, id, cargo);
-	}
-	
-	@Override
 	public long placeName(final CharSequence name, final long id, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
@@ -162,11 +147,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 	}
 
 	@Override
-	public long placeOrChangeName(final String name, final long id, final T cargo) {
-		return placeOrChangeName((CharSequence)name, id, cargo);
-	}	
-	
-	@Override
 	public long placeOrChangeName(final CharSequence name, final long id, final T cargo) {
 		if (Utils.checkEmptyOrNullString(name)) {
 			throw new IllegalArgumentException("Name to place can't be null or empty");
@@ -176,11 +156,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 	}
 
-	@Override
-	public long seekName(final String name) {
-		return seekName((CharSequence)name);
-	}	
-	
 	@Override
 	public long seekName(final CharSequence name) {
 		if (Utils.checkEmptyOrNullString(name)) {
@@ -193,11 +168,6 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		}
 	}
 
-	@Override
-	public long seekNameI(final String name) {
-		return seekNameI((CharSequence)name);
-	}
-	
 	@Override
 	public long seekNameI(final CharSequence name) {
 		if (Utils.checkEmptyOrNullString(name)) {

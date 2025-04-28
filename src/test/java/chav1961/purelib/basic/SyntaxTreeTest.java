@@ -32,22 +32,12 @@ public class SyntaxTreeTest {
 	@Test
 	public void basicFunctionalityTest() {
 		basicFunctionalityTest(new AndOrTree<Object>());
-		basicFunctionalityTest(new OrdinalSyntaxTree<Object>());
 		
 		try{new AndOrTree<Object>(-1,1);
 			Assert.fail("Mandatory exception was not detected (negative 1-st argument)");
 		} catch (IllegalArgumentException exc) {
 		}
 		try{new AndOrTree<Object>(1,0);
-			Assert.fail("Mandatory exception was not detected (non-positive 2-nd argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-
-		try{new OrdinalSyntaxTree<Object>(-1,1);
-			Assert.fail("Mandatory exception was not detected (negative 1-st argument)");
-		} catch (IllegalArgumentException exc) {
-		}
-		try{new OrdinalSyntaxTree<Object>(1,0);
 			Assert.fail("Mandatory exception was not detected (non-positive 2-nd argument)");
 		} catch (IllegalArgumentException exc) {
 		}
@@ -69,7 +59,6 @@ public class SyntaxTreeTest {
 	@Test
 	public void extendedFunctionalityTest() {
 		extendedFunctionalityTest(new AndOrTree<Object>());
-		extendedFunctionalityTest(new OrdinalSyntaxTree<Object>());
 	}
 
 	@Tag("PerformanceTestCategory")

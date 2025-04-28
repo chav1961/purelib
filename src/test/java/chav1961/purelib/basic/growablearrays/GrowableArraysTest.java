@@ -15,7 +15,7 @@ import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
 
-import chav1961.purelib.basic.OrdinalSyntaxTree;
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.interfaces.SyntaxTreeInterface;
 
@@ -1314,7 +1314,7 @@ public class GrowableArraysTest {
 		Assert.assertArrayEquals("678901234567890".toCharArray(),gca.extract());
 		
 		gca.clear();
-		final SyntaxTreeInterface<Object>	sti = new OrdinalSyntaxTree<>();
+		final SyntaxTreeInterface<Object>	sti = new AndOrTree<>();
 		
 		sti.placeName("test",1,null);
 		gca.append(sti,1);

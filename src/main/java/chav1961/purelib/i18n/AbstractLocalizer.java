@@ -23,9 +23,9 @@ import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 import chav1961.purelib.basic.MimeType;
-import chav1961.purelib.basic.OrdinalSyntaxTree;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.URIUtils;
 import chav1961.purelib.basic.Utils;
@@ -119,7 +119,7 @@ public abstract class AbstractLocalizer implements Localizer {
 														};
 	
 	private final LightWeightListenerList<LocaleChangeListener>		listeners = new LightWeightListenerList<>(LocaleChangeListener.class);
-	private final SyntaxTreeInterface<LocaleParametersGetter>		associations = new OrdinalSyntaxTree<>();	
+	private final SyntaxTreeInterface<LocaleParametersGetter>		associations = new AndOrTree<>();	
 	private LocaleDescriptor						currentDesc = new LocaleDescriptorImpl(Locale.getDefault(),SupportedLanguages.valueOf(Locale.getDefault().getLanguage()),"",new ImageIcon());
 	private Localizer								parent = null;
 	private LocalizerNode							node = new LocalizerNode(this);
