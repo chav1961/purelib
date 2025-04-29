@@ -5,7 +5,7 @@ import org.junit.platform.suite.api.Suite;
 
 @Suite
 @SelectClasses({ FragmentedStreamTest.class, MultipartStreamsTest.class, PseudoRandomInputStreamTest.class,
-		SqlStreamsTest.class, ZLibStreamTest.class })
+		SqlStreamsTest.class, ZLibStreamTest.class, ByteBufferStreamTest.class })
 public class AllTests {
 
 }
