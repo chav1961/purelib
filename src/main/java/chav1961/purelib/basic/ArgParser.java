@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -74,10 +77,12 @@ import chav1961.purelib.sql.SQLUtils;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 
 public class ArgParser {
+	private static final String[]		DUMMY = new String[0];
+	
 	private final char					keyPrefix;
 	private final boolean				caseSensitive;
 	private final ArgDescription[]		desc;
@@ -1085,7 +1090,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 		
 		public FileArg(final String name, final FileType fileType, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = new String[0];
+			this.defaults = DUMMY;
 			this.fileType = fileType;
 		}
 
@@ -1240,12 +1245,78 @@ loop:	for (int index = 0; index < args.length; index++) {
 		}
 	}
 
+	protected static class NetworkAddressArg extends AbstractArg {
+		private static final Pattern	PATTERN = Pattern.compile("([a-zA-Z0-9_\\.]+):(\\d{1,5})");
+		private final String[]			defaults;
+
+		public NetworkAddressArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
+			super(name, isMandatory, isPositional, helpDescriptor);
+			this.defaults = DUMMY;
+		}
+
+		public NetworkAddressArg(final String name, final boolean isPositional, final String helpDescriptor, final InetSocketAddress defaultValue) {
+			super(name, false, isPositional, helpDescriptor);
+			this.defaults = new String[] {defaultValue.toString()};
+		}
+		
+		@SuppressWarnings("unchecked")
+		@Override
+		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
+			if (InetSocketAddress.class.isAssignableFrom(awaited)) {
+				final Matcher	m = PATTERN.matcher(value);
+				
+				if (m.find()) {
+					return (T) InetSocketAddress.createUnresolved(m.group(1), Integer.valueOf(m.group(2)));
+				}
+				else {
+					throw new CommandLineParametersException("Argument ["+getName()+"] has invalid value ["+value+"]"); 
+				}
+			}
+			else {
+				throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to socket address only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
+			}
+		}
+
+		@Override
+		public String[] getDefaultValue() {
+			return defaults;
+		}
+
+		@Override
+		public boolean isList() {
+			return false;
+		}
+
+		@Override
+		public void validate(final String value) throws CommandLineParametersException {
+			if (Utils.checkEmptyOrNullString(value)) {
+				throw new CommandLineParametersException("Argument ["+getName()+"]: value can't be null or empty");
+			}
+			else {
+				if (!PATTERN.matcher(value).find()) {
+					throw new CommandLineParametersException("Network address ["+value+"] is invalid, must be <host>:<port>"); 
+				}
+			}
+		}
+
+		@Override
+		public String getHumanReadedbleArgType() {
+			return "NetworkAddress";
+		}
+
+		@Override
+		public String toString() {
+			return "NetworkAddressArg [defaults=" + Arrays.toString(defaults) + "]";
+		}
+	}
+	
+	
 	protected static class StringListArg extends AbstractArg {
 		private final String[]	defaults;	
 
 		public StringListArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = new String[0];
+			this.defaults = DUMMY;
 		}
 
 		public StringListArg(final String name, final boolean isPositional, final String helpDescriptor, final String... defaultValue) {
@@ -1304,7 +1375,7 @@ loop:	for (int index = 0; index < args.length; index++) {
 
 		public ConfigArg(final String name, final boolean isMandatory, final boolean isPositional, final String helpDescriptor) {
 			super(name, isMandatory, isPositional, helpDescriptor);
-			this.defaults = new String[0];
+			this.defaults = DUMMY;
 		}
 
 		public ConfigArg(final String name, final boolean isPositional, final String helpDescriptor, final String defaultValue) {
