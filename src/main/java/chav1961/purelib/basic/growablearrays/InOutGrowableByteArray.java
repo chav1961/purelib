@@ -37,6 +37,7 @@ import java.io.UTFDataFormatException;
  * @see chav1961.purelib.basic.growablearrays JUnit tests
  * @author Alexander Chernomyrdin aka chav1961 
  * @since 0.0.2
+ * @last.update 0.0.8
  */
 
 public class InOutGrowableByteArray extends GrowableByteArray implements DataOutput, DataInput, Flushable, Closeable {
@@ -88,6 +89,17 @@ public class InOutGrowableByteArray extends GrowableByteArray implements DataOut
 		length(0);
 	}
 
+	/**
+	 * <p>Rewinds buffer to the start point.</p>
+	 * @throws IOException on any exception during rewind
+	 * @since 0.0.8
+	 */
+	public void rewind() throws IOException {
+		displ = 0;
+		sb.setLength(0);
+		wasInput = wasOutput = false;
+	}
+	
 	@Override
 	public void readFully(final byte[] b) throws IOException, NullPointerException, ArrayIndexOutOfBoundsException, IllegalStateException {
 		if (b == null) {
