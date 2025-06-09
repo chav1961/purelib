@@ -1356,6 +1356,9 @@ loop:			for (index = from; index < len; index++) {
 					final int	dot = newFrom;	// Store dot location
 					
 					fracPart += 1E18; // +1E18 to strongly type left unsignificant zeroes
+					while (fracPart % 10 == 0) {	// Trim right zeroes
+						fracPart /= 10;
+					}
 					if ((newFrom = UnsafedCharUtils.uncheckedPrintLong(content,newFrom,(long)fracPart,reallyFill)) < 0) {
 						newFrom = -newFrom;
 						reallyFill = false;
