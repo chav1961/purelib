@@ -1,6 +1,7 @@
 package chav1961.purelib.i18n.internal;
 
 import java.io.File;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,7 @@ import chav1961.purelib.enumerations.ContinueMode;
 import chav1961.purelib.enumerations.XSDCollection;
 import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
+import chav1961.purelib.i18n.LocalizerFactory;
 
 /**
  * <p>This class is a wrapper to standard Java {@linkplain ResourceBundle} class. This class is an Java SPI service and available thru 

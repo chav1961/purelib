@@ -1,5 +1,10 @@
 package chav1961.purelib.math;
 
+/**
+ * <p>This class contains collections of random generators</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.4
+ */
 public class Randoms {
 	private static final XorShift128State	state = new XorShift128State((int)System.nanoTime(),(int)System.nanoTime(),(int)System.nanoTime(),(int)System.nanoTime());
 

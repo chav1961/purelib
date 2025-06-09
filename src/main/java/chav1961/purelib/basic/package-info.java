@@ -4,7 +4,7 @@
  * <li> a set of logger facades (implements {@linkplain chav1961.purelib.basic.interfaces.LoggerFacade LoggerFacade} interface) to prevent your application from the <b>ZOO</b> 
  * of huge amount of loggers and reduce logger trace due to different criteria</li> 
  * <li> {@link chav1961.purelib.basic.AbstractScriptEngine} and it's children to support scripting languages in your library</li> 
- * <li> {@link chav1961.purelib.basic.AndOrTree} and {@link chav1961.purelib.basic.OrdinalSyntaxTree} classes to implement quick name/id tree for using in the parsers</li> 
+ * <li> {@link chav1961.purelib.basic.AndOrTree} class to implement quick name/id prefix tree for using in the parsers</li> 
  * <li> {@link chav1961.purelib.basic.ArgParser} class to parse and manage of command line arguments for your application</li> 
  * <li> {@link chav1961.purelib.basic.BitCharSet} and {@link chav1961.purelib.basic.ExtendedBitCharSet} classes to quick classification of the characters 
  * (similar to {@link java.lang.Character#isDigit(char)} or {@link java.lang.Character#isJavaIdentifierPart(char)} methods)</li> 

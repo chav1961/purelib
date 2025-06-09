@@ -5,6 +5,7 @@ import java.util.Comparator;
 import chav1961.purelib.basic.AndOrTree;
 import chav1961.purelib.basic.CharUtils;
 
+
 /**
  * <p>This interface describes a quick syntax tree to store strings and associate any data to them for use in the parsers.</p> 
  * 
@@ -15,7 +16,6 @@ import chav1961.purelib.basic.CharUtils;
  * <p>The main usages of this interface are a wide range of syntax trees.</p> 
  * 
  * @see AndOrTree
- * @see OrdinalSyntaxTree
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1

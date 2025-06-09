@@ -15,6 +15,12 @@ import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.SupportedLanguages;
 
+/**
+ * <p>This class implements mutable key/value localizer to modify it's content programmatically.</p>
+ * @author Alexander Chernomyrdin aka chav1961
+ * @since 0.0.2
+ * @last.update 0.0.7
+ */
 public class KeyValueLocalizer extends AbstractLocalizer {
 	private static final String			SUBSCHEME = "keyvalue";
 	private static final AtomicInteger	UNIQUE = new AtomicInteger();
@@ -73,7 +79,15 @@ public class KeyValueLocalizer extends AbstractLocalizer {
 		}
 	}
 
-	public void addKey(final String key, final Locale locale, final String value) {
+	/**
+	 * <p>Add key/value pair for the given locale.</p>
+	 * @param key key name to add. Can be neither null nor empty.
+	 * @param locale Locale to add value for. Can't be null.
+	 * @param value key value to add. Can be neither null nor empty.
+	 * @throws NullPointerException locale is null
+	 * @throws IllegalArgumentException any string argument is null or empty
+	 */
+	public void addKey(final String key, final Locale locale, final String value) throws NullPointerException, IllegalArgumentException{
 		if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key can't be null or empty");
 		}
@@ -93,6 +107,14 @@ public class KeyValueLocalizer extends AbstractLocalizer {
 		}
 	}
 
+	/**
+	 * <p>Add key/value help content for the given locale.</p>
+	 * @param key key name to add. Can be neither null nor empty.
+	 * @param locale Locale to add value for. Can't be null.
+	 * @param value key value to add. Can be neither null nor empty.
+	 * @throws NullPointerException locale is null
+	 * @throws IllegalArgumentException any string argument is null or empty
+	 */
 	public void addHelp(final String key, final Locale locale, final String value) {
 		if (Utils.checkEmptyOrNullString(key)) {
 			throw new IllegalArgumentException("Key can't be null or empty");
