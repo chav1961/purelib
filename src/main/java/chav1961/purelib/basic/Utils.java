@@ -14,6 +14,7 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -2126,6 +2127,36 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 		}
 		else if (to - from > 1) {
 			quickSortPAQS(comparator, mover, from, to);
+		}
+	}
+	
+	/**
+	 * <p>Split array content on two pieces by position typed</p>
+	 * @param <T> any array item type
+	 * @param array array to split. Can be neither null nor empty.
+	 * @param index position index inside array to split. Must be inside the array bounds.
+	 * @return array splitted. Always has two elements. Either first or second (but not both) element can be empty array. 
+	 * @throws IllegalArgumentException
+	 * @since 0.0.8
+	 */
+	public static <T> T[][] splitArray(final T[] array, final int index) {
+		if (array == null || array.length == 0) {
+			throw new IllegalArgumentException("Array to split is null or empty");
+		}
+		else if (index < 0 || index >= array.length) {
+			throw new IllegalArgumentException("Index to split array ["+index+"] out of range 0.."+(array.length-1));
+		}
+		else {
+			final T[][]	result = (T[][]) Array.newInstance(array.getClass(), 2);
+			final T[]	left = (T[]) Array.newInstance(array.getClass().getComponentType(), index);
+			final T[]	right = (T[]) Array.newInstance(array.getClass().getComponentType(), array.length - index);
+			
+			System.arraycopy(array, 0, left, 0, left.length);
+			System.arraycopy(array, index, right, 0, right.length);
+			
+			result[0] = left;
+			result[1] = right;
+			return result;
 		}
 	}
 	
