@@ -254,6 +254,18 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
         return written;
     }
 
+    private void writeLongBE(long val, final int amount) throws IOException {
+    	for(int index = amount-1; index >= 0; index--) {
+    		out.write((int)(val >> (8 * index) & 0xFF));
+    	}
+    }
+
+    private void writeLongLE(long val, final int amount) throws IOException {
+    	for(int index = 0; index < amount; index++) {
+    		out.write((int)(val >> (8 * index) & 0xFF));
+    	}
+    }
+    
     private void incCount(int value) {
         int temp = written + value;
         if (temp < 0) {
