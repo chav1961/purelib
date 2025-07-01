@@ -1592,7 +1592,7 @@ loop:				for (T item : collector.getReferences(ReferenceType.PARENT,node)) {
 			throw new NullPointerException("Array object to check can't be null"); 
 		}
 		else {
-			final boolean	checkEmpties = checkStrings4Empty && String.class.isAssignableFrom(array.getClass().getComponentType()); 
+			final boolean	checkEmpties = checkStrings4Empty && CharSequence.class.isAssignableFrom(array.getClass().getComponentType()); 
 			
 			for (int index = 0, maxIndex = array.length; index < maxIndex; index++) {
 				T 	item = array[index];
