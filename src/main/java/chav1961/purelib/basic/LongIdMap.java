@@ -20,7 +20,7 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	private static final int	RANGE_STEP = 64;
 	
 	private final Class<T>		contentType;
-	private T[][][][]			content;
+	private Object[][][][]		content;
 	private long				maxValue = 0;
 	private long				count = 0;
 	
@@ -36,7 +36,7 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 		}
 		else {
 			this.contentType = contentType;
-			this.content = (T[][][][]) Array.newInstance(contentType, RANGE_STEP, 0, 0, 0);
+			this.content = new Object[RANGE_STEP][][][];
 		}
 	}
 	
@@ -53,34 +53,66 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 			throw new NullPointerException("Cargo to put can't be null");
 		}
 		else {
-			final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
-			T[][][][]	temp = content;
+			final int		part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+			Object[]		piece1[][][] = content, piece2[][], piece3[], piece4;
 	
-			if (part1 >= temp.length) {
-				content = temp = Arrays.copyOf(temp, nearest2N(part1));
+			if (part1 >= piece1.length) {
+				final int				newSize = nearest2N(part1);
+				final Object[][][][]	temp = new Object[newSize][][][];
+
+				System.arraycopy(piece1, 0, temp, 0, piece1.length);
+				piece1 = content = temp;
 			}
-			if (temp[part1] == null) {
-				temp[part1] = (T[][][]) Array.newInstance(contentType, nearest2N(part2), 0, 0);
+			
+			piece2 = piece1[part1]; 
+			if (piece2 == null) {
+				final int			newSize = nearest2N(part2);
+				final Object[][][]	temp = new Object[newSize][][];
+
+				piece1[part1] = piece2 = temp;
 			}
-			else if (part2 >= temp[part1].length) {
-				temp[part1] = Arrays.copyOf(temp[part1], nearest2N(part2));
+			else if (part2 >= piece2.length) {
+				final int			newSize = nearest2N(part2);
+				final Object[][][]	temp = new Object[newSize][][];
+
+				System.arraycopy(piece2, 0, temp, 0, piece2.length);
+				piece1[part1] = piece2 = temp;
 			}
-			if (temp[part1][part2] == null) {
-				temp[part1][part2] = (T[][]) Array.newInstance(contentType, nearest2N(part3), 0);
+			
+			piece3 = piece2[part2];
+			if (piece3 == null) {
+				final int			newSize = nearest2N(part3);
+				final Object[][]	temp = new Object[newSize][];
+
+				piece2[part2] = piece3 = temp;
 			}
-			else if (part3 >= temp[part1][part2].length) {
-				temp[part1][part2] = Arrays.copyOf(temp[part1][part2], nearest2N(part3));
+			else if (part3 >= piece3.length) {
+				final int			newSize = nearest2N(part3);
+				final Object[][]	temp = new Object[newSize][];
+
+				System.arraycopy(piece3, 0, temp, 0, piece3.length);
+				piece2[part2] = piece3 = temp;
 			}
-			if (temp[part1][part2][part3] == null) {
-				temp[part1][part2][part3] = (T[]) Array.newInstance(contentType, nearest2N(part4));
+
+			piece4 = piece3[part3];
+			if (piece4 == null) {
+				final int			newSize = nearest2N(part4);
+				final Object[]		temp = new Object[newSize];
+
+				piece3[part3] = piece4 = temp;
 			}
-			else if (part4 >= temp[part1][part2][part3].length) {
-				temp[part1][part2][part3] = Arrays.copyOf(temp[part1][part2][part3], nearest2N(part4));
+			else if (part4 >= piece4.length) {
+				final int			newSize = nearest2N(part4);
+				final Object[]		temp = new Object[newSize];
+
+				System.arraycopy(piece4, 0, temp, 0, piece4.length);
+				piece3[part3] = piece4 = temp;
 			}
-			if (temp[part1][part2][part3][part4] == null) {
+			
+			if (piece4[part4] == null) {
 				count++;
 			}
-			temp[part1][part2][part3][part4] = cargo;
+			piece4[part4] = cargo;
 			maxValue = Math.max(maxValue, id);
 			return this;
 		}
@@ -92,26 +124,26 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	 * @return true if contains
 	 */
 	public boolean contains(final long id) {
-		final int		part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
-		final T[][][][]	root = content;
+		final int				part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
+		final Object[][][][]	root = content;
 		
 		if (part1 >= root.length || root[part1] == null) {
 			return false;
 		}
 		else {
-			final T[][][]	level1 = root[part1];
+			final Object[][][]	level1 = root[part1];
 			
 			if (part2 >= level1.length || level1[part2] == null) {
 				return false;
 			}
 			else {
-				final T[][]	level2 = level1[part2];
+				final Object[][]	level2 = level1[part2];
 				
 				if (part3 >= level2.length || level2[part3] == null) {
 					return false;
 				}
 				else {
-					final T[]	level3 = level2[part3];
+					final Object[]	level3 = level2[part3];
 					
 					if (part4 >= level3.length) {
 						return false;
@@ -131,31 +163,31 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	 */
 	public T get(final long id) {
 		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
-		final T[][][][]	root = content;
+		final Object[][][][]	root = content;
 		
 		if (part1 >= root.length || root[part1] == null) {
 			return null;
 		}
 		else {
-			final T[][][]	level1 = root[part1];
+			final Object[][][]	level1 = root[part1];
 			
 			if (part2 >= level1.length || level1[part2] == null) {
 				return null;
 			}
 			else {
-				final T[][]	level2 = level1[part2];
+				final Object[][]	level2 = level1[part2];
 				
 				if (part3 >= level2.length || level2[part3] == null) {
 					return null;
 				}
 				else {
-					final T[]	level3 = level2[part3];
+					final Object[]	level3 = level2[part3];
 					
 					if (part4 >= level3.length) {
 						return null;
 					}
 					else {
-						return level3[part4]; 
+						return (T)level3[part4]; 
 					}
 				}
 			}
@@ -164,35 +196,35 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 
 	public T remove(final long id) {
 		final int	part1 = (int)((id >> 48) & 0xFFFF), part2 = (int)((id >> 32) & 0xFFFF), part3 = (int)((id >> 16) & 0xFFFF), part4 = (int)((id >> 0) & 0xFFFF);
-		final T[][][][]	root = content;
+		final Object[][][][]	root = content;
 		
 		if (part1 >= root.length || root[part1] == null) {
 			return null;
 		}
 		else {
-			final T[][][]	level1 = root[part1];
+			final Object[][][]	level1 = root[part1];
 			
 			if (part2 >= level1.length || level1[part2] == null) {
 				return null;
 			}
 			else {
-				final T[][]	level2 = level1[part2];
+				final Object[][]	level2 = level1[part2];
 				
 				if (part3 >= level2.length || level2[part3] == null) {
 					return null;
 				}
 				else {
-					final T[]	level3 = level2[part3];
+					final Object[]	level3 = level2[part3];
 					
 					if (part4 >= level3.length) {
 						return null;
 					}
 					else {
-						final T	result = level3[part4]; 
+						final Object	result = level3[part4]; 
 						
 						level3[part4] = null;
 						count--;
-						return result;
+						return (T)result;
 					}
 				}
 			}

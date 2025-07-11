@@ -193,8 +193,8 @@ public class AndOrTree <T> implements SyntaxTreeInterface<T> {
 		else if (to < 0 || to > len) {
 			throw new IllegalArgumentException("'to' location ["+to+"] outside the range 0.."+len);
 		}
-		else if (to <= from) {
-			throw new IllegalArgumentException("'to' location ["+to+"] not greater than 'from' ["+from+"]");
+		else if (to < from) {
+			throw new IllegalArgumentException("'to' location ["+to+"] not greater or equals than 'from' ["+from+"]");
 		}
 		else {
 			final TermNode	node = (TermNode) seekNameInternal(root, source, from, to, forPosition);
