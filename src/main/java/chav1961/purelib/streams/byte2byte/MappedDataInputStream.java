@@ -62,6 +62,14 @@ public class MappedDataInputStream implements DataInput, Closeable {
 			this.mbb.order(order);
 		}
 	}
+
+	public ByteOrder getByteOrder() {
+		return order;
+	}
+	
+	public long getPosition() {
+		return mbb.position();
+	}
 	
 	@Override
 	public void close() throws IOException {
