@@ -42,7 +42,7 @@ public class MappedInputStream extends InputStream {
 	@Override
 	public int read() throws IOException {
 		if (map.hasRemaining()) {
-			return map.get();
+			return map.get() & 0xFF;
 		}
 		else {
 			return -1;
@@ -57,8 +57,8 @@ public class MappedInputStream extends InputStream {
 		else if (off < 0 || off >= b.length) {
 			throw new IllegalArgumentException("Buffer offset ["+off+"] out of range 0.."+(b.length-1)); 
 		}
-		else if (off+len < 0 || off+len > b.length) {
-			throw new IllegalArgumentException("Buffer offset+length ["+(off+len)+"] out of range 0.."+(b.length-1)); 
+		else if (len <= 0 || off + len > b.length) {
+			throw new IllegalArgumentException("Buffer length ["+len+"] is not greater than 0 or offset+length out of range 1.."+b.length);
 		}
 		else if (map.hasRemaining()) {
 			final int	size = Math.min(map.limit()-map.position(), len);

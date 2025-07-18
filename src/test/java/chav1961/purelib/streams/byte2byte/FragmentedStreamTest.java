@@ -68,20 +68,20 @@ public class FragmentedStreamTest {
 			}
 		}
 		
-		try{new FragmentedOutputStream(null) {@Override protected boolean morePieces() throws IOException {return false;}};
+		try{new FragmentedOutputStream(null) {@Override protected boolean morePieces() throws IOException {return false;}}.close();
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
 
-		try{new FragmentedOutputStream(null, 0, 0) {@Override protected boolean morePieces() throws IOException {return false;}};
+		try{new FragmentedOutputStream(null, 0, 0) {@Override protected boolean morePieces() throws IOException {return false;}}.close();
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try{new FragmentedOutputStream(new byte[1], 1, 1) {@Override protected boolean morePieces() throws IOException {return false;}};
+		try{new FragmentedOutputStream(new byte[1], 1, 1) {@Override protected boolean morePieces() throws IOException {return false;}}.close();
 			Assert.fail("Mandatory exception was not detected (2-nd argumentout of range)");
 		} catch (IllegalArgumentException exc) {
 		}
-		try{new FragmentedOutputStream(new byte[1], 0, 2) {@Override protected boolean morePieces() throws IOException {return false;}};
+		try{new FragmentedOutputStream(new byte[1], 0, 2) {@Override protected boolean morePieces() throws IOException {return false;}}.close();
 			Assert.fail("Mandatory exception was not detected (3-rd argumentout of range)");
 		} catch (IllegalArgumentException exc) {
 		}
