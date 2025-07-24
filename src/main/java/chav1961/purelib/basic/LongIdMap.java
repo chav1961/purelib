@@ -1,6 +1,5 @@
 package chav1961.purelib.basic;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import chav1961.purelib.basic.interfaces.LongIdTreeInterface;
@@ -264,9 +263,7 @@ public class LongIdMap<T> implements LongIdTreeInterface<T> {
 	 * <p>Clear map content</p>
 	 */
 	public void clear() {
-		for (long index = 0; index < maxValue; index++) {
-			remove(index);
-		}
+		Arrays.fill(content, null);
 		count = 0;
 		maxValue = 0;
 	}

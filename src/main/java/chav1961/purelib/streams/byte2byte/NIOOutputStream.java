@@ -9,7 +9,7 @@ import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 
 public class NIOOutputStream extends OutputStream {
-	private static final int	DEFAULT_SEGMENT_SIZE = 1 << 20;
+	private static final int	DEFAULT_SEGMENT_SIZE = 1 << 16;
 
 	private final FileChannel	raf;
 	private final byte[]		content;
@@ -65,7 +65,10 @@ public class NIOOutputStream extends OutputStream {
 			else {
 				final int	tail = segmentSize - where, newOff = off + tail, newLen = len - tail;
 				
-				System.arraycopy(b, off, content, where, segmentSize - where);
+				if (tail > 0) {
+					System.arraycopy(b, off, content, where, tail);
+					where += tail;
+				}
 				force();
 				write(b, newOff, newLen);
 			}

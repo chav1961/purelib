@@ -18,8 +18,7 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     protected int 		written = 0;
     
     private final 		ByteOrder	order;
-    private final byte 	writeBuffer[] = new byte[8];
-    private byte[] 		bytearr = null;
+    private final byte 	writeBuffer[] = new byte[65536];
 
     /**
      * <p>Constructor of the class. Default byte order is big endian</p>
@@ -192,10 +191,10 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
 
     @Override
     public final void writeUTF(final String str) throws IOException {
-        writeUTF(str, this);
+        writeUTF(str, writeBuffer, this);
     }
 
-    static int writeUTF(final String str, final DataOutput out) throws IOException {
+    static int writeUTF(final String str, final byte[] bytearr, final DataOutput out) throws IOException {
         int strlen = str.length();
         int utflen = 0;
         int c, count = 0;
@@ -216,17 +215,17 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
             throw new UTFDataFormatException("encoded string too long: " + utflen + " bytes");
         }
 
-        byte[] bytearr = null;
-        if (out instanceof DataOutputStream) {
-            final DataOutputStream dos = (DataOutputStream)out;
-            
-            if(dos.bytearr == null || (dos.bytearr.length < (utflen+2))) {
-                dos.bytearr = new byte[(utflen*2) + 2];
-            }
-            bytearr = dos.bytearr;
-        } else {
-            bytearr = new byte[utflen+2];
-        }
+//        byte[] bytearr = writeBuffer;
+//        if (out instanceof DataOutputStream) {
+//            final DataOutputStream dos = (DataOutputStream)out;
+//            
+//            if(dos.bytearr == null || (dos.bytearr.length < (utflen+2))) {
+//                dos.bytearr = new byte[(utflen*2) + 2];
+//            }
+//            bytearr = dos.bytearr;
+//        } else {
+//            bytearr = new byte[utflen+2];
+//        }
 
         bytearr[count++] = (byte) ((utflen >>> 8) & 0xFF);
         bytearr[count++] = (byte) ((utflen >>> 0) & 0xFF);
