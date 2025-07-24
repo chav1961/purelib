@@ -22,7 +22,16 @@ public class DataInputStream extends FilterInputStream implements DataInput {
     private byte bytearr[] = new byte[80];
     private char chararr[] = new char[80];
     private char lineBuffer[];
-	
+
+    /**
+     * <p>Constructor of the class. Default byte order is big endian</p>
+     * @param in nested input stream to use. Can't be null.
+     * @throws NullPointerException any of the parameters is null.
+     */
+    public DataInputStream(final InputStream in) throws NullPointerException {
+    	this(in, ByteOrder.BIG_ENDIAN);
+    }    
+    
     /**
      * <p>Constructor of the class</p>
      * @param in nested input stream to use. Can't be null.

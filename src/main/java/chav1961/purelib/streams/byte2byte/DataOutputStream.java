@@ -20,6 +20,15 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     private final 		ByteOrder	order;
     private final byte 	writeBuffer[] = new byte[8];
     private byte[] 		bytearr = null;
+
+    /**
+     * <p>Constructor of the class. Default byte order is big endian</p>
+     * @param out nested output stream to use. Can't be null.
+     * @throws NullPointerException any of the parameters is null.
+     */
+    public DataOutputStream(final OutputStream out) throws NullPointerException {
+    	this(out, ByteOrder.BIG_ENDIAN);
+    }    
     
     /**
      * <p>Constructor of the class</p>
@@ -46,13 +55,13 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
     
     @Override
-    public synchronized void write(int b) throws IOException {
+    public void write(int b) throws IOException {
         out.write(b);
         incCount(1);
     }
 
     @Override
-    public synchronized void write(byte b[], int off, int len) throws IOException {
+    public void write(byte b[], int off, int len) throws IOException {
         out.write(b, off, len);
         incCount(len);
     }
@@ -101,24 +110,25 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     @Override
-    public final void writeInt(int v) throws IOException {
+    public final void writeInt(final int v) throws IOException {
     	if (order == ByteOrder.BIG_ENDIAN) {
-	        out.write((v >>> 24) & 0xFF);
-	        out.write((v >>> 16) & 0xFF);
-	        out.write((v >>>  8) & 0xFF);
-	        out.write((v >>>  0) & 0xFF);
+    		writeBuffer[0] = (byte)((v >>> 24) & 0xFF);
+    		writeBuffer[1] = (byte)((v >>> 16) & 0xFF);
+    		writeBuffer[2] = (byte)((v >>>  8) & 0xFF);
+    		writeBuffer[3] = (byte)((v >>>  0) & 0xFF);
     	}
     	else {
-	        out.write((v >>>  0) & 0xFF);
-	        out.write((v >>>  8) & 0xFF);
-	        out.write((v >>> 16) & 0xFF);
-	        out.write((v >>> 24) & 0xFF);
+    		writeBuffer[0] = (byte)((v >>>  0) & 0xFF);
+    		writeBuffer[1] = (byte)((v >>>  8) & 0xFF);
+    		writeBuffer[2] = (byte)((v >>> 16) & 0xFF);
+    		writeBuffer[3] = (byte)((v >>> 24) & 0xFF);
     	}
+        out.write(writeBuffer, 0, 4);
         incCount(4);
     }
 
     @Override
-    public final void writeLong(long v) throws IOException {
+    public final void writeLong(final long v) throws IOException {
     	if (order == ByteOrder.BIG_ENDIAN) {
 	        writeBuffer[0] = (byte)(v >>> 56);
 	        writeBuffer[1] = (byte)(v >>> 48);
@@ -144,17 +154,17 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     @Override
-    public final void writeFloat(float v) throws IOException {
+    public final void writeFloat(final float v) throws IOException {
         writeInt(Float.floatToIntBits(v));
     }
 
     @Override
-    public final void writeDouble(double v) throws IOException {
+    public final void writeDouble(final double v) throws IOException {
         writeLong(Double.doubleToLongBits(v));
     }
 
     @Override
-    public final void writeBytes(String s) throws IOException {
+    public final void writeBytes(final String s) throws IOException {
         int len = s.length();
         for (int i = 0 ; i < len ; i++) {
             out.write((byte)s.charAt(i));
@@ -163,7 +173,7 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     @Override
-    public final void writeChars(String s) throws IOException {
+    public final void writeChars(final String s) throws IOException {
         int len = s.length();
         for (int i = 0 ; i < len ; i++) {
             int v = s.charAt(i);
@@ -181,11 +191,11 @@ public class DataOutputStream extends FilterOutputStream implements DataOutput {
     }
 
     @Override
-    public final void writeUTF(String str) throws IOException {
+    public final void writeUTF(final String str) throws IOException {
         writeUTF(str, this);
     }
 
-    static int writeUTF(String str, DataOutput out) throws IOException {
+    static int writeUTF(final String str, final DataOutput out) throws IOException {
         int strlen = str.length();
         int utflen = 0;
         int c, count = 0;

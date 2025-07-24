@@ -1,6 +1,8 @@
 package chav1961.purelib.streams.byte2byte;
 
 
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.EOFException;
@@ -17,12 +19,12 @@ import org.junit.Before;
 public class MappedStreamsTest {
 	File	f;
 	
-	@Before
+	@BeforeEach
 	public void prepare()throws IOException {
 		f = File.createTempFile("test", ".bin");
 	}
 
-	@After
+	@AfterEach
 	public void unprepare() {
 		f.delete();
 	}
@@ -31,7 +33,7 @@ public class MappedStreamsTest {
 	public void lifeCycleTest() throws IOException {
 //		final long	start1 = System.currentTimeMillis();
 		
-		try(final OutputStream	os = new MappedOutputStream(f);
+		try(final OutputStream	os = new NIOOutputStream(f);
 			final DataOutputStream	dos = new DataOutputStream(os, ByteOrder.BIG_ENDIAN)) {
 			
 			for(int index = 0; index < 1 << 26; index++) {
@@ -61,7 +63,7 @@ public class MappedStreamsTest {
 		}
 //		System.err.println("File written in "+(System.currentTimeMillis()-start1)+" msec");
 		
-		try{new MappedOutputStream(null).close();
+		try{new NIOOutputStream(null).close();
 			Assert.fail("Mandatory exception was not detected (null 1-st argument");
 		} catch (NullPointerException exc) {
 		}
