@@ -16,7 +16,7 @@ import chav1961.purelib.basic.Utils;
  * <p>This interface describes persistence fotr LRU list in the content manupulator</p> 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 public interface LRUPersistence {
 	/**
@@ -85,7 +85,7 @@ public interface LRUPersistence {
 	default void saveLRU(String... lru) throws IOException {
 		saveLRU(Arrays.asList(lru));
 	}
-	
+
 	/**
 	 * <p>Get simple implementation of the interface based on {@linkplain SubstitutableProperties} file content. Properties file content will contains a set of 
 	 * keys names &lt;keyPrefix&gt;.1, &lt;keyPrefix&gt;.2 ... &lt;keyPrefix&gt;.N. Their values will contain path to last recently used files. Values of list filled will be always
@@ -159,6 +159,73 @@ public interface LRUPersistence {
 							index++;
 						}
 						props.store(properties);
+					}
+				}
+			};
+		}
+	}
+
+	/**
+	 * <p>Get simple implementation of the interface based on {@linkplain SubstitutableProperties} file content. Properties file content will contains a set of 
+	 * keys names &lt;keyPrefix&gt;.1, &lt;keyPrefix&gt;.2 ... &lt;keyPrefix&gt;.N. Their values will contain path to last recently used files. Values of list filled will be always
+	 * ordered by it's keys (as suffix numbers, not lexical ordered) in the properties file. Sequence of the keys can have missing items (for example "item.1", "item.3", "item.4" etc)</p>
+	 * @param properties properties. Can't be null.
+	 * @param keyPrefix prefix of keys inside properties. Can't be null or empty
+	 * @return implementation of {@linkplain LRUPersistence}. Can't be null
+	 * @since 0.0.8
+	 */
+	public static LRUPersistence of(final SubstitutableProperties properties, final String keyPrefix) throws NullPointerException, IllegalArgumentException {
+		if (properties == null) {
+			throw new NullPointerException("Properties file can't be null");
+		}
+		else if (Utils.checkEmptyOrNullString(keyPrefix)) {
+			throw new IllegalArgumentException("Key rpefix can't be null or empty string"); 
+		}
+		else {
+			final Pattern	pattern = Pattern.compile("\\Q"+keyPrefix+"\\E\\.(\\d+)");
+			
+			return new LRUPersistence() {
+				@Override
+				public void loadLRU(final List<String> lru) throws IOException {
+					if (lru == null) {
+						throw new NullPointerException("List to fill loaded values to can't be null");
+					}
+					else {
+						final List<String[]> items = new ArrayList<>();
+						
+						for (String item : properties.availableKeys(pattern)) {
+							items.add(new String[] {item, properties.getProperty(item)});
+						}
+						items.sort((o1, o2)-> {
+							final Matcher	m1 = pattern.matcher(o1[0]);
+							final Matcher	m2 = pattern.matcher(o2[0]);
+							
+							if (m1.find() && m2.find()) {
+								return Integer.valueOf(m1.group(1)) - Integer.valueOf(m2.group(1));
+							}
+							else {
+								return o1[0].compareTo(o2[0]);
+							}
+						});
+						for (String[] item : items) {
+							lru.add(item[1]);
+						}
+					}
+				}
+				
+				@Override
+				public void saveLRU(final List<String> lru) throws IOException {
+					if (lru == null) {
+						throw new NullPointerException("List to get values to store can't be null");
+					}
+					else {
+						int	index = 1;
+						
+						properties.remove(pattern);
+						for (String item : lru) {
+							properties.setProperty(keyPrefix+'.'+index, item);
+							index++;
+						}
 					}
 				}
 			};

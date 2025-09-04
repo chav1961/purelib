@@ -39,7 +39,7 @@ public class LRUPersistenceTest {
 			Utils.deleteDir(f);
 		}
 		
-		try{LRUPersistence.of(null, "prefix");
+		try{LRUPersistence.of((File)null, "prefix");
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}

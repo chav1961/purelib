@@ -1,6 +1,8 @@
 package chav1961.purelib.basic;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;
@@ -88,6 +90,7 @@ public class ArgParser {
 	private final ArgDescription[]		desc;
 	private final Map<String,String[]>	pairs;
 	private final boolean				hasConfigArg;
+	private final boolean				hasAnyArg;
 
 	/**
 	 * <p>Constructor of the class</p>
@@ -116,6 +119,7 @@ public class ArgParser {
 			final Set<String>	names = new HashSet<>();
 			boolean 			prevPosWasList = false, hasConfig = false; 
 			
+			this.hasAnyArg = desc.length != 0; 
 			for (ArgDescription item : desc) {
 				final String	key = caseSensitive ? item.getName() : item.getName().toLowerCase();
 				
@@ -148,10 +152,11 @@ public class ArgParser {
 		}
 	}
 
-	private ArgParser(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final boolean hasConfigArg, final Map<String,String[]> pairs) {
+	private ArgParser(final char keyPrefix, final boolean caseSensitive, final ArgDescription[] desc, final boolean hasAnyArg, final boolean hasConfigArg, final Map<String,String[]> pairs) {
 		this.keyPrefix = keyPrefix;
 		this.caseSensitive = caseSensitive;
 		this.desc = desc;
+		this.hasAnyArg = hasAnyArg;
 		this.hasConfigArg = hasConfigArg;
 		this.pairs = Collections.unmodifiableMap(pairs);
 	}
@@ -186,7 +191,7 @@ public class ArgParser {
 			
 			parseParameters(ignoreExtra, ignoreUnknown, keyPrefix, caseSensitive, desc, hasConfigArg, args, pairs);
 			
-			final ArgParser result = new ArgParser(keyPrefix, caseSensitive, desc, hasConfigArg, pairs);
+			final ArgParser result = new ArgParser(keyPrefix, caseSensitive, desc, hasAnyArg, hasConfigArg, pairs);
 			final String	validation = finalValidation(result);
 			
 			if (Utils.checkEmptyOrNullString(validation)) {
@@ -324,6 +329,15 @@ public class ArgParser {
 			}
 			return false;
 		}
+	}
+	
+	/**
+	 * <p>Has any explicit arguments in the command string.</p>
+	 * @return true if no arguments were typed, false otherwise.
+	 * @since 0.0.8
+	 */
+	public boolean isEmpty() {
+		return hasAnyArg;
 	}
 	
 	/**
@@ -1104,15 +1118,19 @@ loop:	for (int index = 0; index < args.length; index++) {
 			this.fileType = fileType;
 		}
 		
+		@SuppressWarnings("unchecked")
 		@Override
 		public <T> T getValue(final String value, final Class<T> awaited) throws CommandLineParametersException {
 			try{if (SUPPORTED_CONVERSIONS.contains(awaited)) {
 					return (T)SQLUtils.convert(awaited, value);
 				}
+				else if (awaited == InputStream.class) {
+					return (T) new FileInputStream(value);
+				}
 				else {
 					throw new CommandLineParametersException("Argument ["+getName()+"] can be converted to URI or string type only, conversion to ["+awaited.getCanonicalName()+"] is not supported"); 
 				}
-			} catch (ContentException e) {
+			} catch (ContentException | FileNotFoundException e) {
 				throw new CommandLineParametersException("Error converting argument ["+getName()+"] value ["+value+"] to ["+awaited.getCanonicalName()+"] type ("+e.getLocalizedMessage()+")"); 
 			}
 		}

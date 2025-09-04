@@ -813,7 +813,7 @@ public class ContentModelFactory {
 						, Constants.MODEL_NAVIGATION_NODE_PREFIX+'.'+submenuRefName
 						, null
 						, submenuRef
-						, null 
+						, null
 						, null
 						, null
 						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/"+submenuRef)

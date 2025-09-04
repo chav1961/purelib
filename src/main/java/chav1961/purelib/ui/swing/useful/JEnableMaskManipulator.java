@@ -4,6 +4,7 @@ import java.awt.Container;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.swing.AbstractButton;
 import javax.swing.JComponent;
@@ -17,10 +18,11 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * instead of calling appropriative methods.</p>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
+ * @last.update 0.0.8
  */
 public class JEnableMaskManipulator {
 	private final JEnableMaskManipulator	parent;
-	private final String[]					names;
+	private final ItemDescriptor[]			names;
 	private final List<JComponent>			entities = new ArrayList<>();
 	private final List<Long>				enableStack = new ArrayList<>();
 	private final List<Long>				checkStack = new ArrayList<>();
@@ -41,6 +43,20 @@ public class JEnableMaskManipulator {
 	public JEnableMaskManipulator(final String[] itemNames, final JComponent... components) throws IllegalArgumentException {
 		this(itemNames, false, components);
 	}	
+
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param itemNames swing item names to manipulate. the same first name in the array will be associated with 0-th bit in the long mask,
+	 * the next will be associated with the 2-th bit in the long mask and so on. Can't be null, empty and doesn't contain nulls or empties inside.
+	 * All the names mentioned must exists in the second parameter on the constructor. Number of names must be less than 64 
+	 * @param components components to manipulate with the class. Can't be null, empty or contains nulls inside. Can contain duplicate names anywhere.
+	 * These enable state of duplicate names will be changed together
+	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list
+	 * @since 0.0.8  
+	 */
+	public JEnableMaskManipulator(final ItemDescriptor[] itemNames, final JComponent... components) throws IllegalArgumentException {
+		this(itemNames, false, components);
+	}	
 	
 	/**
 	 * <p>Constructor of the class.</p>
@@ -55,7 +71,33 @@ public class JEnableMaskManipulator {
 	public JEnableMaskManipulator(final String[] itemNames, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
 		this(itemNames, ignoreMissing, false, components);
 	}	
+
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param itemNames swing item names to manipulate. the same first name in the array will be associated with 0-th bit in the long mask,
+	 * the next will be associated with the 2-th bit in the long mask and so on. Can't be null, empty and doesn't contain nulls or empties inside.
+	 * All the names mentioned must exists in the second parameter on the constructor. Number of names must be less than 64 
+	 * @param ignoreMissing ignore missing items 
+	 * @param components components to manipulate with the class. Can't be null, empty or contains nulls inside. Can contain duplicate names anywhere.
+	 * These enable state of duplicate names will be changed together
+	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list  
+	 * @since 0.0.8  
+	 */
+	public JEnableMaskManipulator(final ItemDescriptor[] itemNames, final boolean ignoreMissing, final JComponent... components) throws IllegalArgumentException {
+		this(itemNames, ignoreMissing, false, components);
+	}	
 	
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param itemNames swing item names to manipulate. the same first name in the array will be associated with 0-th bit in the long mask,
+	 * the next will be associated with the 2-th bit in the long mask and so on. Can't be null, empty and doesn't contain nulls or empties inside.
+	 * All the names mentioned must exists in the second parameter on the constructor. Number of names must be less than 64 
+	 * @param ignoreMissing ignore missing items 
+	 * @param autoDisabled disable automatically
+	 * @param components components to manipulate with the class. Can't be null, empty or contains nulls inside. Can contain duplicate names anywhere.
+	 * These enable state of duplicate names will be changed together
+	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list  
+	 */
 	public JEnableMaskManipulator(final String[] itemNames, final boolean ignoreMissing, final boolean autoDisabled, final JComponent... components) throws IllegalArgumentException {
 		if (itemNames == null || itemNames.length == 0 || Utils.checkArrayContent4Nulls(itemNames, true) >= 0) {
 			throw new IllegalArgumentException("Item names list is null, empty or contains nulls/empties inside");
@@ -75,7 +117,7 @@ loop:		for (String itemName : itemNames) {
 				}
 			}
 			this.parent = null;
-			this.names = itemNames;
+			this.names = toItems(itemNames);
 			this.localMask = 0;
 			this.autoDisabled = autoDisabled;
 			this.entities.addAll(Arrays.asList(components));
@@ -83,6 +125,45 @@ loop:		for (String itemName : itemNames) {
 		}
 	}
 
+	/**
+	 * <p>Constructor of the class.</p>
+	 * @param itemNames swing item names to manipulate. the same first name in the array will be associated with 0-th bit in the long mask,
+	 * the next will be associated with the 2-th bit in the long mask and so on. Can't be null, empty and doesn't contain nulls or empties inside.
+	 * All the names mentioned must exists in the second parameter on the constructor. Number of names must be less than 64 
+	 * @param ignoreMissing ignore missing items 
+	 * @param autoDisabled disable automatically
+	 * @param components components to manipulate with the class. Can't be null, empty or contains nulls inside. Can contain duplicate names anywhere.
+	 * These enable state of duplicate names will be changed together
+	 * @throws IllegalArgumentException any list is null, empty, contains nulls/empties inside or item name in not exists in the component's list  
+	 * @since 0.0.8  
+	 */
+	public JEnableMaskManipulator(final ItemDescriptor[] itemNames, final boolean ignoreMissing, final boolean autoDisabled, final JComponent... components) throws IllegalArgumentException {
+		if (itemNames == null || itemNames.length == 0 || Utils.checkArrayContent4Nulls(itemNames, false) >= 0) {
+			throw new IllegalArgumentException("Item names list is null, empty or contains nulls/empties inside");
+		}
+		else if (components == null || components.length == 0 || Utils.checkArrayContent4Nulls(components) >= 0) {
+			throw new IllegalArgumentException("Components list is null, empty or contains nulls inside");
+		}
+		else {
+loop:		for (ItemDescriptor item : itemNames) {
+				for (JComponent component : components) {
+					if (SwingUtils.findComponentByName(component, item.name) != null) {
+						continue loop;
+					}
+				}
+				if (!ignoreMissing) {
+					throw new IllegalArgumentException("Item name ["+item.name+"] not found anywhere in the component list");
+				}
+			}
+			this.parent = null;
+			this.names = itemNames;
+			this.localMask = 0;
+			this.autoDisabled = autoDisabled;
+			this.entities.addAll(Arrays.asList(components));
+			refreshState(~localMask);
+		}
+	}
+	
 	public JEnableMaskManipulator(final JEnableMaskManipulator parent, final JComponent... components) throws IllegalArgumentException {
 		this(parent, false, 0, components);
 	}	
@@ -346,10 +427,51 @@ loop:		for (String itemName : itemNames) {
 	public void refresh() {
 		refreshState(~localMask);
 	}
+
+	/**
+	 * <p>Calculate enabling for all masks and apply result</p>
+	 * @since 0.0.8
+	 */
+	public void applyEnableMasks() {
+		long	mask = 0;
+		
+		for(int index = 0; index < names.length; index++) {
+			if (names[index].enableState.get()) {
+				mask |= names[index].mask;
+			}
+		}
+		setEnableMask(mask);
+	}
+
+	/**
+	 * <p>Calculate checking for all masks and apply result</p>
+	 * @since 0.0.8
+	 */
+	public void applyCheckMasks() {
+		long	mask = 0;
+		
+		for(int index = 0; index < names.length; index++) {
+			if (names[index].checkState.get()) {
+				mask |= names[index].mask;
+			}
+		}
+		setCheckMask(mask);
+	}
 	
-	private String[] getComponentNames() {
+	private ItemDescriptor[] toItems(final String[] itemNames) {
+		final ItemDescriptor[] result = new ItemDescriptor[itemNames.length];
+		
+		for(int index = 0; index < result.length; index++) {
+			final long	mask = 1L << index;
+			
+			result[index] = new ItemDescriptor(itemNames[index], mask, ()->(getEnableMask() & mask) != 0, ()->(getCheckMask() & mask) != 0);
+		}
+		return result;
+	}
+	
+	private ItemDescriptor[] getComponentDescriptors() {
 		if (parent != null) {
-			return parent.getComponentNames();
+			return parent.getComponentDescriptors();
 		}
 		else {
 			return names;
@@ -357,7 +479,7 @@ loop:		for (String itemName : itemNames) {
 	}
 	
 	private void refreshState(final long mask) {
-		for(int index = 0; index < getComponentNames().length; index++) {
+		for(int index = 0; index < getComponentDescriptors().length; index++) {
 			final long	bit = 1L << index;
 			
 			if ((mask & bit) != 0) {
@@ -365,7 +487,7 @@ loop:		for (String itemName : itemNames) {
 				final boolean	checkState = (getCheckMask() & bit) != 0;
 				
 				for (JComponent component : entities) {
-					final Container	c = SwingUtils.findComponentByName(component, getComponentNames()[index]);
+					final Container	c = SwingUtils.findComponentByName(component, getComponentDescriptors()[index].name);
 			
 					if (c instanceof JComponent) {
 						((JComponent)c).setEnabled(enableState);
@@ -378,6 +500,57 @@ loop:		for (String itemName : itemNames) {
 		}
 		if (parent != null) {
 			parent.refreshState(mask & ~localMask);
+		}
+	}
+
+	@FunctionalInterface
+	public static interface ItemState {
+		boolean get();
+	}
+	
+	public static class ItemDescriptor {
+		public final String	name;
+		public final long mask;
+		public final ItemState enableState;
+		public final ItemState checkState;
+
+		public ItemDescriptor(final String name, final long mask, final ItemState enableState, final ItemState checkState) {
+			if (name == null || Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Name can be neither null nor empty"); 
+			}
+			else if (mask == 0) {
+				throw new IllegalArgumentException("Mask must contain at least one non-zero bit");
+			}
+			else if (enableState == null) {
+				throw new NullPointerException("Enable state callback can't be null");
+			}
+			else if (checkState == null) {
+				throw new NullPointerException("Check state callback can't be null");
+			}
+			else {
+				this.name = name;
+				this.mask = mask;
+				this.enableState = enableState;
+				this.checkState = checkState;
+			}
+		}
+		
+		public ItemDescriptor(final String name, final long mask, final ItemState enableState) {
+			if (name == null || Utils.checkEmptyOrNullString(name)) {
+				throw new IllegalArgumentException("Name can be neither null nor empty"); 
+			}
+			else if (mask == 0) {
+				throw new IllegalArgumentException("Mask must contain at least one non-zero bit");
+			}
+			else if (enableState == null) {
+				throw new NullPointerException("Enable state callback can't be null");
+			}
+			else {
+				this.name = name;
+				this.mask = mask;
+				this.enableState = enableState;
+				this.checkState = ()->false;
+			}
 		}
 	}
 }

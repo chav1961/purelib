@@ -21,8 +21,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -67,7 +65,6 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
-import javax.swing.FocusManager;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -89,10 +86,7 @@ import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
 import javax.swing.SpringLayout;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
@@ -119,11 +113,10 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.exceptions.MimeParseException;
 import chav1961.purelib.basic.exceptions.SyntaxException;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
-import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.enumerations.ContinueMode;
-import chav1961.purelib.enumerations.MarkupOutputFormat;
 import chav1961.purelib.enumerations.NodeEnterMode;
 import chav1961.purelib.i18n.AbstractLocalizer;
 import chav1961.purelib.i18n.LocalizerFactory;
@@ -139,12 +132,9 @@ import chav1961.purelib.model.MutableContentNodeMetadata;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
-import chav1961.purelib.streams.StreamsUtil;
-import chav1961.purelib.ui.LRUManager;
 import chav1961.purelib.ui.interfaces.ActionFormManager;
 import chav1961.purelib.ui.interfaces.FormManager;
 import chav1961.purelib.ui.interfaces.ItemAndSelection;
-import chav1961.purelib.ui.interfaces.LRUManagerOwner;
 import chav1961.purelib.ui.interfaces.LongItemAndReference;
 import chav1961.purelib.ui.interfaces.ReferenceAndComment;
 import chav1961.purelib.ui.interfaces.UIItemState;
@@ -164,7 +154,7 @@ import chav1961.purelib.ui.swing.useful.renderers.StringRenderer;
  * 
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.3
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 
 public abstract class SwingUtils {
@@ -1058,8 +1048,8 @@ loop:			for (Component comp : children(node)) {
 	 * @param frame main window
 	 * @throws NullPointerException if frame is null
 	 */
-	public static void centerMainWindow(final JFrame frame) throws NullPointerException {
-		centerMainWindow(frame,0.75f);
+	public static Rectangle centerMainWindow(final JFrame frame) throws NullPointerException {
+		return centerMainWindow(frame,0.75f);
 	}	
 	
 	/**
@@ -1068,7 +1058,7 @@ loop:			for (Component comp : children(node)) {
 	 * @param fillPercent filling percent on the screen. Must be in the range 0.0f..1.0f
 	 * @throws NullPointerException if frame is null
 	 */
-	public static void centerMainWindow(final JFrame frame, final float fillPercent) throws NullPointerException {
+	public static Rectangle centerMainWindow(final JFrame frame, final float fillPercent) throws NullPointerException {
 		if (frame == null) {
 			throw new NullPointerException("Frame window can't be null"); 
 		}
@@ -1083,6 +1073,7 @@ loop:			for (Component comp : children(node)) {
 			frame.setLocation(location);
 			frame.setSize(size);
 			frame.setPreferredSize(size);
+			return frame.getBounds();
 		}
 	}
 
@@ -1091,8 +1082,8 @@ loop:			for (Component comp : children(node)) {
 	 * @param dialog main window
 	 * @throws NullPointerException if dialog is null
 	 */
-	public static void centerMainWindow(final JDialog dialog) throws NullPointerException {
-		centerMainWindow(dialog, 0.5f);
+	public static Rectangle centerMainWindow(final JDialog dialog) throws NullPointerException {
+		return centerMainWindow(dialog, 0.5f);
 	}
 	
 	/**
@@ -1101,7 +1092,7 @@ loop:			for (Component comp : children(node)) {
 	 * @param fillPercent filling percent on the screen. Must be in the range 0.0f..1.0f
 	 * @throws NullPointerException if dialog is null
 	 */
-	public static void centerMainWindow(final JDialog dialog, final float fillPercent) throws NullPointerException {
+	public static Rectangle centerMainWindow(final JDialog dialog, final float fillPercent) throws NullPointerException {
 		if (dialog == null) {
 			throw new NullPointerException("Dialog window can't be null"); 
 		}
@@ -1116,6 +1107,7 @@ loop:			for (Component comp : children(node)) {
 			dialog.setLocation(location);
 			dialog.setSize(size);
 			dialog.setPreferredSize(size);
+			return dialog.getBounds();
 		}
 	}
 	
@@ -2982,7 +2974,6 @@ loop:			for (;;) {
 		}
 	}
 	
-	
 	private static class JMenuWithMeta extends JMenu implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = 366031204608808220L;
 		
@@ -3029,9 +3020,12 @@ loop:			for (;;) {
 		}
 		
 		private void fillLocalizedStrings() throws LocalizationException, IOException {
-			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getLabelId()));
-			if (getNodeMetadata().getTooltipId() != null) {
-				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(getNodeMetadata().getTooltipId()));
+			final String	labelId = getNodeMetadata().getLabelId();
+			final String	tooltipId = getNodeMetadata().getTooltipId();
+			
+			setText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(labelId));
+			if (tooltipId != null) {
+				setToolTipText(LocalizerFactory.getLocalizer(getNodeMetadata().getLocalizerAssociated()).getValue(tooltipId));
 			}
 		}
 	}
