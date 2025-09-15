@@ -24,18 +24,13 @@ public class SVGPainter {
 		AS_IS, FILL_MIN, FILL_MAX, FILL_X, FILL_Y, FILL_BOTH
 	}
 	
+	private final Color					background = Color.WHITE;
+	private final int					width, height;
+	private final Unit					unit;
+	private final FillPolicy			policy;
+	private final SVGPrimitivePainter[]	primitives;
 	
-	interface PrimitivePainter {
-		void paint(Graphics2D g2d);
-	}
-
-	private final Color				background = Color.WHITE;
-	private final int				width, height;
-	private final Unit				unit;
-	private final FillPolicy		policy;
-	private final AbstractPainter[]	primitives;
-	
-	protected SVGPainter(final int width, final int height, final Unit unit, final FillPolicy policy, final AbstractPainter... primitives) {
+	protected SVGPainter(final int width, final int height, final Unit unit, final FillPolicy policy, final SVGPrimitivePainter... primitives) {
 		if (width <= 0) {
 			throw new IllegalArgumentException("Width ["+width+"] must be positive"); 
 		}
@@ -88,7 +83,7 @@ public class SVGPainter {
 			fillBackground(g2d, background);
 		}
 		
-		for (AbstractPainter item : primitives) {
+		for (SVGPrimitivePainter item : primitives) {
 			item.paint(g2d);
 		}
 	}
@@ -136,14 +131,14 @@ public class SVGPainter {
 		g2d.setColor(oldColor);
 	}
 
-	protected static class AbstractPainter implements PrimitivePainter {
+	protected static class AbstractPainter implements SVGPrimitivePainter {
 		@Override public void paint(final Graphics2D g2d) {}		
 	}
 
 	protected static class LinePainter extends AbstractPainter {
-		private final Line2D						line;
-		private final Color							drawColor;
-		private final Stroke						stroke;
+		private final Line2D	line;
+		private final Color		drawColor;
+		private final Stroke	stroke;
 		
 		LinePainter(final float x1, final float y1, final float x2, final float y2, final Color drawColor, final Stroke drawStroke) {
 			if (drawColor == null) {
@@ -327,7 +322,7 @@ public class SVGPainter {
 				this.stroke = drawStroke;
 			}
 		}
-		
+
 		@Override
 		public void paint(final Graphics2D g2d) { 
 			final Color				oldColor = g2d.getColor();
@@ -469,17 +464,33 @@ public class SVGPainter {
 		private final Stroke	stroke;
 		
 		CirclePainter(final float x, final float y, final float r, final Color drawColor, final Stroke drawStroke) {
-			this.ellipse = new Ellipse2D.Float(x-r, y-r, 2*r, 2*r);
-			this.drawColor = drawColor;
-			this.fillColor = null;
-			this.stroke = drawStroke;
+			if (drawColor == null) {
+				throw new NullPointerException("Draw color can't be null");
+			}
+			else if (drawStroke == null) {
+				throw new NullPointerException("Stroke can't be null");
+			}
+			else {
+				this.ellipse = new Ellipse2D.Float(x-r, y-r, 2*r, 2*r);
+				this.drawColor = drawColor;
+				this.fillColor = null;
+				this.stroke = drawStroke;
+			}
 		}
 
 		CirclePainter(final float x, final float y, final float r, final Color drawColor, final Color fillColor, final Stroke drawStroke) {
-			this.ellipse = new Ellipse2D.Float(x-r, y-r, 2*r, 2*r);
-			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = drawStroke;
+			if (drawColor == null) {
+				throw new NullPointerException("Draw color can't be null");
+			}
+			else if (drawStroke == null) {
+				throw new NullPointerException("Stroke can't be null");
+			}
+			else {
+				this.ellipse = new Ellipse2D.Float(x-r, y-r, 2*r, 2*r);
+				this.drawColor = drawColor;
+				this.fillColor = fillColor;
+				this.stroke = drawStroke;
+			}
 		}
 		
 		@Override
@@ -517,47 +528,64 @@ public class SVGPainter {
 		}
 
 		DynamicCirclePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter r, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
-			if (x.isImmutable() && y.isImmutable() && r.isImmutable()) {
-				final float				radius = r.get();
-				
-				this.ellipse = new Ellipse2D.Float(x.get()-radius, y.get()-radius, 2*radius, 2*radius);
-				this.x = this.y = this.r = null;
+			if (x == null) {
+				throw new NullPointerException("X getter can't be null");
+			}
+			else if (y == null) {
+				throw new NullPointerException("Y getter can't be null");
+			}
+			else if (r == null) {
+				throw new NullPointerException("R getter can't be null");
+			}
+			else if (drawColorGetter == null) {
+				throw new NullPointerException("Draw color getter can't be null");
+			}
+			else if (strokeGetter == null) {
+				throw new NullPointerException("Stroke getter can't be null");
 			}
 			else {
-				this.ellipse = null;
-				this.x = x;
-				this.y = y;
-				this.r = r;
-			}
-			if (drawColorGetter.isImmutable()) {
-				this.drawColor = drawColorGetter.get(); 
-				this.drawColorGetter = null;
-			}
-			else {
-				this.drawColor = null;
-				this.drawColorGetter = drawColorGetter;
-			}
-			if (fillColorGetter != null) {
-				if (fillColorGetter.isImmutable()) {
-					this.fillColor = fillColorGetter.get(); 
-					this.fillColorGetter = null;
+				if (x.isImmutable() && y.isImmutable() && r.isImmutable()) {
+					final float				radius = r.get();
+					
+					this.ellipse = new Ellipse2D.Float(x.get()-radius, y.get()-radius, 2*radius, 2*radius);
+					this.x = this.y = this.r = null;
+				}
+				else {
+					this.ellipse = null;
+					this.x = x;
+					this.y = y;
+					this.r = r;
+				}
+				if (drawColorGetter.isImmutable()) {
+					this.drawColor = drawColorGetter.get(); 
+					this.drawColorGetter = null;
+				}
+				else {
+					this.drawColor = null;
+					this.drawColorGetter = drawColorGetter;
+				}
+				if (fillColorGetter != null) {
+					if (fillColorGetter.isImmutable()) {
+						this.fillColor = fillColorGetter.get(); 
+						this.fillColorGetter = null;
+					}
+					else {
+						this.fillColor = null;
+						this.fillColorGetter = fillColorGetter;
+					}
 				}
 				else {
 					this.fillColor = null;
-					this.fillColorGetter = fillColorGetter;
+					this.fillColorGetter = null;
 				}
-			}
-			else {
-				this.fillColor = null;
-				this.fillColorGetter = null;
-			}
-			if (strokeGetter.isImmutable()) {
-				this.stroke = strokeGetter.get();
-				this.strokeGetter = null;
-			}
-			else {
-				this.stroke = null;
-				this.strokeGetter = strokeGetter;
+				if (strokeGetter.isImmutable()) {
+					this.stroke = strokeGetter.get();
+					this.strokeGetter = null;
+				}
+				else {
+					this.stroke = null;
+					this.strokeGetter = strokeGetter;
+				}
 			}
 		}
 		
@@ -602,12 +630,20 @@ public class SVGPainter {
 		}
 
 		EllipsePainter(final float x, final float y, final float rx, final float ry, final Color drawColor, final Color fillColor, final Stroke drawStroke) {
-			this.ellipse = new Ellipse2D.Float(x-rx, y-ry, 2*rx, 2*ry);
-			this.drawColor = drawColor;
-			this.fillColor = fillColor;
-			this.stroke = drawStroke;
+			if (drawColor == null) {
+				throw new NullPointerException("Draw color can't be null");
+			}
+			else if (drawStroke == null) {
+				throw new NullPointerException("Stroke can't be null");
+			}
+			else {
+				this.ellipse = new Ellipse2D.Float(x-rx, y-ry, 2*rx, 2*ry);
+				this.drawColor = drawColor;
+				this.fillColor = fillColor;
+				this.stroke = drawStroke;
+			}
 		}
-		
+
 		@Override
 		public void paint(final Graphics2D g2d) {
 			final Color				oldColor = g2d.getColor();
@@ -643,48 +679,68 @@ public class SVGPainter {
 		}
 
 		DynamicEllipsePainter(final OnlineFloatGetter x, final OnlineFloatGetter y, final OnlineFloatGetter rx, final OnlineFloatGetter ry, final OnlineObjectGetter<Color> drawColorGetter, final OnlineObjectGetter<Color> fillColorGetter, final OnlineObjectGetter<Stroke> strokeGetter) {
-			if (x.isImmutable() && y.isImmutable() && rx.isImmutable() && ry.isImmutable()) {
-				final float		radiusX = rx.get(), radiusY = ry.get();
-				
-				this.ellipse = new Ellipse2D.Float(x.get()-radiusX, y.get()-radiusY, 2*radiusX, 2*radiusY);
-				this.x = this.y = this.rx = this.ry = null;    
+			if (x == null) {
+				throw new NullPointerException("X getter can't be null");
+			}
+			else if (y == null) {
+				throw new NullPointerException("Y getter can't be null");
+			}
+			else if (rx == null) {
+				throw new NullPointerException("RX getter can't be null");
+			}
+			else if (ry == null) {
+				throw new NullPointerException("RY getter can't be null");
+			}
+			else if (drawColorGetter == null) {
+				throw new NullPointerException("Draw color getter can't be null");
+			}
+			else if (strokeGetter == null) {
+				throw new NullPointerException("Stroke getter can't be null");
 			}
 			else {
-				this.ellipse = null;
-				this.x = x;
-				this.y = y;
-				this.rx = rx;
-				this.ry = ry;
-			}
-			if (drawColorGetter.isImmutable()) {
-				this.drawColor = drawColorGetter.get(); 
-				this.drawColorGetter = null;
-			}
-			else {
-				this.drawColor = null;
-				this.drawColorGetter = drawColorGetter;
-			}
-			if (fillColorGetter != null) {
-				if (fillColorGetter.isImmutable()) {
-					this.fillColor = fillColorGetter.get(); 
-					this.fillColorGetter = null;
+				if (x.isImmutable() && y.isImmutable() && rx.isImmutable() && ry.isImmutable()) {
+					final float		radiusX = rx.get(), radiusY = ry.get();
+					
+					this.ellipse = new Ellipse2D.Float(x.get()-radiusX, y.get()-radiusY, 2*radiusX, 2*radiusY);
+					this.x = this.y = this.rx = this.ry = null;    
+				}
+				else {
+					this.ellipse = null;
+					this.x = x;
+					this.y = y;
+					this.rx = rx;
+					this.ry = ry;
+				}
+				if (drawColorGetter.isImmutable()) {
+					this.drawColor = drawColorGetter.get(); 
+					this.drawColorGetter = null;
+				}
+				else {
+					this.drawColor = null;
+					this.drawColorGetter = drawColorGetter;
+				}
+				if (fillColorGetter != null) {
+					if (fillColorGetter.isImmutable()) {
+						this.fillColor = fillColorGetter.get(); 
+						this.fillColorGetter = null;
+					}
+					else {
+						this.fillColor = null;
+						this.fillColorGetter = fillColorGetter;
+					}
 				}
 				else {
 					this.fillColor = null;
-					this.fillColorGetter = fillColorGetter;
+					this.fillColorGetter = null;
 				}
-			}
-			else {
-				this.fillColor = null;
-				this.fillColorGetter = null;
-			}
-			if (strokeGetter.isImmutable()) {
-				this.stroke = strokeGetter.get();
-				this.strokeGetter = null;
-			}
-			else {
-				this.stroke = null;
-				this.strokeGetter = strokeGetter;
+				if (strokeGetter.isImmutable()) {
+					this.stroke = strokeGetter.get();
+					this.strokeGetter = null;
+				}
+				else {
+					this.stroke = null;
+					this.strokeGetter = strokeGetter;
+				}
 			}
 		}
 		

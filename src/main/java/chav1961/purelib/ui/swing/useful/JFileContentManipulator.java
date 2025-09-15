@@ -726,7 +726,7 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	 * @since 0.0.7
 	 */
 	public boolean isFileNew() {
-		return getFileDesc().currentName.isEmpty();	
+		return getFileDesc().isEmpty();	
 	}
 	
 	
@@ -999,10 +999,16 @@ public class JFileContentManipulator implements Closeable, LocaleChangeListener,
 	}
 	
 	private static class FileDesc {
+		private static final String	EMPTY_NAME = "<new>";
+		
 		private final int			id = AI.incrementAndGet();
 		private boolean				wasChanged = false;
-		private String				currentName = "<new>", currentDir = "";
+		private String				currentName = EMPTY_NAME, currentDir = "";
 		private FilterCallback[]	filters = new FilterCallback[0];
+		
+		public boolean isEmpty() {
+			return EMPTY_NAME.equals(currentName) || Utils.checkEmptyOrNullString(currentName);
+		}
 		
 		@Override
 		public String toString() {

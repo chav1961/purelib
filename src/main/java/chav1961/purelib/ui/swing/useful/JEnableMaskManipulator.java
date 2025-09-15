@@ -458,6 +458,15 @@ loop:		for (ItemDescriptor item : itemNames) {
 		setCheckMask(mask);
 	}
 	
+	/**
+	 * <p>Calculate all masks state and apply result</p>
+	 * @since 0.0.8
+	 */
+	public void applyMasks() {
+		applyEnableMasks();
+		applyCheckMasks();
+	}
+	
 	private ItemDescriptor[] toItems(final String[] itemNames) {
 		final ItemDescriptor[] result = new ItemDescriptor[itemNames.length];
 		

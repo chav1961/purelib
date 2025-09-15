@@ -8,10 +8,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import chav1961.purelib.basic.CSSUtils;
 import chav1961.purelib.basic.CSSUtils.Distance;
