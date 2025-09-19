@@ -296,6 +296,7 @@ public abstract class SwingUtils {
 	private static final JDialog	HELP_DIALOG;
 	static final URI				MODEL_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
 	static final URI				MODEL_FIELD_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_FIELD+":/");
+	static final URI				SUBMENU_REF_URI = URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/");
 	
 	static {
 		DEFAULT_VALUES.put(byte.class,(byte)0);
@@ -2468,10 +2469,29 @@ loop:			for (;;) {
 				bar.add(new JSeparator());
 				break;
 			case SUBMENU	:
-				final JMenu	menu = new JMenuWithMeta(node);
-				
-				for (ContentNodeMetadata child : node) {
-					toMenuEntity(child,menu);
+				final JMenu	menu;
+
+				if (node.getApplicationPath() != null && URIUtils.canServeURI(node.getApplicationPath(), SUBMENU_REF_URI)) {
+					final URI uiRef = URIUtils.extractSubURI(node.getApplicationPath(), ContentMetadataInterface.APPLICATION_SCHEME, Constants.MODEL_APPLICATION_SCHEME_REF); 
+					ContentNodeMetadata refNode = node.getOwner().byUIPath(uiRef);
+					
+					if (refNode.getChildrenCount() == 1) {
+						refNode = refNode.getChild(0);
+						menu = new JMenuWithMeta(refNode);
+					}
+					else {
+						menu = new JMenuWithMeta(node);
+					}
+					
+					for (ContentNodeMetadata child : refNode) {
+						toMenuEntity(child, menu);
+					}
+				}
+				else {
+					menu = new JMenuWithMeta(node);
+					for (ContentNodeMetadata child : node) {
+						toMenuEntity(child,menu);
+					}
 				}
 				buildRadioButtonGroups(menu);
 				bar.add(menu);

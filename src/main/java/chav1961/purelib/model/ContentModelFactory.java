@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import chav1961.purelib.basic.URIUtils;
+import chav1961.purelib.basic.Utils;
 import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.EnvironmentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
@@ -785,7 +786,7 @@ public class ContentModelFactory {
 						, null
 						, null
 						, null
-						, menuIcon == null || menuIcon.isEmpty() ? null : URI.create(menuIcon));
+						, Utils.checkEmptyOrNullString(menuIcon) ? null : URI.create(menuIcon));
 				break;
 			case XML_TAG_APP_SUBMENU	:
 				final String	submenuName = getAttribute(document,XML_ATTR_NAME);
@@ -802,22 +803,26 @@ public class ContentModelFactory {
 						, null
 						, null
 						, null
-						, submenuIcon == null || submenuIcon.isEmpty() ? null : URI.create(submenuIcon));
+						, Utils.checkEmptyOrNullString(submenuIcon) ? null : URI.create(submenuIcon));
 				break;
 			case XML_TAG_APP_SUBMENU_REF	:
 				final String	submenuRefName = getAttribute(document,XML_ATTR_NAME);
 				final String	submenuRef = getAttribute(document,XML_ATTR_REF);
+				final String	submenuRefCaption = getAttribute(document,XML_ATTR_CAPTION);
+				final String	submenuRefTooltip = getAttribute(document,XML_ATTR_TOOLTIP);
+				final String	submenuRefIcon = getAttribute(document,XML_ATTR_ICON);
 				
 				child = new MutableContentNodeMetadata(submenuRefName
 						, String.class
 						, Constants.MODEL_NAVIGATION_NODE_PREFIX+'.'+submenuRefName
 						, null
-						, submenuRef
+						, Utils.checkEmptyOrNullString(submenuRefCaption) ? submenuRefName : submenuRefCaption
+						, submenuRefTooltip
 						, null
 						, null
-						, null
-						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME+":"+Constants.MODEL_APPLICATION_SCHEME_REF+":/"+submenuRef)
-						, null);
+						, URI.create(ContentMetadataInterface.APPLICATION_SCHEME + ":" + Constants.MODEL_APPLICATION_SCHEME_REF
+								+ (submenuRef.contains(":") ? ":" : ":/") + submenuRef)
+						, Utils.checkEmptyOrNullString(submenuRefIcon) ? null : URI.create(submenuRefIcon));
 				break;
 			case XML_TAG_APP_ITEM		:
 				final String	itemName = getAttribute(document,XML_ATTR_NAME);
@@ -858,7 +863,7 @@ public class ContentModelFactory {
 									+ (!sb.isEmpty() ? '?'+sb.substring(1) : "")
 									+ (groupAction != null ? "#"+groupAction : "")
 									)
-						, itemIcon == null || itemIcon.isEmpty() ? null : URI.create(itemIcon));
+						, Utils.checkEmptyOrNullString(itemIcon) ? null : URI.create(itemIcon));
 				break;
 			case XML_TAG_APP_ITEM_REF	:
 				final String	itemRefName = getAttribute(document,XML_ATTR_NAME);
