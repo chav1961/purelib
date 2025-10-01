@@ -139,7 +139,7 @@ import chav1961.purelib.i18n.internal.PureLibLocalizer;
  * @see chav1961.purelib.basic JUnit tests
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.1
- * @last.update 0.0.7
+ * @last.update 0.0.8
  */
 
 public class CharUtils {
@@ -1490,6 +1490,24 @@ loop:		for (index = from; index < len; index++) {
 				this.lexemas = lexemas;
 			}
 		}
+
+		/**
+		 * <p>Constructor of the class</p>
+		 * @param lexemas groups of lexemas to choise alternatives. Can't be null, empty or contains nulls inside
+		 * @throws IllegalArgumentException on any argument errors
+		 * @since 0.0.8
+		 */
+		public Choise(Object... lexemas)  throws IllegalArgumentException {
+			if (lexemas == null || lexemas.length == 0 || Utils.checkArrayContent4Nulls(lexemas) >= 0) {
+				throw new IllegalArgumentException("Lexemas is null, empty or contain nulls inside"); 
+			}
+			else {
+				this.lexemas = new Object[lexemas.length][];
+				for(int index = 0; index < lexemas.length; index++) {
+					this.lexemas[index] = new Object[] {lexemas[index]};
+				}
+			}
+		}
 	}
 
 	/**
@@ -1515,6 +1533,29 @@ loop:		for (index = from; index < len; index++) {
 		 */
 		public int getMark() {
 			return value;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + value;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (obj == null) return false;
+			if (getClass() != obj.getClass()) return false;
+			Mark other = (Mark) obj;
+			if (value != other.value) return false;
+			return true;
+		}
+
+		@Override
+		public String toString() {
+			return "Mark [value=" + value + "]";
 		}
 	}
 	
