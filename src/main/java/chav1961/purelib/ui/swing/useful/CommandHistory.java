@@ -13,7 +13,9 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.ui.swing.SwingUtils;
+import chav1961.purelib.ui.swing.interfaces.Undoable;
 
 /**
  * <p>This class is a simple command history keeper. In can be used to keep all command line strings and undo/redo them. 
@@ -23,14 +25,16 @@ import chav1961.purelib.ui.swing.SwingUtils;
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.8
  */
-public class CommandHistory {
+public class CommandHistory implements Undoable<String> {
 	private final int			maxDepth;
 	private final List<String>	commands;
-	private int		cursor = 0;
+	private final LightWeightListenerList<UndoListener>	listeners = new LightWeightListenerList<>(UndoListener.class);
+	private int		cursor = -1;
 	
 	/**
 	 * <p>Constructor of the class instance.</p>
-	 * @param maxDepth max history depth. O means infinity. Can not be less than 0
+	 * @param maxDepth max history depth. O means infinity. Can not be less than 0. It's not recommended to use maxDepth = 1 because, in fact,
+	 * command history will be turned off.
 	 * @throws maxDepth is less than 0 
 	 */
 	public CommandHistory(final int maxDepth) throws IllegalArgumentException {
@@ -55,14 +59,16 @@ public class CommandHistory {
 			throw new NullPointerException("Reader can't be null");
 		}
 		else {
+			final UndoEvent			ue = new UndoEvent(this, 0, UndoEventType.APPEND_UNDO);
 			final BufferedReader	brdr = new BufferedReader(in);
 			String	line;
 			
 			while((line = brdr.readLine()) != null) {
 				if (!Utils.checkEmptyOrNullString(line)) {
-					append(line);
+					appendUndoInternal(line);
 				}
 			}
+			listeners.fireEvent((l)->l.undoChanged(ue));
 		}
 	}
 	
@@ -84,48 +90,42 @@ public class CommandHistory {
 			out.flush();
 		}
 	}
-	
-	/**
-	 * <p>Can undo to previous command</p>
-	 * @return true if can undo, false otherwise.
-	 */
+
+	@Override
 	public boolean canUndo() {
-		return cursor <= commands.size() && cursor > 0;
+		return cursor > 0 && cursor < commands.size();
 	}
-	
-	/**
-	 * <p>Undo to previous command</p>
-	 * @return previous command text. Can be neither null nor empty
-	 * @throws IllegalStateException if can't undo
-	 */
+
+	@Override
 	public String undo() throws IllegalStateException {
 		if (!canUndo()) {
 			throw new IllegalStateException("Undo can't be done because content is too few");
 		}
 		else {
-			return commands.get(--cursor);
+			final UndoEvent	ue = new UndoEvent(this, 0, UndoEventType.CHANGE_UNDO);
+			final String	result = commands.get(--cursor);
+			
+			listeners.fireEvent((l)->l.undoChanged(ue));
+			return result;
 		}
 	}
 
-	/**
-	 * <p>Can redo to next command</p>
-	 * @return true if can redo, false otherwise.
-	 */
+	@Override
 	public boolean canRedo() {
 		return cursor >= 0 && cursor < commands.size()-1;
 	}
-	
-	/**
-	 * <p>Redo to next command</p>
-	 * @return next command text. Can be neither null nor empty
-	 * @throws IllegalStateException if can't redo
-	 */
+
+	@Override
 	public String redo() throws IllegalStateException {
 		if (!canRedo()) {
 			throw new IllegalStateException("Redo can't be done because content is too few");
 		}
 		else {
-			return commands.get(++cursor);
+			final UndoEvent	ue = new UndoEvent(this, 0, UndoEventType.CHANGE_UNDO);
+			final String	result = commands.get(++cursor);
+			
+			listeners.fireEvent((l)->l.undoChanged(ue));
+			return result;
 		}
 	}
 	
@@ -133,19 +133,26 @@ public class CommandHistory {
 	 * <p>Appends new command string to the history. If maxDepth > 0, truncates history to maximum size</p> 
 	 * @param command command to append. Can be neither null nor empty
 	 */
-	public void append(final String command) throws IllegalArgumentException {
+	@Override
+	public void appendUndo(final String command) throws IllegalArgumentException {
 		if (Utils.checkEmptyOrNullString(command)) {
 			throw new IllegalArgumentException("Command to append can be neither null nor empty");
 		}
 		else {
-			commands.add(command);
-			if (maxDepth != 0) {
-				while (commands.size() > maxDepth) {
-					commands.remove(0);
-				}
-			}
-			cursor = commands.size();
+			final UndoEvent	ue = new UndoEvent(this, 0, UndoEventType.APPEND_UNDO);
+
+			appendUndoInternal(command);
+			listeners.fireEvent((l)->l.undoChanged(ue));
 		}
+	}
+
+	@Override
+	public void clearUndo() {
+		final UndoEvent	ue = new UndoEvent(this, 0, UndoEventType.CLEAR_UNDO);
+		
+		commands.clear();
+		cursor = 0;
+		listeners.fireEvent((l)->l.undoChanged(ue));
 	}
 	
 	/**
@@ -153,8 +160,10 @@ public class CommandHistory {
 	 * @return content of the current command. Can be neither null nor empty
 	 * @throws IllegalStateException if command history is empty
 	 */
-	public String getCurrentCommand() throws IllegalStateException {
-		if (cursor >= commands.size()) {
+	
+	@Override
+	public String getCurrentItem() throws IllegalStateException {
+		if (cursor < 0 || cursor >= commands.size()) {
 			throw new IllegalStateException("Current command is not available because content is too few");
 		}
 		else {
@@ -162,6 +171,26 @@ public class CommandHistory {
 		}
 	}
 
+	@Override
+	public void addUndoListener(final UndoListener l) {
+		if (l == null) {
+			throw new NullPointerException("Listener to add can't be null");
+		}
+		else {
+			listeners.addListener(l);
+		}
+	}
+
+	@Override
+	public void removeUndoListener(final UndoListener l) {
+		if (l == null) {
+			throw new NullPointerException("Listener to remove can't be null");
+		}
+		else {
+			listeners.removeListener(l);
+		}
+	}
+	
 	/**
 	 * <p>This interface describes processing of the current command. It is similar to {@linkplain Consumer} interface but allow to throw exceptions in the processing method</p>
 	 * @author Alexander Chernomyrdin aka chav1961
@@ -218,7 +247,7 @@ public class CommandHistory {
 					try{
 						processor.accept(cmd);
 						component.setText("");
-						history.append(cmd);
+						history.appendUndo(cmd);
 					} catch (Exception exc) {
 					}
 				}
@@ -235,5 +264,15 @@ public class CommandHistory {
 			}, SwingUtils.ACTION_REDO);
 			return history;
 		}
+	}
+
+	private void appendUndoInternal(final String command) {
+		commands.add(command);
+		if (maxDepth != 0) {
+			while (commands.size() > maxDepth) {
+				commands.remove(0);
+			}
+		}
+		cursor = commands.size()-1;
 	}
 }
