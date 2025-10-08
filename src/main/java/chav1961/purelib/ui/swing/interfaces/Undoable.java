@@ -16,6 +16,7 @@ public interface Undoable<T> {
 	public static enum UndoEventType {
 		CHANGE_UNDO,
 		APPEND_UNDO,
+		REMOVE_UNDO,
 		CLEAR_UNDO;
 	}
 	

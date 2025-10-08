@@ -18,7 +18,30 @@ public interface RecordFormManager<Id,Instance> {
 	 * @last.update 0.0.7
 	 */
 	public static enum RecordAction {
-		INSERT, DUPLICATE, UPDATE, DELETE, CHECK, REFRESH
+		/**
+		 * <p>Record was inserted.</p>
+		 */
+		INSERT, 
+		/**
+		 * <p>Record was duplicted</p>
+		 */
+		DUPLICATE, 
+		/**
+		 * <p>Record was updated</p>
+		 */
+		UPDATE,
+		/**
+		 * <p>Record was deleted</p>
+		 */
+		DELETE, 
+		/**
+		 * <p>Record is checking before commit</p>
+		 */
+		CHECK,
+		/**
+		 * <p>Record requires refreshing</p>
+		 */
+		REFRESH
 	}
 
 	/**
