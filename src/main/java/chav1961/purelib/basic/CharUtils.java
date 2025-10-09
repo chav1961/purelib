@@ -183,6 +183,7 @@ public class CharUtils {
 	private static final char[]		EMPTY_CHAR_ARRAY = new char[0];
 	private static final String		EMPTY_STRING = "";
 	private static final char[]		HYPHEN_NAME = "-".toCharArray();
+	private static final char[]		DOT_NAME = ".".toCharArray();
 	private static final char		WILDCARD_ANY_SEQ = '*';
 	private static final char		WILDCARD_ANY_CHAR = '?';
 	private static final SyntaxTreeInterface<Object>	CONSTANTS = new AndOrTree<>();
@@ -1436,11 +1437,11 @@ loop:		for (index = from; index < len; index++) {
 	 * <p>This enumeration is used to describe template for extracting content from character array with lexemas.</p>
 	 * @author Alexander Chernomyrdin aka chav1961
 	 * @since 0.0.3
-	 * @last.update 0.0.6
+	 * @last.update 0.0.8
 	 */
 	public enum ArgumentType {
 		ordinalInt, signedInt, hexInt, ordinalLong, signedLong, hexLong, ordinalFloat, signedFloat, Boolean,
-		name, hyphenedName, simpleTerminatedString, specialTerminatedString,
+		name, dottedName, hyphenedName, simpleTerminatedString, specialTerminatedString,
 		colorRepresentation,
 		rectangleRepresentation,
 		raw
@@ -1723,6 +1724,14 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 							case name			:
 								if (Character.isJavaIdentifierStart(source[start])) {
 									start = UnsafedCharUtils.uncheckedParseName(source,start,intResult);
+								}
+								else {
+									return -(start+1);
+								}
+								break;
+							case dottedName	:
+								if (Character.isJavaIdentifierStart(source[start])) {
+									start = UnsafedCharUtils.uncheckedParseNameExtended(source,start,intResult,DOT_NAME);
 								}
 								else {
 									return -(start+1);
@@ -2027,12 +2036,19 @@ loop:		for (int index = 0, maxIndex = lexemas.length; index < maxIndex; index++)
 									throw new SyntaxException(0,start,"Parse error: "+exc.getLocalizedMessage()); 
 								}
 								break;
+							case dottedName	:
+								final int	startDottedName = start--;
+								
+								do {start = UnsafedCharUtils.uncheckedParseName(source,++start,intResult);
+								} while (start < source.length && source[start] == '.');
+								result[resultIndex[0]++] = new String(source,startDottedName,intResult[1]-startDottedName+1);
+								break; 
 							case hyphenedName	:
-								final int	startName = start--;
+								final int	startHyphenedName = start--;
 								
 								do {start = UnsafedCharUtils.uncheckedParseName(source,++start,intResult);
 								} while (start < source.length && source[start] == '-');
-								result[resultIndex[0]++] = new String(source,startName,intResult[1]-startName+1);
+								result[resultIndex[0]++] = new String(source,startHyphenedName,intResult[1]-startHyphenedName+1);
 								break; 
 							case colorRepresentation	:
 								if (source[start] == '#') {	// Hex presentation

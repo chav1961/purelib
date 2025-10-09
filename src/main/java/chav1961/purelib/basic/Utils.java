@@ -1165,7 +1165,9 @@ public class Utils {
 	 * @throws NullPointerException when class is null
 	 * @throws IllegalArgumentException when class is not a wrapper to the primitive class
 	 * @since 0.0.2
+	 * @deprecated use CompilerUtils.toWrappedClass(Class) instead
 	 */
+	@Deprecated(since="0.0.5")
 	public static Class<?> wrapper2Primitive(final Class<?> clazz) throws NullPointerException, IllegalArgumentException {
 		if (clazz == null) {
 			throw new NullPointerException("Class to get primitive for can't be null");

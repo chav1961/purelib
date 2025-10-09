@@ -860,7 +860,7 @@ public class SQLUtils {
 	private static Map<Class<?>,ConversionCall> prepareConversion4String() {
 		final Map<Class<?>,ConversionCall>	toMap = new HashMap<>();
 		
-		toMap.put(Boolean.class,(source)->{return Boolean.valueOf(toString(source,"false"));});
+		toMap.put(Boolean.class,(source)->{return strict2Boolean(toString(source,"false"));});
 		toMap.put(Byte.class,(source)->{return Byte.valueOf(toString(source,"0"));});
 		toMap.put(Short.class,(source)->{return Short.valueOf(toString(source,"0"));});
 		toMap.put(Integer.class,(source)->{return Integer.valueOf(toString(source,"0"));});
@@ -1845,7 +1845,7 @@ public class SQLUtils {
 		final Map<Class<?>,ConversionCall>	toMap = new HashMap<>();
 		
 		toMap.put(Boolean.class,(source)->{
-			try {return Boolean.valueOf(Utils.fromResource(((Reader)source)));
+			try {return strict2Boolean(Utils.fromResource(((Reader)source)));
 			} catch (NumberFormatException | IOException e) {
 				throw new ContentException(e); 
 			}
@@ -2222,6 +2222,18 @@ public class SQLUtils {
 		return toMap;
 	}
 
+	private static Boolean strict2Boolean(final String value) throws ContentException {
+		if ("true".equals(value)) {
+			return Boolean.TRUE;
+		}
+		else if ("false".equals(value)) {
+			return Boolean.FALSE;
+		}
+		else {
+			throw new ContentException("Wrong boolean value ["+value+"]");
+		}
+	}
+	
 	/**
 	 * <p>This class is a container for database type descriptor</p>
 	 * @see DatabaseMetaData#getTypeInfo()
