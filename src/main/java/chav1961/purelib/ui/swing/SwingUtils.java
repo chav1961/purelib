@@ -83,6 +83,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
@@ -2905,6 +2906,14 @@ loop:			for (;;) {
 		private final ContentNodeMetadata	metadata;
 		
 		private JCheckBoxMenuItemWithMeta(final ContentNodeMetadata metadata) {
+			setModel(new JToggleButton.ToggleButtonModel() {
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public String getActionCommand() {
+					return super.getActionCommand()+"&selected="+isSelected();
+				}
+			});
 			this.metadata = metadata;
 			this.setName(metadata.getName());
 			this.setActionCommand(metadata.getApplicationPath().getSchemeSpecificPart());

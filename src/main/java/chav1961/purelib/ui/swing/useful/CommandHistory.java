@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 import chav1961.purelib.basic.Utils;
+import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.Undoable;
@@ -249,6 +250,7 @@ public class CommandHistory implements Undoable<String> {
 						component.setText("");
 						history.appendUndo(cmd);
 					} catch (Exception exc) {
+						SwingUtils.getNearestLogger(component).message(Severity.error, exc, exc.getLocalizedMessage());
 					}
 				}
 			});

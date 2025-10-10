@@ -26,8 +26,8 @@ public class JFeezableTableWithMeta extends JFreezableTable implements NodeMetad
 	private final ContentNodeMetadata	metadata;
 	private final Localizer				localizer;
 	
-	public JFeezableTableWithMeta(final TableModel model, final ContentNodeMetadata metadata) throws NullPointerException, IllegalArgumentException, LocalizationException {
-		super(new FilteredTableModel(model,metadata),extractFreezedColumns(metadata));
+	public JFeezableTableWithMeta(final TableModel model, final ContentNodeMetadata metadata) throws NullPointerException, IllegalArgumentException {
+		super(model, extractFreezedColumns(metadata));
 		if (metadata == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
@@ -46,16 +46,9 @@ public class JFeezableTableWithMeta extends JFreezableTable implements NodeMetad
 
 	@Override
 	public void localeChanged(final Locale oldLocale, final Locale newLocale) throws LocalizationException {
-		listener.tableChanged(new TableModelEvent(getModel(),TableModelEvent.HEADER_ROW));
-		listener.tableChanged(new TableModelEvent(getModel()));
+		updateUI();
 	}
 
-	
-	@Override
-	public void setModel(TableModel dataModel) {
-		super.setModel(new FilteredTableModel(dataModel,metadata));
-	}
-	
 	private static String[] extractFreezedColumns(final ContentNodeMetadata metadata) {
 		final List<String>	names = new ArrayList<>();
 		
@@ -64,7 +57,12 @@ public class JFeezableTableWithMeta extends JFreezableTable implements NodeMetad
 				names.add(item.getName());
 			}
 		}
-		return names.toArray(new String[names.size()]);
+		if (names.isEmpty()) {
+			throw new IllegalArgumentException("No any freezable commns found in the model. Don't use this class with this model"); 
+		}
+		else {
+			return names.toArray(new String[names.size()]);
+		}
 	}
 	
 	private Component renderHeaderCell(final JTable table, final Object value, final boolean isSelected, final boolean hasFocus, final int row, final int column) {
@@ -85,87 +83,5 @@ public class JFeezableTableWithMeta extends JFreezableTable implements NodeMetad
 			}
 		}
 		throw new LocalizationException("Name ["+name+"] is missing in the metadata");
-	}
-	
-	private static class FilteredTableModel implements TableModel {
-		private final TableModel			nested;
-		private final ContentNodeMetadata	metadata;
-		
-		private int							trueColumnCount;
-		private int[]						trueColumnIndices;
-		
-		FilteredTableModel(final TableModel nested, final ContentNodeMetadata metadata) throws IllegalArgumentException {
-			this.nested = nested;
-			this.metadata = metadata;
-			prepareIndices();
-		}
-
-		@Override
-		public int getRowCount() {
-			return nested.getRowCount();
-		}
-
-		@Override
-		public int getColumnCount() {
-			if (nested.getRowCount() != trueColumnCount) {
-				prepareIndices();
-			}
-			return trueColumnCount;
-		}
-
-		@Override
-		public String getColumnName(final int columnIndex) {
-			return nested.getColumnName(trueColumnIndices[columnIndex]);
-		}
-
-		@Override
-		public Class<?> getColumnClass(final int columnIndex) {
-			return nested.getColumnClass(trueColumnIndices[columnIndex]);
-		}
-
-		@Override
-		public boolean isCellEditable(final int rowIndex, final int columnIndex) {
-			return nested.isCellEditable(rowIndex,trueColumnIndices[columnIndex]);
-		}
-
-		@Override
-		public Object getValueAt(final int rowIndex, final int columnIndex) {
-			return nested.getValueAt(rowIndex,trueColumnIndices[columnIndex]);
-		}
-
-		@Override
-		public void setValueAt(final Object aValue, final int rowIndex, final int columnIndex) {
-			nested.setValueAt(aValue,rowIndex,trueColumnIndices[columnIndex]);
-		}
-
-		@Override
-		public void addTableModelListener(final TableModelListener l) {
-			nested.addTableModelListener(l);
-		}
-
-		@Override
-		public void removeTableModelListener(final TableModelListener l) {
-			nested.removeTableModelListener(l);
-		}
-		
-		private void prepareIndices() {
-			trueColumnIndices = new int[nested.getColumnCount()];
-			
-			int count = 0;
-loop:		for (int index = 0, maxIndex = this.trueColumnIndices.length; index < maxIndex; index++) {
-				final String	name = nested.getColumnName(index);
-				
-				for (ContentNodeMetadata item : metadata) {
-					if (name.equals(item.getName())) {
-						if (item.getFormatAssociated() != null && item.getFormatAssociated().isUsedInList()) {
-							trueColumnIndices[count++] = index;
-						}
-						continue loop;
-					}
-				}
-				throw new IllegalArgumentException("Table model contains column ["+name+"], that is missing in the content metadata"); 
-			}
-			this.trueColumnCount = count;
-		}
 	}
 }

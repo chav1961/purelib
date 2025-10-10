@@ -408,7 +408,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 
 	@OnAction("action:/storeContent")
 	private void storeContent() {
-		final InnerTableModel	model = (InnerTableModel) table.getSourceModel();
+		final InnerTableModel	model = (InnerTableModel) table.getModel();
 	
 		tempLocalizer.clear();
 		for(int index = 0, maxIndex = model.getRowCount(); index < maxIndex; index++) {
@@ -433,7 +433,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	@OnAction("action:/duplicateKey")
 	private void duplicateKey() {
 		if (table.getSelectionModel().getSelectedItemsCount() > 0) {
-			final TableModel	model = table.getSourceModel();
+			final TableModel	model = table.getModel();
 			final int			selectedRow = table.getSelectionModel().getMinSelectionIndex();
 			final String 		oldKey = model.getValueAt(selectedRow, 0).toString();
 			final String		newKey = createUniqueKey(oldKey);
@@ -449,7 +449,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 	@OnAction("action:/removeKey")
 	private void removeKey() {
 		if (table.getSelectionModel().getSelectedItemsCount() > 0) {
-			final TableModel	model = table.getSourceModel();
+			final TableModel	model = table.getModel();
 			final int			selectedRow = table.getSelectionModel().getMinSelectionIndex();
 			final String 		oldKey = model.getValueAt(selectedRow, 0).toString();
 			final int			oldRec = keyIndex(oldKey);
@@ -457,7 +457,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 			if (oldRec >= 0) {
 				content.remove(oldRec);
 				contentKeys.remove(oldKey);
-				((InnerTableModel)table.getSourceModel()).refreshContent(oldKey);
+				((InnerTableModel)table.getModel()).refreshContent(oldKey);
 			}
 			else {
 				getLogger().message(Severity.warning, MSG_MISSING_KEY, oldKey);
@@ -490,7 +490,7 @@ public class JLocalizerContentEditor extends JSplitPane implements LocaleChangeL
 				values[index] = index < initialValues.length ? initialValues[index] : key;
 			}
 			content.add(rec);
-			((InnerTableModel)table.getSourceModel()).refreshContent(key);
+			((InnerTableModel)table.getModel()).refreshContent(key);
 		}
 		else {
 			getLogger().message(Severity.warning, MSG_DUPLICATE_KEY, key);
