@@ -425,6 +425,10 @@
 		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontSize">Font size</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sample">Sample</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sampleText">AaBbYyZz</key>
+
+<!-- JCommandLine class localization-->
+		<key name="chav1961.purelib.ui.swing.useful.JCommandLine.command">Command:</key>
+		<key name="chav1961.purelib.ui.swing.useful.JCommandLine.command.tt">Type command to execute. Ctrl+Down/Ctrl+Up - discovering command history</key>
 		
 	</lang>
 	<lang name="ru">
@@ -851,6 +855,10 @@
 		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.fontSize">Размер</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sample">Пример шрифта</key>
 		<key name="chav1961.purelib.ui.swing.useful.JFontSelectionDialog.sampleText">АаБбЮюЯя</key>
+
+<!-- Локализация класса JCommandLine -->
+		<key name="chav1961.purelib.ui.swing.useful.JCommandLine.command">Команда:</key>
+		<key name="chav1961.purelib.ui.swing.useful.JCommandLine.command.tt">Введите команжду для выполнения. Ctrl+Down/Ctrl+Up - движение по истории команд</key>
 
 	</lang>
 </localization>
