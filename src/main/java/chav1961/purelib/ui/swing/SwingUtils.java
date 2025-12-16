@@ -1964,6 +1964,60 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
+	public static void fillCheckedSubmenu(final JMenu menu, final Iterable<String> content) {
+		if (menu == null || !(menu instanceof JMenuWithMeta)) {
+			throw new IllegalArgumentException("Menu to fill can't be null and must be JMenuWithMeta instance");
+		}
+		else if (content ==  null) {
+			throw new NullPointerException("Content list can't be null");
+		}
+		else {
+			final JMenuWithMeta	metaMenu = (JMenuWithMeta)menu;
+			boolean				filled = false;
+			
+			menu.removeAll();			
+			for (String item : content) {
+				final JCheckBoxMenuItem	menuItem = new JCheckBoxMenuItem(item);
+				
+				menuItem.addActionListener((e)->metaMenu.processActionEvent("action:/"+metaMenu.getNodeMetadata().getName()+"?name="+item));
+				menu.add(menuItem);
+				filled = true;
+			}
+			menu.setEnabled(filled);
+		}
+	}
+	
+	public static void fillRadioSubmenu(final JMenu menu, final Iterable<String> content, final String selected) {
+		if (menu == null || !(menu instanceof JMenuWithMeta)) {
+			throw new IllegalArgumentException("Menu to fill can't be null and must be JMenuWithMeta instance");
+		}
+		else if (content ==  null) {
+			throw new NullPointerException("Content list can't be null");
+		}
+		else if (Utils.checkEmptyOrNullString(selected)) {
+			throw new IllegalArgumentException("Selected item can't be null");
+		}
+		else {
+			final JMenuWithMeta	metaMenu = (JMenuWithMeta)menu;
+			final ButtonGroup	group = new ButtonGroup();
+			boolean				filled = false;
+			
+			menu.removeAll();			
+			for (String item : content) {
+				final JRadioButtonMenuItem	menuItem = new JRadioButtonMenuItem(item);
+				
+				menuItem.addActionListener((e)->metaMenu.processActionEvent("action:/"+metaMenu.getNodeMetadata().getName()+"?name="+item));
+				menu.add(menuItem);
+				group.add(menuItem);
+				if (item.equals(selected)) {
+					menu.setSelected(true);
+				}
+				filled = true;
+			}
+			menu.setEnabled(filled);
+		}
+	}
+	
 	/**
 	 * <p>Convert JPopupMenu content to PopupMenu</p>
 	 * @param menu menu to convert to popup. Can't be null

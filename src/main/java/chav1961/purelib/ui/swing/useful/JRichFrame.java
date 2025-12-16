@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
+import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 
@@ -37,6 +38,7 @@ public class JRichFrame extends JFrame implements LocaleChangeListener, LoggerFa
 	private static final long serialVersionUID = 5758385242098063342L;
 
 	public static final String				PROP_APP_RECTANGLE = "appRectangle";
+	public static final int					HISTORY_DEPTH = 10;
 	
 	private static final Pattern			RECT_PATTERN = Pattern.compile("\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)\\s*");
 
@@ -70,7 +72,7 @@ public class JRichFrame extends JFrame implements LocaleChangeListener, LoggerFa
 	
 			this.menuBar = SwingUtils.toJComponent(mdi.byUIPath(URI.create("ui:/model/navigation.top.mainmenu")), JMenuBar.class);
 			setJMenuBar(menuBar);
-			this.state = new JStateString(localizer);
+			this.state = new JStateString(localizer, HISTORY_DEPTH);
 			SwingUtils.assignActionListeners(this.menuBar, this);
 	
 			SwingUtils.assignExitMethod4MainWindow(this, ()->exitApplication());
