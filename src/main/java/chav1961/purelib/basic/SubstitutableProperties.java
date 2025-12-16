@@ -905,6 +905,29 @@ public class SubstitutableProperties extends Properties implements SubstitutionS
 	}
 
 	/**
+	 * <p>Create properties from file or retain it empty when file is not accessible</p>
+	 * @param file file to create properties from. Can't be null 
+	 * @return properties created from the file
+	 * @throws NullPointerException null file
+	 * @throws IOException any I/O errors
+	 * @since 0.0.8
+	 */
+	public static SubstitutableProperties ofOrEmpty(final File file) throws IOException, NullPointerException {
+		if (file == null) {
+			throw new NullPointerException("File can't be null");
+		}
+		else if (!file.exists() || !file.isFile() || !file.canRead()) {
+			return new SubstitutableProperties(); 
+		}
+		else {
+			try(final InputStream	is = new FileInputStream(file)) {
+				return of(is);
+			}
+		}
+	}
+	
+	
+	/**
 	 * <p>Create properties from input stream</p>
 	 * @param is input stream to create properties from. Can't be null 
 	 * @return properties created from the file
