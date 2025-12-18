@@ -33,6 +33,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -1964,31 +1965,16 @@ loop:			for (Component comp : children(node)) {
 		}
 	}
 
-	public static void fillCheckedSubmenu(final JMenu menu, final Iterable<String> content) {
-		if (menu == null || !(menu instanceof JMenuWithMeta)) {
-			throw new IllegalArgumentException("Menu to fill can't be null and must be JMenuWithMeta instance");
-		}
-		else if (content ==  null) {
-			throw new NullPointerException("Content list can't be null");
-		}
-		else {
-			final JMenuWithMeta	metaMenu = (JMenuWithMeta)menu;
-			boolean				filled = false;
-			
-			menu.removeAll();			
-			for (String item : content) {
-				final JCheckBoxMenuItem	menuItem = new JCheckBoxMenuItem(item);
-				
-				menuItem.addActionListener((e)->metaMenu.processActionEvent("action:/"+metaMenu.getNodeMetadata().getName()+"?name="+item));
-				menu.add(menuItem);
-				filled = true;
-			}
-			menu.setEnabled(filled);
-		}
-	}
-	
-	public static void fillRadioSubmenu(final JMenu menu, final Iterable<String> content, final String selected) {
-		if (menu == null || !(menu instanceof JMenuWithMeta)) {
+	/**
+	 * <p>Fill menu with radio button items.</p>
+	 * @param menu parent menu to fill content in. Can't be null and must be {@linkplain JMenuItemWithMeta} instance.
+	 * @param content content list to fill. Can' t null. Every string must have &lt;name&gt;;&lt;label&gt;[;&lt;tooltip&gt;] format.
+	 * @param selected selected item by default. Can be neither null not empty and must be one of the &lt;name&gt; items in the previous argument
+	 * @throws NullPointerException content is null
+	 * @throws IllegalArgumentException menu or selected is null or empty.
+	 */
+	public static void fillRadioSubmenu(final JMenu menu, final Iterable<String> content, final String selected) throws NullPointerException, IllegalArgumentException {
+		if (!(menu instanceof JMenuWithMeta)) {
 			throw new IllegalArgumentException("Menu to fill can't be null and must be JMenuWithMeta instance");
 		}
 		else if (content ==  null) {
@@ -1999,22 +1985,70 @@ loop:			for (Component comp : children(node)) {
 		}
 		else {
 			final JMenuWithMeta	metaMenu = (JMenuWithMeta)menu;
+			final Localizer		localizer = LocalizerFactory.getLocalizer(metaMenu.getNodeMetadata().getLocalizerAssociated());
 			final ButtonGroup	group = new ButtonGroup();
 			boolean				filled = false;
 			
 			menu.removeAll();			
 			for (String item : content) {
-				final JRadioButtonMenuItem	menuItem = new JRadioButtonMenuItem(item);
-				
-				menuItem.addActionListener((e)->metaMenu.processActionEvent("action:/"+metaMenu.getNodeMetadata().getName()+"?name="+item));
-				menu.add(menuItem);
-				group.add(menuItem);
-				if (item.equals(selected)) {
-					menu.setSelected(true);
+				if (Utils.checkEmptyOrNullString(item)) {
+					throw new IllegalArgumentException("Content contains null or empty strings inside"); 
 				}
-				filled = true;
+				else {
+					final String[] parts = item.split(";");
+					
+					if (parts.length < 2) {
+						throw new IllegalArgumentException("Content item ["+item+"] must have at least two components, splitten with ';'"); 
+					}
+					else {
+						final JRadioButtonMenuItem	menuItem = new JRadioButtonMenuItemWithLocalization(localizer, parts);
+						final String action = "action:/"+metaMenu.getNodeMetadata().getName()+"?name="+parts[0];
+						
+						menuItem.setActionCommand(action);
+						menuItem.addActionListener((e)->metaMenu.processActionEvent(action));
+						menu.add(menuItem);
+						group.add(menuItem);
+						if (parts[0].equals(selected)) {
+							menuItem.setSelected(true);
+						}
+						filled = true;
+					}
+				}
 			}
 			menu.setEnabled(filled);
+		}
+	}
+	
+	private static class JRadioButtonMenuItemWithLocalization extends JRadioButtonMenuItem implements LocaleChangeListener {
+		private static final long serialVersionUID = -4567628195041536626L;
+
+		private final Localizer	localizer; 
+		private final String[] 	parts;
+		
+		public JRadioButtonMenuItemWithLocalization(final Localizer localizer, final String[] parts) {
+			this.localizer = localizer;
+			this.parts = parts;
+			fillLocalizedStrings();
+		}
+		
+		@Override
+		public void localeChanged(Locale oldLocale, Locale newLocale) throws LocalizationException {
+			fillLocalizedStrings();
+		}
+
+		private void fillLocalizedStrings() {
+			try {
+				setText(localizer.getValue(parts[1]));
+			} catch (LocalizationException exc) {
+				setText(parts[1]);
+			}
+			if (parts.length > 2) {
+				try {
+					setToolTipText(localizer.getValue(parts[2]));
+				} catch (LocalizationException exc) {
+					setToolTipText("");
+				}
+			}
 		}
 	}
 	
@@ -2505,6 +2539,52 @@ loop:			for (;;) {
 			}
 			return ContinueMode.CONTINUE;
 		});
+	}
+	
+	public static class SimpleAction implements Action {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public Object getValue(String key) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void putValue(String key, Object value) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void setEnabled(boolean b) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public boolean isEnabled() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void addPropertyChangeListener(PropertyChangeListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void removePropertyChangeListener(PropertyChangeListener listener) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 	
 	private static class MethodHandleAndAsync {
@@ -3008,7 +3088,7 @@ loop:			for (;;) {
 			}
 		}
 	}
-	
+
 	private static class JRadioMenuItemWithMeta extends JRadioButtonMenuItem implements NodeMetadataOwner, LocaleChangeListener {
 		private static final long serialVersionUID = -1731094524456032387L;
 

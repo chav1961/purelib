@@ -9,6 +9,8 @@ import java.util.Properties;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
@@ -42,6 +44,8 @@ public class JCommandLine extends JPanel implements LocaleChangeListener {
     private final Localizer localizer;
 	private final JLabel command = new JLabel();
     private final JTextField commandField = new JTextField();
+    private final JTextArea commandArea = new JTextArea();
+    private final boolean multiline;
     private final List<String> commandHistory = new ArrayList<>();
     private int historyIndex = -1;
 
@@ -49,10 +53,11 @@ public class JCommandLine extends JPanel implements LocaleChangeListener {
      * <p>Constructor of the class instance</p>
      *
      * @param localizer the localization provider; must not be null
+     * @param multiline use multiline command string
      * @param executor  the command executor; must not be null
      * @throws NullPointerException if {@code localizer} or {@code executor} is null
      */
-    public JCommandLine(final Localizer localizer, final ThrowableConsumer executor) throws NullPointerException {
+    public JCommandLine(final Localizer localizer, final boolean multiline, final ThrowableConsumer executor) throws NullPointerException {
         super(new BorderLayout(5, 5));
         if (localizer == null) {
         	throw new NullPointerException("Localizer can't be null"); 
@@ -62,23 +67,35 @@ public class JCommandLine extends JPanel implements LocaleChangeListener {
         }
         else {
 	        this.localizer = localizer;
+	        this.multiline = multiline;
 	        
-	        SwingUtils.assignActionKey(commandField, KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.CTRL_DOWN_MASK), (e)->prevCommand(), "prevCommand");
-	        SwingUtils.assignActionKey(commandField, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.CTRL_DOWN_MASK), (e)->nextCommand(), "nextCommand");
-	        SwingUtils.assignActionListeners(commandField, (e)->{
-	            final String cmd = commandField.getText().trim();
-	            
-	            if (!cmd.isEmpty()) {
-	            	try {
-	            		executor.accept(cmd);
-	                    addCommandToHistory(cmd);
-	            	} catch (CalculationException exc) {
-	            		SwingUtils.getNearestLogger(commandField).message(Severity.error, exc, exc.getLocalizedMessage());
-	            	}
-	            }
-	        });
+	        if (multiline) {
+		        SwingUtils.assignActionKey(commandArea, KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.CTRL_DOWN_MASK), (e)->prevCommand(), "prevCommand");
+		        SwingUtils.assignActionKey(commandArea, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.CTRL_DOWN_MASK), (e)->nextCommand(), "nextCommand");
+		        SwingUtils.assignActionKey(commandArea, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, KeyEvent.CTRL_DOWN_MASK), 
+		        	(e)->{
+			            final String cmd = !Utils.checkEmptyOrNullString(commandArea.getSelectedText()) 
+			            						? commandArea.getSelectedText().trim()
+			            						: commandArea.getText().trim();
+			            
+			            executeCommand(cmd, executor);
+			            commandArea.setText("");
+		        	}
+		        , "executeCommand");
+		        add(new JScrollPane(commandArea), BorderLayout.CENTER);
+	        }
+	        else {
+		        SwingUtils.assignActionKey(commandField, KeyStroke.getKeyStroke(KeyEvent.VK_UP, KeyEvent.CTRL_DOWN_MASK), (e)->prevCommand(), "prevCommand");
+		        SwingUtils.assignActionKey(commandField, KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, KeyEvent.CTRL_DOWN_MASK), (e)->nextCommand(), "nextCommand");
+		        SwingUtils.assignActionListeners(commandField, (e)->{
+		            final String cmd = commandField.getText().trim();
+		            
+		            executeCommand(cmd, executor);
+		            commandField.setText("");
+		        });
+		        add(commandField, BorderLayout.CENTER);
+	        }
 	        add(command, BorderLayout.WEST);
-	        add(commandField, BorderLayout.CENTER);
 	        fillLocalizedStrings();
         }
     }
@@ -151,7 +168,14 @@ public class JCommandLine extends JPanel implements LocaleChangeListener {
     	if (!commandHistory.isEmpty()) {
 	        if (historyIndex < commandHistory.size() - 1) {
 	            historyIndex++;
-	            commandField.setText(commandHistory.get(commandHistory.size() - 1 - historyIndex));
+	            final String value = commandHistory.get(commandHistory.size() - 1 - historyIndex);
+	            
+	            if (multiline) {
+		            commandArea.setText(value);
+	            }
+	            else {
+		            commandField.setText(value);
+	            }
 	        }
     	}
     }
@@ -160,20 +184,40 @@ public class JCommandLine extends JPanel implements LocaleChangeListener {
     	if (!commandHistory.isEmpty()) {
 	        if (historyIndex > 0) {
 	            historyIndex--;
-	            commandField.setText(commandHistory.get(commandHistory.size() - 1 - historyIndex));
+	            final String value = commandHistory.get(commandHistory.size() - 1 - historyIndex);
+	            
+	            if (multiline) {
+		            commandArea.setText(value);
+	            }
+	            else {
+		            commandField.setText(value);
+	            }
 	        } 
 	        else {
 	            historyIndex = -1;
-	            commandField.setText("");
+	            
+	            if (multiline) {
+		            commandArea.setText("");
+	            }
+	            else {
+		            commandField.setText("");
+	            }
 	        }
     	}
     }
 
-    private void addCommandToHistory(final String command) {
-        commandHistory.add(command);
-        historyIndex = -1;
+    private void executeCommand(final String cmd, final ThrowableConsumer executor) {
+        if (!cmd.isEmpty()) {
+        	try {
+        		executor.accept(cmd);
+                commandHistory.add(cmd);
+                historyIndex = -1;
+        	} catch (CalculationException exc) {
+        		SwingUtils.getNearestLogger(this).message(Severity.error, exc, exc.getLocalizedMessage());
+        	}
+        }
     }
-
+    
     private void fillLocalizedStrings() {
 		command.setText(localizer.getValue(LABEL_TEXT));
 		commandField.setToolTipText(localizer.getValue(TEXT_TOOLTIP));

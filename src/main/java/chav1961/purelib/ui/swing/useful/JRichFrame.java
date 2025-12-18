@@ -3,6 +3,9 @@ package chav1961.purelib.ui.swing.useful;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.WindowAdapter;
 import java.io.File;
 import java.net.URI;
 import java.util.Hashtable;
@@ -51,7 +54,7 @@ public class JRichFrame extends JFrame implements LocaleChangeListener, LoggerFa
 	private final JPanel					content = new JPanel(new BorderLayout(5, 5));
 	private boolean 						contentPrepared = false;
 
-	protected JRichFrame(final ContentMetadataInterface mdi, final ArgParser args, final SubstitutableProperties settings) {
+	protected JRichFrame(final ContentMetadataInterface mdi, final ArgParser args, final SubstitutableProperties settings, final boolean storeLocation) {
 		if (mdi == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
@@ -98,7 +101,26 @@ public class JRichFrame extends JFrame implements LocaleChangeListener, LoggerFa
 			}
 			else {
 				SwingUtils.centerMainWindow(this, 0.85f);
-			}		
+			}
+			if (storeLocation) {
+				addComponentListener(new ComponentAdapter() {
+					@Override
+					public void componentMoved(ComponentEvent e) {
+						saveLocation();
+					}
+					
+					@Override
+					public void componentResized(ComponentEvent e) {
+						saveLocation();
+					}
+					
+					private void saveLocation() {
+						settings.setProperty(PROP_APP_RECTANGLE, 
+								String.format("%1$d,%2$d,%3$d,%4$d,", getX(), getY(), getWidth(), getHeight())
+						);
+					}
+				});
+			}
 		}
 	}
 
