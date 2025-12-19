@@ -22,16 +22,21 @@ import javax.swing.JPanel;
 import chav1961.purelib.basic.ArgParser;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.SubstitutableProperties;
+import chav1961.purelib.basic.exceptions.ContentException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.basic.interfaces.AppArgumentsOwner;
 import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
+import chav1961.purelib.basic.interfaces.ModuleAccessor;
 import chav1961.purelib.i18n.LocalizerFactory;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
+import chav1961.purelib.model.ContentModelFactory;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface;
 import chav1961.purelib.model.interfaces.ContentMetadataInterface.ContentNodeMetadata;
 import chav1961.purelib.model.interfaces.NodeMetadataOwner;
+import chav1961.purelib.ui.interfaces.FormManager;
+import chav1961.purelib.ui.swing.AutoBuiltForm;
 import chav1961.purelib.ui.swing.SwingUtils;
 import chav1961.purelib.ui.swing.interfaces.OnAction;
 import chav1961.purelib.i18n.interfaces.LocalizerOwner;
@@ -174,4 +179,18 @@ public class JRichFrame extends JFrame implements LocaleChangeListener, LoggerFa
 	protected SubstitutableProperties getSettings() {
 		return settings;
 	}
+
+	protected <T> boolean ask(final T instance, final Localizer localizer, final int width, final int height) throws ContentException {
+		final ContentMetadataInterface	mdi = ContentModelFactory.forAnnotatedClass(instance.getClass());
+		
+		try(final AutoBuiltForm<T,?>	abf = new AutoBuiltForm<>(mdi, localizer, PureLibSettings.INTERNAL_LOADER, instance, (FormManager<?,T>)instance)) {
+
+			if (instance instanceof ModuleAccessor) {
+				((ModuleAccessor)instance).allowUnnamedModuleAccess(abf.getUnnamedModules());
+			}
+			abf.setPreferredSize(new Dimension(width,height));
+			return AutoBuiltForm.ask((JFrame)null,localizer,abf);
+		}
+	}
+
 }
