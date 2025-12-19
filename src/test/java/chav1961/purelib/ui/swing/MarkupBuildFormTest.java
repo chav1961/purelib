@@ -39,13 +39,8 @@ public class MarkupBuildFormTest {
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
 													@Override
-													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+													public RefreshMode onField(LoggerFacade logger, PseudoData inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 														return RefreshMode.DEFAULT;
-													}
-										
-													@Override
-													public LoggerFacade getLogger() {
-														return PureLibSettings.CURRENT_LOGGER;
 													}
 												};
 		final ContentMetadataInterface			mdi = ContentModelFactory.forAnnotatedClass(pd.getClass());
@@ -67,13 +62,8 @@ public class MarkupBuildFormTest {
 		final PseudoData						pd = new PseudoData();
 		final FormManager<Object,PseudoData>	fm = new FormManager<Object,PseudoData>() {
 													@Override
-													public RefreshMode onField(PseudoData inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+													public RefreshMode onField(LoggerFacade logger, PseudoData inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 														return RefreshMode.DEFAULT;
-													}
-										
-													@Override
-													public LoggerFacade getLogger() {
-														return PureLibSettings.CURRENT_LOGGER;
 													}
 												};
 		final ContentMetadataInterface			mdi = ContentModelFactory.forAnnotatedClass(pd.getClass());

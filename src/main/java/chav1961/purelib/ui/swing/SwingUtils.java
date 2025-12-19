@@ -1286,8 +1286,14 @@ loop:			for (Component comp : children(node)) {
 			throw new NullPointerException("Form manager can't be null"); 
 		}
 		else {
+			final LoggerFacade lf = (manager instanceof LoggerFacadeOwner) 
+									? ((LoggerFacadeOwner)manager).getLogger()
+									: (entity instanceof LoggerFacadeOwner)
+										? ((LoggerFacadeOwner)entity).getLogger() 
+										: SwingUtils.getNearestLogger(root);
+			
 			internalAssignActionListeners(root,(e)->{
-				try{manager.onAction(entity,null,e.getActionCommand(),null);
+				try{manager.onAction(lf,entity,null,e.getActionCommand(),null);
 				} catch (LocalizationException | FlowException exc) {
 				}
 			}, preprocess);

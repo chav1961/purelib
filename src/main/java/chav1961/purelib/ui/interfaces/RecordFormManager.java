@@ -2,6 +2,7 @@ package chav1961.purelib.ui.interfaces;
 
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
  * <p>This interface describes actions for record processing.</p>
@@ -47,6 +48,7 @@ public interface RecordFormManager<Id,Instance> {
 	/**
 	 * <p>Processing record-scope actions on the UI screen</p>
 	 * @param action record-scope action to process
+	 * @param logger logger to print message to. Can't be null.
 	 * @param oldRecord old record instance (will be null for {@linkplain RecordAction#INSERT}) 
 	 * @param oldId primary key of the old record instance (will be null for {@linkplain RecordAction#INSERT})
 	 * @param newRecord new record instance (will be null for {@linkplain RecordAction#DELETE})
@@ -55,7 +57,7 @@ public interface RecordFormManager<Id,Instance> {
 	 * @throws FlowException on any errors or on action cancelling  
 	 * @throws LocalizationException on any errors in the localization  
 	 */
-	default RefreshMode onRecord(final RecordAction action, final Instance oldRecord, final Id oldId, final Instance newRecord, final Id newId) throws FlowException, LocalizationException {
+	default RefreshMode onRecord(final RecordAction action, final LoggerFacade logger, final Instance oldRecord, final Id oldId, final Instance newRecord, final Id newId) throws FlowException, LocalizationException {
 		return RefreshMode.DEFAULT;
 	}
 }

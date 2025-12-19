@@ -353,7 +353,9 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 				
 				buttonPanel.add(messages);
 
-				this.monitor = new FormMonitor<T>(localizer,formMgr.getLogger(),instance,formMgr,accessors,tooltipsOnFocus) {
+				final LoggerFacade lf = (formMgr instanceof LoggerFacadeOwner) ? ((LoggerFacadeOwner)formMgr).getLogger() : getLogger(); 
+				
+				this.monitor = new FormMonitor<T>(localizer,lf,instance,formMgr,accessors,tooltipsOnFocus) {
 					@Override
 					protected JComponentInterface findComponentByName(final URI uiPath) throws ContentException {
 						return (JComponentInterface)SwingUtils.findComponentByName(AutoBuiltForm.this, uiPath.toString());
@@ -1107,7 +1109,11 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 							return;
 						}
 					} catch (ContentException exc) {
-						form.formManager.getLogger().message(Severity.error,exc,"Error storing last control value for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
+						final LoggerFacade lf = (form.formManager instanceof LoggerFacadeOwner)
+												? ((LoggerFacadeOwner)form.formManager).getLogger()
+												: form.getLogger();
+							
+						lf.message(Severity.error,exc,"Error storing last control value for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 					}
 				}
 				okListener.actionPerformed(e);
@@ -1133,8 +1139,12 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 									dlg.setTitle(String.format(localizer.getValue(node.getLabelId()), toInsert));
 								}
 							} catch (LocalizationException exc) {
+								final LoggerFacade lf = (form.formManager instanceof LoggerFacadeOwner)
+														? ((LoggerFacadeOwner)form.formManager).getLogger()
+														: form.getLogger();
+								
 								dlg.setTitle(node.getLabelId());
-								form.formManager.getLogger().message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
+								lf.message(Severity.error,exc,"Filling localized for [%1$s]: processing error %2$s",node.getApplicationPath(),exc.getLocalizedMessage());
 							}
 						}
 					}

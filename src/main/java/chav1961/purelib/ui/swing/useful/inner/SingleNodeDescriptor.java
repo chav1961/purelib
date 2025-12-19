@@ -85,10 +85,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 	@Format("30s")
 	public URI			fieldIconURI = DEFAULT_ICON_URI;
 	
-	private final LoggerFacade	logger;
-	
-	public SingleNodeDescriptor(final LoggerFacade logger) {
-		this.logger = logger;
+	public SingleNodeDescriptor() {
 	}
 
 	public void fillContent(final ContentNodeMetadata data) {
@@ -121,11 +118,11 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 	}
 	
 	@Override
-	public RefreshMode onField(final SingleNodeDescriptor inst, final Object id, final String field, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
+	public RefreshMode onField(final LoggerFacade logger, final SingleNodeDescriptor inst, final Object id, final String field, final Object oldValue, final boolean beforeCommit) throws FlowException, LocalizationException {
 		switch(field) {
 			case "fieldName" 			:
 				if (fieldName.trim().isEmpty()) {
-					getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_NULL_OR_EMPTY_VALUE);
+					logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_NULL_OR_EMPTY_VALUE);
 					return RefreshMode.REJECT;
 				}
 				else {
@@ -144,7 +141,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 				}
 			case "fieldClassName" 			:
 				if (fieldClassName.trim().isEmpty()) {
-					getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_NULL_OR_EMPTY_VALUE);
+					logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_NULL_OR_EMPTY_VALUE);
 					return RefreshMode.REJECT;
 				}
 				else {
@@ -158,14 +155,14 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 						try{fieldClass = Class.forName(correctClassName);
 							return RefreshMode.DEFAULT;
 						} catch (ClassNotFoundException exc) {
-							getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_CLASS_NOT_FOUND,fieldClassName.trim());
+							logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_CLASS_NOT_FOUND,fieldClassName.trim());
 							return RefreshMode.REJECT;
 						}
 					}
 				}
 			case "fieldRelativeURI" 	:
 				if (fieldRelativeURI.isAbsolute()) {
-					getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_RELATIVE_URI_REQUIRED);
+					logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_RELATIVE_URI_REQUIRED);
 					return RefreshMode.REJECT;
 				}
 				else {
@@ -174,7 +171,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 			case "fieldLocalizerURI" 	:
 				if (!fieldLocalizerURI.isAbsolute()) {
 					if (!fieldLocalizerURI.equals(DEFAULT_LOCALIZER)) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_ABSOLUTE_URI_REQUIRED);
+						logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_ABSOLUTE_URI_REQUIRED);
 						return RefreshMode.REJECT;
 					}
 					else {
@@ -182,7 +179,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 					}
 				}
 				else if (!LocalizerFactory.hasLocalizerFor(fieldLocalizerURI)) {
-					getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_URI_REFERS_TO_NOWHERE,fieldLocalizerURI);
+					logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_URI_REFERS_TO_NOWHERE,fieldLocalizerURI);
 					return RefreshMode.REJECT;
 				}
 				else {
@@ -190,11 +187,11 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 				}
 			case "labelId" 				:
 				if (labelId.trim().isEmpty()) {
-					getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_NULL_OR_EMPTY_VALUE);
+					logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_NULL_OR_EMPTY_VALUE);
 					return RefreshMode.REJECT;
 				}
 				else if (!validateLocalizationId(fieldLocalizerURI,labelId)) {
-					getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_LOCALIZATION_KEY_IS_MISSING,fieldLocalizerURI,labelId);
+					logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_LOCALIZATION_KEY_IS_MISSING,fieldLocalizerURI,labelId);
 					return RefreshMode.REJECT;
 				}
 				else {
@@ -203,7 +200,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 			case "tooltipId" 			:
 				if (!tooltipId.trim().isEmpty()) {
 					if (!validateLocalizationId(fieldLocalizerURI,tooltipId)) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_LOCALIZATION_KEY_IS_MISSING,fieldLocalizerURI,tooltipId);
+						logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_LOCALIZATION_KEY_IS_MISSING,fieldLocalizerURI,tooltipId);
 						return RefreshMode.REJECT;
 					}
 					else {
@@ -216,7 +213,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 			case "helpId" 				:
 				if (!helpId.trim().isEmpty()) {
 					if (!validateLocalizationId(fieldLocalizerURI,helpId)) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_LOCALIZATION_KEY_IS_MISSING,fieldLocalizerURI,helpId);
+						logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_LOCALIZATION_KEY_IS_MISSING,fieldLocalizerURI,helpId);
 						return RefreshMode.REJECT;
 					}
 					else {
@@ -232,7 +229,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 					
 						return RefreshMode.FIELD_ONLY;
 					} catch (IllegalArgumentException exc) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_ILLEGAL_FIELD_FORMAT,fieldClass,fieldFormat.trim(),exc.getLocalizedMessage());
+						logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_ILLEGAL_FIELD_FORMAT,fieldClass,fieldFormat.trim(),exc.getLocalizedMessage());
 						return RefreshMode.REJECT;
 					}
 				}
@@ -242,7 +239,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 			case "fieldApplicationURI" 	:
 				if (!fieldApplicationURI.isAbsolute()) {
 					if (!fieldApplicationURI.equals(DEFAULT_APPLICATION_URI)) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_ABSOLUTE_URI_REQUIRED);
+						logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_ABSOLUTE_URI_REQUIRED);
 						return RefreshMode.REJECT;
 					}
 					else {
@@ -255,7 +252,7 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 			case "fieldIconURI" 		:
 				if (!fieldIconURI.isAbsolute()) {
 					if (!fieldApplicationURI.equals(DEFAULT_ICON_URI)) {
-						getLogger().message(Severity.warning,WellKnownLocalizationKeys.CHECK_ABSOLUTE_URI_REQUIRED);
+						logger.message(Severity.warning,WellKnownLocalizationKeys.CHECK_ABSOLUTE_URI_REQUIRED);
 						return RefreshMode.REJECT;
 					}
 					else {
@@ -270,11 +267,6 @@ public class SingleNodeDescriptor implements FormManager<Object,SingleNodeDescri
 		
 	}
 
-	@Override
-	public LoggerFacade getLogger() {
-		return logger;
-	}
-	
 	private static boolean validateLocalizationId(final URI localizerUri, final String key) {
 		if (LocalizerFactory.hasLocalizerFor(localizerUri)) {
 			try{final Localizer	localizer = LocalizerFactory.getLocalizer(localizerUri);

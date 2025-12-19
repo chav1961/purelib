@@ -16,7 +16,9 @@ import javax.swing.table.TableModel;
 import chav1961.purelib.basic.PureLibSettings;
 import chav1961.purelib.basic.exceptions.FlowException;
 import chav1961.purelib.basic.exceptions.LocalizationException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 import chav1961.purelib.basic.interfaces.LoggerFacade.Severity;
+import chav1961.purelib.basic.interfaces.LoggerFacadeOwner;
 import chav1961.purelib.cdb.CompilerUtils;
 import chav1961.purelib.concurrent.LightWeightListenerList;
 import chav1961.purelib.i18n.interfaces.Localizer;
@@ -51,13 +53,16 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		void process(JDataBaseTableWithMeta<K,Inst> table, ChangeType ct, K keyValue, String fieldName);
 	}
 	
-	public JDataBaseTableWithMeta(final ContentNodeMetadata meta, final Localizer localizer, final boolean enableManipulations, final boolean enableEdit) throws NullPointerException, IllegalArgumentException {
-		super(buildTableModel(meta, localizer, enableEdit), buildFreezedColumns(meta));
+	public JDataBaseTableWithMeta(final ContentNodeMetadata meta, final Localizer localizer, final LoggerFacade logger, final boolean enableManipulations, final boolean enableEdit) throws NullPointerException, IllegalArgumentException {
+		super(buildTableModel(meta, localizer, logger, enableEdit), buildFreezedColumns(meta));
 		if (meta == null) {
 			throw new NullPointerException("Metadata can't be null");
 		}
 		else if (localizer == null) {
 			throw new NullPointerException("Localizer can't be null");
+		}
+		else if (logger == null) {
+			throw new NullPointerException("Logger can't be null");
 		}
 		else {
 			this.meta = meta;
@@ -178,7 +183,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		else { 
 			final K	newKey = instMgr.extractKey(content);
 			
-			if (mgr.onRecord(RecordAction.INSERT, null, null, content, newKey) != RefreshMode.REJECT) {
+			if (mgr.onRecord(RecordAction.INSERT, findLogger(), null, null, content, newKey) != RefreshMode.REJECT) {
 				model.desc.rs.moveToInsertRow();
 				instMgr.storeInstance(model.desc.rs, content, false);
 				model.desc.rs.insertRow();
@@ -201,7 +206,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			final K		newKey = instMgr.newKey();
 			
 			instMgr.assignKey(duplicatedRow, newKey);
-			if (mgr.onRecord(RecordAction.DUPLICATE, sourceRow, instMgr.extractKey(sourceRow), duplicatedRow, newKey) != RefreshMode.REJECT) {
+			if (mgr.onRecord(RecordAction.DUPLICATE, findLogger(), sourceRow, instMgr.extractKey(sourceRow), duplicatedRow, newKey) != RefreshMode.REJECT) {
 				model.desc.rs.moveToInsertRow();
 				instMgr.storeInstance(model.desc.rs, duplicatedRow, false);
 				model.desc.rs.insertRow();
@@ -224,7 +229,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 			
 			final Inst	inst = loadRow(row);
 		
-			if (mgr.onRecord(RecordAction.DELETE, inst, instMgr.extractKey(inst), null, null) != RefreshMode.REJECT) {
+			if (mgr.onRecord(RecordAction.DELETE, findLogger(), inst, instMgr.extractKey(inst), null, null) != RefreshMode.REJECT) {
 				final K	key = instMgr.extractKey(inst);
 				
 				model.desc.rs.deleteRow();
@@ -246,6 +251,15 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		
 		instMgr.loadInstance(model.desc.rs, inst);
 		return inst;
+	}
+	
+	private LoggerFacade findLogger() {
+		if (mgr instanceof LoggerFacadeOwner) {
+			return ((LoggerFacadeOwner)mgr).getLogger();
+		}
+		else {
+			return SwingUtils.getNearestLogger(this);
+		}
 	}
 	
 	private void manipulate(final int row, final String action) {
@@ -311,7 +325,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		
 	}
 
-	static <K, Inst> TableModel buildTableModel(final ContentNodeMetadata meta, final Localizer localizer, final boolean enableEdit) {
+	static <K, Inst> TableModel buildTableModel(final ContentNodeMetadata meta, final Localizer localizer, final LoggerFacade logger, final boolean enableEdit) {
 		if (meta == null) {
 			throw new NullPointerException("Metadata can't be null"); 
 		}
@@ -330,7 +344,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 					}
 				}
 			}
-			return new InnerTableModel<K, Inst>(meta, result.toArray(new ContentNodeMetadata[result.size()]), localizer, enableEdit);
+			return new InnerTableModel<K, Inst>(meta, result.toArray(new ContentNodeMetadata[result.size()]), localizer, logger, enableEdit);
 		}
 	}
 	
@@ -351,14 +365,16 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 		private final ContentNodeMetadata		owner;
 		private final ContentNodeMetadata[]		metadata;
 		private final Localizer					localizer;
+		private final LoggerFacade				logger;
 		private volatile ContentDesc<K, Inst>	desc = null; 
 		private Inst						lastRow;
 		private boolean							rsIsReadOnly = false;
 
-		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[] metadata, final Localizer localizer, final boolean enableEdit) {
+		private InnerTableModel(final ContentNodeMetadata owner, final ContentNodeMetadata[] metadata, final Localizer localizer, final LoggerFacade logger, final boolean enableEdit) {
 			this.owner = owner;
 			this.metadata = metadata;
 			this.localizer = localizer;
+			this.logger = logger;
 		}
 
 		@Override
@@ -477,7 +493,7 @@ public class JDataBaseTableWithMeta<K,Inst> extends JFreezableTable implements N
 				final Object	oldValue = desc.instMgr.get(lastRow, fieldName);
 				
 				desc.instMgr.set(lastRow, fieldName, aValue);
-				if (desc.mgr == null || desc.mgr.onField(lastRow, desc.instMgr.extractKey(lastRow), metadata[columnIndex].getName(), oldValue, true) != RefreshMode.REJECT) {
+				if (desc.mgr == null || desc.mgr.onField(logger, lastRow, desc.instMgr.extractKey(lastRow), metadata[columnIndex].getName(), oldValue, true) != RefreshMode.REJECT) {
 					desc.rs.absolute(rowIndex + 1);
 					desc.instMgr.storeInstance(desc.rs, lastRow, true);
 					desc.rs.updateRow();

@@ -18,20 +18,12 @@ public class RootDescriptor implements FormManager<Object,RootDescriptor> {
 	@Format("30m")
 	public String		fieldName = "<name>";
 
-	private final LoggerFacade	logger;
-	
-	public RootDescriptor(final LoggerFacade logger) {
-		this.logger = logger;
+	public RootDescriptor() {
 	}
 
 	
 	@Override
-	public RefreshMode onField(RootDescriptor inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+	public RefreshMode onField(LoggerFacade logger, RootDescriptor inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 		return RefreshMode.DEFAULT;
-	}
-
-	@Override
-	public LoggerFacade getLogger() {
-		return logger;
 	}
 }

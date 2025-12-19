@@ -68,6 +68,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 	
 	private final ContentMetadataInterface	metadata;
 	private final Localizer					localizer;
+	private final LoggerFacade				logger;
 	private final FormMonitor<T>			monitor;
 	private final FormManager<Object,T> 	formMgr;
 	private final PresentationDescriptor	desc;
@@ -101,6 +102,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 		else {
 			this.metadata = metadata;
 			this.localizer = localizer;
+			this.logger = logger;
 			this.formMgr = formMgr;
 			this.state = new JStateString(localizer);
 			
@@ -364,7 +366,7 @@ public class MarkupBuiltForm<T> extends JPanel implements LocaleChangeListener, 
 			bar.add(item);
 			item.addActionListener((e)->{
 				try {
-					formMgr.onAction(instance,null,((NodeMetadataOwner)item).getNodeMetadata().getApplicationPath().toString(),null);
+					formMgr.onAction(logger,instance,null,((NodeMetadataOwner)item).getNodeMetadata().getApplicationPath().toString(),null);
 				} catch (LocalizationException | FlowException exc) {
 					message(Severity.error,exc,exc.getLocalizedMessage());
 				}

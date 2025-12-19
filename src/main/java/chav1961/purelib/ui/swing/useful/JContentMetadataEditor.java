@@ -87,9 +87,9 @@ public class JContentMetadataEditor extends JPanel implements LocaleChangeListen
 		else {
 			this.localizer = localizer;
 			this.logger = logger;
-			this.snd = new SingleNodeDescriptor(logger);
+			this.snd = new SingleNodeDescriptor();
 			this.sndModel = ContentModelFactory.forAnnotatedClass(SingleNodeDescriptor.class);
-			this.rd = new RootDescriptor(logger);
+			this.rd = new RootDescriptor();
 			this.rdModel = ContentModelFactory.forAnnotatedClass(RootDescriptor.class);
 			rebuildContent(currentMode);
 		}

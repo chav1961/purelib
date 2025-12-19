@@ -81,7 +81,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor, LoggerFacadeO
 					}
 				}
 				else {
-					try{switch (processRefreshMode(formMgr.onAction(instance, null, metadata.getApplicationPath().toString(), parameters), event, metadata, component, parameters)) {
+					try{switch (processRefreshMode(formMgr.onAction(getLogger(), instance, null, metadata.getApplicationPath().toString(), parameters), event, metadata, component, parameters)) {
 							case REJECT : case FIELD_ONLY : case DEFAULT : case NONE :
 								break;
 							case TOTAL : case RECORD_ONLY :
@@ -141,7 +141,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor, LoggerFacadeO
 				
 					ModelUtils.setValueBySetter(instance, toStore, accessors.get(metadata.getUIPath()), metadata);
 					
-					switch (processRefreshMode(formMgr.onField(instance,null,metadata.getName(),oldValue,false), event, metadata, component, parameters)) {
+					switch (processRefreshMode(formMgr.onField(getLogger(),instance,null,metadata.getName(),oldValue,false), event, metadata, component, parameters)) {
 						case FIELD_ONLY : case DEFAULT : case NONE :
 							break;
 						case TOTAL : case RECORD_ONLY :
@@ -185,7 +185,7 @@ public abstract class FormMonitor<T> implements JComponentMonitor, LoggerFacadeO
 				}
 				else {
 					try{
-						if (formMgr.onField(instance,null,metadata.getName(),fvChanged,true) != RefreshMode.REJECT) {
+						if (formMgr.onField(getLogger(),instance,null,metadata.getName(),fvChanged,true) != RefreshMode.REJECT) {
 							return true;
 						}
 					} catch (LocalizationException | FlowException e) {

@@ -554,7 +554,7 @@ public class JReferenceListWithMeta extends JList<ReferenceAndComment> implement
 	
 	private boolean edit(final ReferenceAndComment rac) {
 		try{final LoggerFacade				logger = SwingUtils.getNearestLogger(this);
-			final ReferenceAndCommentEditor	rce = new ReferenceAndCommentEditor(logger);
+			final ReferenceAndCommentEditor	rce = new ReferenceAndCommentEditor();
 		
 			try(final AutoBuiltForm<ReferenceAndCommentEditor,Object>	abf = new AutoBuiltForm<ReferenceAndCommentEditor,Object>(editorModel, localizer, logger, PureLibSettings.INTERNAL_LOADER, rce, rce)) {
 				

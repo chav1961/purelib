@@ -337,13 +337,8 @@ public class JFileSystemChanger extends JPanel implements LocaleChangeListener {
 		String uriTemplate = "";
 		
 		@Override
-		public RefreshMode onField(FileSystemDescription inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
+		public RefreshMode onField(LoggerFacade logegr, FileSystemDescription inst, Object id, String fieldName, Object oldValue, boolean beforeCommit) throws FlowException, LocalizationException {
 			return RefreshMode.DEFAULT;
-		}
-		
-		@Override
-		public LoggerFacade getLogger() {
-			return PureLibSettings.CURRENT_LOGGER;
 		}
 	}
 }

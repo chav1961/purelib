@@ -117,12 +117,12 @@ public class JModelBasedWizardStep<Common, Err extends Enum<?>> extends JCompone
 
 	@Override
 	public void beforeShow(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, Err> err) throws FlowException {
-		((FormManager)instance).onRecord(RecordAction.REFRESH, null, instance, null, instance);
+		((FormManager)instance).onRecord(RecordAction.REFRESH, logger, null, instance, null, instance);
 	}
 
 	@Override
 	public boolean validate(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, Err> err) throws FlowException {
-		final RefreshMode mode = ((FormManager)instance).onRecord(RecordAction.CHECK, null, instance, null, instance);
+		final RefreshMode mode = ((FormManager)instance).onRecord(RecordAction.CHECK, logger, null, instance, null, instance);
 		
 		switch (mode) {
 			case EXIT : case FIELD_ONLY : case NONE : case RECORD_ONLY : case TOTAL :
@@ -138,6 +138,6 @@ public class JModelBasedWizardStep<Common, Err extends Enum<?>> extends JCompone
 
 	@Override
 	public void afterShow(final Common content, final Map<String, Object> temporary, final ErrorProcessing<Common, Err> err) throws FlowException {
-		((FormManager)instance).onRecord(RecordAction.UPDATE, null, instance, null, instance);
+		((FormManager)instance).onRecord(RecordAction.UPDATE, logger, null, instance, null, instance);
 	}
 }
