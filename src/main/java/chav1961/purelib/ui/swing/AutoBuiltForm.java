@@ -411,7 +411,7 @@ public class AutoBuiltForm<T, K> extends JPanel implements LocaleChangeListener,
 							fieldComponent.requestFocusInWindow();
 						}
 						if ((fieldComponent instanceof JTextComponent) && format.hasLocalEditor() && (formMgr instanceof UIFormManager)) {
-							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])((UIFormManager)formMgr).getForEditorContent(instance, null, metadata.getName(), key, size));
+							new JTextTooltipWindow((JTextComponent)fieldComponent, 0, (key,size)->(String[])((UIFormManager)formMgr).getForEditorContent(lf, instance, null, metadata.getName(), key, size));
 						}
 						trans.message(Severity.trace,"Append control [%1$s] type [%2$s]",metadata.getUIPath(),metadata.getClass().getCanonicalName());
 						labelIds.add(metadata.getLabelId());

@@ -3,6 +3,7 @@ package chav1961.purelib.ui.interfaces;
 import java.util.Set;
 
 import chav1961.purelib.basic.exceptions.FlowException;
+import chav1961.purelib.basic.interfaces.LoggerFacade;
 
 /**
  * <p>This class is an abstract class for implementing low-level UI form management. This class supports:</p> 
@@ -22,6 +23,7 @@ import chav1961.purelib.basic.exceptions.FlowException;
 public interface UIFormManager<Id,Instance> extends UIItemState {
 	/**
 	 * <p>Get form manager to manipulate with local editors (for example, lists, tables etc)</p>
+	 * @param logger logger to type messages to. Can't be null.
 	 * @param inst current record instance 
 	 * @param id primary key of the current record instance
 	 * @param fieldName field name to get manager for
@@ -29,11 +31,12 @@ public interface UIFormManager<Id,Instance> extends UIItemState {
 	 * @return form manager to manipulate or null if missing
 	 * @throws FlowException on any errors or on action canceling  
 	 */
-	FormManager<?,?> getForEditor(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException; 
+	FormManager<?,?> getForEditor(final LoggerFacade logger, final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException; 
 
 	/**
 	 * <p>Get content for local editors (for example, drop-down lists)</p>
 	 * @param <T> content type
+	 * @param logger logger to type messages to. Can't be null.
 	 * @param inst current record instance 
 	 * @param id primary key of the current record instance
 	 * @param fieldName field name to get manager for
@@ -41,5 +44,5 @@ public interface UIFormManager<Id,Instance> extends UIItemState {
 	 * @return content. Can be null
 	 * @throws FlowException on any errors or on action canceling  
 	 */
-	<T> T[] getForEditorContent(final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException;
+	<T> T[] getForEditorContent(final LoggerFacade logger, final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException;
 }
