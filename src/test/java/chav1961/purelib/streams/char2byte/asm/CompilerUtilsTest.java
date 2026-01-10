@@ -204,7 +204,7 @@ public class CompilerUtilsTest {
 		
 		Assert.assertEquals("callMethod .method int public\narg0 .parameter java.lang.String final\narg1 .parameter int[] final\n",CompilerUtils.buildMethodHeader(m));
 		Assert.assertEquals("callMethod .method int public\np1 .parameter java.lang.String final\np2 .parameter int[] final\n",CompilerUtils.buildMethodHeader(m,"p1","p2"));
-		Assert.assertEquals("staticCall .method void public static synchronized strictfp throws java.lang.NullPointerException, java.lang.IllegalStateException\n",CompilerUtils.buildMethodHeader(s));
+		Assert.assertEquals("staticCall .method void public static synchronized throws java.lang.NullPointerException, java.lang.IllegalStateException\n",CompilerUtils.buildMethodHeader(s));
 		
 		try{CompilerUtils.buildMethodHeader(null);
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");

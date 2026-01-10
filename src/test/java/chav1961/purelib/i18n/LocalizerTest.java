@@ -40,7 +40,7 @@ public class LocalizerTest {
 		}
 		Assert.assertEquals(count, 2);
 		
-		pl.setCurrentLocale(Locale.of("en"));
+		pl.setCurrentLocale(Locale.ENGLISH);
 		pl.setCurrentLocale(Locale.of("ru"));
 		pl.setCurrentLocale(Locale.of("en"));
 		count = 0;
