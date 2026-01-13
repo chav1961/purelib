@@ -62,6 +62,10 @@ public class FieldFormat {
 		 */
 		IntegerContent,
 		/**
+		 * <p>Content type - integer/long with restricted range</p>
+		 */
+		RestrictedIntegerContent,
+		/**
 		 * <p>Content type - numeric</p>
 		 */
 		NumericContent,
@@ -743,7 +747,15 @@ public class FieldFormat {
 						return ContentType.FormattedStringContent;
 					}
 				}
-				else if (BigInteger.class.isAssignableFrom(clazz) || clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class) {
+				else if (clazz == Byte.class || clazz == Short.class || clazz == Integer.class) {
+					if (wizardType.startsWith("slider")) {
+						return ContentType.RestrictedIntegerContent;
+					}
+					else {
+						return ContentType.IntegerContent;
+					}
+				}
+				else if (BigInteger.class.isAssignableFrom(clazz) || clazz == Long.class) {
 					return ContentType.IntegerContent;
 				}
 				else if (BigDecimal.class.isAssignableFrom(clazz) || clazz == Float.class || clazz == Double.class) {
@@ -791,7 +803,14 @@ public class FieldFormat {
 				else  {
 					return ContentType.Unclassified;
 				}
-			case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_INT : case CompilerUtils.CLASSTYPE_LONG :	
+			case CompilerUtils.CLASSTYPE_BYTE : case CompilerUtils.CLASSTYPE_SHORT : case CompilerUtils.CLASSTYPE_INT :
+				if (wizardType.startsWith("slider")) {
+					return ContentType.RestrictedIntegerContent;
+				}
+				else {
+					return ContentType.IntegerContent;
+				}
+			case CompilerUtils.CLASSTYPE_LONG :
 				return ContentType.IntegerContent;
 			case CompilerUtils.CLASSTYPE_FLOAT : case CompilerUtils.CLASSTYPE_DOUBLE	:	
 				return ContentType.NumericContent;

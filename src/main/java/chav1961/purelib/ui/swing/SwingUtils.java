@@ -562,6 +562,9 @@ loop:			for (Component comp : children(node)) {
 				case IntegerContent	:
 					result = new JIntegerFieldWithMeta(metadata,monitor);
 					break;
+				case RestrictedIntegerContent	:
+					result = new JSliderWithMeta(metadata, monitor);
+					break;
 				case NumericContent	:
 					result = new JNumericFieldWithMeta(metadata,monitor);
 					break;

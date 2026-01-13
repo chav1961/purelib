@@ -16,6 +16,7 @@ import chav1961.purelib.basic.interfaces.LoggerFacade;
  * </ul>
  * @author Alexander Chernomyrdin aka chav1961
  * @since 0.0.7
+ * @last.update 0.0.9
  * @param <Id> primary key Id type for the form manager instance
  * @param <Instance> content for the form manager instance
  */
@@ -45,4 +46,20 @@ public interface UIFormManager<Id,Instance> extends UIItemState {
 	 * @throws FlowException on any errors or on action canceling  
 	 */
 	<T> T[] getForEditorContent(final LoggerFacade logger, final Instance inst, final Id id, final String fieldName, final Object... parameters) throws FlowException;
+
+	/**
+	 * <p>Get UI property value for wizard requests</p>
+	 * @param <T> property value type
+	 * @param logger logger to type messages to. Can't be null.
+	 * @param inst current record instance 
+	 * @param id primary key of the current record instance
+	 * @param properyName property name to get value for. Can be neither null nor empty.
+	 * @param parameters additional parameters
+	 * @return property value. Can be null
+	 * @throws FlowException on any errors or on action canceling
+	 * @since 0.0.9  
+	 */
+	default <T> T getUIPropertyValue(final LoggerFacade logger, final Instance inst, final Id id, final String properyName, final Object... parameters) throws FlowException {
+		return null;
+	}
 }
