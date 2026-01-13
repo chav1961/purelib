@@ -21,9 +21,6 @@ import chav1961.purelib.basic.exceptions.LocalizationException;
 import chav1961.purelib.i18n.interfaces.Localizer;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleChangeListener;
 import chav1961.purelib.i18n.interfaces.Localizer.LocaleDescriptor;
-import chav1961.purelib.i18n.internal.FileSystemLocalizer;
-import chav1961.purelib.i18n.internal.MutableJsonLocalizer;
-import chav1961.purelib.i18n.internal.XMLLocalizer;
 
 @Tag("OrdinalTestCategory")
 public class LocalizerTest {
@@ -40,9 +37,9 @@ public class LocalizerTest {
 		}
 		Assert.assertEquals(count, 2);
 		
-		pl.setCurrentLocale(Locale.ENGLISH);
-		pl.setCurrentLocale(Locale.of("ru"));
-		pl.setCurrentLocale(Locale.of("en"));
+		pl.setCurrentLocale(Locale.forLanguageTag("en"));
+		pl.setCurrentLocale(Locale.forLanguageTag("ru"));
+		pl.setCurrentLocale(Locale.forLanguageTag("en"));
 		count = 0;
 		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
@@ -66,7 +63,7 @@ public class LocalizerTest {
 		Assert.assertEquals(pl.currentLocale().getDescription(),"English");
 		Assert.assertNotNull(pl.currentLocale().getIcon());
 
-		pl.setCurrentLocale(Locale.of("ru"));
+		pl.setCurrentLocale(Locale.forLanguageTag("ru"));
 		count = 0;
 		for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 			count++;
@@ -102,15 +99,15 @@ public class LocalizerTest {
 		pl.addLocaleChangeListener(lcl);
 		
 		callCount[0] = 0;
-		pl.setCurrentLocale(Locale.of("en"));
+		pl.setCurrentLocale(Locale.forLanguageTag("en"));
 		Assert.assertEquals(callCount[0],1);
 		callCount[0] = 0;
-		pl.setCurrentLocale(Locale.of("en"));
+		pl.setCurrentLocale(Locale.forLanguageTag("en"));
 		Assert.assertEquals(callCount[0],0);
 		
 		pl.removeLocaleChangeListener(lcl);
 		callCount[0] = 0;
-		pl.setCurrentLocale(Locale.of("ru"));
+		pl.setCurrentLocale(Locale.forLanguageTag("ru"));
 		Assert.assertEquals(callCount[0],0);
 		
 		try {pl.addLocaleChangeListener(null);
@@ -127,7 +124,7 @@ public class LocalizerTest {
 			Assert.fail("Mandatory exception was not detected (null 1-st argument)");
 		} catch (NullPointerException exc) {
 		}
-		try {pl.setCurrentLocale(Locale.of("zz"));
+		try {pl.setCurrentLocale(Locale.forLanguageTag("zz"));
 			Assert.fail("Mandatory exception was not detected (unsupported locale)");
 		} catch (LocalizationException exc) {
 		}
@@ -218,7 +215,7 @@ public class LocalizerTest {
 		}
 		Assert.assertEquals(count,3);
 		
-		root.setCurrentLocale(Locale.of("en"));
+		root.setCurrentLocale(Locale.forLanguageTag("en"));
 		Assert.assertEquals(nested.getValue("root"),"rootEn");
 		Assert.assertEquals(nested.getValue("sibling"),"siblingEn");	// Sibling blinds the same parent key
 		Assert.assertEquals(nested.getValue("nested"),"nestedEn");
@@ -259,7 +256,7 @@ public class LocalizerTest {
 		try(final Localizer	fsl = Localizer.Factory.newInstance(URI.create(Localizer.LOCALIZER_SCHEME+":fsys:file:./src/test/resources/chav1961/purelib/i18n#/test"))) {
 			int		count;
 			
-			fsl.setCurrentLocale(Locale.of("en"));
+			fsl.setCurrentLocale(Locale.forLanguageTag("en"));
 			count = 0;
 			for (@SuppressWarnings("unused") String item : fsl.availableKeys()) {
 				count++;
@@ -268,7 +265,7 @@ public class LocalizerTest {
 			Assert.assertEquals(fsl.getValue("key1"), "value1");
 			Assert.assertEquals(fsl.getValue("key2"), "value2");
 			
-			fsl.setCurrentLocale(Locale.of("ru"));
+			fsl.setCurrentLocale(Locale.forLanguageTag("ru"));
 			count = 0;
 			for (@SuppressWarnings("unused") String item : fsl.availableKeys()) {
 				count++;
@@ -284,7 +281,7 @@ public class LocalizerTest {
 		try(final Localizer	pl = Localizer.Factory.newInstance(URI.create(Localizer.LOCALIZER_SCHEME+":xml:./src/test/resources/chav1961/purelib/i18n/test.xml"))) {
 			int		count;
 			
-			pl.setCurrentLocale(Locale.of("en"));
+			pl.setCurrentLocale(Locale.forLanguageTag("en"));
 			count = 0;
 			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 				count++;
@@ -293,7 +290,7 @@ public class LocalizerTest {
 			Assert.assertEquals("value1", pl.getValue("key1"));
 			Assert.assertEquals("value2", pl.getValue("key2"));
 			
-			pl.setCurrentLocale(Locale.of("ru"));
+			pl.setCurrentLocale(Locale.forLanguageTag("ru"));
 			count = 0;
 			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 				count++;
@@ -309,7 +306,7 @@ public class LocalizerTest {
 		try(final Localizer	pl = Localizer.Factory.newInstance(URI.create(Localizer.LOCALIZER_SCHEME+":mutablejson:./src/test/resources/chav1961/purelib/i18n/test.json"))) {
 			int		count;
 			
-			pl.setCurrentLocale(Locale.of("en"));
+			pl.setCurrentLocale(Locale.forLanguageTag("en"));
 			count = 0;
 			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 				count++;
@@ -318,7 +315,7 @@ public class LocalizerTest {
 			Assert.assertEquals("value1", pl.getValue("key1"));
 			Assert.assertEquals("value2", pl.getValue("key2"));
 			
-			pl.setCurrentLocale(Locale.of("ru"));
+			pl.setCurrentLocale(Locale.forLanguageTag("ru"));
 			count = 0;
 			for (@SuppressWarnings("unused") String item : pl.availableKeys()) {
 				count++;
@@ -401,7 +398,6 @@ class PseudoLocalizer extends AbstractLocalizer {
 
 	@Override
 	public String getSubscheme() {
-		// TODO Auto-generated method stub
 		return null;
 	}	
 }
@@ -472,7 +468,6 @@ class SingleKeyLocalizer extends AbstractLocalizer {
 
 	@Override
 	public String getSubscheme() {
-		// TODO Auto-generated method stub
 		return null;
 	}	
 }
