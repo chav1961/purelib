@@ -174,7 +174,7 @@ public final class PureLibSettings {
 	/**
 	 * <p>This is current version of the Pure Library</p>
 	 */
-	public static final String		CURRENT_VERSION = "0.0.7";
+	public static final String		CURRENT_VERSION = "0.0.8";
 
 	/**
 	 * <p>This is a vendor of the Pure Library</p>
